@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useStickToBottomContext } from "use-stick-to-bottom";
 import {
@@ -21,8 +21,10 @@ import {
 import type { Bill } from "@/features/bills/shared/types";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useViewportHeight } from "@/hooks/use-viewport-height";
+import { InterviewCta } from "./interview-cta";
 import { SystemMessage } from "./system-message";
 import { UserMessage } from "./user-message";
+import type { InterviewCtaResult } from "../../server/services/detect-interview-cta";
 
 interface ChatWindowProps {
   billContext?: Bill;
@@ -55,6 +57,8 @@ function ChatMessages({
   status,
   pageContext,
   sessionId,
+  showInterviewCta,
+  onDismissInterviewCta,
 }: {
   billContext?: Bill;
   difficultyLevel: string;
@@ -63,6 +67,8 @@ function ChatMessages({
   status: ChatWindowProps["chatState"]["status"];
   pageContext?: ChatWindowProps["pageContext"];
   sessionId: string;
+  showInterviewCta: boolean;
+  onDismissInterviewCta: () => void;
 }) {
   const { scrollToBottom } = useStickToBottomContext();
   const userMessageLength = messages.filter((x) => x.role === "user").length;
@@ -141,8 +147,39 @@ function ChatMessages({
       {status === "submitted" && (
         <span className="text-sm text-gray-500">考え中...</span>
       )}
+      {showInterviewCta && billContext?.id && (
+        <InterviewCta
+          billId={billContext.id}
+          onDismiss={onDismissInterviewCta}
+        />
+      )}
     </>
   );
+}
+
+/**
+ * Fetch interview CTA detection from API
+ */
+async function fetchInterviewCtaDetection(
+  messages: Array<{ role: string; content: string }>,
+  billId?: string
+): Promise<InterviewCtaResult> {
+  try {
+    const response = await fetch("/api/chat/detect-interview-cta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: messages.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+        billId,
+      }),
+    });
+    return await response.json();
+  } catch {
+    return { showInterviewCta: false, reason: "not_relevant" };
+  }
 }
 
 export function ChatWindow({
@@ -157,6 +194,9 @@ export function ChatWindow({
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+  const [showInterviewCta, setShowInterviewCta] = useState(false);
+  const [ctaDismissed, setCtaDismissed] = useState(false);
+  const lastCheckedMessageCountRef = useRef(0);
   const { messages, sendMessage, status, error } = chatState;
   const isDesktop = useIsDesktop();
   const viewportHeight = useViewportHeight();
@@ -166,6 +206,56 @@ export function ChatWindow({
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  // Detect interview CTA when conversation updates (after AI responds)
+  useEffect(() => {
+    // Skip if CTA already dismissed or already shown
+    if (ctaDismissed || showInterviewCta) return;
+
+    // Skip if no bill context (interview is per-bill)
+    if (!billContext?.id) return;
+
+    // Skip if still responding
+    if (isResponding) return;
+
+    // Skip if we already checked this message count
+    if (messages.length <= lastCheckedMessageCountRef.current) return;
+
+    // Need at least 2 messages (user + assistant)
+    if (messages.length < 2) return;
+
+    // Only check after assistant response
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.role !== "assistant") return;
+
+    lastCheckedMessageCountRef.current = messages.length;
+
+    // Extract text content from messages for detection
+    const messagesForDetection = messages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({
+        role: m.role as "user" | "assistant",
+        content:
+          m.parts
+            ?.filter((p) => p.type === "text")
+            .map((p) => (p as { type: "text"; text: string }).text)
+            .join("") || "",
+      }))
+      .filter((m) => m.content.length > 0);
+
+    fetchInterviewCtaDetection(messagesForDetection, billContext.id).then(
+      (result) => {
+        if (result.showInterviewCta && !ctaDismissed) {
+          setShowInterviewCta(true);
+        }
+      }
+    );
+  }, [messages, isResponding, billContext?.id, ctaDismissed, showInterviewCta]);
+
+  const handleDismissInterviewCta = useCallback(() => {
+    setShowInterviewCta(false);
+    setCtaDismissed(true);
   }, []);
 
   // チャットが開かれたときにinputにフォーカス（disableAutoFocusがfalseの場合のみ）
@@ -255,6 +345,8 @@ export function ChatWindow({
               status={status}
               pageContext={pageContext}
               sessionId={sessionId}
+              showInterviewCta={showInterviewCta}
+              onDismissInterviewCta={handleDismissInterviewCta}
             />
           </ConversationContent>
           <ConversationScrollButton />
