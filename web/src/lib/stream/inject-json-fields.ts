@@ -49,7 +49,7 @@ export function injectJsonFields(
       if (lastBrace !== -1 && injection) {
         const before = tail.slice(0, lastBrace);
         const after = tail.slice(lastBrace + 1);
-        controller.enqueue(encoder.encode(before + injection + "}" + after));
+        controller.enqueue(encoder.encode(`${before}${injection}}${after}`));
       } else {
         controller.enqueue(encoder.encode(tail));
       }

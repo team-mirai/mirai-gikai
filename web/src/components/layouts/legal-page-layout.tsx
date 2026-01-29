@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Container } from "@/components/layouts/container";
 import { cn } from "@/lib/utils";
 
@@ -5,7 +6,7 @@ interface LegalPageLayoutProps {
   title: string;
   description?: string;
   className?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function LegalPageLayout({
@@ -35,7 +36,7 @@ export function LegalPageLayout({
 }
 
 interface LegalSectionTitleProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
@@ -56,7 +57,7 @@ export function LegalSectionTitle({
 }
 
 interface LegalSubSectionTitleProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
@@ -77,7 +78,7 @@ export function LegalSubSectionTitle({
 }
 
 interface LegalParagraphProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
@@ -94,7 +95,7 @@ export function LegalParagraph({ children, className }: LegalParagraphProps) {
   );
 }
 
-type LegalListItem = string | { id: string; content: React.ReactNode };
+type LegalListItem = string | { id: string; content: ReactNode };
 
 interface LegalListProps {
   items: LegalListItem[];

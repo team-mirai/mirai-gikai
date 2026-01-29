@@ -1,3 +1,4 @@
+import type { ElementType } from "react";
 import {
   AlertCircle,
   CheckCircle,
@@ -12,7 +13,7 @@ import type { BillStatus } from "../types";
 // ステータスの表示設定（一覧画面で使用）
 export const BILL_STATUS_CONFIG: Record<
   BillStatus,
-  { icon: React.ElementType; color: string }
+  { icon: ElementType; color: string }
 > = {
   preparing: {
     icon: Settings,

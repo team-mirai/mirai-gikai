@@ -1,5 +1,6 @@
+import type { ReactNode } from "react";
 interface ContainerProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 

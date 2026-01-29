@@ -1,12 +1,13 @@
-import * as React from "react";
+import type { HTMLAttributes } from "react";
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-interface SpeechBubbleProps extends React.HTMLAttributes<HTMLDivElement> {
+interface SpeechBubbleProps extends HTMLAttributes<HTMLDivElement> {
   tailPosition?: "top" | "bottom" | "left" | "right";
   tailAlign?: "start" | "center" | "end";
 }
 
-const SpeechBubble = React.forwardRef<HTMLDivElement, SpeechBubbleProps>(
+const SpeechBubble = forwardRef<HTMLDivElement, SpeechBubbleProps>(
   (
     {
       className,

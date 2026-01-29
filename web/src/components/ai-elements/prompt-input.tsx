@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { ChatStatus, FileUIPart } from "ai";
 import {
   ImageIcon,
@@ -120,7 +121,7 @@ export type PromptInputAttachmentsProps = Omit<
   HTMLAttributes<HTMLDivElement>,
   "children"
 > & {
-  children: (attachment: FileUIPart & { id: string }) => React.ReactNode;
+  children: (attachment: FileUIPart & { id: string }) => ReactNode;
 };
 
 export function PromptInputAttachments({
