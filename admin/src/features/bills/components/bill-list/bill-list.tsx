@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { BILL_STATUS_CONFIG } from "../../constants/bill-config";
 import { getBills } from "../../loaders/get-bills";
-import type { Bill, BillStatus } from "../../types";
+import type { BillStatus, BillWithDietSession } from "../../types";
 import { getBillStatusLabel } from "../../types";
 import { BillActionsMenu } from "../bill-actions-menu/bill-actions-menu";
 import { PreviewButton } from "./preview-button";
@@ -24,7 +24,7 @@ function StatusBadge({
   originatingHouse,
 }: {
   status: BillStatus;
-  originatingHouse: Bill["originating_house"];
+  originatingHouse: BillWithDietSession["originating_house"];
 }) {
   const config = BILL_STATUS_CONFIG[status];
   const Icon = config.icon;
@@ -57,6 +57,7 @@ export async function BillList() {
           <TableHeader>
             <TableRow>
               <TableHead className="min-w-[240px]">議案名</TableHead>
+              <TableHead>国会会期</TableHead>
               <TableHead>公開ステータス</TableHead>
               <TableHead>審議ステータス</TableHead>
               <TableHead>公開日</TableHead>
@@ -75,10 +76,13 @@ export async function BillList() {
   );
 }
 
-function BillRow({ bill }: { bill: Bill }) {
+function BillRow({ bill }: { bill: BillWithDietSession }) {
   return (
     <TableRow>
       <TableCell className="font-medium">{bill.name}</TableCell>
+      <TableCell className="text-gray-600">
+        {bill.diet_sessions?.name ?? "-"}
+      </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           <PublishStatusBadge

@@ -13,6 +13,10 @@ export type BillWithContent = Bill & {
   bill_content?: Database["public"]["Tables"]["bill_contents"]["Row"];
 };
 
+export type BillWithDietSession = Bill & {
+  diet_sessions: { name: string } | null;
+};
+
 // House display mapping
 export const HOUSE_LABELS: Record<OriginatingHouse, string> = {
   HR: "衆議院",

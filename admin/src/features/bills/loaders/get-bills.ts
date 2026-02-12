@@ -1,12 +1,12 @@
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { Bill } from "../types";
+import type { BillWithDietSession } from "../types";
 
-export async function getBills(): Promise<Bill[]> {
+export async function getBills(): Promise<BillWithDietSession[]> {
   const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from("bills")
-    .select("*")
+    .select("*, diet_sessions(name)")
     .order("created_at", { ascending: false });
 
   if (error) {
