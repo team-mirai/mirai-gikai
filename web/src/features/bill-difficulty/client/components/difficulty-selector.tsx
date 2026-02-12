@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useId, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { setDifficultyLevel } from "../../server/actions/set-difficulty-level";
@@ -12,7 +13,7 @@ import type { DifficultyLevelEnum } from "../../shared/types";
 interface DifficultySelectorProps {
   currentLevel: DifficultyLevelEnum;
   label?: string;
-  labelStyle?: React.CSSProperties;
+  labelStyle?: CSSProperties;
   scrollToTop?: boolean;
   maintainScrollFromBottom?: boolean;
 }

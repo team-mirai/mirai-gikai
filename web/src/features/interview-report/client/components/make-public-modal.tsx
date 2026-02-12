@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ArrowRight, LockOpen } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ interface MakePublicModalProps {
   isSubmitting: boolean;
 }
 
-function CheckListItem({ children }: { children: React.ReactNode }) {
+function CheckListItem({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-start gap-3">
       <Image

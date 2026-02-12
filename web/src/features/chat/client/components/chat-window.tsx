@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import Image from "next/image";
+import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useStickToBottomContext } from "use-stick-to-bottom";
@@ -176,7 +177,7 @@ export function ChatWindow({
   }, [isOpen, disableAutoFocus]);
 
   // Auto-resize textarea based on content
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
 
     // Auto-resize

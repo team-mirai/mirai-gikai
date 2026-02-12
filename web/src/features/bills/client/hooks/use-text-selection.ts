@@ -1,5 +1,6 @@
 "use client";
 
+import type { RefObject } from "react";
 import { useCallback, useEffect, useState } from "react";
 
 /**
@@ -25,7 +26,7 @@ interface TextSelection {
 }
 
 interface UseTextSelectionOptions {
-  containerRef?: React.RefObject<HTMLElement | null>;
+  containerRef?: RefObject<HTMLElement | null>;
   minLength?: number;
 }
 

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Home, User } from "lucide-react";
 import { LogoutButton } from "@/features/auth/components/logout-button";
 import { getCurrentAdmin } from "@/features/auth/lib/auth-server";
@@ -6,7 +7,7 @@ import { NavigationLinks } from "./layout/navigation-links";
 export default async function MainLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const admin = await getCurrentAdmin();
   return (

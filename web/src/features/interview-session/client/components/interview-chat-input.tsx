@@ -1,5 +1,6 @@
 "use client";
 
+import type { ChangeEvent } from "react";
 import Image from "next/image";
 import { useRef } from "react";
 import {
@@ -33,7 +34,7 @@ export function InterviewChatInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isDesktop = useIsDesktop();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     onInputChange(e.target.value);
 
     // Auto-resize

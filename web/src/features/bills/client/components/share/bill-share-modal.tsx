@@ -1,5 +1,6 @@
 "use client";
 
+import type { MouseEvent, KeyboardEvent } from "react";
 import Image from "next/image";
 import {
   shareNative,
@@ -58,14 +59,14 @@ export function BillShareModal({
     },
   ];
 
-  const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleBackgroundClick = (e: MouseEvent<HTMLDivElement>) => {
     // 背景クリック時のみモーダルを閉じる
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
-  const handleBackgroundKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleBackgroundKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     // Escapeキーでモーダルを閉じる
     if (e.key === "Escape") {
       onClose();

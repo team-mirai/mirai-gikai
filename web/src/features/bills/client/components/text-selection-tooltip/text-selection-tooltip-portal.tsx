@@ -1,5 +1,6 @@
 "use client";
 
+import type { RefObject } from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTextSelection } from "../../hooks/use-text-selection";
@@ -22,7 +23,7 @@ import { TextSelectionTooltip } from "./text-selection-tooltip";
  */
 
 interface TextSelectionPortalProps {
-  containerRef: React.RefObject<HTMLElement | null>;
+  containerRef: RefObject<HTMLElement | null>;
   onAskQuestion: (text: string) => void;
 }
 

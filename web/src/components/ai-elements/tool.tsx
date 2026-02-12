@@ -9,7 +9,6 @@ import {
   WrenchIcon,
   XCircleIcon,
 } from "lucide-react";
-import type React from "react";
 import type { ComponentProps, ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -46,7 +45,7 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
     "output-denied": "Denied",
   };
 
-  const icons: Record<ToolUIPart["state"], React.ReactNode> = {
+  const icons: Record<ToolUIPart["state"], ReactNode> = {
     "input-streaming": <CircleIcon className="size-4" />,
     "input-available": <ClockIcon className="size-4 animate-pulse" />,
     "approval-requested": <ClockIcon className="size-4 text-yellow-600" />,

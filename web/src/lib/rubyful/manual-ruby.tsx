@@ -1,10 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { rubyfulClient } from "./index";
 
 interface RubyProps {
-  children: React.ReactNode;
+  children: ReactNode;
   ruby: string;
 }
 
