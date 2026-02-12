@@ -77,7 +77,7 @@ export function PublishStatusBadge({
         <Button
           variant="ghost"
           size="sm"
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border-2 hover:opacity-80 ${currentConfig.badgeClass}`}
+          className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border-2 hover:opacity-80 min-w-[152px] ${currentConfig.badgeClass}`}
         >
           <CurrentIcon className="h-4 w-4" />
           <span>{currentConfig.label}</span>
