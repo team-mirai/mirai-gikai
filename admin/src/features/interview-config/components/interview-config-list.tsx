@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,15 +17,35 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import type { InterviewConfig } from "../types";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   deleteInterviewConfig,
   duplicateInterviewConfig,
 } from "../actions/upsert-interview-config";
+import type { InterviewConfig } from "../types";
 
 interface InterviewConfigListProps {
   billId: string;
   configs: InterviewConfig[];
+}
+
+function getModeLabel(mode: InterviewConfig["mode"]): string {
+  switch (mode) {
+    case "loop":
+      return "ループ";
+    case "bulk":
+      return "一括";
+    default:
+      return mode;
+  }
 }
 
 export function InterviewConfigList({
@@ -82,77 +100,115 @@ export function InterviewConfigList({
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>インタビュー設定一覧</CardTitle>
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {configs.length}件のインタビュー設定
+          </div>
           <Link href={`/bills/${billId}/interview/new`}>
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
               新規作成
             </Button>
           </Link>
-        </CardHeader>
-        <CardContent>
-          {configs.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              インタビュー設定がありません。新規作成してください。
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {configs.map((config) => (
-                <div
-                  key={config.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="font-medium">{config.name}</div>
-                      <div className="text-sm text-gray-500">
-                        作成日:{" "}
-                        {new Date(config.created_at).toLocaleDateString(
-                          "ja-JP"
-                        )}
+        </div>
+
+        {configs.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            インタビュー設定がありません。新規作成してください。
+          </div>
+        ) : (
+          <div className="rounded-md border bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>設定名</TableHead>
+                  <TableHead>モード</TableHead>
+                  <TableHead>テーマ</TableHead>
+                  <TableHead>ステータス</TableHead>
+                  <TableHead>作成日</TableHead>
+                  <TableHead className="w-[50px]" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {configs.map((config) => (
+                  <TableRow key={config.id}>
+                    <TableCell>
+                      <Link
+                        href={`/bills/${billId}/interview/${config.id}/edit`}
+                        className="font-medium hover:underline"
+                      >
+                        {config.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getModeLabel(config.mode)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-[200px]">
+                      {config.themes && config.themes.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {config.themes.map((theme) => (
+                            <Badge
+                              key={theme}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {theme}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          config.status === "public" ? "default" : "secondary"
+                        }
+                        className="w-16 justify-center"
+                      >
+                        {config.status === "public" ? "公開" : "非公開"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {new Date(config.created_at).toLocaleDateString("ja-JP")}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Link
+                          href={`/bills/${billId}/interview/${config.id}/edit`}
+                        >
+                          <Button variant="ghost" size="icon">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDuplicate(config.id)}
+                          disabled={isDuplicating === config.id}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteTarget(config)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </div>
-                    <Badge
-                      variant={
-                        config.status === "public" ? "default" : "secondary"
-                      }
-                    >
-                      {config.status === "public" ? "公開" : "非公開"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Link href={`/bills/${billId}/interview/${config.id}/edit`}>
-                      <Button variant="outline" size="sm">
-                        <Pencil className="mr-2 h-4 w-4" />
-                        編集
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDuplicate(config.id)}
-                      disabled={isDuplicating === config.id}
-                    >
-                      <Copy className="mr-2 h-4 w-4" />
-                      {isDuplicating === config.id ? "複製中..." : "複製"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDeleteTarget(config)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      削除
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
 
       <AlertDialog
         open={deleteTarget !== null}
