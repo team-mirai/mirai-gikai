@@ -64,7 +64,8 @@ export function InterviewChatClient({
         .filter((m) => m.role === "assistant" && m.questionId)
         .map((m) => m.questionId as string)
     );
-    const completedCount = askedIds.size;
+    // 現在聞いている質問は「完了」ではないので除外
+    const completedCount = Math.max(0, askedIds.size - 1);
 
     const lastTopicMessage = [...messages]
       .reverse()
