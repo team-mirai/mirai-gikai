@@ -1,4 +1,4 @@
-import { BarChart3, Edit, FileText, MessageCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -52,15 +52,14 @@ export async function BillList() {
         </Link>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[240px]">議案名</TableHead>
+              <TableHead>議案名</TableHead>
               <TableHead>公開ステータス</TableHead>
               <TableHead>審議ステータス</TableHead>
               <TableHead>公開日</TableHead>
-              <TableHead>操作</TableHead>
               <TableHead className="w-[50px]" />
             </TableRow>
           </TableHeader>
@@ -78,7 +77,14 @@ export async function BillList() {
 function BillRow({ bill }: { bill: Bill }) {
   return (
     <TableRow>
-      <TableCell className="font-medium">{bill.name}</TableCell>
+      <TableCell className="max-w-[300px]">
+        <Link
+          href={`/bills/${bill.id}/edit`}
+          className="block truncate font-medium text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          {bill.name}
+        </Link>
+      </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           <PublishStatusBadge
@@ -104,34 +110,6 @@ function BillRow({ bill }: { bill: Bill }) {
         {bill.published_at
           ? new Date(bill.published_at).toLocaleDateString("ja-JP")
           : "-"}
-      </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-1">
-          <Link href={`/bills/${bill.id}/edit`}>
-            <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-1" />
-              基本情報
-            </Button>
-          </Link>
-          <Link href={`/bills/${bill.id}/contents/edit`}>
-            <Button variant="outline" size="sm">
-              <FileText className="h-4 w-4 mr-1" />
-              コンテンツ
-            </Button>
-          </Link>
-          <Link href={`/bills/${bill.id}/interview/edit`}>
-            <Button variant="outline" size="sm">
-              <MessageCircle className="h-4 w-4 mr-1" />
-              インタビュー設定
-            </Button>
-          </Link>
-          <Link href={`/bills/${bill.id}/reports`}>
-            <Button variant="outline" size="sm">
-              <BarChart3 className="h-4 w-4 mr-1" />
-              レポート一覧
-            </Button>
-          </Link>
-        </div>
       </TableCell>
       <TableCell>
         <BillActionsMenu billId={bill.id} billName={bill.name} />
