@@ -99,6 +99,7 @@ export const interviewChatTextSchema = z.object({
   text: z.string(),
   quick_replies: z.array(z.string()).nullable(),
   question_id: z.string().nullable(),
+  topic_title: z.string().nullable(),
 });
 
 export type InterviewChatText = z.infer<typeof interviewChatTextSchema>;
@@ -119,6 +120,7 @@ export const interviewChatResponseSchema = z.object({
   report: interviewReportSchema.optional(),
   quick_replies: z.array(z.string()).optional().nullable(),
   question_id: z.string().optional().nullable(),
+  topic_title: z.string().optional().nullable(),
   next_stage: interviewStageSchema.optional(),
 });
 

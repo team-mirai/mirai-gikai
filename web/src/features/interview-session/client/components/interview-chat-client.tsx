@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -8,6 +9,7 @@ import { useInterviewChat } from "../hooks/use-interview-chat";
 import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
+import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewSubmitSection } from "./interview-submit-section";
 import { InterviewSummaryInput } from "./interview-summary-input";
 import { QuickReplyButtons } from "./quick-reply-buttons";
@@ -21,12 +23,16 @@ interface InterviewChatClientProps {
     content: string;
     created_at: string;
   }>;
+  mode?: "loop" | "bulk";
+  totalQuestions?: number;
 }
 
 export function InterviewChatClient({
   billId,
   sessionId,
   initialMessages,
+  mode,
+  totalQuestions,
 }: InterviewChatClientProps) {
   const {
     input,
@@ -49,6 +55,32 @@ export function InterviewChatClient({
     initialMessages,
   });
 
+  // プログレスバーの進捗計算
+  const progress = useMemo(() => {
+    if (!totalQuestions || totalQuestions === 0) return null;
+
+    const askedIds = new Set(
+      messages
+        .filter((m) => m.role === "assistant" && m.questionId)
+        .map((m) => m.questionId as string)
+    );
+    const completedCount = askedIds.size;
+
+    const lastTopicMessage = [...messages]
+      .reverse()
+      .find((m) => m.role === "assistant" && m.topicTitle);
+    const currentTopic = lastTopicMessage?.topicTitle ?? null;
+
+    return { completedCount, totalCount: totalQuestions, currentTopic };
+  }, [messages, totalQuestions]);
+
+  const showProgressBar =
+    mode === "loop" && stage === "chat" && progress !== null;
+
+  const handleSkipTopic = () => {
+    handleSubmit({ text: "次のテーマに進みたいです" });
+  };
+
   // ストリーミング中のメッセージがすでに会話履歴に追加されているかどうか
   const isStreamingMessageCommitted =
     object &&
@@ -59,6 +91,17 @@ export function InterviewChatClient({
 
   return (
     <div className="flex flex-col h-screen md:h-[calc(100vh-96px)] pt-24 md:pt-4 bg-white">
+      {showProgressBar && progress && (
+        <div className="px-4 pb-1 pt-2">
+          <InterviewProgressBar
+            completedCount={progress.completedCount}
+            totalCount={progress.totalCount}
+            currentTopic={progress.currentTopic}
+            onSkip={handleSkipTopic}
+            disabled={isLoading}
+          />
+        </div>
+      )}
       <Conversation className="flex-1 overflow-y-auto">
         <ConversationContent className="flex flex-col gap-4">
           {/* 初期表示メッセージ */}

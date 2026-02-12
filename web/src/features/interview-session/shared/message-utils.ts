@@ -25,6 +25,7 @@ export function parseMessageContent(content: string): {
   report: InterviewReportViewData | null;
   quickReplies: string[];
   questionId: string | null;
+  topicTitle: string | null;
 } {
   try {
     const parsed = JSON.parse(content);
@@ -40,6 +41,10 @@ export function parseMessageContent(content: string): {
         questionId && Array.isArray(parsed.quick_replies)
           ? parsed.quick_replies
           : [];
+      const topicTitle =
+        typeof parsed.topic_title === "string" && parsed.topic_title
+          ? parsed.topic_title
+          : null;
 
       if (rawReport) {
         // opinionsがnullの場合は空配列に変換（scoresは除外）
@@ -56,6 +61,7 @@ export function parseMessageContent(content: string): {
           report: isValidReport(report) ? report : null,
           quickReplies,
           questionId,
+          topicTitle,
         };
       }
       return {
@@ -63,10 +69,17 @@ export function parseMessageContent(content: string): {
         report: null,
         quickReplies,
         questionId,
+        topicTitle,
       };
     }
   } catch {
     // JSONでない場合はそのままテキストとして扱う
   }
-  return { text: content, report: null, quickReplies: [], questionId: null };
+  return {
+    text: content,
+    report: null,
+    quickReplies: [],
+    questionId: null,
+    topicTitle: null,
+  };
 }

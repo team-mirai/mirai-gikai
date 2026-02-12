@@ -15,6 +15,7 @@ export type ConversationMessage = {
   report?: InterviewReportViewData | null;
   quickReplies?: string[];
   questionId?: string | null;
+  topicTitle?: string | null;
 };
 
 /**
