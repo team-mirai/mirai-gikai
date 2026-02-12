@@ -59,6 +59,17 @@ export function InterviewChatClient({
   const progress = useMemo(() => {
     if (!totalQuestions || totalQuestions === 0) return null;
 
+    // summary_complete: 100%
+    if (stage === "summary_complete") {
+      return { percentage: 100, currentTopic: null, showSkip: false };
+    }
+
+    // summary: 90%固定
+    if (stage === "summary") {
+      return { percentage: 90, currentTopic: null, showSkip: false };
+    }
+
+    // chat: 質問ベースの進捗
     const askedIds = new Set(
       messages
         .filter((m) => m.role === "assistant" && m.questionId)
@@ -66,17 +77,18 @@ export function InterviewChatClient({
     );
     // 現在聞いている質問は「完了」ではないので除外
     const completedCount = Math.max(0, askedIds.size - 1);
+    // chatステージでは最大80%まで（残り10%はsummary、10%はsummary_complete）
+    const percentage = Math.round((completedCount / totalQuestions) * 80);
 
     const lastTopicMessage = [...messages]
       .reverse()
       .find((m) => m.role === "assistant" && m.topicTitle);
     const currentTopic = lastTopicMessage?.topicTitle ?? null;
 
-    return { completedCount, totalCount: totalQuestions, currentTopic };
-  }, [messages, totalQuestions]);
+    return { percentage, currentTopic, showSkip: true };
+  }, [messages, totalQuestions, stage]);
 
-  const showProgressBar =
-    mode === "loop" && stage === "chat" && progress !== null;
+  const showProgressBar = mode === "loop" && progress !== null;
 
   const handleSkipTopic = () => {
     handleSubmit({ text: "次のテーマに進みたいです" });
@@ -95,9 +107,9 @@ export function InterviewChatClient({
       {showProgressBar && progress && (
         <div className="px-4 pb-1 pt-2">
           <InterviewProgressBar
-            completedCount={progress.completedCount}
-            totalCount={progress.totalCount}
+            percentage={progress.percentage}
             currentTopic={progress.currentTopic}
+            showSkip={progress.showSkip}
             onSkip={handleSkipTopic}
             disabled={isLoading}
           />
