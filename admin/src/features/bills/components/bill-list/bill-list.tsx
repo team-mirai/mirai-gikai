@@ -81,7 +81,7 @@ function BillRow({ bill }: { bill: BillWithDietSession }) {
       <TableCell className="max-w-[400px]">
         <Link
           href={`/bills/${bill.id}/edit`}
-          className="block truncate font-medium text-blue-600 hover:text-blue-800 hover:underline"
+          className="block truncate font-medium hover:underline"
         >
           {bill.name}
         </Link>
