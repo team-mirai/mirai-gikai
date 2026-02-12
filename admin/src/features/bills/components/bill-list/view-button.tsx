@@ -18,7 +18,7 @@ export function ViewButton({ billId }: ViewButtonProps) {
       onClick={() => window.open(billUrl, "_blank")}
     >
       <ExternalLink className="h-4 w-4" />
-      公開ページを見る
+      公開ページ
     </Button>
   );
 }
