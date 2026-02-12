@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,7 +20,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import type { InterviewConfig } from "../types";
-import { deleteInterviewConfig } from "../actions/upsert-interview-config";
+import {
+  deleteInterviewConfig,
+  duplicateInterviewConfig,
+} from "../actions/upsert-interview-config";
 
 interface InterviewConfigListProps {
   billId: string;
@@ -36,6 +39,25 @@ export function InterviewConfigList({
     null
   );
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+
+  const handleDuplicate = async (configId: string) => {
+    setIsDuplicating(configId);
+    try {
+      const result = await duplicateInterviewConfig(configId);
+      if (result.success) {
+        toast.success("インタビュー設定を複製しました");
+        router.push(`/bills/${billId}/interview/${result.data.id}/edit`);
+      } else {
+        toast.error(result.error || "複製に失敗しました");
+      }
+    } catch (error) {
+      console.error("Duplicate interview config error:", error);
+      toast.error("予期しないエラーが発生しました");
+    } finally {
+      setIsDuplicating(null);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -107,6 +129,15 @@ export function InterviewConfigList({
                         編集
                       </Button>
                     </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDuplicate(config.id)}
+                      disabled={isDuplicating === config.id}
+                    >
+                      <Copy className="mr-2 h-4 w-4" />
+                      {isDuplicating === config.id ? "複製中..." : "複製"}
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"

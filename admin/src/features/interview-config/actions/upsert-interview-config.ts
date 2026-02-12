@@ -160,6 +160,102 @@ export async function updateInterviewConfig(
 }
 
 /**
+ * インタビュー設定を複製する（質問も含めてコピー）
+ */
+export async function duplicateInterviewConfig(
+  configId: string
+): Promise<InterviewConfigResult> {
+  try {
+    await requireAdmin();
+
+    const supabase = createAdminClient();
+
+    // 元の設定を取得
+    const { data: originalConfig, error: configError } = await supabase
+      .from("interview_configs")
+      .select("*")
+      .eq("id", configId)
+      .single();
+
+    if (configError || !originalConfig) {
+      return {
+        success: false,
+        error: "複製元のインタビュー設定が見つかりません",
+      };
+    }
+
+    // 元の質問を取得
+    const { data: originalQuestions } = await supabase
+      .from("interview_questions")
+      .select("*")
+      .eq("interview_config_id", configId)
+      .order("question_order", { ascending: true });
+
+    // 新しい設定を作成（ステータスは非公開で複製）
+    const { data: newConfig, error: insertError } = await supabase
+      .from("interview_configs")
+      .insert({
+        bill_id: originalConfig.bill_id,
+        name: `${originalConfig.name}（コピー）`,
+        status: "closed" as const,
+        mode: originalConfig.mode,
+        themes: originalConfig.themes,
+        knowledge_source: originalConfig.knowledge_source,
+      })
+      .select()
+      .single();
+
+    if (insertError || !newConfig) {
+      return {
+        success: false,
+        error: `インタビュー設定の複製に失敗しました: ${insertError?.message}`,
+      };
+    }
+
+    // 質問を複製
+    if (originalQuestions && originalQuestions.length > 0) {
+      const newQuestions = originalQuestions.map((q) => ({
+        interview_config_id: newConfig.id,
+        question: q.question,
+        instruction: q.instruction,
+        quick_replies: q.quick_replies,
+        question_order: q.question_order,
+      }));
+
+      const { error: questionsError } = await supabase
+        .from("interview_questions")
+        .insert(newQuestions);
+
+      if (questionsError) {
+        // 質問の複製に失敗した場合、作成した設定も削除
+        await supabase
+          .from("interview_configs")
+          .delete()
+          .eq("id", newConfig.id);
+        return {
+          success: false,
+          error: `質問の複製に失敗しました: ${questionsError.message}`,
+        };
+      }
+    }
+
+    // web側のキャッシュを無効化
+    await invalidateWebCache();
+
+    return { success: true, data: { id: newConfig.id } };
+  } catch (error) {
+    console.error("Duplicate interview config error:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return {
+      success: false,
+      error: "インタビュー設定の複製中にエラーが発生しました",
+    };
+  }
+}
+
+/**
  * インタビュー設定を削除する
  */
 export async function deleteInterviewConfig(
