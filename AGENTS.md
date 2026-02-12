@@ -1,5 +1,27 @@
 # Repository Guidelines
 
+## 必須ルール
+
+### Worktree必須
+変更作業は、**必ず git worktree を作成してから開始すること**。メインのリポジトリディレクトリでは直接変更を行わない。
+
+```bash
+# 1. worktreeを作成
+git worktree add ../mirai-gikai-<branch-name> -b <branch-name>
+
+# 2. settings.local.jsonをコピー（権限設定のため必須）
+mkdir -p ../mirai-gikai-<branch-name>/.claude
+cp .claude/settings.local.json ../mirai-gikai-<branch-name>/.claude/
+
+# 3. 依存パッケージをインストール
+cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
+```
+
+- **目的**: developブランチを常にクリーンに保ち、作業の分離と並列作業を容易にする
+
+### 並列PR作成
+複数の独立したPRを作成する場合は `/parallel-pr` スキルを使用すること。
+
 ## Project Structure & Module Organization
 - `web/` は公開用 Next.js アプリ。共通 UI は `src/components`、Vitest のテストは `src/**/*.test.ts` に配置します。
 - `admin/` はポート 3001 で動く管理用 Next.js。審議フローやダッシュボードはここに集約します。
