@@ -44,7 +44,7 @@ export function BillActionsMenu({ billId, billName }: BillActionsMenuProps) {
               コンテンツ
             </Button>
           </Link>
-          <Link href={`/bills/${billId}/interview/edit`}>
+          <Link href={`/bills/${billId}/interview`}>
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <MessageCircle className="h-4 w-4 mr-2" />
               インタビュー設定
