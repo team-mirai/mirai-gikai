@@ -6,6 +6,7 @@ import {
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { useInterviewChat } from "../hooks/use-interview-chat";
+import { calcInterviewProgress } from "../utils/calc-interview-progress";
 import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
@@ -55,38 +56,10 @@ export function InterviewChatClient({
     initialMessages,
   });
 
-  // プログレスバーの進捗計算
-  const progress = useMemo(() => {
-    if (!totalQuestions || totalQuestions === 0) return null;
-
-    // summary_complete: 100%
-    if (stage === "summary_complete") {
-      return { percentage: 100, currentTopic: null, showSkip: false };
-    }
-
-    // summary: 90%固定
-    if (stage === "summary") {
-      return { percentage: 90, currentTopic: null, showSkip: false };
-    }
-
-    // chat: 質問ベースの進捗
-    const askedIds = new Set(
-      messages
-        .filter((m) => m.role === "assistant" && m.questionId)
-        .map((m) => m.questionId as string)
-    );
-    // 現在聞いている質問は「完了」ではないので除外
-    const completedCount = Math.max(0, askedIds.size - 1);
-    // chatステージでは最大80%まで（残り10%はsummary、10%はsummary_complete）
-    const percentage = Math.round((completedCount / totalQuestions) * 80);
-
-    const lastTopicMessage = [...messages]
-      .reverse()
-      .find((m) => m.role === "assistant" && m.topicTitle);
-    const currentTopic = lastTopicMessage?.topicTitle ?? null;
-
-    return { percentage, currentTopic, showSkip: true };
-  }, [messages, totalQuestions, stage]);
+  const progress = useMemo(
+    () => calcInterviewProgress(totalQuestions, stage, messages),
+    [messages, totalQuestions, stage]
+  );
 
   const showProgressBar = mode === "loop" && progress !== null;
 
