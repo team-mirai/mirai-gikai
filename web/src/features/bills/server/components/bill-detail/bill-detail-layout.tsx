@@ -48,8 +48,7 @@ export async function BillDetailLayout({
       </BillDetailClient>
 
       <Container>
-        {/* リリース近づくまでは開発環境でのみ表示 */}
-        {interviewConfig != null && process.env.NODE_ENV === "development" && (
+        {interviewConfig != null && (
           <div className="my-8">
             <InterviewLandingSection billId={bill.id} />
           </div>
