@@ -3,9 +3,9 @@
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
-import type { InviteAdminInput } from "../types";
+import type { CreateAdminInput } from "../types";
 
-export async function inviteAdmin(input: InviteAdminInput) {
+export async function createAdmin(input: CreateAdminInput) {
   try {
     await requireAdmin();
 
@@ -19,6 +19,11 @@ export async function inviteAdmin(input: InviteAdminInput) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return { error: "有効なメールアドレスを入力してください" };
+    }
+
+    const password = input.password;
+    if (!password || password.length < 6) {
+      return { error: "パスワードは6文字以上で入力してください" };
     }
 
     // 既存ユーザーチェック
@@ -57,33 +62,27 @@ export async function inviteAdmin(input: InviteAdminInput) {
       return { success: true };
     }
 
-    // 新規ユーザー: 招待メール送信
-    const { data: inviteData, error: inviteError } =
-      await supabase.auth.admin.inviteUserByEmail(email);
+    // 新規ユーザー: パスワード指定で作成
+    const { error: createError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      app_metadata: { roles: ["admin"] },
+    });
 
-    if (inviteError) {
-      if (inviteError.message.includes("already been registered")) {
-        return { error: "このメールアドレスは既に登録されています" };
-      }
+    if (createError) {
       return {
-        error: `招待メールの送信に失敗しました: ${inviteError.message}`,
+        error: `管理者の作成に失敗しました: ${createError.message}`,
       };
-    }
-
-    // app_metadataにadminロールを設定
-    if (inviteData?.user) {
-      await supabase.auth.admin.updateUserById(inviteData.user.id, {
-        app_metadata: { roles: ["admin"] },
-      });
     }
 
     revalidatePath("/admins");
     return { success: true };
   } catch (error) {
-    console.error("Invite admin error:", error);
+    console.error("Create admin error:", error);
     if (error instanceof Error) {
       return { error: error.message };
     }
-    return { error: "管理者の招待中にエラーが発生しました" };
+    return { error: "管理者の作成中にエラーが発生しました" };
   }
 }

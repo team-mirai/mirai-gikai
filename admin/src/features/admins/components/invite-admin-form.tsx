@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { inviteAdmin } from "../actions/invite-admin";
+import { createAdmin } from "../actions/invite-admin";
 
 export function InviteAdminForm() {
   const emailId = useId();
+  const passwordId = useId();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -21,20 +23,26 @@ export function InviteAdminForm() {
       return;
     }
 
+    if (!password || password.length < 6) {
+      toast.error("パスワードは6文字以上で入力してください");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const result = await inviteAdmin({ email });
+      const result = await createAdmin({ email, password });
 
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("招待メールを送信しました");
+        toast.success("管理者を作成しました");
         setEmail("");
+        setPassword("");
       }
     } catch (error) {
-      console.error("Invite admin error:", error);
-      toast.error("招待メールの送信に失敗しました");
+      console.error("Create admin error:", error);
+      toast.error("管理者の作成に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -54,9 +62,20 @@ export function InviteAdminForm() {
             disabled={isSubmitting}
           />
         </div>
+        <div className="flex-1 space-y-2">
+          <Label htmlFor={passwordId}>パスワード</Label>
+          <Input
+            id={passwordId}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="6文字以上"
+            disabled={isSubmitting}
+          />
+        </div>
         <div className="flex items-end">
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "招待中..." : "招待"}
+            {isSubmitting ? "作成中..." : "作成"}
           </Button>
         </div>
       </div>
