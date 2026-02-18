@@ -7,7 +7,6 @@ import { WaveformVisualizer } from "./waveform-visualizer";
 
 interface VoiceModePanelProps {
   phase: VoiceModePhase;
-  interimTranscript: string;
   isTtsEnabled: boolean;
   countdownSeconds: number;
   ttsAnalyserNode: AnalyserNode | null;
@@ -15,7 +14,6 @@ interface VoiceModePanelProps {
   onClose: () => void;
   onToggleTts: () => void;
   onSendNow: () => void;
-  onTranscriptEdit: (text: string) => void;
 }
 
 function PhaseLabel({ phase }: { phase: VoiceModePhase }) {
@@ -49,7 +47,6 @@ function PhaseLabel({ phase }: { phase: VoiceModePhase }) {
 
 export function VoiceModePanel({
   phase,
-  interimTranscript,
   isTtsEnabled,
   countdownSeconds,
   ttsAnalyserNode,
@@ -57,7 +54,6 @@ export function VoiceModePanel({
   onClose,
   onToggleTts,
   onSendNow,
-  onTranscriptEdit,
 }: VoiceModePanelProps) {
   const phaseColor =
     phase === "speaking"
@@ -147,25 +143,6 @@ export function VoiceModePanel({
           </div>
         </div>
       )}
-
-      {/* Transcript display */}
-      {(phase === "listening" || phase === "countdown") &&
-        interimTranscript && (
-          <div className="mt-2">
-            {phase === "countdown" ? (
-              <textarea
-                value={interimTranscript}
-                onChange={(e) => onTranscriptEdit(e.target.value)}
-                className="w-full text-sm text-gray-800 bg-white/60 rounded-lg p-2 border border-gray-200 resize-none focus:outline-none focus:ring-1 focus:ring-amber-300"
-                rows={2}
-              />
-            ) : (
-              <p className="text-sm text-gray-500 italic px-1">
-                {interimTranscript}
-              </p>
-            )}
-          </div>
-        )}
     </div>
   );
 }

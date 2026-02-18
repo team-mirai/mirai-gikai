@@ -65,6 +65,8 @@ export function InterviewChatClient({
   const voiceMode = useVoiceMode({
     onSubmitMessage: (text) => handleSubmit({ text }),
     isAiResponding: isLoading,
+    currentInput: input,
+    onInputChange: setInput,
   });
 
   // Track which AI message we last spoke
@@ -241,7 +243,6 @@ export function InterviewChatClient({
               <div className="mb-2">
                 <VoiceModePanel
                   phase={voiceMode.phase}
-                  interimTranscript={voiceMode.interimTranscript}
                   isTtsEnabled={voiceMode.isTtsEnabled}
                   countdownSeconds={voiceMode.countdownSeconds}
                   ttsAnalyserNode={voiceMode.ttsAnalyserNode}
@@ -249,7 +250,6 @@ export function InterviewChatClient({
                   onClose={voiceMode.disableVoiceMode}
                   onToggleTts={voiceMode.toggleTts}
                   onSendNow={voiceMode.sendNow}
-                  onTranscriptEdit={() => {}}
                 />
               </div>
             )}

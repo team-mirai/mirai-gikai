@@ -14,6 +14,10 @@ export type VoiceModePhase =
 interface UseVoiceModeOptions {
   onSubmitMessage: (text: string) => void;
   isAiResponding: boolean;
+  /** Current text input value — used for sending during countdown */
+  currentInput: string;
+  /** Update the text input value — transcript syncs here in real time */
+  onInputChange: (text: string) => void;
   silenceTimeoutMs?: number;
   countdownDurationMs?: number;
 }
@@ -21,7 +25,6 @@ interface UseVoiceModeOptions {
 interface UseVoiceModeReturn {
   isVoiceModeOn: boolean;
   phase: VoiceModePhase;
-  interimTranscript: string;
   isSupported: boolean;
   isTtsEnabled: boolean;
   countdownSeconds: number;
@@ -41,6 +44,8 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
   const {
     onSubmitMessage,
     isAiResponding,
+    currentInput,
+    onInputChange,
     silenceTimeoutMs = 10000,
     countdownDurationMs = 3000,
   } = options;
@@ -53,9 +58,12 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
 
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownEndRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingTranscriptRef = useRef("");
   const onSubmitMessageRef = useRef(onSubmitMessage);
   onSubmitMessageRef.current = onSubmitMessage;
+  const currentInputRef = useRef(currentInput);
+  currentInputRef.current = currentInput;
+  const onInputChangeRef = useRef(onInputChange);
+  onInputChangeRef.current = onInputChange;
 
   // TTS hook
   const tts = useSpeechSynthesis({
@@ -78,18 +86,18 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
   const stt = useSpeechRecognition({
     lang: "ja-JP",
     silenceTimeoutMs,
-    onUtteranceEnd: (transcript) => {
-      // Server VAD detected end of speech → start countdown if text exists
-      if (transcript.trim()) {
-        startCountdown(transcript);
+    onUtteranceEnd: () => {
+      // Server VAD detected end of speech → start countdown if input has text
+      const text = currentInputRef.current.trim();
+      if (text) {
+        startCountdown();
       }
     },
     onSilenceTimeout: () => {
       // No speech detected for silenceTimeoutMs → auto-end voice mode
-      const transcript = pendingTranscriptRef.current;
-      if (transcript.trim()) {
-        // Fallback: if somehow we have text, start countdown
-        startCountdown(transcript);
+      const text = currentInputRef.current.trim();
+      if (text) {
+        startCountdown();
       } else {
         setIsVoiceModeOn(false);
         setPhase("idle");
@@ -104,10 +112,12 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
     },
   });
 
-  // Track transcript changes for countdown
+  // Sync STT transcript → text input in real time
   useEffect(() => {
-    pendingTranscriptRef.current = stt.transcript;
-  }, [stt.transcript]);
+    if (isVoiceModeOn && stt.transcript) {
+      onInputChangeRef.current(stt.transcript);
+    }
+  }, [isVoiceModeOn, stt.transcript]);
 
   // Clear countdown timers
   const clearCountdown = useCallback(() => {
@@ -123,44 +133,43 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
   }, []);
 
   // Start countdown for auto-send
-  const startCountdown = useCallback(
-    (transcript: string) => {
+  const startCountdown = useCallback(() => {
+    clearCountdown();
+    stt.stopListening();
+    setPhase("countdown");
+
+    const totalSeconds = Math.ceil(countdownDurationMs / 1000);
+    setCountdownSeconds(totalSeconds);
+
+    countdownTimerRef.current = setInterval(() => {
+      setCountdownSeconds((prev) => {
+        if (prev <= 1) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+
+    countdownEndRef.current = setTimeout(() => {
       clearCountdown();
-      setPhase("countdown");
-      pendingTranscriptRef.current = transcript;
-
-      const totalSeconds = Math.ceil(countdownDurationMs / 1000);
-      setCountdownSeconds(totalSeconds);
-
-      countdownTimerRef.current = setInterval(() => {
-        setCountdownSeconds((prev) => {
-          if (prev <= 1) return 0;
-          return prev - 1;
-        });
-      }, 1000);
-
-      countdownEndRef.current = setTimeout(() => {
-        clearCountdown();
-        const finalText = pendingTranscriptRef.current.trim();
-        if (finalText) {
-          setPhase("processing");
-          onSubmitMessageRef.current(finalText);
-        } else {
-          setPhase("listening");
-          stt.startListening();
-        }
-      }, countdownDurationMs);
-    },
-    [clearCountdown, countdownDurationMs, stt]
-  );
+      const finalText = currentInputRef.current.trim();
+      if (finalText) {
+        setPhase("processing");
+        onSubmitMessageRef.current(finalText);
+        onInputChangeRef.current("");
+      } else {
+        setPhase("listening");
+        stt.startListening();
+      }
+    }, countdownDurationMs);
+  }, [clearCountdown, countdownDurationMs, stt]);
 
   // Send immediately (skip countdown)
   const sendNow = useCallback(() => {
     clearCountdown();
-    const finalText = pendingTranscriptRef.current.trim();
+    const finalText = currentInputRef.current.trim();
     if (finalText) {
       setPhase("processing");
       onSubmitMessageRef.current(finalText);
+      onInputChangeRef.current("");
     }
   }, [clearCountdown]);
 
@@ -245,7 +254,6 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
   return {
     isVoiceModeOn,
     phase,
-    interimTranscript: stt.transcript,
     isSupported: stt.isSupported,
     isTtsEnabled,
     countdownSeconds,
