@@ -44,6 +44,7 @@ const _getCachedBillsByDietSession = unstable_cache(
       .eq("diet_session_id", dietSessionId)
       .eq("publish_status", "published")
       .eq("bill_contents.difficulty_level", difficultyLevel)
+      .order("status", { ascending: true })
       .order("published_at", { ascending: false });
 
     if (error) {
