@@ -15,7 +15,6 @@ import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewSubmitSection } from "./interview-submit-section";
 import { InterviewSummaryInput } from "./interview-summary-input";
 import { QuickReplyButtons } from "./quick-reply-buttons";
-import { VoiceModeNotification } from "./voice-mode-notification";
 import { VoiceModePanel } from "./voice-mode-panel";
 
 interface InterviewChatClientProps {
@@ -241,12 +240,6 @@ export function InterviewChatClient({
 
         {stage === "chat" && (
           <>
-            {/* 音声モード自動終了通知 */}
-            <VoiceModeNotification
-              show={voiceMode.showSilenceNotification}
-              onDismiss={voiceMode.dismissSilenceNotification}
-            />
-
             {/* 音声モードパネル */}
             {voiceMode.isVoiceModeOn && (
               <div className="mb-2">

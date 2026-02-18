@@ -4,8 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseSpeechRecognitionOptions {
   lang?: string;
-  silenceTimeoutMs?: number;
-  onSilenceTimeout?: () => void;
   onError?: (error: string) => void;
 }
 
@@ -40,7 +38,6 @@ export function useSpeechRecognition(
   options?: UseSpeechRecognitionOptions
 ): UseSpeechRecognitionReturn {
   const lang = options?.lang ?? "ja-JP";
-  const silenceTimeoutMs = options?.silenceTimeoutMs ?? 10000;
 
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -50,7 +47,6 @@ export function useSpeechRecognition(
   const audioContextRef = useRef<AudioContext | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isListeningRef = useRef(false);
   const accumulatedTranscriptRef = useRef("");
   const optionsRef = useRef(options);
@@ -63,28 +59,6 @@ export function useSpeechRecognition(
       Boolean(navigator.mediaDevices?.getUserMedia) && Boolean(window.WebSocket)
     );
   }, []);
-
-  const clearSilenceTimer = useCallback(() => {
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-  }, []);
-
-  const startSilenceTimer = useCallback(() => {
-    clearSilenceTimer();
-    silenceTimerRef.current = setTimeout(() => {
-      if (isListeningRef.current) {
-        optionsRef.current?.onSilenceTimeout?.();
-      }
-    }, silenceTimeoutMs);
-  }, [clearSilenceTimer, silenceTimeoutMs]);
-
-  const resetSilenceTimer = useCallback(() => {
-    if (isListeningRef.current) {
-      startSilenceTimer();
-    }
-  }, [startSilenceTimer]);
 
   const cleanupAudio = useCallback(() => {
     if (processorRef.current) {
@@ -115,7 +89,6 @@ export function useSpeechRecognition(
 
   const stopListening = useCallback(() => {
     isListeningRef.current = false;
-    clearSilenceTimer();
     cleanupAudio();
     cleanupWebSocket();
     if (mediaStream) {
@@ -125,7 +98,7 @@ export function useSpeechRecognition(
       setMediaStream(null);
     }
     setIsListening(false);
-  }, [clearSilenceTimer, cleanupAudio, cleanupWebSocket, mediaStream]);
+  }, [cleanupAudio, cleanupWebSocket, mediaStream]);
 
   const startListening = useCallback(async () => {
     if (!isSupported) return;
@@ -206,7 +179,6 @@ export function useSpeechRecognition(
 
       // Start audio capture pipeline
       startAudioCapture(stream, ws);
-      startSilenceTimer();
     };
 
     ws.onmessage = (event) => {
@@ -230,7 +202,6 @@ export function useSpeechRecognition(
         isListeningRef.current = false;
         setIsListening(false);
         cleanupAudio();
-        optionsRef.current?.onSilenceTimeout?.();
       }
     };
 
@@ -273,7 +244,6 @@ export function useSpeechRecognition(
           // Interim transcription update
           const delta = data.delta as string | undefined;
           if (delta) {
-            resetSilenceTimer();
             accumulatedTranscriptRef.current += delta;
             setTranscript(accumulatedTranscriptRef.current);
           }
@@ -284,7 +254,6 @@ export function useSpeechRecognition(
           // Final transcription for an utterance
           const completedTranscript = data.transcript as string | undefined;
           if (completedTranscript) {
-            resetSilenceTimer();
             accumulatedTranscriptRef.current = completedTranscript;
             setTranscript(completedTranscript);
           }
@@ -304,24 +273,16 @@ export function useSpeechRecognition(
           break;
       }
     }
-  }, [
-    isSupported,
-    lang,
-    startSilenceTimer,
-    resetSilenceTimer,
-    cleanupAudio,
-    cleanupWebSocket,
-  ]);
+  }, [isSupported, lang, cleanupAudio, cleanupWebSocket]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       isListeningRef.current = false;
-      clearSilenceTimer();
       cleanupAudio();
       cleanupWebSocket();
     };
-  }, [clearSilenceTimer, cleanupAudio, cleanupWebSocket]);
+  }, [cleanupAudio, cleanupWebSocket]);
 
   return {
     startListening,

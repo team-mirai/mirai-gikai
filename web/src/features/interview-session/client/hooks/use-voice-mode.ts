@@ -10,7 +10,6 @@ interface UseVoiceModeOptions {
   isAiResponding: boolean;
   /** Update the text input value — transcript syncs here in real time */
   onInputChange: (text: string) => void;
-  silenceTimeoutMs?: number;
 }
 
 interface UseVoiceModeReturn {
@@ -18,7 +17,6 @@ interface UseVoiceModeReturn {
   phase: VoiceModePhase;
   isSupported: boolean;
   isTtsEnabled: boolean;
-  showSilenceNotification: boolean;
   ttsAnalyserNode: AnalyserNode | null;
   micMediaStream: MediaStream | null;
 
@@ -28,16 +26,14 @@ interface UseVoiceModeReturn {
   notifyMessageSent: () => void;
   toggleTts: () => void;
   speakMessage: (text: string) => void;
-  dismissSilenceNotification: () => void;
 }
 
 export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
-  const { isAiResponding, onInputChange, silenceTimeoutMs = 10000 } = options;
+  const { isAiResponding, onInputChange } = options;
 
   const [isVoiceModeOn, setIsVoiceModeOn] = useState(false);
   const [phase, setPhase] = useState<VoiceModePhase>("idle");
   const [isTtsEnabled, setIsTtsEnabled] = useState(true);
-  const [showSilenceNotification, setShowSilenceNotification] = useState(false);
 
   const onInputChangeRef = useRef(onInputChange);
   onInputChangeRef.current = onInputChange;
@@ -61,13 +57,6 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
   // STT hook
   const stt = useSpeechRecognition({
     lang: "ja-JP",
-    silenceTimeoutMs,
-    onSilenceTimeout: () => {
-      // No speech detected for silenceTimeoutMs → auto-end voice mode
-      setIsVoiceModeOn(false);
-      setPhase("idle");
-      setShowSilenceNotification(true);
-    },
     onError: (error) => {
       if (error === "not-allowed" || error === "session-failed") {
         setIsVoiceModeOn(false);
@@ -92,7 +81,6 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
       setPhase("idle");
     } else {
       setIsVoiceModeOn(true);
-      setShowSilenceNotification(false);
 
       if (isAiResponding) {
         setPhase("processing");
@@ -141,16 +129,11 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
     [isVoiceModeOn, isTtsEnabled, tts, stt]
   );
 
-  const dismissSilenceNotification = useCallback(() => {
-    setShowSilenceNotification(false);
-  }, []);
-
   return {
     isVoiceModeOn,
     phase,
     isSupported: stt.isSupported,
     isTtsEnabled,
-    showSilenceNotification,
     ttsAnalyserNode: tts.analyserNode,
     micMediaStream: stt.mediaStream,
 
@@ -159,6 +142,5 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
     notifyMessageSent,
     toggleTts,
     speakMessage,
-    dismissSilenceNotification,
   };
 }
