@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 interface UseSpeechRecognitionOptions {
   lang?: string;
   silenceTimeoutMs?: number;
-  onUtteranceEnd?: (transcript: string) => void;
   onSilenceTimeout?: () => void;
   onError?: (error: string) => void;
 }
@@ -57,10 +56,13 @@ export function useSpeechRecognition(
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
-  const isSupported =
-    typeof window !== "undefined" &&
-    Boolean(navigator.mediaDevices?.getUserMedia) &&
-    Boolean(window.WebSocket);
+  const [isSupported, setIsSupported] = useState(false);
+
+  useEffect(() => {
+    setIsSupported(
+      Boolean(navigator.mediaDevices?.getUserMedia) && Boolean(window.WebSocket)
+    );
+  }, []);
 
   const clearSilenceTimer = useCallback(() => {
     if (silenceTimerRef.current) {
@@ -285,12 +287,6 @@ export function useSpeechRecognition(
             resetSilenceTimer();
             accumulatedTranscriptRef.current = completedTranscript;
             setTranscript(completedTranscript);
-          }
-
-          // Notify that user finished speaking
-          const finalText = accumulatedTranscriptRef.current.trim();
-          if (finalText) {
-            optionsRef.current?.onUtteranceEnd?.(finalText);
           }
           break;
         }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -63,11 +63,20 @@ export function InterviewChatClient({
 
   // Voice mode
   const voiceMode = useVoiceMode({
-    onSubmitMessage: (text) => handleSubmit({ text }),
     isAiResponding: isLoading,
-    currentInput: input,
     onInputChange: setInput,
   });
+
+  // Wrap handleSubmit to notify voice mode
+  const handleChatSubmit = useCallback(
+    (...args: Parameters<typeof handleSubmit>) => {
+      if (voiceMode.isVoiceModeOn) {
+        voiceMode.notifyMessageSent();
+      }
+      handleSubmit(...args);
+    },
+    [voiceMode, handleSubmit]
+  );
 
   // Track which AI message we last spoke
   const lastSpokenTextIdRef = useRef(0);
@@ -244,12 +253,10 @@ export function InterviewChatClient({
                 <VoiceModePanel
                   phase={voiceMode.phase}
                   isTtsEnabled={voiceMode.isTtsEnabled}
-                  countdownSeconds={voiceMode.countdownSeconds}
                   ttsAnalyserNode={voiceMode.ttsAnalyserNode}
                   micMediaStream={voiceMode.micMediaStream}
                   onClose={voiceMode.disableVoiceMode}
                   onToggleTts={voiceMode.toggleTts}
-                  onSendNow={voiceMode.sendNow}
                 />
               </div>
             )}
@@ -258,7 +265,7 @@ export function InterviewChatClient({
             <InterviewChatInput
               input={input}
               onInputChange={setInput}
-              onSubmit={handleSubmit}
+              onSubmit={handleChatSubmit}
               placeholder="AIに質問に回答する"
               isResponding={isLoading}
               showMicButton={!voiceMode.isVoiceModeOn && voiceMode.isSupported}

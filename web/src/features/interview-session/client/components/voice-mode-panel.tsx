@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, Send, Volume2, VolumeX, X } from "lucide-react";
+import { Mic, Volume2, VolumeX, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { VoiceModePhase } from "../hooks/use-voice-mode";
 import { WaveformVisualizer } from "./waveform-visualizer";
@@ -8,12 +8,10 @@ import { WaveformVisualizer } from "./waveform-visualizer";
 interface VoiceModePanelProps {
   phase: VoiceModePhase;
   isTtsEnabled: boolean;
-  countdownSeconds: number;
   ttsAnalyserNode: AnalyserNode | null;
   micMediaStream: MediaStream | null;
   onClose: () => void;
   onToggleTts: () => void;
-  onSendNow: () => void;
 }
 
 function PhaseLabel({ phase }: { phase: VoiceModePhase }) {
@@ -32,8 +30,6 @@ function PhaseLabel({ phase }: { phase: VoiceModePhase }) {
           <span>聞いています...</span>
         </div>
       );
-    case "countdown":
-      return null;
     case "processing":
       return (
         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -48,33 +44,23 @@ function PhaseLabel({ phase }: { phase: VoiceModePhase }) {
 export function VoiceModePanel({
   phase,
   isTtsEnabled,
-  countdownSeconds,
   ttsAnalyserNode,
   micMediaStream,
   onClose,
   onToggleTts,
-  onSendNow,
 }: VoiceModePanelProps) {
   const phaseColor =
     phase === "speaking"
       ? "border-emerald-200 bg-emerald-50"
       : phase === "listening"
         ? "border-blue-200 bg-blue-50"
-        : phase === "countdown"
-          ? "border-amber-200 bg-amber-50"
-          : "border-gray-200 bg-gray-50";
+        : "border-gray-200 bg-gray-50";
 
   return (
     <div className={`rounded-2xl border p-4 ${phaseColor}`}>
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
-        {phase === "countdown" ? (
-          <div className="flex items-center gap-2 text-sm text-amber-700">
-            <span>送信まで {countdownSeconds}秒...</span>
-          </div>
-        ) : (
-          <PhaseLabel phase={phase} />
-        )}
+        <PhaseLabel phase={phase} />
 
         <div className="flex items-center gap-1">
           {phase !== "processing" && (
@@ -90,18 +76,6 @@ export function VoiceModePanel({
               ) : (
                 <VolumeX className="size-4" />
               )}
-            </Button>
-          )}
-
-          {phase === "countdown" && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onSendNow}
-              className="size-8"
-              aria-label="即送信"
-            >
-              <Send className="size-4" />
             </Button>
           )}
 
