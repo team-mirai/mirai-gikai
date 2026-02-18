@@ -106,6 +106,12 @@ export function useSpeechRecognition(
   const startListening = useCallback(async () => {
     if (!isSupported) return;
 
+    // Reset transcript immediately (before any async work) so stale
+    // values don't leak into the input when voice mode restarts.
+    committedTextRef.current = "";
+    currentSegmentRef.current = "";
+    setTranscript("");
+
     // Clean up any existing session
     cleanupAudio();
     cleanupWebSocket();
@@ -154,9 +160,6 @@ export function useSpeechRecognition(
     wsRef.current = ws;
 
     isListeningRef.current = true;
-    committedTextRef.current = "";
-    currentSegmentRef.current = "";
-    setTranscript("");
     setIsListening(true);
 
     ws.onopen = () => {
