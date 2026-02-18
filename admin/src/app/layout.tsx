@@ -15,9 +15,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const isDev = process.env.NODE_ENV === "development";
+
 export const metadata: Metadata = {
   title: "みらい議会 Admin",
   description: "みらい議会の管理者向けダッシュボード",
+  icons: {
+    icon: isDev
+      ? "/icons/pwa/icon_dev_192_v3.png"
+      : "/icons/pwa/icon_android_192.png",
+  },
 };
 
 export default function RootLayout({
