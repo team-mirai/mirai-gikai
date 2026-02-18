@@ -56,16 +56,6 @@ export default async function Home() {
           </main>
         </div>
 
-        {/* 前回の国会セクション（Archive） */}
-        {previousSessionData && (
-          <div className="bg-white -mx-4 sm:-mx-6 px-4 sm:px-6 py-8">
-            <PreviousSessionSection
-              session={previousSessionData.session}
-              bills={previousSessionData.bills}
-            />
-          </div>
-        )}
-
         {/* みらい議会とは セクション */}
         <About />
 
@@ -75,6 +65,19 @@ export default async function Home() {
         {/* 免責事項 */}
         <BillDisclaimer />
       </Container>
+
+      {/* 前回の国会セクション（Archive） */}
+      {previousSessionData && (
+        <div className="bg-[#E5E5EA] py-9">
+          <Container>
+            <PreviousSessionSection
+              session={previousSessionData.session}
+              bills={previousSessionData.bills}
+              totalBillCount={previousSessionData.totalBillCount}
+            />
+          </Container>
+        </div>
+      )}
 
       {/* チャット機能 */}
       <HomeChatClient
