@@ -47,6 +47,7 @@ export function useSpeechRecognition(
   const audioContextRef = useRef<AudioContext | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const commitTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isListeningRef = useRef(false);
   /** Finalized text from all previous completed segments */
   const committedTextRef = useRef("");
@@ -64,6 +65,10 @@ export function useSpeechRecognition(
   }, []);
 
   const cleanupAudio = useCallback(() => {
+    if (commitTimerRef.current) {
+      clearInterval(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
     if (processorRef.current) {
       processorRef.current.disconnect();
       processorRef.current = null;
@@ -160,7 +165,9 @@ export function useSpeechRecognition(
     setIsListening(true);
 
     ws.onopen = () => {
-      // Send transcription session configuration
+      // Send transcription session configuration — disable server VAD
+      // so we can manually commit audio at regular intervals for
+      // real-time streaming transcription.
       const langCode = lang.split("-")[0]; // "ja-JP" → "ja"
       ws.send(
         JSON.stringify({
@@ -171,18 +178,20 @@ export function useSpeechRecognition(
               model: "gpt-4o-mini-transcribe",
               language: langCode,
             },
-            turn_detection: {
-              type: "server_vad",
-              threshold: 0.5,
-              prefix_padding_ms: 300,
-              silence_duration_ms: 500,
-            },
+            turn_detection: null,
           },
         })
       );
 
       // Start audio capture pipeline
       startAudioCapture(stream, ws);
+
+      // Periodically commit the audio buffer to trigger transcription
+      commitTimerRef.current = setInterval(() => {
+        if (isListeningRef.current && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "input_audio_buffer.commit" }));
+        }
+      }, 1000);
     };
 
     ws.onmessage = (event) => {
