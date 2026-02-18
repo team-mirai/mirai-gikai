@@ -5,8 +5,9 @@ export type Admin = {
   last_sign_in_at: string | null;
 };
 
-export type InviteAdminInput = {
+export type CreateAdminInput = {
   email: string;
+  password: string;
 };
 
 export type DeleteAdminInput = {

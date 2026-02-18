@@ -17,9 +17,9 @@ export default async function AdminsPage() {
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-8">管理者管理</h1>
 
-      {/* 管理者招待セクション */}
+      {/* 管理者追加セクション */}
       <section className="mb-8 rounded-lg border bg-white p-6">
-        <h2 className="text-lg font-semibold mb-4">管理者を招待</h2>
+        <h2 className="text-lg font-semibold mb-4">管理者を追加</h2>
         <InviteAdminForm />
       </section>
 
