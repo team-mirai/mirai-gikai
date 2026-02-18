@@ -1,10 +1,10 @@
 import "./globals.css";
-import type { ReactNode } from "react";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Lexend_Giga, Noto_Sans_JP } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
+import type { ReactNode } from "react";
 import { Header } from "@/components/header";
 import { AuthGate } from "@/components/layouts/auth-gate";
 import { Footer } from "@/components/layouts/footer/footer";
@@ -24,6 +24,7 @@ const lexendGiga = Lexend_Giga({
   weight: ["400", "500", "700", "800", "900"],
 });
 
+const isDev = process.env.NODE_ENV === "development";
 const siteTitle = "みらい議会｜チームみらい";
 const siteDescription =
   "国会で今どんな法案が検討されているか、わかりやすく伝えるプラットフォーム";
@@ -41,7 +42,9 @@ export const metadata: Metadata = {
   description: siteDescription,
   keywords: [siteName, "議案", "政治", "日本", "政策", "解説", "チームみらい"],
   icons: {
-    icon: "/icons/pwa/icon_android_192.png",
+    icon: isDev
+      ? "/icons/pwa/icon_dev_192_v3.png"
+      : "/icons/pwa/icon_android_192.png",
     apple: "/icons/pwa/icon_ios.png",
   },
   manifest: "/manifest.json",
