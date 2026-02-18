@@ -44,6 +44,7 @@ const _getCachedBillsByDietSession = unstable_cache(
       .eq("diet_session_id", dietSessionId)
       .eq("publish_status", "published")
       .eq("bill_contents.difficulty_level", difficultyLevel)
+      .order("status", { ascending: true })
       .order("published_at", { ascending: false });
 
     if (error) {
@@ -69,13 +70,6 @@ const _getCachedBillsByDietSession = unstable_cache(
           : undefined,
         tags: tagsByBillId.get(item.id) ?? [],
       };
-    });
-
-    // 成立法案を先頭に、それ以外はpublished_at降順
-    billsWithContent.sort((a, b) => {
-      if (a.status === "enacted" && b.status !== "enacted") return -1;
-      if (a.status !== "enacted" && b.status === "enacted") return 1;
-      return 0;
     });
 
     return billsWithContent;
