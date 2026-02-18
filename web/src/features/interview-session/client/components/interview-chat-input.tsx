@@ -3,7 +3,7 @@
 import type { ChangeEvent } from "react";
 import Image from "next/image";
 import { Mic } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   PromptInput,
   PromptInputBody,
@@ -39,13 +39,18 @@ export function InterviewChatInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isDesktop = useIsDesktop();
 
+  // Auto-resize textarea when input changes (covers both typing and voice input)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: input prop change should trigger resize
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [input]);
+
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     onInputChange(e.target.value);
-
-    // Auto-resize
-    const textarea = e.target;
-    textarea.style.height = "auto";
-    textarea.style.height = `${textarea.scrollHeight}px`;
   };
 
   return (
