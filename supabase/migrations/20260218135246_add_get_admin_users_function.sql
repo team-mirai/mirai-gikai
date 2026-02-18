@@ -15,3 +15,7 @@ AS $$
   WHERE u.raw_app_meta_data->'roles' ? 'admin'
   ORDER BY u.created_at DESC;
 $$;
+
+-- service_role のみ実行可能にし、anon/authenticated からのアクセスを遮断
+REVOKE EXECUTE ON FUNCTION public.get_admin_users() FROM public;
+GRANT EXECUTE ON FUNCTION public.get_admin_users() TO service_role;

@@ -35,17 +35,42 @@ export async function createAdmin(input: CreateAdminInput) {
     });
 
     if (createError) {
+      // 既存ユーザーの場合、admin ロールを付与して昇格
       if (
         createError.message.includes("already been registered") ||
         createError.message.includes("already exists")
       ) {
+        const { data: users } = await supabase.auth.admin.listUsers();
+        const existing = users?.users?.find((u) => u.email === email);
+        if (!existing) {
+          return {
+            error:
+              "このメールアドレスは既に登録されていますが、ユーザー情報を取得できませんでした",
+          };
+        }
+        const roles: string[] =
+          (existing.app_metadata?.roles as string[]) ?? [];
+        if (roles.includes("admin")) {
+          return {
+            error: "このメールアドレスは既に管理者として登録されています",
+          };
+        }
+        const { error: updateError } = await supabase.auth.admin.updateUserById(
+          existing.id,
+          {
+            app_metadata: { roles: [...roles, "admin"] },
+          }
+        );
+        if (updateError) {
+          return {
+            error: `管理者権限の付与に失敗しました: ${updateError.message}`,
+          };
+        }
+      } else {
         return {
-          error: "このメールアドレスは既に登録されています",
+          error: `管理者の作成に失敗しました: ${createError.message}`,
         };
       }
-      return {
-        error: `管理者の作成に失敗しました: ${createError.message}`,
-      };
     }
 
     revalidatePath("/admins");
