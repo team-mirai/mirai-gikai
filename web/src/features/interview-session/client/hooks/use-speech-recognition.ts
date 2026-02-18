@@ -8,7 +8,7 @@ interface UseSpeechRecognitionOptions {
 }
 
 interface UseSpeechRecognitionReturn {
-  startListening: () => void;
+  startListening: (initialTranscript?: string) => void;
   stopListening: () => void;
   isListening: boolean;
   transcript: string;
@@ -103,186 +103,191 @@ export function useSpeechRecognition(
     setIsListening(false);
   }, [cleanupAudio, cleanupWebSocket, mediaStream]);
 
-  const startListening = useCallback(async () => {
-    if (!isSupported) return;
+  const startListening = useCallback(
+    async (initialTranscript?: string) => {
+      if (!isSupported) return;
 
-    // Reset transcript immediately (before any async work) so stale
-    // values don't leak into the input when voice mode restarts.
-    committedTextRef.current = "";
-    currentSegmentRef.current = "";
-    setTranscript("");
+      // Initialize transcript with existing text so new speech appends to it.
+      committedTextRef.current = initialTranscript ?? "";
+      currentSegmentRef.current = "";
+      setTranscript(initialTranscript ?? "");
 
-    // Clean up any existing session
-    cleanupAudio();
-    cleanupWebSocket();
+      // Clean up any existing session
+      cleanupAudio();
+      cleanupWebSocket();
 
-    // Get microphone stream
-    let stream: MediaStream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setMediaStream(stream);
-    } catch {
-      optionsRef.current?.onError?.("not-allowed");
-      return;
-    }
-
-    // Fetch ephemeral token
-    let clientSecret: string;
-    try {
-      const tokenResponse = await fetch("/api/interview/stt/session", {
-        method: "POST",
-      });
-      if (!tokenResponse.ok) {
-        throw new Error(`Token fetch failed: ${tokenResponse.status}`);
-      }
-      const tokenData = await tokenResponse.json();
-      clientSecret = tokenData.client_secret?.value;
-      if (!clientSecret) {
-        throw new Error("No client secret in response");
-      }
-    } catch (error) {
-      console.error("Failed to get STT session token:", error);
-      for (const track of stream.getTracks()) {
-        track.stop();
-      }
-      setMediaStream(null);
-      optionsRef.current?.onError?.("session-failed");
-      return;
-    }
-
-    // Connect WebSocket to OpenAI Realtime API
-    const wsUrl = "wss://api.openai.com/v1/realtime?intent=transcription";
-    const ws = new WebSocket(wsUrl, [
-      "realtime",
-      `openai-insecure-api-key.${clientSecret}`,
-      "openai-beta.realtime-v1",
-    ]);
-    wsRef.current = ws;
-
-    isListeningRef.current = true;
-    setIsListening(true);
-
-    ws.onopen = () => {
-      // Send transcription session configuration
-      // Use server VAD with very short silence threshold for fast response
-      // while maintaining transcription accuracy.
-      const langCode = lang.split("-")[0]; // "ja-JP" → "ja"
-      ws.send(
-        JSON.stringify({
-          type: "transcription_session.update",
-          session: {
-            input_audio_format: "pcm16",
-            input_audio_transcription: {
-              model: "gpt-4o-mini-transcribe",
-              language: langCode,
-            },
-            turn_detection: {
-              type: "server_vad",
-              threshold: 0.3,
-              prefix_padding_ms: 300,
-              silence_duration_ms: 200,
-            },
-          },
-        })
-      );
-
-      // Start audio capture pipeline
-      startAudioCapture(stream, ws);
-    };
-
-    ws.onmessage = (event) => {
+      // Get microphone stream
+      let stream: MediaStream;
       try {
-        const data = JSON.parse(event.data);
-        handleRealtimeEvent(data);
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setMediaStream(stream);
       } catch {
-        // Ignore malformed messages
+        optionsRef.current?.onError?.("not-allowed");
+        return;
       }
-    };
 
-    ws.onerror = () => {
-      if (isListeningRef.current) {
-        optionsRef.current?.onError?.("websocket-error");
-      }
-    };
-
-    ws.onclose = () => {
-      // If we were still listening, the connection was lost
-      if (isListeningRef.current) {
-        isListeningRef.current = false;
-        setIsListening(false);
-        cleanupAudio();
-      }
-    };
-
-    function startAudioCapture(audioStream: MediaStream, socket: WebSocket) {
-      const audioContext = new AudioContext({ sampleRate: 24000 });
-      audioContextRef.current = audioContext;
-
-      const source = audioContext.createMediaStreamSource(audioStream);
-      sourceRef.current = source;
-
-      // ScriptProcessorNode for capturing raw PCM audio
-      const processor = audioContext.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
-
-      processor.onaudioprocess = (e) => {
-        if (!isListeningRef.current || socket.readyState !== WebSocket.OPEN) {
-          return;
+      // Fetch ephemeral token
+      let clientSecret: string;
+      try {
+        const tokenResponse = await fetch("/api/interview/stt/session", {
+          method: "POST",
+        });
+        if (!tokenResponse.ok) {
+          throw new Error(`Token fetch failed: ${tokenResponse.status}`);
         }
+        const tokenData = await tokenResponse.json();
+        clientSecret = tokenData.client_secret?.value;
+        if (!clientSecret) {
+          throw new Error("No client secret in response");
+        }
+      } catch (error) {
+        console.error("Failed to get STT session token:", error);
+        for (const track of stream.getTracks()) {
+          track.stop();
+        }
+        setMediaStream(null);
+        optionsRef.current?.onError?.("session-failed");
+        return;
+      }
 
-        const inputData = e.inputBuffer.getChannelData(0);
-        const base64Audio = float32ToPcm16Base64(inputData);
+      // Connect WebSocket to OpenAI Realtime API
+      const wsUrl = "wss://api.openai.com/v1/realtime?intent=transcription";
+      const ws = new WebSocket(wsUrl, [
+        "realtime",
+        `openai-insecure-api-key.${clientSecret}`,
+        "openai-beta.realtime-v1",
+      ]);
+      wsRef.current = ws;
 
-        socket.send(
+      isListeningRef.current = true;
+      setIsListening(true);
+
+      ws.onopen = () => {
+        // Send transcription session configuration
+        // Use server VAD with very short silence threshold for fast response
+        // while maintaining transcription accuracy.
+        const langCode = lang.split("-")[0]; // "ja-JP" → "ja"
+        ws.send(
           JSON.stringify({
-            type: "input_audio_buffer.append",
-            audio: base64Audio,
+            type: "transcription_session.update",
+            session: {
+              input_audio_format: "pcm16",
+              input_audio_transcription: {
+                model: "gpt-4o-mini-transcribe",
+                language: langCode,
+              },
+              turn_detection: {
+                type: "server_vad",
+                threshold: 0.3,
+                prefix_padding_ms: 300,
+                silence_duration_ms: 200,
+              },
+            },
           })
         );
+
+        // Start audio capture pipeline
+        startAudioCapture(stream, ws);
       };
 
-      source.connect(processor);
-      processor.connect(audioContext.destination);
-    }
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleRealtimeEvent(data);
+        } catch {
+          // Ignore malformed messages
+        }
+      };
 
-    function handleRealtimeEvent(data: Record<string, unknown>) {
-      const eventType = data.type as string;
+      ws.onerror = () => {
+        if (isListeningRef.current) {
+          optionsRef.current?.onError?.("websocket-error");
+        }
+      };
 
-      switch (eventType) {
-        case "conversation.item.input_audio_transcription.delta": {
-          // Streaming transcription — append to current segment
-          const delta = data.delta as string | undefined;
-          if (delta) {
-            currentSegmentRef.current += delta;
-            setTranscript(committedTextRef.current + currentSegmentRef.current);
+      ws.onclose = () => {
+        // If we were still listening, the connection was lost
+        if (isListeningRef.current) {
+          isListeningRef.current = false;
+          setIsListening(false);
+          cleanupAudio();
+        }
+      };
+
+      function startAudioCapture(audioStream: MediaStream, socket: WebSocket) {
+        const audioContext = new AudioContext({ sampleRate: 24000 });
+        audioContextRef.current = audioContext;
+
+        const source = audioContext.createMediaStreamSource(audioStream);
+        sourceRef.current = source;
+
+        // ScriptProcessorNode for capturing raw PCM audio
+        const processor = audioContext.createScriptProcessor(4096, 1, 1);
+        processorRef.current = processor;
+
+        processor.onaudioprocess = (e) => {
+          if (!isListeningRef.current || socket.readyState !== WebSocket.OPEN) {
+            return;
           }
-          break;
-        }
 
-        case "conversation.item.input_audio_transcription.completed": {
-          // Segment finalized — commit and reset for next segment
-          const completedTranscript = data.transcript as string | undefined;
-          const segmentText = completedTranscript ?? currentSegmentRef.current;
-          committedTextRef.current += segmentText;
-          currentSegmentRef.current = "";
-          setTranscript(committedTextRef.current);
-          break;
-        }
+          const inputData = e.inputBuffer.getChannelData(0);
+          const base64Audio = float32ToPcm16Base64(inputData);
 
-        case "error": {
-          const errorData = data.error as Record<string, unknown> | undefined;
-          const errorMessage =
-            (errorData?.message as string) ?? "unknown error";
-          console.error("Realtime API error:", errorMessage);
-          break;
-        }
+          socket.send(
+            JSON.stringify({
+              type: "input_audio_buffer.append",
+              audio: base64Audio,
+            })
+          );
+        };
 
-        default:
-          // Ignore other events (session.created, etc.)
-          break;
+        source.connect(processor);
+        processor.connect(audioContext.destination);
       }
-    }
-  }, [isSupported, lang, cleanupAudio, cleanupWebSocket]);
+
+      function handleRealtimeEvent(data: Record<string, unknown>) {
+        const eventType = data.type as string;
+
+        switch (eventType) {
+          case "conversation.item.input_audio_transcription.delta": {
+            // Streaming transcription — append to current segment
+            const delta = data.delta as string | undefined;
+            if (delta) {
+              currentSegmentRef.current += delta;
+              setTranscript(
+                committedTextRef.current + currentSegmentRef.current
+              );
+            }
+            break;
+          }
+
+          case "conversation.item.input_audio_transcription.completed": {
+            // Segment finalized — commit and reset for next segment
+            const completedTranscript = data.transcript as string | undefined;
+            const segmentText =
+              completedTranscript ?? currentSegmentRef.current;
+            committedTextRef.current += segmentText;
+            currentSegmentRef.current = "";
+            setTranscript(committedTextRef.current);
+            break;
+          }
+
+          case "error": {
+            const errorData = data.error as Record<string, unknown> | undefined;
+            const errorMessage =
+              (errorData?.message as string) ?? "unknown error";
+            console.error("Realtime API error:", errorMessage);
+            break;
+          }
+
+          default:
+            // Ignore other events (session.created, etc.)
+            break;
+        }
+      }
+    },
+    [isSupported, lang, cleanupAudio, cleanupWebSocket]
+  );
 
   // Cleanup on unmount
   useEffect(() => {

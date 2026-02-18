@@ -63,6 +63,7 @@ export function InterviewChatClient({
   // Voice mode
   const voiceMode = useVoiceMode({
     isAiResponding: isLoading,
+    currentInput: input,
     onInputChange: setInput,
   });
 

@@ -8,6 +8,8 @@ export type VoiceModePhase = "idle" | "speaking" | "listening" | "processing";
 
 interface UseVoiceModeOptions {
   isAiResponding: boolean;
+  /** Current text input value — used to preserve text when restarting voice mode */
+  currentInput: string;
   /** Update the text input value — transcript syncs here in real time */
   onInputChange: (text: string) => void;
 }
@@ -29,12 +31,14 @@ interface UseVoiceModeReturn {
 }
 
 export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
-  const { isAiResponding, onInputChange } = options;
+  const { isAiResponding, currentInput, onInputChange } = options;
 
   const [isVoiceModeOn, setIsVoiceModeOn] = useState(false);
   const [phase, setPhase] = useState<VoiceModePhase>("idle");
   const [isTtsEnabled, setIsTtsEnabled] = useState(true);
 
+  const currentInputRef = useRef(currentInput);
+  currentInputRef.current = currentInput;
   const onInputChangeRef = useRef(onInputChange);
   onInputChangeRef.current = onInputChange;
 
@@ -43,13 +47,13 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
     onEnd: () => {
       if (isVoiceModeOn) {
         setPhase("listening");
-        stt.startListening();
+        stt.startListening(currentInputRef.current);
       }
     },
     onError: () => {
       if (isVoiceModeOn) {
         setPhase("listening");
-        stt.startListening();
+        stt.startListening(currentInputRef.current);
       }
     },
   });
@@ -86,7 +90,7 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
         setPhase("processing");
       } else {
         setPhase("listening");
-        stt.startListening();
+        stt.startListening(currentInputRef.current);
       }
     }
   }, [isVoiceModeOn, isAiResponding, tts, stt]);
@@ -109,7 +113,7 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
     if (isTtsEnabled && tts.isSpeaking) {
       tts.cancel();
       setPhase("listening");
-      stt.startListening();
+      stt.startListening(currentInputRef.current);
     }
   }, [isTtsEnabled, tts, stt]);
 
@@ -123,7 +127,7 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
         tts.speak(text);
       } else {
         setPhase("listening");
-        stt.startListening();
+        stt.startListening(currentInputRef.current);
       }
     },
     [isVoiceModeOn, isTtsEnabled, tts, stt]
