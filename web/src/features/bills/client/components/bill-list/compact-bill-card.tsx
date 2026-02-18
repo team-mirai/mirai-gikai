@@ -29,11 +29,11 @@ export function CompactBillCard({ bill, className }: CompactBillCardProps) {
           </h3>
           <div className="flex items-center gap-3">
             <BillStatusBadge status={bill.status} className="w-fit" />
-            <span className="text-xs text-muted-foreground">
-              {bill.published_at
-                ? `${formatDateWithDots(bill.published_at)} ${statusLabel}`
-                : "法案提出前"}
-            </span>
+            {bill.published_at && (
+              <span className="text-xs text-muted-foreground">
+                {formatDateWithDots(bill.published_at)} {statusLabel}
+              </span>
+            )}
           </div>
         </div>
 

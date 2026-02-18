@@ -1,6 +1,5 @@
-import { ChevronRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import type { DietSession } from "../../shared/types";
 import { BillListWithStatusFilter } from "./bill-list-with-status-filter";
@@ -68,15 +67,6 @@ export function DietSessionBillList({ session, bills }: Props) {
           </a>
         </div>
       )}
-
-      {/* パンくずリスト */}
-      <nav className="flex items-center gap-2 text-[15px]">
-        <Link href="/" className="text-black">
-          TOP
-        </Link>
-        <ChevronRight className="h-5 w-5 text-black" />
-        <span className="text-black">過去の法案</span>
-      </nav>
     </div>
   );
 }
