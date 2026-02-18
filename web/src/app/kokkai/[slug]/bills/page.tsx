@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layouts/container";
 import { getDietSessionBySlug } from "@/features/diet-sessions/server/loaders/get-diet-session-by-slug";
@@ -33,8 +34,23 @@ export default async function DietSessionBillsPage({ params }: Props) {
   const bills = await getBillsByDietSession(session.id);
 
   return (
-    <Container className="py-8">
-      <DietSessionBillList session={session} bills={bills} />
-    </Container>
+    <>
+      {/* ヒーロー画像 */}
+      <div className="relative w-full h-[285px]">
+        <Image
+          src="/img/hero_background.png"
+          alt={`${session.name}の法案一覧`}
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+          quality={85}
+        />
+      </div>
+
+      <Container className="py-8">
+        <DietSessionBillList session={session} bills={bills} />
+      </Container>
+    </>
   );
 }

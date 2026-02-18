@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { CompactBillCard } from "@/features/bills/client/components/bill-list/compact-bill-card";
 
@@ -52,23 +53,20 @@ export function BillListWithStatusFilter({ bills }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {/* フィルターボタン */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3">
         {filters.map((filter) => (
-          <button
+          <Button
             key={filter.key}
-            type="button"
+            variant="ghost"
             onClick={() => setActiveFilter(filter.key)}
-            className={`
-              px-4 py-2 rounded-full text-sm font-medium transition-colors
-              ${
-                activeFilter === filter.key
-                  ? "bg-mirai-gradient text-black"
-                  : "bg-white text-[#c7c7cc]"
-              }
-            `}
+            className={`h-[29px] px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
+              activeFilter === filter.key
+                ? "bg-mirai-gradient text-black hover:bg-mirai-gradient"
+                : "bg-[#F2F2F7] text-[#8E8E93] hover:bg-[#E5E5EA]"
+            }`}
           >
             {filter.label} {filter.count}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -78,7 +76,7 @@ export function BillListWithStatusFilter({ bills }: Props) {
           該当する法案がありません
         </p>
       ) : (
-        <div className="grid gap-4">
+        <div className="flex flex-col gap-3">
           {filteredBills.map((bill) => (
             <Link key={bill.id} href={`/bills/${bill.id}`}>
               <CompactBillCard bill={bill} />

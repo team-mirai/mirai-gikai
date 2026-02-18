@@ -1,5 +1,7 @@
+import { ChevronRight, ExternalLink } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import type { BillWithContent } from "@/features/bills/shared/types";
-import { formatDateWithDots } from "@/lib/utils/date";
 import type { DietSession } from "../../shared/types";
 import { BillListWithStatusFilter } from "./bill-list-with-status-filter";
 
@@ -9,14 +11,36 @@ type Props = {
 };
 
 export function DietSessionBillList({ session, bills }: Props) {
+  const startDate = new Date(session.start_date);
+  const endDate = new Date(session.end_date);
+  const sessionDescription = `${startDate.getFullYear()}.${startDate.getMonth() + 1}月〜${endDate.getMonth() + 1}月に実施された${session.name}`;
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* ヘッダー */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold">{session.name}に提出された法案</h1>
-        <p className="text-muted-foreground text-sm">
-          {formatDateWithDots(session.start_date)} 〜{" "}
-          {formatDateWithDots(session.end_date)}
+    <div className="flex flex-col gap-8">
+      {/* Archiveヘッダー */}
+      <div className="flex flex-col gap-1">
+        <h1>
+          <Image
+            src="/icons/archive-typography.svg"
+            alt="Archive"
+            width={156}
+            height={36}
+            priority
+          />
+        </h1>
+        <p className="text-sm font-bold text-primary-accent">
+          過去の国会に提出された法案
+        </p>
+      </div>
+
+      {/* セクションヘッダー */}
+      <div className="flex flex-col gap-0.5">
+        <h2 className="text-[22px] font-bold text-black leading-[1.48] flex items-center gap-4">
+          {startDate.getFullYear()}年 {session.name}の提出法案
+          <span>{bills.length}件</span>
+        </h2>
+        <p className="text-xs font-medium text-[#1F2937]">
+          {sessionDescription}
         </p>
       </div>
 
@@ -31,19 +55,28 @@ export function DietSessionBillList({ session, bills }: Props) {
 
       {/* 衆議院リンク */}
       {session.shugiin_url && (
-        <div className="text-right text-sm pt-4">
-          {session.name}に提出された全ての法案は{" "}
+        <div className="flex items-center gap-1 text-[13px] font-medium text-[#1F2937]">
+          {startDate.getFullYear()}年{session.name}に提出された全ての法案は
           <a
             href={session.shugiin_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline inline-flex items-center gap-1"
+            className="inline-flex items-center gap-1"
           >
             国会議案情報へ
-            <span className="text-xs">↗</span>
+            <ExternalLink className="h-3 w-3" />
           </a>
         </div>
       )}
+
+      {/* パンくずリスト */}
+      <nav className="flex items-center gap-2 text-[15px]">
+        <Link href="/" className="text-black">
+          TOP
+        </Link>
+        <ChevronRight className="h-5 w-5 text-black" />
+        <span className="text-black">過去の法案</span>
+      </nav>
     </div>
   );
 }
