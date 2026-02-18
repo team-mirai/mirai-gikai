@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 interface UseSpeechRecognitionOptions {
   lang?: string;
   silenceTimeoutMs?: number;
-  onResult?: (transcript: string) => void;
+  onUtteranceEnd?: (transcript: string) => void;
   onSilenceTimeout?: () => void;
   onError?: (error: string) => void;
 }
@@ -20,6 +20,23 @@ interface UseSpeechRecognitionReturn {
   mediaStream: MediaStream | null;
 }
 
+/**
+ * Converts Float32 audio samples to PCM16 (Int16) and returns base64 string.
+ */
+function float32ToPcm16Base64(float32Array: Float32Array): string {
+  const int16Array = new Int16Array(float32Array.length);
+  for (let i = 0; i < float32Array.length; i++) {
+    const s = Math.max(-1, Math.min(1, float32Array[i]));
+    int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+  }
+  const bytes = new Uint8Array(int16Array.buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 export function useSpeechRecognition(
   options?: UseSpeechRecognitionOptions
 ): UseSpeechRecognitionReturn {
@@ -30,17 +47,20 @@ export function useSpeechRecognition(
   const [transcript, setTranscript] = useState("");
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isListeningRef = useRef(false);
-  const restartCountRef = useRef(0);
   const accumulatedTranscriptRef = useRef("");
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
   const isSupported =
     typeof window !== "undefined" &&
-    Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+    Boolean(navigator.mediaDevices?.getUserMedia) &&
+    Boolean(window.WebSocket);
 
   const clearSilenceTimer = useCallback(() => {
     if (silenceTimerRef.current) {
@@ -53,21 +73,49 @@ export function useSpeechRecognition(
     clearSilenceTimer();
     silenceTimerRef.current = setTimeout(() => {
       if (isListeningRef.current) {
-        isListeningRef.current = false;
-        recognitionRef.current?.stop();
-        setIsListening(false);
         optionsRef.current?.onSilenceTimeout?.();
       }
     }, silenceTimeoutMs);
   }, [clearSilenceTimer, silenceTimeoutMs]);
 
+  const resetSilenceTimer = useCallback(() => {
+    if (isListeningRef.current) {
+      startSilenceTimer();
+    }
+  }, [startSilenceTimer]);
+
+  const cleanupAudio = useCallback(() => {
+    if (processorRef.current) {
+      processorRef.current.disconnect();
+      processorRef.current = null;
+    }
+    if (sourceRef.current) {
+      sourceRef.current.disconnect();
+      sourceRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+  }, []);
+
+  const cleanupWebSocket = useCallback(() => {
+    if (wsRef.current) {
+      if (
+        wsRef.current.readyState === WebSocket.OPEN ||
+        wsRef.current.readyState === WebSocket.CONNECTING
+      ) {
+        wsRef.current.close();
+      }
+      wsRef.current = null;
+    }
+  }, []);
+
   const stopListening = useCallback(() => {
     isListeningRef.current = false;
     clearSilenceTimer();
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
+    cleanupAudio();
+    cleanupWebSocket();
     if (mediaStream) {
       for (const track of mediaStream.getTracks()) {
         track.stop();
@@ -75,130 +123,209 @@ export function useSpeechRecognition(
       setMediaStream(null);
     }
     setIsListening(false);
-  }, [clearSilenceTimer, mediaStream]);
+  }, [clearSilenceTimer, cleanupAudio, cleanupWebSocket, mediaStream]);
 
   const startListening = useCallback(async () => {
     if (!isSupported) return;
 
-    // Clean up existing recognition
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
+    // Clean up any existing session
+    cleanupAudio();
+    cleanupWebSocket();
 
-    const SpeechRecognitionClass =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognitionClass) return;
-
-    // Get microphone stream for waveform visualization
+    // Get microphone stream
+    let stream: MediaStream;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setMediaStream(stream);
     } catch {
       optionsRef.current?.onError?.("not-allowed");
       return;
     }
 
-    const recognition = new SpeechRecognitionClass();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = lang;
-    recognitionRef.current = recognition;
+    // Fetch ephemeral token
+    let clientSecret: string;
+    try {
+      const tokenResponse = await fetch("/api/interview/stt/session", {
+        method: "POST",
+      });
+      if (!tokenResponse.ok) {
+        throw new Error(`Token fetch failed: ${tokenResponse.status}`);
+      }
+      const tokenData = await tokenResponse.json();
+      clientSecret = tokenData.client_secret?.value;
+      if (!clientSecret) {
+        throw new Error("No client secret in response");
+      }
+    } catch (error) {
+      console.error("Failed to get STT session token:", error);
+      for (const track of stream.getTracks()) {
+        track.stop();
+      }
+      setMediaStream(null);
+      optionsRef.current?.onError?.("session-failed");
+      return;
+    }
+
+    // Connect WebSocket to OpenAI Realtime API
+    const wsUrl = "wss://api.openai.com/v1/realtime?intent=transcription";
+    const ws = new WebSocket(wsUrl, [
+      "realtime",
+      `openai-insecure-api-key.${clientSecret}`,
+      "openai-beta.realtime-v1",
+    ]);
+    wsRef.current = ws;
 
     isListeningRef.current = true;
-    restartCountRef.current = 0;
     accumulatedTranscriptRef.current = "";
     setTranscript("");
     setIsListening(true);
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      restartCountRef.current = 0;
+    ws.onopen = () => {
+      // Send transcription session configuration
+      const langCode = lang.split("-")[0]; // "ja-JP" → "ja"
+      ws.send(
+        JSON.stringify({
+          type: "transcription_session.update",
+          session: {
+            input_audio_format: "pcm16",
+            input_audio_transcription: {
+              model: "gpt-4o-mini-transcribe",
+              language: langCode,
+            },
+            turn_detection: {
+              type: "server_vad",
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 2000,
+            },
+          },
+        })
+      );
+
+      // Start audio capture pipeline
+      startAudioCapture(stream, ws);
       startSilenceTimer();
-
-      let interim = "";
-      let final = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          final += result[0].transcript;
-        } else {
-          interim += result[0].transcript;
-        }
-      }
-
-      if (final) {
-        accumulatedTranscriptRef.current += final;
-      }
-
-      const currentTranscript = accumulatedTranscriptRef.current + interim;
-      setTranscript(currentTranscript);
     };
 
-    recognition.onend = () => {
-      // Chrome auto-stops after ~60s, auto-restart if still listening
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        handleRealtimeEvent(data);
+      } catch {
+        // Ignore malformed messages
+      }
+    };
+
+    ws.onerror = () => {
       if (isListeningRef.current) {
-        restartCountRef.current++;
-        if (restartCountRef.current <= 3) {
-          try {
-            const newRecognition = new SpeechRecognitionClass();
-            newRecognition.continuous = true;
-            newRecognition.interimResults = true;
-            newRecognition.lang = lang;
-            newRecognition.onresult = recognition.onresult;
-            newRecognition.onend = recognition.onend;
-            newRecognition.onerror = recognition.onerror;
-            recognitionRef.current = newRecognition;
-            newRecognition.start();
-            return;
-          } catch {
-            // Fall through to silence timeout
-          }
-        }
-        // Max restarts reached, treat as silence timeout
+        optionsRef.current?.onError?.("websocket-error");
+      }
+    };
+
+    ws.onclose = () => {
+      // If we were still listening, the connection was lost
+      if (isListeningRef.current) {
         isListeningRef.current = false;
         setIsListening(false);
+        cleanupAudio();
         optionsRef.current?.onSilenceTimeout?.();
       }
     };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      if (event.error === "not-allowed") {
-        isListeningRef.current = false;
-        setIsListening(false);
-        clearSilenceTimer();
-        optionsRef.current?.onError?.("not-allowed");
-      } else if (event.error === "no-speech") {
-        // Ignore, handled by silence timer
-      } else if (event.error === "aborted") {
-        // Ignore, manual stop
-      } else {
-        optionsRef.current?.onError?.(event.error);
-      }
-    };
+    function startAudioCapture(audioStream: MediaStream, socket: WebSocket) {
+      const audioContext = new AudioContext({ sampleRate: 24000 });
+      audioContextRef.current = audioContext;
 
-    try {
-      recognition.start();
-      startSilenceTimer();
-    } catch {
-      isListeningRef.current = false;
-      setIsListening(false);
-      optionsRef.current?.onError?.("start-failed");
+      const source = audioContext.createMediaStreamSource(audioStream);
+      sourceRef.current = source;
+
+      // ScriptProcessorNode for capturing raw PCM audio
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      processorRef.current = processor;
+
+      processor.onaudioprocess = (e) => {
+        if (!isListeningRef.current || socket.readyState !== WebSocket.OPEN) {
+          return;
+        }
+
+        const inputData = e.inputBuffer.getChannelData(0);
+        const base64Audio = float32ToPcm16Base64(inputData);
+
+        socket.send(
+          JSON.stringify({
+            type: "input_audio_buffer.append",
+            audio: base64Audio,
+          })
+        );
+      };
+
+      source.connect(processor);
+      processor.connect(audioContext.destination);
     }
-  }, [isSupported, lang, startSilenceTimer, clearSilenceTimer]);
 
+    function handleRealtimeEvent(data: Record<string, unknown>) {
+      const eventType = data.type as string;
+
+      switch (eventType) {
+        case "conversation.item.input_audio_transcription.delta": {
+          // Interim transcription update
+          const delta = data.delta as string | undefined;
+          if (delta) {
+            resetSilenceTimer();
+            accumulatedTranscriptRef.current += delta;
+            setTranscript(accumulatedTranscriptRef.current);
+          }
+          break;
+        }
+
+        case "conversation.item.input_audio_transcription.completed": {
+          // Final transcription for an utterance
+          const completedTranscript = data.transcript as string | undefined;
+          if (completedTranscript) {
+            resetSilenceTimer();
+            accumulatedTranscriptRef.current = completedTranscript;
+            setTranscript(completedTranscript);
+          }
+
+          // Notify that user finished speaking
+          const finalText = accumulatedTranscriptRef.current.trim();
+          if (finalText) {
+            optionsRef.current?.onUtteranceEnd?.(finalText);
+          }
+          break;
+        }
+
+        case "error": {
+          const errorData = data.error as Record<string, unknown> | undefined;
+          const errorMessage =
+            (errorData?.message as string) ?? "unknown error";
+          console.error("Realtime API error:", errorMessage);
+          break;
+        }
+
+        default:
+          // Ignore other events (session.created, etc.)
+          break;
+      }
+    }
+  }, [
+    isSupported,
+    lang,
+    startSilenceTimer,
+    resetSilenceTimer,
+    cleanupAudio,
+    cleanupWebSocket,
+  ]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       isListeningRef.current = false;
       clearSilenceTimer();
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-        recognitionRef.current = null;
-      }
+      cleanupAudio();
+      cleanupWebSocket();
     };
-  }, [clearSilenceTimer]);
+  }, [clearSilenceTimer, cleanupAudio, cleanupWebSocket]);
 
   return {
     startListening,

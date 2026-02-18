@@ -78,20 +78,26 @@ export function useVoiceMode(options: UseVoiceModeOptions): UseVoiceModeReturn {
   const stt = useSpeechRecognition({
     lang: "ja-JP",
     silenceTimeoutMs,
+    onUtteranceEnd: (transcript) => {
+      // Server VAD detected end of speech → start countdown if text exists
+      if (transcript.trim()) {
+        startCountdown(transcript);
+      }
+    },
     onSilenceTimeout: () => {
+      // No speech detected for silenceTimeoutMs → auto-end voice mode
       const transcript = pendingTranscriptRef.current;
       if (transcript.trim()) {
-        // Has text, start countdown
+        // Fallback: if somehow we have text, start countdown
         startCountdown(transcript);
       } else {
-        // No text, auto-end voice mode
         setIsVoiceModeOn(false);
         setPhase("idle");
         setShowSilenceNotification(true);
       }
     },
     onError: (error) => {
-      if (error === "not-allowed") {
+      if (error === "not-allowed" || error === "session-failed") {
         setIsVoiceModeOn(false);
         setPhase("idle");
       }
