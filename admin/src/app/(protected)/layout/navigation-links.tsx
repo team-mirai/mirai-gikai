@@ -8,6 +8,7 @@ const navigationLinks = [
   { href: "/bills", label: "議案管理" },
   { href: "/diet-sessions", label: "国会会期管理" },
   { href: "/tags", label: "タグ管理" },
+  { href: "/admins", label: "管理者" },
 ];
 
 export function NavigationLinks() {
