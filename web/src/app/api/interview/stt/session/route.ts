@@ -17,7 +17,7 @@ export async function POST() {
 
   try {
     const response = await fetch(
-      "https://api.openai.com/v1/realtime/sessions",
+      "https://api.openai.com/v1/realtime/transcription_sessions",
       {
         method: "POST",
         headers: {
@@ -25,7 +25,17 @@ export async function POST() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini-transcribe",
+          input_audio_format: "pcm16",
+          input_audio_transcription: {
+            model: "gpt-4o-mini-transcribe",
+            language: "ja",
+          },
+          turn_detection: {
+            type: "server_vad",
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 2000,
+          },
         }),
       }
     );
