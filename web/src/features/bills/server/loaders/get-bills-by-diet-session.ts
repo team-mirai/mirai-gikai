@@ -71,6 +71,13 @@ const _getCachedBillsByDietSession = unstable_cache(
       };
     });
 
+    // 成立法案を先頭に、それ以外はpublished_at降順
+    billsWithContent.sort((a, b) => {
+      if (a.status === "enacted" && b.status !== "enacted") return -1;
+      if (a.status !== "enacted" && b.status === "enacted") return 1;
+      return 0;
+    });
+
     return billsWithContent;
   },
   ["bills-by-diet-session"],
