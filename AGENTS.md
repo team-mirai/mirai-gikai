@@ -13,7 +13,10 @@ git worktree add ../mirai-gikai-<branch-name> -b <branch-name>
 mkdir -p ../mirai-gikai-<branch-name>/.claude
 cp .claude/settings.local.json ../mirai-gikai-<branch-name>/.claude/
 
-# 3. 依存パッケージをインストール
+# 3. .envをコピー（環境変数の引き継ぎ）
+cp .env ../mirai-gikai-<branch-name>/
+
+# 4. 依存パッケージをインストール
 cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 ```
 
