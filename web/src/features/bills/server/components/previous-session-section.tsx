@@ -9,6 +9,7 @@ import type { BillWithContent } from "../../shared/types";
 interface PreviousSessionSectionProps {
   session: DietSession;
   bills: BillWithContent[];
+  totalBillCount: number;
 }
 
 const VISIBLE_BILLS = 5;
@@ -16,9 +17,10 @@ const VISIBLE_BILLS = 5;
 export function PreviousSessionSection({
   session,
   bills,
+  totalBillCount,
 }: PreviousSessionSectionProps) {
-  const hasFade = bills.length > VISIBLE_BILLS;
   const visibleBills = bills.slice(0, VISIBLE_BILLS);
+  const showMoreButton = totalBillCount > visibleBills.length;
 
   // slugがない場合はセクションを表示しない
   if (!session.slug || bills.length === 0) {
@@ -55,7 +57,7 @@ export function PreviousSessionSection({
             <span className="flex items-center gap-4">
               {new Date(session.start_date).getFullYear()}年 {session.name}
               の提出法案
-              <span>{bills.length}件</span>
+              <span>{totalBillCount}件</span>
             </span>
             <ChevronRight className="h-6 w-6 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
           </h3>
@@ -67,22 +69,14 @@ export function PreviousSessionSection({
 
       {/* 議案カードリスト */}
       <div className="relative flex flex-col gap-3">
-        {visibleBills.map((bill, index) => {
-          const isLastVisibleCard = hasFade && index === VISIBLE_BILLS - 1;
-          // 最後のカードはセッションページへのリンク（もっと読むボタンとして機能）
-          const href = isLastVisibleCard
-            ? sessionBillsUrl
-            : `/bills/${bill.id}`;
-
-          return (
-            <Link key={bill.id} href={href}>
-              <CompactBillCard bill={bill} />
-            </Link>
-          );
-        })}
+        {visibleBills.map((bill) => (
+          <Link key={bill.id} href={`/bills/${bill.id}`}>
+            <CompactBillCard bill={bill} />
+          </Link>
+        ))}
 
         {/* もっと読むリンク（グラデーションオーバーレイ付き） */}
-        {hasFade && (
+        {showMoreButton && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[118px] bg-[linear-gradient(180deg,rgba(255,255,255,0.3)_0%,rgb(255,255,255)_62%)] rounded-b-2xl">
             <div className="absolute inset-x-0 bottom-6 flex justify-center pointer-events-auto">
               <Button

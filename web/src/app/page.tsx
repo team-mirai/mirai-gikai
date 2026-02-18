@@ -62,6 +62,7 @@ export default async function Home() {
             <PreviousSessionSection
               session={previousSessionData.session}
               bills={previousSessionData.bills}
+              totalBillCount={previousSessionData.totalBillCount}
             />
           </div>
         )}
