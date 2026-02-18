@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Conversation,
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { useInterviewChat } from "../hooks/use-interview-chat";
+import { useVoiceMode } from "../hooks/use-voice-mode";
 import { calcInterviewProgress } from "../utils/calc-interview-progress";
 import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
@@ -14,6 +15,7 @@ import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewSubmitSection } from "./interview-submit-section";
 import { InterviewSummaryInput } from "./interview-summary-input";
 import { QuickReplyButtons } from "./quick-reply-buttons";
+import { VoiceModePanel } from "./voice-mode-panel";
 
 interface InterviewChatClientProps {
   billId: string;
@@ -47,6 +49,8 @@ export function InterviewChatClient({
     currentQuickReplies,
     completedReportId,
     canRetry,
+    latestAssistantText,
+    latestAssistantTextId,
     handleSubmit,
     handleQuickReply,
     handleComplete,
@@ -55,6 +59,47 @@ export function InterviewChatClient({
     billId,
     initialMessages,
   });
+
+  // Voice mode
+  const voiceMode = useVoiceMode({
+    isAiResponding: isLoading,
+    currentInput: input,
+    onInputChange: setInput,
+  });
+
+  // Wrap handleSubmit to notify voice mode
+  const handleChatSubmit = useCallback(
+    (...args: Parameters<typeof handleSubmit>) => {
+      if (voiceMode.isVoiceModeOn) {
+        voiceMode.notifyMessageSent();
+      }
+      handleSubmit(...args);
+    },
+    [voiceMode, handleSubmit]
+  );
+
+  // Track which AI message we last spoke
+  const lastSpokenTextIdRef = useRef(0);
+
+  // Auto-read AI message when voice mode is on and AI finishes
+  useEffect(() => {
+    if (
+      voiceMode.isVoiceModeOn &&
+      latestAssistantText &&
+      latestAssistantTextId > lastSpokenTextIdRef.current &&
+      !isLoading
+    ) {
+      lastSpokenTextIdRef.current = latestAssistantTextId;
+      voiceMode.speakMessage(latestAssistantText);
+    }
+  }, [latestAssistantText, latestAssistantTextId, isLoading, voiceMode]);
+
+  // Auto-disable voice mode when stage changes away from "chat"
+  useEffect(() => {
+    if (stage !== "chat" && voiceMode.isVoiceModeOn) {
+      voiceMode.disableVoiceMode();
+    }
+  }, [stage, voiceMode]);
 
   const progress = useMemo(
     () => calcInterviewProgress(totalQuestions, stage, messages),
@@ -123,7 +168,12 @@ export function InterviewChatClient({
               message={{
                 id: "streaming-assistant",
                 role: "assistant",
-                parts: [{ type: "text" as const, text: object.text ?? "" }],
+                parts: [
+                  {
+                    type: "text" as const,
+                    text: object.text ?? "",
+                  },
+                ],
               }}
               isStreaming={isLoading}
               report={streamingReportData}
@@ -156,7 +206,12 @@ export function InterviewChatClient({
           {!isLoading && stage === "chat" && currentQuickReplies.length > 0 && (
             <QuickReplyButtons
               replies={currentQuickReplies}
-              onSelect={handleQuickReply}
+              onSelect={(reply) => {
+                if (voiceMode.isVoiceModeOn) {
+                  voiceMode.disableVoiceMode();
+                }
+                handleQuickReply(reply);
+              }}
               disabled={isLoading}
             />
           )}
@@ -185,13 +240,32 @@ export function InterviewChatClient({
         )}
 
         {stage === "chat" && (
-          <InterviewChatInput
-            input={input}
-            onInputChange={setInput}
-            onSubmit={handleSubmit}
-            placeholder="AIに質問に回答する"
-            isResponding={isLoading}
-          />
+          <>
+            {/* 音声モードパネル */}
+            {voiceMode.isVoiceModeOn && (
+              <div className="mb-2">
+                <VoiceModePanel
+                  phase={voiceMode.phase}
+                  isTtsEnabled={voiceMode.isTtsEnabled}
+                  ttsAnalyserNode={voiceMode.ttsAnalyserNode}
+                  micMediaStream={voiceMode.micMediaStream}
+                  onClose={voiceMode.disableVoiceMode}
+                  onToggleTts={voiceMode.toggleTts}
+                />
+              </div>
+            )}
+
+            {/* テキスト入力 */}
+            <InterviewChatInput
+              input={input}
+              onInputChange={setInput}
+              onSubmit={handleChatSubmit}
+              placeholder="AIに質問に回答する"
+              isResponding={isLoading}
+              showMicButton={!voiceMode.isVoiceModeOn && voiceMode.isSupported}
+              onMicClick={voiceMode.toggleVoiceMode}
+            />
+          </>
         )}
       </div>
     </div>

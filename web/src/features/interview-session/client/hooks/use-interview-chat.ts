@@ -1,7 +1,7 @@
 "use client";
 
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   type InterviewStage,
@@ -36,6 +36,12 @@ export function useInterviewChat({
     ConversationMessage[]
   >([]);
 
+  // 最新のAIメッセージテキスト（音声モード用）
+  const [latestAssistantText, setLatestAssistantText] = useState<string | null>(
+    null
+  );
+  const latestAssistantTextIdRef = useRef(0);
+
   // リトライロジック
   const retry = useInterviewRetry();
 
@@ -69,6 +75,12 @@ export function useInterviewChat({
         // レスポンスからnext_stageを取得してステージを更新
         if (next_stage) {
           setStage(next_stage);
+        }
+
+        // 音声モード用: 最新のAIメッセージテキストを更新
+        if (text) {
+          latestAssistantTextIdRef.current++;
+          setLatestAssistantText(text);
         }
 
         setConversationMessages((prev) => [
@@ -186,6 +198,8 @@ export function useInterviewChat({
     currentQuickReplies,
     completedReportId,
     canRetry: retry.canRetry,
+    latestAssistantText,
+    latestAssistantTextId: latestAssistantTextIdRef.current,
 
     // アクション
     handleSubmit,
