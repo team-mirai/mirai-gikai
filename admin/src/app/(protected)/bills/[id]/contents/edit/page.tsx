@@ -1,6 +1,6 @@
-import { getBillById } from "@/features/bills-edit/api/get-bill-by-id";
-import { getBillContents } from "@/features/bills-edit/api/get-bill-contents";
 import { BillContentsEditForm } from "@/features/bills-edit/components/bill-contents-edit-form";
+import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
+import { getBillContents } from "@/features/bills-edit/loaders/get-bill-contents";
 
 interface BillContentsEditPageProps {
   params: Promise<{ id: string }>;

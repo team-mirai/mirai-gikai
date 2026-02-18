@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -14,10 +15,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
 import { deleteDietSession } from "../actions/delete-diet-session";
+import { setActiveDietSession } from "../actions/set-active-diet-session";
 import { updateDietSession } from "../actions/update-diet-session";
 import type { DietSession } from "../types";
 
@@ -26,6 +29,7 @@ type DietSessionItemProps = {
 };
 
 export function DietSessionItem({ session }: DietSessionItemProps) {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(session.name);
   const [editSlug, setEditSlug] = useState(session.slug ?? "");
@@ -118,6 +122,28 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
     setIsEditing(false);
   };
 
+  const handleSetActive = async () => {
+    setIsSubmitting(true);
+
+    try {
+      const result = await setActiveDietSession({ id: session.id });
+
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success(
+          `「${session.name}」をアクティブな国会会期に設定しました`
+        );
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Set active diet session error:", error);
+      toast.error("アクティブ設定に失敗しました");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ja-JP", {
       year: "numeric",
@@ -169,7 +195,14 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
           </div>
         ) : (
           <div className="flex-1">
-            <div className="font-medium">{session.name}</div>
+            <div className="flex items-center gap-2 font-medium">
+              {session.name}
+              {session.is_active && (
+                <Badge variant="default" className="bg-green-600">
+                  アクティブ
+                </Badge>
+              )}
+            </div>
             <div className="text-sm text-gray-500">
               {session.slug && (
                 <Link
@@ -215,6 +248,61 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
             </>
           ) : (
             <>
+              {!session.is_active && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isSubmitting}
+                      className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                    >
+                      アクティブにする
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-orange-600">
+                        アクティブな国会会期の変更
+                      </AlertDialogTitle>
+                      <AlertDialogDescription asChild>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p>
+                            「{session.name}
+                            」をアクティブな国会会期に設定しますか？
+                          </p>
+                          <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 p-3 text-orange-800">
+                            <p className="font-semibold">
+                              この操作はトップページに影響します
+                            </p>
+                            <ul className="mt-2 list-disc list-inside text-sm">
+                              <li>
+                                トップページに表示される法案が、この国会会期の法案に切り替わります
+                              </li>
+                              <li>
+                                現在アクティブな国会会期は非アクティブになります
+                              </li>
+                              <li>
+                                ユーザーがトップページで確認できる法案が変わります
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleSetActive}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        アクティブにする
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"

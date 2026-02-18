@@ -1,4 +1,5 @@
 import type { LanguageModelUsage } from "ai";
+import { AI_MODELS } from "./models";
 
 export type ModelPricing = {
   inputTokensPerMillionUsd: number;
@@ -12,13 +13,17 @@ export type SanitizedUsage = {
 };
 
 export const modelPricing: Record<string, ModelPricing> = {
-  "openai/gpt-4o": {
+  [AI_MODELS.gpt4o]: {
     inputTokensPerMillionUsd: 2.5,
     outputTokensPerMillionUsd: 10,
   },
-  "openai/gpt-4o-mini": {
+  [AI_MODELS.gpt4o_mini]: {
     inputTokensPerMillionUsd: 0.15,
     outputTokensPerMillionUsd: 0.6,
+  },
+  [AI_MODELS.gemini3_flash]: {
+    inputTokensPerMillionUsd: 0.5,
+    outputTokensPerMillionUsd: 3,
   },
 };
 

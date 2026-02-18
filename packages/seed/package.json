@@ -4,12 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "seed": "tsx run.ts",
+    "seed": "tsx main/run.ts",
+    "seed:csv": "tsx csv/import-csv.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@mirai-gikai/supabase": "workspace:*",
-    "@supabase/supabase-js": "^2.45.4"
+    "@supabase/supabase-js": "^2.57.0",
+    "csv-parse": "^6.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.5.5",

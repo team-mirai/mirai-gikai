@@ -3,16 +3,16 @@ import { About } from "@/components/top/about";
 import { ComingSoonSection } from "@/components/top/coming-soon-section";
 import { Hero } from "@/components/top/hero";
 import { TeamMirai } from "@/components/top/team-mirai";
-import { getDifficultyLevel } from "@/features/bill-difficulty/api/get-difficulty-level";
-import { BillDisclaimer } from "@/features/bills/components/bill-detail/bill-disclaimer";
-import { BillsByTagSection } from "@/features/bills/components/bills-by-tag-section";
-import { FeaturedBillSection } from "@/features/bills/components/featured-bill-section";
-import { PreviousSessionSection } from "@/features/bills/components/previous-session-section";
-import { loadHomeData } from "@/features/bills/loaders/load-home-data";
-import type { BillWithContent } from "@/features/bills/types";
-import { HomeChatClient } from "@/features/chat/components/home-chat-client";
-import { getCurrentDietSession } from "@/features/diet-sessions/api/get-current-diet-session";
-import { CurrentDietSession } from "@/features/diet-sessions/components/current-diet-session";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
+import { BillDisclaimer } from "@/features/bills/client/components/bill-detail/bill-disclaimer";
+import { BillsByTagSection } from "@/features/bills/server/components/bills-by-tag-section";
+import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
+import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
+import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
+import type { BillWithContent } from "@/features/bills/shared/types";
+import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
+import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
+import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getJapanTime } from "@/lib/utils/date";
 
 export default async function Home() {

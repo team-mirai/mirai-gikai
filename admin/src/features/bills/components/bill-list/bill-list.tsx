@@ -1,17 +1,18 @@
-import { Calendar, Edit, FileText, MessageCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { getBills } from "../../api/get-bills";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { BILL_STATUS_CONFIG } from "../../constants/bill-config";
-import type { Bill, BillStatus } from "../../types";
+import { getBills } from "../../loaders/get-bills";
+import type { BillStatus, BillWithDietSession } from "../../types";
 import { getBillStatusLabel } from "../../types";
 import { BillActionsMenu } from "../bill-actions-menu/bill-actions-menu";
 import { PreviewButton } from "./preview-button";
@@ -23,94 +24,16 @@ function StatusBadge({
   originatingHouse,
 }: {
   status: BillStatus;
-  originatingHouse: Bill["originating_house"];
+  originatingHouse: BillWithDietSession["originating_house"];
 }) {
   const config = BILL_STATUS_CONFIG[status];
   const Icon = config.icon;
 
   return (
-    <div
-      className={`inline-flex items-center gap-1.5 py-1 rounded-full text-sm font-bold`}
-    >
+    <div className="inline-flex items-center gap-1.5 py-1 rounded-full text-sm font-bold">
       <Icon className="h-4 w-4" />
       <span>{getBillStatusLabel(status, originatingHouse)}</span>
     </div>
-  );
-}
-
-function BillCard({ bill }: { bill: Bill }) {
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-row justify-between items-center gap-3">
-          <CardTitle className="text-lg font-semibold text-gray-900 leading-6">
-            {bill.name}
-          </CardTitle>
-          <BillActionsMenu billId={bill.id} billName={bill.name} />
-        </div>
-        <div className="flex flex-none flex-wrap gap-2">
-          <PublishStatusBadge
-            billId={bill.id}
-            publishStatus={bill.publish_status}
-          />
-          {(bill.publish_status === "draft" ||
-            bill.publish_status === "coming_soon") && (
-            <PreviewButton billId={bill.id} />
-          )}
-          {bill.publish_status === "published" && (
-            <ViewButton billId={bill.id} />
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-sm">
-          <div className="mb-2 flex items-center gap-2">
-            <StatusBadge
-              status={bill.status}
-              originatingHouse={bill.originating_house}
-            />
-            <div className="font-medium text-gray-900">
-              {bill.status_note || "-"}
-            </div>
-          </div>
-          <div className="">
-            <span className="text-gray-500 flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              公開日:
-              <span className="font-medium text-gray-900">
-                {bill.published_at
-                  ? new Date(bill.published_at).toLocaleDateString("ja-JP")
-                  : "-"}
-              </span>
-            </span>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-          <div className="flex items-center gap-2">
-            <Link href={`/bills/${bill.id}/edit`}>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-1" />
-                基本情報
-              </Button>
-            </Link>
-            <Link href={`/bills/${bill.id}/contents/edit`}>
-              <Button variant="outline" size="sm">
-                <FileText className="h-4 w-4 mr-1" />
-                コンテンツ
-              </Button>
-            </Link>
-            <Link href={`/bills/${bill.id}/interview/edit`}>
-              <Button variant="outline" size="sm">
-                <MessageCircle className="h-4 w-4 mr-1" />
-                インタビュー設定
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </CardFooter>
-    </Card>
   );
 }
 
@@ -129,11 +52,72 @@ export async function BillList() {
         </Link>
       </div>
 
-      <div className="space-y-4">
-        {bills.map((bill) => (
-          <BillCard key={bill.id} bill={bill} />
-        ))}
+      <div className="rounded-md border bg-white">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>議案名</TableHead>
+              <TableHead>国会会期</TableHead>
+              <TableHead>公開ステータス</TableHead>
+              <TableHead>審議ステータス</TableHead>
+              <TableHead>公開日</TableHead>
+              <TableHead className="w-[50px]" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {bills.map((bill) => (
+              <BillRow key={bill.id} bill={bill} />
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
+  );
+}
+
+function BillRow({ bill }: { bill: BillWithDietSession }) {
+  return (
+    <TableRow>
+      <TableCell className="max-w-[400px]">
+        <Link
+          href={`/bills/${bill.id}/edit`}
+          className="block truncate font-medium hover:underline"
+        >
+          {bill.name}
+        </Link>
+      </TableCell>
+      <TableCell className="text-gray-600">
+        {bill.diet_sessions?.name ?? "-"}
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <PublishStatusBadge
+            billId={bill.id}
+            publishStatus={bill.publish_status}
+          />
+          {(bill.publish_status === "draft" ||
+            bill.publish_status === "coming_soon") && (
+            <PreviewButton billId={bill.id} />
+          )}
+          {bill.publish_status === "published" && (
+            <ViewButton billId={bill.id} />
+          )}
+        </div>
+      </TableCell>
+      <TableCell>
+        <StatusBadge
+          status={bill.status}
+          originatingHouse={bill.originating_house}
+        />
+      </TableCell>
+      <TableCell className="text-gray-600">
+        {bill.published_at
+          ? new Date(bill.published_at).toLocaleDateString("ja-JP")
+          : "-"}
+      </TableCell>
+      <TableCell>
+        <BillActionsMenu billId={bill.id} billName={bill.name} />
+      </TableCell>
+    </TableRow>
   );
 }

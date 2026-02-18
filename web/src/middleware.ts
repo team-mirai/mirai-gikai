@@ -4,7 +4,7 @@ import {
   DIFFICULTY_COOKIE_OPTIONS,
   type DifficultyLevelEnum,
   VALID_DIFFICULTY_LEVELS,
-} from "./features/bill-difficulty/types";
+} from "./features/bill-difficulty/shared/types";
 import {
   createUnauthorizedResponse,
   getBasicAuthConfig,

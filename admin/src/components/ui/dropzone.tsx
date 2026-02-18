@@ -1,13 +1,15 @@
 "use client";
 
 import { FileText, Upload, X } from "lucide-react";
-import * as React from "react";
+import type { HTMLAttributes } from "react";
+import { useState } from "react";
+
 import type { DropzoneOptions } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
-interface DropzoneProps extends React.HTMLAttributes<HTMLDivElement> {
+interface DropzoneProps extends HTMLAttributes<HTMLDivElement> {
   onFilesAccepted?: (files: File[]) => void;
   maxFiles?: number;
   maxSize?: number;
@@ -26,7 +28,7 @@ export function Dropzone({
   className,
   ...props
 }: DropzoneProps) {
-  const [files, setFiles] = React.useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } =
     useDropzone({

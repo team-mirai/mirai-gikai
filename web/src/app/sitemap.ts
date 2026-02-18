@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getBills } from "@/features/bills/api/get-bills";
+import { getBills } from "@/features/bills/server/loaders/get-bills";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.VERCEL_URL

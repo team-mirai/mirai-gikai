@@ -1,4 +1,4 @@
-import { getDifficultyLevel } from "@/features/bill-difficulty/api/get-difficulty-level";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { HeaderClient } from "./header-client";
 
 export async function Header() {

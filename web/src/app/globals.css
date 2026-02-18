@@ -4,6 +4,8 @@
 /* チャットUIのマークダウン表示用 */
 @source "../../node_modules/streamdown/dist/index.js";
 
+@plugin "@tailwindcss/typography";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

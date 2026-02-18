@@ -1,10 +1,10 @@
 import { simulateReadableStream, type UIMessage } from "ai";
-import { getChatSupabaseUser } from "@/features/chat/lib/supabase-server";
+import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import {
   type ChatMessageMetadata,
   handleChatRequest,
-} from "@/features/chat/services/handle-chat-request";
-import { ChatError, ChatErrorCode } from "@/features/chat/types/errors";
+} from "@/features/chat/server/services/handle-chat-request";
+import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
 async function _mockResponse(_req: Request) {

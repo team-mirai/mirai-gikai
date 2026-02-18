@@ -1,6 +1,6 @@
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
-import type { ComingSoonBill } from "@/features/bills/types";
+import type { ComingSoonBill } from "@/features/bills/shared/types";
 import { Card, CardContent } from "../ui/card";
 
 interface ComingSoonSectionProps {

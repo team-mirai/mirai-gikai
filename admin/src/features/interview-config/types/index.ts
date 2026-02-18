@@ -18,7 +18,12 @@ export type InterviewQuestionUpdate =
 
 // バリデーションスキーマ
 export const interviewConfigSchema = z.object({
+  name: z
+    .string()
+    .min(1, "設定名は必須です")
+    .max(100, "設定名は100文字以内で入力してください"),
   status: z.enum(["public", "closed"]),
+  mode: z.enum(["loop", "bulk"]),
   themes: z.array(z.string().min(1)).optional(),
   knowledge_source: z.string().optional(),
 });

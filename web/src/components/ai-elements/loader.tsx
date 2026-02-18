@@ -72,7 +72,7 @@ const LoaderIcon = ({ size = 16 }: LoaderIconProps) => (
       />
     </g>
     <defs>
-      {/* biome-ignore lint: lint/correctness/useUniqueElementIds */}
+      {/* biome-ignore lint/correctness/useUniqueElementIds: SVG内でclipPathのIDは一意に保つ必要があるが、このコンポーネント内では問題ない */}
       <clipPath id="clip0_2393_1490">
         <rect fill="white" height="16" width="16" />
       </clipPath>

@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layouts/container";
-import { getDietSessionBySlug } from "@/features/diet-sessions/api/get-diet-session-by-slug";
-import { getBillsByDietSession } from "@/features/bills/api/get-bills-by-diet-session";
-import { DietSessionBillList } from "@/features/diet-sessions/components/diet-session-bill-list";
+import { getDietSessionBySlug } from "@/features/diet-sessions/server/loaders/get-diet-session-by-slug";
+import { getBillsByDietSession } from "@/features/bills/server/loaders/get-bills-by-diet-session";
+import { DietSessionBillList } from "@/features/diet-sessions/client/components/diet-session-bill-list";
 
 type Props = {
   params: Promise<{ slug: string }>;

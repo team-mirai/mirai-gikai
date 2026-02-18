@@ -1,5 +1,5 @@
-import { getDifficultyLevel } from "@/features/bill-difficulty/api/get-difficulty-level";
-import { DifficultySelector } from "@/features/bill-difficulty/components/difficulty-selector";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
+import { DifficultySelector } from "@/features/bill-difficulty/client/components/difficulty-selector";
 
 /**
  * デスクトップメニュー: 難易度切り替え (画面右上)

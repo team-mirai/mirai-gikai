@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDifficultyLevel } from "@/features/bill-difficulty/api/get-difficulty-level";
-import { getBillById } from "@/features/bills/api/get-bill-by-id";
-import { BillDetailLayout } from "@/features/bills/components/bill-detail/bill-detail-layout";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
+import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
 import { env } from "@/lib/env";
 
 interface BillDetailPageProps {

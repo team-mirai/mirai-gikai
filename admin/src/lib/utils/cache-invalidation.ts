@@ -1,4 +1,5 @@
 import { env } from "../env";
+import { logger } from "../logger";
 
 /**
  * Invalidate all caches in the web application
@@ -28,7 +29,7 @@ export async function invalidateWebCache(): Promise<void> {
     }
 
     const result = await response.json();
-    console.log("Cache invalidated successfully:", result);
+    logger.debug("Cache invalidated successfully:", result);
   } catch (error) {
     console.error("Failed to invalidate web cache:", error);
     // Don't throw error to prevent breaking the main operation

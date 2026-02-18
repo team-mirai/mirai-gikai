@@ -5,6 +5,7 @@ import {
   type SanitizedUsage,
   sanitizeUsage,
 } from "./calculate-ai-cost";
+import { AI_MODELS } from "./models";
 
 describe("calculateUsageCostUsd", () => {
   it("returns 0 when usage has no tokens", () => {
@@ -14,7 +15,7 @@ describe("calculateUsageCostUsd", () => {
       totalTokens: 0,
     };
 
-    expect(calculateUsageCostUsd("openai/gpt-4o", usage)).toBe(0);
+    expect(calculateUsageCostUsd(AI_MODELS.gpt4o, usage)).toBe(0);
   });
 
   it("calculates cost for known model", () => {
@@ -25,7 +26,7 @@ describe("calculateUsageCostUsd", () => {
     };
 
     // 500 input tokens * $2.50/M + 1000 output tokens * $10.00/M = 0.00125 + 0.01 = 0.01125
-    expect(calculateUsageCostUsd("openai/gpt-4o", usage)).toBeCloseTo(0.01125);
+    expect(calculateUsageCostUsd(AI_MODELS.gpt4o, usage)).toBeCloseTo(0.01125);
   });
 
   it("throws for unknown model", () => {
@@ -47,6 +48,15 @@ describe("sanitizeUsage", () => {
       inputTokens: 100,
       outputTokens: 200,
       totalTokens: 0,
+      inputTokenDetails: {
+        noCacheTokens: undefined,
+        cacheReadTokens: undefined,
+        cacheWriteTokens: undefined,
+      },
+      outputTokenDetails: {
+        textTokens: undefined,
+        reasoningTokens: undefined,
+      },
     });
 
     expect(usage).toEqual({

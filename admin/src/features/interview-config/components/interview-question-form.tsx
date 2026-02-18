@@ -1,5 +1,6 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,7 @@ export function InterviewQuestionForm({
     arrayToText(initialData?.quick_replies)
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     if (!question.trim()) {

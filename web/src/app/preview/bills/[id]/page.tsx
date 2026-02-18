@@ -1,9 +1,9 @@
 import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getDifficultyLevel } from "@/features/bill-difficulty/api/get-difficulty-level";
-import { getBillByIdAdmin } from "@/features/bills/api/get-bill-by-id-admin";
-import { validatePreviewToken } from "@/features/bills/api/validate-preview-token";
-import { BillDetailLayout } from "@/features/bills/components/bill-detail/bill-detail-layout";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
+import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
+import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
+import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
 import { env } from "@/lib/env";
 
 interface PreviewBillPageProps {

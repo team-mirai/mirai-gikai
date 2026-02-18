@@ -1,0 +1,9 @@
+[copy]
+    include = **/.env
+
+[hooks]
+    postCreate = pnpm install
+
+[defaults]
+    editor = cursor
+    ai = claude
