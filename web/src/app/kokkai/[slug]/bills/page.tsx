@@ -1,3 +1,6 @@
+import { ChevronRight } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layouts/container";
 import { getDietSessionBySlug } from "@/features/diet-sessions/server/loaders/get-diet-session-by-slug";
@@ -33,8 +36,34 @@ export default async function DietSessionBillsPage({ params }: Props) {
   const bills = await getBillsByDietSession(session.id);
 
   return (
-    <Container className="py-8">
-      <DietSessionBillList session={session} bills={bills} />
-    </Container>
+    <div className="bg-[#E5E5EA]">
+      {/* ヒーロー画像 */}
+      <div className="relative w-full h-[285px]">
+        <Image
+          src="/img/archive-hero-7f3d06.png"
+          alt={`${session.name}の法案一覧`}
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+          quality={85}
+        />
+      </div>
+
+      <Container className="py-8">
+        <DietSessionBillList session={session} bills={bills} />
+      </Container>
+
+      {/* パンくずリスト */}
+      <Container className="py-8">
+        <nav className="flex items-center gap-2 text-[15px]">
+          <Link href="/" className="text-black">
+            TOP
+          </Link>
+          <ChevronRight className="h-5 w-5 text-black" />
+          <span className="text-black">過去の法案</span>
+        </nav>
+      </Container>
+    </div>
   );
 }
