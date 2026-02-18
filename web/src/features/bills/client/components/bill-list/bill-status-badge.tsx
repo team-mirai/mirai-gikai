@@ -12,7 +12,7 @@ function getCardStatusLabel(status: BillStatusEnum): string {
     case "introduced":
     case "in_originating_house":
     case "in_receiving_house":
-      return "国会審議待ち";
+      return "国会審議中";
     case "enacted":
       return "法案成立";
     case "rejected":
