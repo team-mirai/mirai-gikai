@@ -2,6 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
 import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
+import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
@@ -60,6 +61,12 @@ export default async function InterviewPreviewChatPage({
     notFound();
   }
 
+  // ループモードの場合のみ質問数を取得（プログレスバー用）
+  const questions =
+    interviewConfig.mode === "loop"
+      ? await getInterviewQuestions(interviewConfig.id)
+      : [];
+
   // インタビューチャットの初期化処理
   try {
     const { session, messages } = await initializeInterviewChat(
@@ -74,6 +81,8 @@ export default async function InterviewPreviewChatPage({
           billId={billId}
           sessionId={session.id}
           initialMessages={messages}
+          mode={interviewConfig.mode}
+          totalQuestions={questions.length}
         />
       </>
     );

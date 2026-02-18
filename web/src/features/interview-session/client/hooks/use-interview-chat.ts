@@ -61,9 +61,16 @@ export function useInterviewChat({
       retry.resetRetry();
 
       if (finishedObject) {
-        const { text, report, quick_replies, question_id, next_stage } =
-          finishedObject;
+        const {
+          text,
+          report,
+          quick_replies,
+          question_id,
+          topic_title,
+          next_stage,
+        } = finishedObject;
         const questionId = question_id ?? null;
+        const topicTitle = topic_title ?? null;
 
         // レスポンスからnext_stageを取得してステージを更新
         if (next_stage) {
@@ -86,6 +93,7 @@ export function useInterviewChat({
             quickReplies:
               questionId && Array.isArray(quick_replies) ? quick_replies : [],
             questionId,
+            topicTitle,
           },
         ]);
       }
