@@ -9,6 +9,7 @@ import type { BillWithContent } from "../../shared/types";
 interface PreviousSessionSectionProps {
   session: DietSession;
   bills: BillWithContent[];
+  totalBillCount: number;
 }
 
 const VISIBLE_BILLS = 5;
@@ -16,9 +17,10 @@ const VISIBLE_BILLS = 5;
 export function PreviousSessionSection({
   session,
   bills,
+  totalBillCount,
 }: PreviousSessionSectionProps) {
-  const hasFade = bills.length > VISIBLE_BILLS;
   const visibleBills = bills.slice(0, VISIBLE_BILLS);
+  const showMoreButton = totalBillCount > visibleBills.length;
 
   // slugがない場合はセクションを表示しない
   if (!session.slug || bills.length === 0) {
@@ -26,11 +28,14 @@ export function PreviousSessionSection({
   }
 
   const sessionBillsUrl = `/kokkai/${session.slug}/bills`;
+  const startDate = new Date(session.start_date);
+  const endDate = new Date(session.end_date);
+  const sessionDescription = `${startDate.getFullYear()}.${startDate.getMonth() + 1}月〜${endDate.getMonth() + 1}月に実施された${session.name}`;
 
   return (
     <section className="flex flex-col gap-6">
       {/* Archiveヘッダー */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
         <h2>
           <Image
             src="/icons/archive-typography.svg"
@@ -46,46 +51,39 @@ export function PreviousSessionSection({
       </div>
 
       {/* セクションヘッダー（リンク付き） */}
-      <Link href={sessionBillsUrl} className="group">
-        <h3 className="text-[22px] font-bold text-[#1F2937] leading-[1.48] flex items-center gap-2">
-          {new Date(session.start_date).getFullYear()}年 {session.name}の法案
-          <span className="text-[#404040]">{bills.length}件</span>
-          <ChevronRight className="h-5 w-5 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
-        </h3>
-      </Link>
+      <div className="flex flex-col gap-1.5">
+        <Link href={sessionBillsUrl} className="group">
+          <h3 className="text-[22px] font-bold text-black leading-[1.48] flex items-center gap-1.5">
+            <span className="flex items-center gap-4">
+              {new Date(session.start_date).getFullYear()}年 {session.name}
+              の提出法案
+              <span>{totalBillCount}件</span>
+            </span>
+            <ChevronRight className="h-6 w-6 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
+          </h3>
+        </Link>
+        <p className="text-xs font-medium text-[#1F2937]">
+          {sessionDescription}
+        </p>
+      </div>
 
       {/* 議案カードリスト */}
       <div className="relative flex flex-col gap-3">
-        {visibleBills.map((bill, index) => {
-          const isLastVisibleCard = hasFade && index === VISIBLE_BILLS - 1;
-          // 最後のカードはセッションページへのリンク（もっと読むボタンとして機能）
-          const href = isLastVisibleCard
-            ? sessionBillsUrl
-            : `/bills/${bill.id}`;
-
-          return (
-            <Link key={bill.id} href={href}>
-              <CompactBillCard
-                bill={bill}
-                // 最後のカードは少し淡く表示して「続きを見る」感を出す
-                className={isLastVisibleCard ? "opacity-60" : undefined}
-              />
-            </Link>
-          );
-        })}
+        {visibleBills.map((bill) => (
+          <Link key={bill.id} href={`/bills/${bill.id}`}>
+            <CompactBillCard bill={bill} />
+          </Link>
+        ))}
 
         {/* もっと読むリンク（グラデーションオーバーレイ付き） */}
-        {hasFade && (
-          <div className="pointer-events-none absolute inset-x-0 -bottom-4 h-24">
-            {/* 上部: グラデーション */}
-            <div className="h-16 bg-gradient-to-t from-white to-white/10" />
-            {/* 下部: 完全に白 + ボタン */}
-            <div className="h-8 bg-white flex items-start justify-center pointer-events-auto">
+        {showMoreButton && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[118px] bg-[linear-gradient(180deg,rgba(255,255,255,0.3)_0%,rgb(255,255,255)_62%)] rounded-b-2xl">
+            <div className="absolute inset-x-0 bottom-6 flex justify-center pointer-events-auto">
               <Button
                 variant="outline"
                 size="lg"
                 asChild
-                className="w-[214px] h-12 text-base font-medium border-black rounded-full hover:bg-gray-50 bg-white -mt-8"
+                className="w-[214px] h-12 text-base font-bold border-[#1F2937] rounded-full hover:bg-gray-50 bg-white"
               >
                 <Link href={sessionBillsUrl}>もっと読む</Link>
               </Button>

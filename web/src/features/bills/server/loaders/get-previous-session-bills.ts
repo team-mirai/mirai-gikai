@@ -13,6 +13,7 @@ const MAX_PREVIEW_BILLS = 5;
 export type PreviousSessionBillsResult = {
   session: DietSession;
   bills: BillWithContent[];
+  totalBillCount: number;
 } | null;
 
 /**
@@ -26,14 +27,15 @@ export async function getPreviousSessionBills(): Promise<PreviousSessionBillsRes
   }
 
   const difficultyLevel = await getDifficultyLevel();
-  const bills = await _getCachedPreviousSessionBills(
-    previousSession.id,
-    difficultyLevel
-  );
+  const [bills, totalBillCount] = await Promise.all([
+    _getCachedPreviousSessionBills(previousSession.id, difficultyLevel),
+    _getCachedPreviousSessionBillCount(previousSession.id, difficultyLevel),
+  ]);
 
   return {
     session: previousSession,
     bills,
+    totalBillCount,
   };
 }
 
@@ -97,6 +99,37 @@ const _getCachedPreviousSessionBills = unstable_cache(
   ["previous-session-bills"],
   {
     revalidate: 600, // 10分
+    tags: [CACHE_TAGS.BILLS],
+  }
+);
+
+const _getCachedPreviousSessionBillCount = unstable_cache(
+  async (
+    dietSessionId: string,
+    difficultyLevel: DifficultyLevelEnum
+  ): Promise<number> => {
+    const supabase = createAdminClient();
+
+    const { count, error } = await supabase
+      .from("bills")
+      .select("*, bill_contents!inner(difficulty_level)", {
+        count: "exact",
+        head: true,
+      })
+      .eq("diet_session_id", dietSessionId)
+      .eq("publish_status", "published")
+      .eq("bill_contents.difficulty_level", difficultyLevel);
+
+    if (error) {
+      console.error("Failed to count previous session bills:", error);
+      return 0;
+    }
+
+    return count ?? 0;
+  },
+  ["previous-session-bill-count"],
+  {
+    revalidate: 600,
     tags: [CACHE_TAGS.BILLS],
   }
 );
