@@ -612,6 +612,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_admin_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          created_at: string
+          last_sign_in_at: string | null
+        }[]
+      }
       get_interview_message_counts: {
         Args: { session_ids: string[] }
         Returns: {
