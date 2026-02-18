@@ -26,6 +26,15 @@ export async function createAdmin(input: CreateAdminInput) {
       return { error: "パスワードは6文字以上で入力してください" };
     }
 
+    // 作成前に既存の管理者かチェック（DB関数でadminのみ効率的に取得）
+    const { data: admins } = await supabase.rpc("get_admin_users");
+    const alreadyAdmin = admins?.find((a) => a.email?.toLowerCase() === email);
+    if (alreadyAdmin) {
+      return {
+        error: "このメールアドレスは既に管理者として登録されています",
+      };
+    }
+
     // パスワード指定で管理者ユーザーを作成
     const { error: createError } = await supabase.auth.admin.createUser({
       email,
@@ -35,47 +44,17 @@ export async function createAdmin(input: CreateAdminInput) {
     });
 
     if (createError) {
-      // 既存ユーザーの場合、admin ロールを付与して昇格
       if (
         createError.message.includes("already been registered") ||
         createError.message.includes("already exists")
       ) {
-        const { data: users } = await supabase.auth.admin.listUsers({
-          page: 1,
-          perPage: 1000,
-        });
-        const existing = users?.users?.find(
-          (u) => u.email?.toLowerCase() === email
-        );
-        if (!existing) {
-          return {
-            error:
-              "このメールアドレスは既に登録されていますが、ユーザー情報を取得できませんでした",
-          };
-        }
-        const roles: string[] =
-          (existing.app_metadata?.roles as string[]) ?? [];
-        if (roles.includes("admin")) {
-          return {
-            error: "このメールアドレスは既に管理者として登録されています",
-          };
-        }
-        const { error: updateError } = await supabase.auth.admin.updateUserById(
-          existing.id,
-          {
-            app_metadata: { roles: [...roles, "admin"] },
-          }
-        );
-        if (updateError) {
-          return {
-            error: `管理者権限の付与に失敗しました: ${updateError.message}`,
-          };
-        }
-      } else {
         return {
-          error: `管理者の作成に失敗しました: ${createError.message}`,
+          error: "このメールアドレスは既に登録されています",
         };
       }
+      return {
+        error: `管理者の作成に失敗しました: ${createError.message}`,
+      };
     }
 
     revalidatePath("/admins");
