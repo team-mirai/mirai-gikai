@@ -2,6 +2,7 @@
 
 import type { ChangeEvent } from "react";
 import Image from "next/image";
+import { Mic } from "lucide-react";
 import { useRef } from "react";
 import {
   PromptInput,
@@ -21,6 +22,8 @@ interface InterviewChatInputProps {
   isResponding: boolean;
   error?: Error | null;
   showHint?: boolean;
+  showMicButton?: boolean;
+  onMicClick?: () => void;
 }
 
 export function InterviewChatInput({
@@ -30,6 +33,8 @@ export function InterviewChatInput({
   placeholder,
   isResponding,
   error,
+  showMicButton,
+  onMicClick,
 }: InterviewChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isDesktop = useIsDesktop();
@@ -66,6 +71,17 @@ export function InterviewChatInput({
             className="!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-[#AEAEB2] placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0"
           />
         </PromptInputBody>
+        {showMicButton && (
+          <button
+            type="button"
+            onClick={onMicClick}
+            disabled={isResponding}
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#0F8472] transition-colors disabled:opacity-50"
+            aria-label="音声モードを開始"
+          >
+            <Mic className="size-5" />
+          </button>
+        )}
         <button
           type="submit"
           disabled={!input || isResponding}
