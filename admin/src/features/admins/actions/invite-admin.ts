@@ -26,43 +26,7 @@ export async function createAdmin(input: CreateAdminInput) {
       return { error: "パスワードは6文字以上で入力してください" };
     }
 
-    // 既存ユーザーチェック
-    const { data: existingUsers } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-
-    const existingUser = existingUsers?.users?.find(
-      (u) => u.email?.toLowerCase() === email
-    );
-
-    if (existingUser) {
-      const roles = existingUser.app_metadata?.roles || [];
-      if (roles.includes("admin")) {
-        return {
-          error: "このメールアドレスは既に管理者として登録されています",
-        };
-      }
-
-      // 既存ユーザーにadmin権限を付与
-      const { error: updateError } = await supabase.auth.admin.updateUserById(
-        existingUser.id,
-        {
-          app_metadata: { roles: ["admin"] },
-        }
-      );
-
-      if (updateError) {
-        return {
-          error: `管理者権限の付与に失敗しました: ${updateError.message}`,
-        };
-      }
-
-      revalidatePath("/admins");
-      return { success: true };
-    }
-
-    // 新規ユーザー: パスワード指定で作成
+    // パスワード指定で管理者ユーザーを作成
     const { error: createError } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -71,6 +35,14 @@ export async function createAdmin(input: CreateAdminInput) {
     });
 
     if (createError) {
+      if (
+        createError.message.includes("already been registered") ||
+        createError.message.includes("already exists")
+      ) {
+        return {
+          error: "このメールアドレスは既に登録されています",
+        };
+      }
       return {
         error: `管理者の作成に失敗しました: ${createError.message}`,
       };
