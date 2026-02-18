@@ -40,8 +40,13 @@ export async function createAdmin(input: CreateAdminInput) {
         createError.message.includes("already been registered") ||
         createError.message.includes("already exists")
       ) {
-        const { data: users } = await supabase.auth.admin.listUsers();
-        const existing = users?.users?.find((u) => u.email === email);
+        const { data: users } = await supabase.auth.admin.listUsers({
+          page: 1,
+          perPage: 1000,
+        });
+        const existing = users?.users?.find(
+          (u) => u.email?.toLowerCase() === email
+        );
         if (!existing) {
           return {
             error:
