@@ -48,7 +48,10 @@ export function useSpeechRecognition(
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const isListeningRef = useRef(false);
-  const accumulatedTranscriptRef = useRef("");
+  /** Finalized text from all previous completed segments */
+  const committedTextRef = useRef("");
+  /** Text being built from delta events for the current segment */
+  const currentSegmentRef = useRef("");
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
@@ -151,7 +154,8 @@ export function useSpeechRecognition(
     wsRef.current = ws;
 
     isListeningRef.current = true;
-    accumulatedTranscriptRef.current = "";
+    committedTextRef.current = "";
+    currentSegmentRef.current = "";
     setTranscript("");
     setIsListening(true);
 
@@ -171,7 +175,7 @@ export function useSpeechRecognition(
               type: "server_vad",
               threshold: 0.5,
               prefix_padding_ms: 300,
-              silence_duration_ms: 2000,
+              silence_duration_ms: 500,
             },
           },
         })
@@ -241,22 +245,22 @@ export function useSpeechRecognition(
 
       switch (eventType) {
         case "conversation.item.input_audio_transcription.delta": {
-          // Interim transcription update
+          // Streaming transcription — append to current segment
           const delta = data.delta as string | undefined;
           if (delta) {
-            accumulatedTranscriptRef.current += delta;
-            setTranscript(accumulatedTranscriptRef.current);
+            currentSegmentRef.current += delta;
+            setTranscript(committedTextRef.current + currentSegmentRef.current);
           }
           break;
         }
 
         case "conversation.item.input_audio_transcription.completed": {
-          // Final transcription for an utterance
+          // Segment finalized — commit and reset for next segment
           const completedTranscript = data.transcript as string | undefined;
-          if (completedTranscript) {
-            accumulatedTranscriptRef.current = completedTranscript;
-            setTranscript(completedTranscript);
-          }
+          const segmentText = completedTranscript ?? currentSegmentRef.current;
+          committedTextRef.current += segmentText;
+          currentSegmentRef.current = "";
+          setTranscript(committedTextRef.current);
           break;
         }
 
