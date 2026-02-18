@@ -58,7 +58,7 @@ export default async function Home() {
 
         {/* 前回の国会セクション（Archive） */}
         {previousSessionData && (
-          <div className="bg-white -mx-4 sm:-mx-6 px-4 sm:px-6 py-8">
+          <div className="bg-[#E5E5EA] -mx-4 sm:-mx-6 px-4 sm:px-6 py-9">
             <PreviousSessionSection
               session={previousSessionData.session}
               bills={previousSessionData.bills}
