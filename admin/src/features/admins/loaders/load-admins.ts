@@ -1,19 +1,42 @@
+import type { User } from "@supabase/supabase-js";
+import { unstable_noStore as noStore } from "next/cache";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { Admin } from "../types";
 
-export async function loadAdmins(): Promise<Admin[]> {
+async function listAllUsers(): Promise<User[]> {
+  noStore();
   const supabase = createAdminClient();
+  const allUsers: User[] = [];
+  let page = 1;
+  const perPage = 1000;
 
-  const { data, error } = await supabase.auth.admin.listUsers({
-    page: 1,
-    perPage: 1000,
-  });
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
 
-  if (error) {
-    throw new Error(`管理者一覧の取得に失敗しました: ${error.message}`);
+    if (error) {
+      throw new Error(`管理者一覧の取得に失敗しました: ${error.message}`);
+    }
+
+    const users = data?.users ?? [];
+    allUsers.push(...users);
+
+    if (users.length < perPage) {
+      break;
+    }
+
+    page++;
   }
 
-  const admins: Admin[] = (data?.users ?? [])
+  return allUsers;
+}
+
+export async function loadAdmins(): Promise<Admin[]> {
+  const users = await listAllUsers();
+
+  const admins: Admin[] = users
     .filter((user) => {
       const roles = user.app_metadata?.roles || [];
       return roles.includes("admin");
