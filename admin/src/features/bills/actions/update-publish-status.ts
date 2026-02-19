@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/features/auth/lib/auth-server";
+import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import type { BillPublishStatus } from "../types";
 import { updateBillPublishStatus } from "../repositories/bill-repository";

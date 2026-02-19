@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/features/auth/lib/auth-server";
+import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import { type BillCreateInput, billCreateSchema } from "../types";
 import { createBillRecord } from "../repositories/bill-edit-repository";

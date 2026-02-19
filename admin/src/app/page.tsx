@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getCurrentAdmin } from "@/features/auth/lib/auth-server";
+import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
 
 export default async function HomePage() {
   const admin = await getCurrentAdmin();

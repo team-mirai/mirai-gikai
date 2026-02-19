@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { signIn } from "../lib/auth-client";
-import type { LoginFormData } from "../types";
+import type { LoginFormData } from "../../shared/types";
 
 export function useLogin() {
   const router = useRouter();
