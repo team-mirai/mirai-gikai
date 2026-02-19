@@ -14,7 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { deleteBill } from "../../actions/delete-bill";
+import { deleteBill } from "../../../server/actions/delete-bill";
 
 interface DeleteBillButtonProps {
   billId: string;

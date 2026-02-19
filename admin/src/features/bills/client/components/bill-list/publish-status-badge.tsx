@@ -8,8 +8,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { updatePublishStatusAction } from "../../actions/update-publish-status";
-import type { BillPublishStatus } from "../../types";
+import { updatePublishStatusAction } from "../../../server/actions/update-publish-status";
+import type { BillPublishStatus } from "../../../shared/types";
 
 interface PublishStatusBadgeProps {
   billId: string;

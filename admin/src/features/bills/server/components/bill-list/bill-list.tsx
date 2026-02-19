@@ -10,14 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { BILL_STATUS_CONFIG } from "../../constants/bill-config";
+import { BILL_STATUS_CONFIG } from "../../../shared/constants/bill-config";
 import { getBills } from "../../loaders/get-bills";
-import type { BillStatus, BillWithDietSession } from "../../types";
-import { getBillStatusLabel } from "../../types";
-import { BillActionsMenu } from "../bill-actions-menu/bill-actions-menu";
-import { PreviewButton } from "./preview-button";
-import { PublishStatusBadge } from "./publish-status-badge";
-import { ViewButton } from "./view-button";
+import type { BillStatus, BillWithDietSession } from "../../../shared/types";
+import { getBillStatusLabel } from "../../../shared/types";
+import { BillActionsMenu } from "../../../client/components/bill-actions-menu/bill-actions-menu";
+import { PreviewButton } from "../../../client/components/bill-list/preview-button";
+import { PublishStatusBadge } from "../../../client/components/bill-list/publish-status-badge";
+import { ViewButton } from "../../../client/components/bill-list/view-button";
 
 function StatusBadge({
   status,

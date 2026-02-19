@@ -4,7 +4,7 @@ import { Copy } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { duplicateBill } from "../../actions/duplicate-bill";
+import { duplicateBill } from "../../../server/actions/duplicate-bill";
 
 interface DuplicateBillButtonProps {
   billId: string;
