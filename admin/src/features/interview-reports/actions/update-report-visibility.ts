@@ -1,8 +1,8 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
+import { updateReportVisibility } from "../repositories/interview-report-repository";
 
 interface UpdateReportVisibilityParams {
   reportId: string;
@@ -31,20 +31,7 @@ export async function updateReportVisibilityAction(
   }
 
   try {
-    const supabase = createAdminClient();
-
-    const { error } = await supabase
-      .from("interview_report")
-      .update({ is_public_by_admin: isPublic })
-      .eq("id", reportId);
-
-    if (error) {
-      console.error("Failed to update report visibility:", error);
-      return {
-        success: false,
-        error: "公開状態の更新に失敗しました",
-      };
-    }
+    await updateReportVisibility(reportId, isPublic);
 
     // Revalidate the detail page and list page
     revalidatePath(`/bills/${billId}/reports/${sessionId}`);
@@ -55,7 +42,7 @@ export async function updateReportVisibilityAction(
     console.error("Error updating report visibility:", error);
     return {
       success: false,
-      error: "予期しないエラーが発生しました",
+      error: "公開状態の更新に失敗しました",
     };
   }
 }
