@@ -34,6 +34,7 @@ import {
   arrayToText,
   textToArray,
 } from "../../shared/types";
+import { generateDefaultConfigName } from "../../shared/utils/default-config-name";
 import {
   createInterviewConfig,
   updateInterviewConfig,
@@ -56,7 +57,7 @@ export function InterviewConfigForm({
   const form = useForm<InterviewConfigInput>({
     resolver: zodResolver(interviewConfigSchema),
     defaultValues: {
-      name: config?.name || "",
+      name: config?.name || generateDefaultConfigName(),
       status: config?.status || "closed",
       mode: config?.mode || "loop",
       themes: config?.themes || [],
