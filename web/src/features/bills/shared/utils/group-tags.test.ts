@@ -1,8 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("server-only", () => ({}));
-
-import { groupTagsByBillId } from "./bill-repository";
+import { describe, expect, it } from "vitest";
+import { groupTagsByBillId } from "./group-tags";
 
 type BillTag = {
   bill_id: string;
