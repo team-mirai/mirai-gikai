@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createAdmin } from "../actions/invite-admin";
+import { createAdmin } from "../../server/actions/invite-admin";
 
 export function InviteAdminForm() {
   const emailId = useId();
