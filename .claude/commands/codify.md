@@ -111,9 +111,50 @@ $ARGUMENTS
 
 ### 6. 検証
 
-最後に以下を実行して問題がないことを確認：
+以下を実行して問題がないことを確認：
 
 ```bash
 pnpm lint
 pnpm typecheck
+```
+
+### 7. コミットとPR作成（必須）
+
+仕組み化の変更を必ずPRとして提出する。CLAUDE.mdのworktreeルールに従うこと。
+
+#### 7a. worktree作成とファイルコピー
+
+```bash
+# メインリポジトリのルートで実行
+git worktree add ../mirai-gikai-<branch-name> -b <branch-name>
+mkdir -p ../mirai-gikai-<branch-name>/.claude
+cp .claude/settings.local.json ../mirai-gikai-<branch-name>/.claude/
+cp .env ../mirai-gikai-<branch-name>/
+```
+
+- ブランチ名は `chore/codify-<変更内容の要約>` とする（例: `chore/codify-add-pr-step`）
+- 変更対象のファイルをworktreeにコピーする
+
+#### 7b. コミットとpush
+
+```bash
+cd ../mirai-gikai-<branch-name>
+git add <変更ファイル>
+git commit -m "<コミットメッセージ>"
+git push -u origin <branch-name>
+```
+
+#### 7c. PR作成
+
+```bash
+gh pr create --title "<タイトル>" --body "<本文>"
+```
+
+- PR本文には「仕組み化サマリ」（ステップ5の出力）を含める
+- PR作成前に `gh pr list --state open` で既存PRとの重複を確認する
+
+#### 7d. worktreeクリーンアップ
+
+```bash
+git worktree remove ../mirai-gikai-<branch-name>
 ```
