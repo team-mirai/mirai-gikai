@@ -37,6 +37,13 @@ const modeLogicMap = {
   loop: loopModeLogic,
 } as const;
 
+/** テスト時にモック注入するための外部依存 */
+export type InterviewChatDeps = {
+  facilitatorModel?: Parameters<typeof generateText>[0]["model"];
+  chatModel?: Parameters<typeof streamText>[0]["model"];
+  summaryModel?: Parameters<typeof streamText>[0]["model"];
+};
+
 /**
  * インタビューチャットリクエストを処理してストリーミングレスポンスを返す
  */
@@ -45,7 +52,8 @@ export async function handleInterviewChatRequest({
   billId,
   currentStage,
   isRetry = false,
-}: InterviewChatRequestParams) {
+  deps,
+}: InterviewChatRequestParams & { deps?: InterviewChatDeps }) {
   // インタビュー設定と法案情報を取得
   const [interviewConfig, bill] = await Promise.all([
     getInterviewConfigAdmin(billId),
@@ -95,6 +103,7 @@ export async function handleInterviewChatRequest({
     questions,
     dbMessages,
     logic,
+    facilitatorModel: deps?.facilitatorModel,
   });
 
   // 実際に使用するステージ（ファシリテーション結果を反映）
@@ -126,6 +135,8 @@ export async function handleInterviewChatRequest({
     sessionId: session.id,
     isSummaryPhase,
     nextStage,
+    chatModel: deps?.chatModel,
+    summaryModel: deps?.summaryModel,
   });
 }
 
@@ -138,12 +149,14 @@ async function determinNextStage({
   questions,
   dbMessages,
   logic,
+  facilitatorModel,
 }: {
   messages: Array<{ role: string; content: string }>;
   currentStage: InterviewStage;
   questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
   dbMessages: Array<{ role: string; content: string }>;
   logic: (typeof modeLogicMap)[keyof typeof modeLogicMap];
+  facilitatorModel?: Parameters<typeof generateText>[0]["model"];
 }): Promise<InterviewStage> {
   // ファシリテーション不要な場合は現在のステージを維持
   if (!logic.shouldFacilitate({ currentStage })) {
@@ -196,8 +209,9 @@ async function determinNextStage({
     .join("\n");
 
   logger.debug("Facilitator Prompt:", facilitatorPrompt);
+  const model = facilitatorModel ?? AI_MODELS.gpt4o_mini;
   const result = await generateText({
-    model: AI_MODELS.gpt4o_mini,
+    model,
     prompt: `${facilitatorPrompt}\n\n# 会話履歴\n${conversationText}`,
     output: Output.object({ schema: facilitatorResultSchema }),
   });
@@ -214,15 +228,21 @@ async function generateStreamingResponse({
   sessionId,
   isSummaryPhase,
   nextStage,
+  chatModel,
+  summaryModel,
 }: {
   systemPrompt: string;
   messages: { role: string; content: string }[];
   sessionId: string;
   isSummaryPhase: boolean;
   nextStage: InterviewStage;
+  chatModel?: Parameters<typeof streamText>[0]["model"];
+  summaryModel?: Parameters<typeof streamText>[0]["model"];
 }) {
   // summaryフェーズはGemini、chatフェーズはGPT-4o-mini
-  const model = isSummaryPhase ? AI_MODELS.gemini3_flash : AI_MODELS.gpt4o_mini;
+  const model = isSummaryPhase
+    ? (summaryModel ?? AI_MODELS.gemini3_flash)
+    : (chatModel ?? AI_MODELS.gpt4o_mini);
 
   const handleError = (error: unknown) => {
     console.error("LLM generation error:", error);

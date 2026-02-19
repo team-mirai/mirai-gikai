@@ -14,6 +14,12 @@ type GenerateInitialQuestionParams = {
   sessionId: string;
   billId: string;
   interviewConfigId: string;
+  deps?: GenerateQuestionDeps;
+};
+
+/** テスト時にモック注入するための外部依存 */
+export type GenerateQuestionDeps = {
+  model?: Parameters<typeof generateText>[0]["model"];
 };
 
 /**
@@ -23,6 +29,7 @@ export async function generateInitialQuestion({
   sessionId,
   billId,
   interviewConfigId,
+  deps,
 }: GenerateInitialQuestionParams): Promise<InterviewMessage | null> {
   try {
     // インタビュー設定と法案情報を取得
@@ -50,8 +57,9 @@ export async function generateInitialQuestion({
     const enhancedSystemPrompt = `${systemPrompt}\n\n## 重要: これはインタビューの開始です。ユーザーからのメッセージはありません。事前定義質問の最初の質問から始めてください。挨拶は温かく丁寧に（2文程度）、「${billTitle}」についてのインタビューであることを明確に伝えた上で、すぐに最初の質問をしてください。最初の質問にクイックリプライが設定されている場合は、必ず quick_replies フィールドに含めてください。${firstQuestionId ? `最初の質問は ID: ${firstQuestionId} であり、レスポンスの question_id にこの値を含めてください。` : ""}`;
 
     // メッセージ履歴なしで最初の質問を生成（構造化出力）
+    const model = deps?.model ?? AI_MODELS.gpt4o_mini;
     const result = await generateText({
-      model: AI_MODELS.gpt4o_mini,
+      model,
       prompt: enhancedSystemPrompt,
       output: Output.object({ schema: interviewChatTextSchema }),
     });
