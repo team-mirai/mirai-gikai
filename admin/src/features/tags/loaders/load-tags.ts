@@ -1,29 +1,8 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { TagWithBillCount } from "../types";
+import { findAllTagsWithBillCount } from "../repositories/tag-repository";
 
 export async function loadTags(): Promise<TagWithBillCount[]> {
-  const supabase = createAdminClient();
-
-  // Supabase クエリで議案数をカウント
-  const { data, error } = await supabase
-    .from("tags")
-    .select(
-      `
-      id,
-      label,
-      description,
-      featured_priority,
-      created_at,
-      updated_at,
-      bills_tags(count)
-    `
-    )
-    .order("featured_priority", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    throw new Error(`タグの取得に失敗しました: ${error.message}`);
-  }
+  const data = await findAllTagsWithBillCount();
 
   // データを整形
   return (

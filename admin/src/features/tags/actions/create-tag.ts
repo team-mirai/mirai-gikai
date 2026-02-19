@@ -1,39 +1,35 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import type { CreateTagInput } from "../types";
+import { createTagRecord } from "../repositories/tag-repository";
 
 export async function createTag(input: CreateTagInput) {
   try {
     await requireAdmin();
-
-    const supabase = createAdminClient();
 
     // バリデーション
     if (!input.label || input.label.trim().length === 0) {
       return { error: "タグ名を入力してください" };
     }
 
-    const { data, error } = await supabase
-      .from("tags")
-      .insert({ label: input.label.trim() })
-      .select()
-      .single();
+    const result = await createTagRecord({
+      label: input.label.trim(),
+    });
 
-    if (error) {
+    if (result.error) {
       // UNIQUE制約違反
-      if (error.code === "23505") {
+      if (result.error.code === "23505") {
         return { error: "このタグ名は既に存在します" };
       }
-      return { error: `タグの作成に失敗しました: ${error.message}` };
+      return { error: `タグの作成に失敗しました: ${result.error.message}` };
     }
 
     // web側のキャッシュを無効化
     await invalidateWebCache();
 
-    return { data };
+    return { data: result.data };
   } catch (error) {
     console.error("Create tag error:", error);
     if (error instanceof Error) {
