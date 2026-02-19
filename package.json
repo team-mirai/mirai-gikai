@@ -10,6 +10,7 @@
     "seed": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed seed",
     "seed:csv": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed seed:csv",
     "test": "pnpm -r --parallel run test",
+    "test:coverage": "pnpm -r --parallel run test:coverage",
     "typecheck": "pnpm -r run typecheck",
     "lint": "biome format . && biome lint .",
     "lint:fix": "biome format --write . && biome lint --write .",
