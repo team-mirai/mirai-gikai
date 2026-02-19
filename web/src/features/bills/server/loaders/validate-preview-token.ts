@@ -1,4 +1,4 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
+import { findPreviewToken } from "../repositories/bill-repository";
 
 export async function validatePreviewToken(
   billId: string,
@@ -9,16 +9,9 @@ export async function validatePreviewToken(
   }
 
   try {
-    const supabase = createAdminClient();
+    const data = await findPreviewToken(billId, token);
 
-    const { data, error } = await supabase
-      .from("preview_tokens")
-      .select("expires_at")
-      .eq("bill_id", billId)
-      .eq("token", token)
-      .single();
-
-    if (error || !data) {
+    if (!data) {
       return false;
     }
 
