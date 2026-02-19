@@ -45,6 +45,6 @@
     }
   },
   "files": {
-    "includes": ["web/src/**/*", "admin/src/**/*"]
+    "includes": ["web/src/**/*", "admin/src/**/*", "tests/**/*"]
   }
 }
