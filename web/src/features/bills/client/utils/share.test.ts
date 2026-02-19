@@ -48,7 +48,9 @@ describe("createShareMessage", () => {
   it("falls back to bill.name when bill_content.title is null", () => {
     const bill: BillWithContent = {
       ...baseBill,
-      bill_content: { title: null } as BillWithContent["bill_content"],
+      bill_content: {
+        title: null,
+      } as unknown as BillWithContent["bill_content"],
     };
     expect(createShareMessage(bill)).toBe("正式法案名称 #みらい議会");
   });
