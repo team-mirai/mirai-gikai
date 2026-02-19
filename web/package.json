@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "dotenv -e ../.env -- vitest run --config vitest.integration.config.mts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.1",
