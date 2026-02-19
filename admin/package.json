@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.3",
     "@hookform/resolvers": "^5.2.1",
     "@mirai-gikai/supabase": "workspace:*",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -23,6 +24,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.57.0",
+    "ai": "^6.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.542.0",

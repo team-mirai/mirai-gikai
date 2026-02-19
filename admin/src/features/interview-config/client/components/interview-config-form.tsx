@@ -3,7 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import type { MutableRefObject } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -44,11 +45,27 @@ import { generateInterviewPreviewUrl } from "../../server/actions/generate-inter
 interface InterviewConfigFormProps {
   billId: string;
   config: InterviewConfig | null;
+  aiGeneratedThemes?: string[] | null;
+  onAiThemesApplied?: () => void;
+  onConfigCreated?: (configId: string) => Promise<void>;
+  getFormValuesRef?: MutableRefObject<
+    | (() => {
+        name: string;
+        knowledge_source: string;
+        mode: string;
+        themes: string[];
+      })
+    | null
+  >;
 }
 
 export function InterviewConfigForm({
   billId,
   config,
+  aiGeneratedThemes,
+  onAiThemesApplied,
+  onConfigCreated,
+  getFormValuesRef,
 }: InterviewConfigFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +82,30 @@ export function InterviewConfigForm({
     },
   });
 
+  // 親コンポーネントからフォーム値を読み取れるようにする
+  useEffect(() => {
+    if (getFormValuesRef) {
+      getFormValuesRef.current = () => {
+        const values = form.getValues();
+        return {
+          name: values.name,
+          knowledge_source: values.knowledge_source || "",
+          mode: values.mode,
+          themes: values.themes || [],
+        };
+      };
+    }
+  }, [form, getFormValuesRef]);
+
+  // AI生成テーマの反映
+  useEffect(() => {
+    if (aiGeneratedThemes && aiGeneratedThemes.length > 0) {
+      form.setValue("themes", aiGeneratedThemes, { shouldDirty: true });
+      onAiThemesApplied?.();
+      toast.success(`AIが${aiGeneratedThemes.length}件のテーマを設定しました`);
+    }
+  }, [aiGeneratedThemes, form, onAiThemesApplied]);
+
   const handleSubmit = async (data: InterviewConfigInput) => {
     setIsSubmitting(true);
     try {
@@ -73,14 +114,15 @@ export function InterviewConfigForm({
         : await updateInterviewConfig(config.id, data);
 
       if (result.success) {
-        toast.success(
-          isNew
-            ? "インタビュー設定を作成しました"
-            : "インタビュー設定を保存しました"
-        );
         if (isNew) {
+          // 新規作成時: 質問があればコールバックで保存してから遷移
+          if (onConfigCreated) {
+            await onConfigCreated(result.data.id);
+          }
+          toast.success("インタビュー設定を作成しました");
           router.push(`/bills/${billId}/interview/${result.data.id}/edit`);
         } else {
+          toast.success("インタビュー設定を保存しました");
           router.refresh();
         }
       } else {
