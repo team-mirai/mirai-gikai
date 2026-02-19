@@ -19,10 +19,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
-import { deleteDietSession } from "../actions/delete-diet-session";
-import { setActiveDietSession } from "../actions/set-active-diet-session";
-import { updateDietSession } from "../actions/update-diet-session";
-import type { DietSession } from "../types";
+import { deleteDietSession } from "../../server/actions/delete-diet-session";
+import { setActiveDietSession } from "../../server/actions/set-active-diet-session";
+import { updateDietSession } from "../../server/actions/update-diet-session";
+import type { DietSession } from "../../shared/types";
 
 type DietSessionItemProps = {
   session: DietSession;

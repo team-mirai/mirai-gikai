@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 
-import type { DietSession } from "@/features/diet-sessions/types";
+import type { DietSession } from "@/features/diet-sessions/shared/types";
 import { createBill } from "../actions/create-bill";
 import { useBillForm } from "../hooks/use-bill-form";
 import { type BillCreateInput, billCreateSchema } from "../types";

@@ -5,7 +5,7 @@ import { BillEditForm } from "@/features/bills-edit/components/bill-edit-form";
 import { BillTagsForm } from "@/features/bills-edit/components/bill-tags-form";
 import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
 import { getBillTagIds } from "@/features/bills-edit/loaders/get-bill-tag-ids";
-import { loadDietSessions } from "@/features/diet-sessions/loaders/load-diet-sessions";
+import { loadDietSessions } from "@/features/diet-sessions/server/loaders/load-diet-sessions";
 import { StanceForm } from "@/features/mirai-stance/components/stance-form";
 import { getStanceByBillId } from "@/features/mirai-stance/loaders/get-stance-by-bill-id";
 import { loadTags } from "@/features/tags/loaders/load-tags";

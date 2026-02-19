@@ -2,10 +2,10 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
-import type { UpdateDietSessionInput } from "../types";
-import { updateDietSessionRecord } from "../repositories/diet-session-repository";
+import type { CreateDietSessionInput } from "../../shared/types";
+import { createDietSessionRecord } from "../repositories/diet-session-repository";
 
-export async function updateDietSession(input: UpdateDietSessionInput) {
+export async function createDietSession(input: CreateDietSessionInput) {
   try {
     await requireAdmin();
 
@@ -37,7 +37,7 @@ export async function updateDietSession(input: UpdateDietSessionInput) {
       return { error: "終了日は開始日以降の日付を指定してください" };
     }
 
-    const data = await updateDietSessionRecord(input.id, {
+    const data = await createDietSessionRecord({
       name: input.name.trim(),
       slug: input.slug?.trim() || null,
       shugiin_url: input.shugiin_url?.trim() || null,
@@ -48,10 +48,10 @@ export async function updateDietSession(input: UpdateDietSessionInput) {
     await invalidateWebCache();
     return { data };
   } catch (error) {
-    console.error("Update diet session error:", error);
+    console.error("Create diet session error:", error);
     if (error instanceof Error) {
       return { error: error.message };
     }
-    return { error: "国会会期の更新中にエラーが発生しました" };
+    return { error: "国会会期の作成中にエラーが発生しました" };
   }
 }

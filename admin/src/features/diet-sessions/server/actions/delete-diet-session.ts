@@ -2,7 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
-import type { DeleteDietSessionInput } from "../types";
+import type { DeleteDietSessionInput } from "../../shared/types";
 import { deleteDietSessionRecord } from "../repositories/diet-session-repository";
 
 export async function deleteDietSession(input: DeleteDietSessionInput) {

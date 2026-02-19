@@ -24,7 +24,7 @@ import {
   HOUSE_LABELS,
   type OriginatingHouse,
 } from "@/features/bills/types";
-import type { DietSession } from "@/features/diet-sessions/types";
+import type { DietSession } from "@/features/diet-sessions/shared/types";
 import type { BillCreateInput } from "../types";
 import { ThumbnailUpload } from "./thumbnail-upload";
 
