@@ -1,6 +1,11 @@
 import { openai } from "@ai-sdk/openai";
 import type { Database } from "@mirai-gikai/supabase";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import {
+  convertToModelMessages,
+  streamText,
+  type LanguageModel,
+  type UIMessage,
+} from "ai";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
@@ -26,6 +31,13 @@ export type ChatMessageMetadata = {
 type ChatRequestParams = {
   messages: UIMessage<ChatMessageMetadata>[];
   userId: string;
+  deps?: HandleChatDeps;
+};
+
+/** テスト時にモック注入するための外部依存 */
+export type HandleChatDeps = {
+  promptProvider?: PromptProvider;
+  model?: LanguageModel;
 };
 
 type ChatUsageMetadata =
@@ -37,8 +49,9 @@ type ChatUsageMetadata =
 export async function handleChatRequest({
   messages,
   userId,
+  deps,
 }: ChatRequestParams) {
-  const promptProvider = createPromptProvider();
+  const promptProvider = deps?.promptProvider ?? createPromptProvider();
 
   // Extract context from messages
   const context = extractChatContext(messages);
@@ -63,9 +76,9 @@ export async function handleChatRequest({
     promptProvider
   );
   // Model configuration
-  // "openai/gpt-4o" Context 128K Input Tokens $2.50/M Output Tokens $10.00/M
-  // "openai/gpt-4o-mini" Context 128K Input Tokens $0.15/M Output Tokens $0.60/M
-  const model = AI_MODELS.gpt4o;
+  const model = deps?.model ?? AI_MODELS.gpt4o;
+  const modelName =
+    typeof model === "string" ? model : (model.modelId ?? "unknown");
 
   // Generate streaming response
   try {
@@ -84,7 +97,7 @@ export async function handleChatRequest({
             userId,
             sessionId: context.sessionId || undefined,
             promptName,
-            model,
+            model: modelName,
             usage: event.totalUsage,
             costUsd: providerCost,
             metadata: buildUsageMetadata(context, event),
