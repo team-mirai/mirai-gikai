@@ -49,6 +49,7 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 ```
 src/features/{feature}/
 ├── server/
+│   ├── repositories/  # データアクセス層（Supabase呼び出しを集約）
 │   ├── components/    # Server Components
 │   ├── loaders/       # Server Components用データ取得関数
 │   ├── actions/       # Server Actions ("use server")
@@ -63,9 +64,13 @@ src/features/{feature}/
     └── utils/         # 共通ユーティリティ
 ```
 
+`web/` と `admin/` の両方で同じ server/client/shared 構成を採用します。ただし `admin/` では Server Components が中心のため `client/` ディレクトリを省略している feature もあります。
+
 - Server側ファイルには `"server-only"` を、Client Componentsには `"use client"` を付与
 - 型定義やServer/Client両方で使う関数は `shared/` に配置
 - シンプルな feature は従来の `components|actions|api|types` 構成でも可
+
+Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-layer.md) を参照。
 
 ## Build, Test, and Development Commands
 - 依存導入は `pnpm install`、全てのスクリプトは pnpm 経由で実行します。
