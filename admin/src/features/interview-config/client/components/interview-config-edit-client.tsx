@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export function InterviewConfigEditClient({
   config: initialConfig,
   questions,
 }: InterviewConfigEditClientProps) {
+  const router = useRouter();
   const [configId, setConfigId] = useState<string | undefined>(
     initialConfig?.id
   );
@@ -114,12 +116,13 @@ export function InterviewConfigEditClient({
         );
         if (result.success) {
           toast.success(`${confirmedQuestions.length}件の質問を保存しました`);
+          router.refresh();
         } else {
           toast.error(result.error || "質問の保存に失敗しました");
         }
       }
     },
-    [configId]
+    [configId, router]
   );
 
   return (
