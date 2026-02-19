@@ -15,12 +15,20 @@ export async function POST(req: Request) {
     configId,
     stage,
     confirmedThemes,
+    existingThemes,
+    existingQuestions,
   }: {
     messages: Array<{ role: string; content: string }>;
     billId: string;
     configId?: string;
     stage: "theme_proposal" | "question_proposal";
     confirmedThemes?: string[];
+    existingThemes?: string[];
+    existingQuestions?: Array<{
+      question: string;
+      instruction?: string | null;
+      quick_replies?: string[] | null;
+    }>;
   } = body;
 
   if (!billId) {
@@ -37,6 +45,8 @@ export async function POST(req: Request) {
       configId,
       stage,
       confirmedThemes,
+      existingThemes,
+      existingQuestions,
     });
   } catch (error) {
     console.error("Config generation error:", error);

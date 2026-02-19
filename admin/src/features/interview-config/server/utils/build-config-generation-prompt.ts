@@ -2,6 +2,12 @@ import "server-only";
 
 import type { ConfigGenerationStage } from "../../shared/schemas";
 
+interface ExistingQuestion {
+  question: string;
+  instruction?: string | null;
+  quick_replies?: string[] | null;
+}
+
 interface BuildPromptParams {
   billName: string;
   billTitle: string;
@@ -10,6 +16,8 @@ interface BuildPromptParams {
   stage: ConfigGenerationStage;
   confirmedThemes?: string[];
   knowledgeSource?: string;
+  existingThemes?: string[];
+  existingQuestions?: ExistingQuestion[];
 }
 
 export function buildConfigGenerationPrompt(params: BuildPromptParams): string {
@@ -21,6 +29,8 @@ export function buildConfigGenerationPrompt(params: BuildPromptParams): string {
     stage,
     confirmedThemes,
     knowledgeSource,
+    existingThemes,
+    existingQuestions,
   } = params;
 
   const billSection = `## 法案情報
@@ -39,10 +49,15 @@ ${billContent}`;
 管理者と対話しながら、より良いインタビュー設定を一緒に作り上げてください。`;
 
   if (stage === "theme_proposal") {
+    const existingThemesSection =
+      existingThemes && existingThemes.length > 0
+        ? `\n## 現在設定されているテーマ\n${existingThemes.map((t) => `- ${t}`).join("\n")}\n\n管理者は既存のテーマのブラッシュアップを希望しています。既存テーマを踏まえて改善提案をしてください。`
+        : "";
+
     return `${baseRole}
 
 ${billSection}
-${knowledgeSection}
+${knowledgeSection}${existingThemesSection}
 ## あなたの役割
 この法案について、市民インタビューで扱うべきテーマを3〜5個提案してください。
 
@@ -66,11 +81,16 @@ ${knowledgeSection}
       ? `## 確定テーマ\n${confirmedThemes.map((t) => `- ${t}`).join("\n")}`
       : "## テーマ\n（テーマ未設定）";
 
+    const existingQuestionsSection =
+      existingQuestions && existingQuestions.length > 0
+        ? `\n## 現在設定されている質問\n${existingQuestions.map((q, i) => `${i + 1}. ${q.question}${q.instruction ? `\n   指示: ${q.instruction}` : ""}${q.quick_replies?.length ? `\n   選択肢: ${q.quick_replies.join(", ")}` : ""}`).join("\n")}\n\n管理者は既存の質問のブラッシュアップを希望しています。既存質問を踏まえて改善提案をしてください。`
+        : "";
+
     return `${baseRole}
 
 ${billSection}
 ${knowledgeSection}
-${themesSection}
+${themesSection}${existingQuestionsSection}
 
 ## あなたの役割
 確定したテーマに基づいて、インタビュー質問を提案してください。
