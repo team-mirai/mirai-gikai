@@ -1,10 +1,10 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import { type BillCreateInput, billCreateSchema } from "../types";
+import { createBillRecord } from "../repositories/bill-edit-repository";
 
 export async function createBill(input: BillCreateInput) {
   try {
@@ -22,16 +22,7 @@ export async function createBill(input: BillCreateInput) {
     };
 
     // Supabaseに挿入
-    const supabase = createAdminClient();
-    const { error } = await supabase
-      .from("bills")
-      .insert(insertData)
-      .select("id")
-      .single();
-
-    if (error) {
-      throw new Error(`議案の作成に失敗しました: ${error.message}`);
-    }
+    await createBillRecord(insertData);
 
     // web側のキャッシュを無効化
     await invalidateWebCache();
