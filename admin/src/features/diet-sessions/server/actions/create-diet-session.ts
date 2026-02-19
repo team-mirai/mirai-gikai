@@ -2,7 +2,10 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { trimOrNull } from "@/lib/utils/normalize-string";
 import type { CreateDietSessionInput } from "../../shared/types";
+import { validateDateRange } from "../../shared/utils/validate-date-range";
+import { validateSlug } from "../../shared/utils/validate-slug";
 import { createDietSessionRecord } from "../repositories/diet-session-repository";
 
 export async function createDietSession(input: CreateDietSessionInput) {
@@ -22,25 +25,20 @@ export async function createDietSession(input: CreateDietSessionInput) {
       return { error: "終了日を入力してください" };
     }
 
-    // slug のバリデーション（半角英数字とハイフンのみ）
-    if (input.slug && !/^[a-z0-9-]+$/.test(input.slug)) {
-      return {
-        error: "スラッグは半角英小文字、数字、ハイフンのみ使用できます",
-      };
+    const slugError = validateSlug(input.slug);
+    if (slugError) {
+      return { error: slugError };
     }
 
-    // 日付の妥当性チェック
-    const startDate = new Date(input.start_date);
-    const endDate = new Date(input.end_date);
-
-    if (endDate < startDate) {
-      return { error: "終了日は開始日以降の日付を指定してください" };
+    const dateRangeError = validateDateRange(input.start_date, input.end_date);
+    if (dateRangeError) {
+      return { error: dateRangeError };
     }
 
     const data = await createDietSessionRecord({
       name: input.name.trim(),
-      slug: input.slug?.trim() || null,
-      shugiin_url: input.shugiin_url?.trim() || null,
+      slug: trimOrNull(input.slug),
+      shugiin_url: trimOrNull(input.shugiin_url),
       start_date: input.start_date,
       end_date: input.end_date,
     });
