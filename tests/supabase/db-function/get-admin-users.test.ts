@@ -61,11 +61,7 @@ describe("get_admin_users() 関数", () => {
     expect(error).toBeNull();
   });
 
-  // Supabase ローカル環境では ALTER DEFAULT PRIVILEGES により
-  // anon にも EXECUTE が自動付与されるため、REVOKE FROM public だけでは
-  // 遮断できない。マイグレーションで anon/authenticated からも明示的に
-  // REVOKE する修正が必要。
-  it.skip("anon クライアントではパーミッションエラーになる", async () => {
+  it("anon クライアントではパーミッションエラーになる", async () => {
     const client = getAnonClient();
     const { error } = await client.rpc("get_admin_users");
     expect(error).not.toBeNull();
