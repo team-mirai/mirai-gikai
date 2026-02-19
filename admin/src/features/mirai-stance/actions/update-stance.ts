@@ -1,26 +1,12 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import type { StanceInput } from "../types";
+import { updateMiraiStance } from "../repositories/mirai-stance-repository";
 
 export async function updateStance(stanceId: string, data: StanceInput) {
   try {
-    const supabase = createAdminClient();
-
-    const { error } = await supabase
-      .from("mirai_stances")
-      .update({
-        type: data.type,
-        comment: data.comment || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", stanceId);
-
-    if (error) {
-      console.error("Error updating stance:", error);
-      throw new Error("スタンスの更新に失敗しました");
-    }
+    await updateMiraiStance(stanceId, data);
 
     invalidateWebCache();
     return { success: true };
