@@ -10,6 +10,7 @@
     "seed": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed seed",
     "seed:csv": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed seed:csv",
     "test": "pnpm -r --parallel run test",
+    "test:coverage": "pnpm -r --parallel run test:coverage",
     "test:supabase": "dotenv -e .env -- vitest run --config tests/supabase/vitest.config.mts",
     "test:supabase:watch": "dotenv -e .env -- vitest --config tests/supabase/vitest.config.mts",
     "typecheck": "pnpm -r run typecheck",

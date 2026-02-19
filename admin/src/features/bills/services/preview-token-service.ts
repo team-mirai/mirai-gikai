@@ -1,5 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { createAdminClient } from "@mirai-gikai/supabase";
+import {
+  findPreviewToken,
+  createPreviewToken,
+  deletePreviewTokenByBillId,
+  findPreviewTokenForValidation,
+} from "../repositories/bill-repository";
 
 export interface PreviewTokenInfo {
   token: string;
@@ -15,15 +20,9 @@ export const previewTokenService = {
    * 期限切れの場合は削除して null を返す
    */
   async getValidToken(billId: string): Promise<PreviewTokenInfo | null> {
-    const supabase = createAdminClient();
+    const data = await findPreviewToken(billId);
 
-    const { data, error } = await supabase
-      .from("preview_tokens")
-      .select("token, expires_at")
-      .eq("bill_id", billId)
-      .single();
-
-    if (error || !data) {
+    if (!data) {
       return null;
     }
 
@@ -38,7 +37,7 @@ export const previewTokenService = {
     }
 
     // 期限切れの場合は削除
-    await supabase.from("preview_tokens").delete().eq("bill_id", billId);
+    await deletePreviewTokenByBillId(billId);
     return null;
   },
 
@@ -51,18 +50,12 @@ export const previewTokenService = {
     expiresAtDate.setDate(expiresAtDate.getDate() + 30); // 30日有効
     const expiresAt = expiresAtDate.toISOString();
 
-    const supabase = createAdminClient();
-
-    const { error } = await supabase.from("preview_tokens").insert({
-      bill_id: billId,
+    await createPreviewToken({
+      billId,
       token,
-      expires_at: expiresAt,
-      created_by: "admin", // TODO: 実際の管理者IDを使用
+      expiresAt,
+      createdBy: "admin", // TODO: 実際の管理者IDを使用
     });
-
-    if (error) {
-      throw new Error(`Failed to insert preview token: ${error.message}`);
-    }
 
     return { token, expiresAt };
   },
@@ -71,16 +64,9 @@ export const previewTokenService = {
    * トークンを検証する
    */
   async validateToken(billId: string, token: string): Promise<boolean> {
-    const supabase = createAdminClient();
+    const data = await findPreviewTokenForValidation(billId, token);
 
-    const { data, error } = await supabase
-      .from("preview_tokens")
-      .select("expires_at")
-      .eq("bill_id", billId)
-      .eq("token", token)
-      .single();
-
-    if (error || !data) {
+    if (!data) {
       return false;
     }
 

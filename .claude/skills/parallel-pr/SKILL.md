@@ -1,5 +1,5 @@
 ---
-name: Parallel PR
+name: parallel-pr
 description: 複数の独立PRをチーム×worktreeで並列作成する。タスク一覧を受け取り、worktree準備→チーム組成→エージェント起動→CI確認→クリーンアップまで一気に実行する。
 ---
 

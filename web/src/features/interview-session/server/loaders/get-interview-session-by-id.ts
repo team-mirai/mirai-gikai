@@ -1,7 +1,7 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { InterviewSession } from "../../shared/types";
+import { findInterviewSessionWithConfigById } from "../repositories/interview-session-repository";
 import {
   getAuthenticatedUser,
   isSessionOwner,
@@ -26,17 +26,12 @@ export async function getInterviewSessionById(
   }
 
   const { userId } = authResult;
-  const supabase = createAdminClient();
 
-  // セッションとinterview_configを結合して取得
-  const { data: session, error: sessionError } = await supabase
-    .from("interview_sessions")
-    .select("*, interview_configs(bill_id)")
-    .eq("id", sessionId)
-    .single();
-
-  if (sessionError || !session) {
-    console.error("Failed to fetch interview session:", sessionError);
+  let session: Awaited<ReturnType<typeof findInterviewSessionWithConfigById>>;
+  try {
+    session = await findInterviewSessionWithConfigById(sessionId);
+  } catch (error) {
+    console.error("Failed to fetch interview session:", error);
     return null;
   }
 

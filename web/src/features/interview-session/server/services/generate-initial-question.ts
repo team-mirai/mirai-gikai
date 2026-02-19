@@ -1,13 +1,13 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
-import { generateText, Output } from "ai";
+import { Output, generateText } from "ai";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { AI_MODELS } from "@/lib/ai/models";
 import { interviewChatTextSchema } from "../../shared/schemas";
 import type { InterviewMessage } from "../../shared/types";
+import { createInterviewMessage } from "../repositories/interview-session-repository";
 import { buildInterviewSystemPrompt } from "../utils/build-interview-system-prompt";
 
 type GenerateInitialQuestionParams = {
@@ -63,24 +63,12 @@ export async function generateInitialQuestion({
       return null;
     }
 
-    // 生成した質問を保存（result.textはすでにJSON文字列）
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
-      .from("interview_messages")
-      .insert({
-        interview_session_id: sessionId,
-        role: "assistant",
-        content: generatedText,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Failed to save initial question:", error);
-      return null;
-    }
-
-    return data;
+    // 生成した質問を保存
+    return await createInterviewMessage({
+      sessionId,
+      role: "assistant",
+      content: generatedText,
+    });
   } catch (error) {
     console.error("Failed to generate initial question:", error);
     return null;

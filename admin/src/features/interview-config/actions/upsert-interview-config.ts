@@ -1,34 +1,22 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import { type InterviewConfigInput, interviewConfigSchema } from "../types";
+import {
+  closeOtherPublicConfigs,
+  createInterviewConfigRecord,
+  createInterviewQuestions,
+  deleteInterviewConfigRecord,
+  findInterviewConfigBillId,
+  findInterviewConfigById,
+  findInterviewQuestionsByConfigId,
+  updateInterviewConfigRecord,
+} from "../repositories/interview-config-repository";
 
 export type InterviewConfigResult =
   | { success: true; data: { id: string } }
   | { success: false; error: string };
-
-/**
- * 同じ法案の他の公開設定を非公開にする
- */
-async function closeOtherPublicConfigs(
-  supabase: ReturnType<typeof createAdminClient>,
-  billId: string,
-  excludeConfigId?: string
-): Promise<void> {
-  const query = supabase
-    .from("interview_configs")
-    .update({ status: "closed", updated_at: new Date().toISOString() })
-    .eq("bill_id", billId)
-    .eq("status", "public");
-
-  if (excludeConfigId) {
-    query.neq("id", excludeConfigId);
-  }
-
-  await query;
-}
 
 /**
  * 新しいインタビュー設定を作成する
@@ -43,33 +31,20 @@ export async function createInterviewConfig(
     // バリデーション
     const validatedData = interviewConfigSchema.parse(input);
 
-    const supabase = createAdminClient();
-
     // 公開設定の場合、既存の公開設定を非公開にする
     if (validatedData.status === "public") {
-      await closeOtherPublicConfigs(supabase, billId);
+      await closeOtherPublicConfigs(billId);
     }
 
     // 新規作成
-    const { data, error } = await supabase
-      .from("interview_configs")
-      .insert({
-        bill_id: billId,
-        name: validatedData.name,
-        status: validatedData.status,
-        mode: validatedData.mode,
-        themes: validatedData.themes || null,
-        knowledge_source: validatedData.knowledge_source || null,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      return {
-        success: false,
-        error: `インタビュー設定の作成に失敗しました: ${error.message}`,
-      };
-    }
+    const data = await createInterviewConfigRecord({
+      bill_id: billId,
+      name: validatedData.name,
+      status: validatedData.status,
+      mode: validatedData.mode,
+      themes: validatedData.themes || null,
+      knowledge_source: validatedData.knowledge_source || null,
+    });
 
     // web側のキャッシュを無効化
     await invalidateWebCache();
@@ -100,48 +75,22 @@ export async function updateInterviewConfig(
     // バリデーション
     const validatedData = interviewConfigSchema.parse(input);
 
-    const supabase = createAdminClient();
-
     // 公開設定の場合、他の公開設定を非公開にする
     if (validatedData.status === "public") {
       // まず現在の設定のbill_idを取得
-      const { data: currentConfig, error: fetchError } = await supabase
-        .from("interview_configs")
-        .select("bill_id")
-        .eq("id", configId)
-        .single();
-
-      if (fetchError) {
-        return {
-          success: false,
-          error: `インタビュー設定の取得に失敗しました: ${fetchError.message}`,
-        };
-      }
-
-      await closeOtherPublicConfigs(supabase, currentConfig.bill_id, configId);
+      const currentConfig = await findInterviewConfigBillId(configId);
+      await closeOtherPublicConfigs(currentConfig.bill_id, configId);
     }
 
     // 更新
-    const { data, error } = await supabase
-      .from("interview_configs")
-      .update({
-        name: validatedData.name,
-        status: validatedData.status,
-        mode: validatedData.mode,
-        themes: validatedData.themes || null,
-        knowledge_source: validatedData.knowledge_source || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", configId)
-      .select()
-      .single();
-
-    if (error) {
-      return {
-        success: false,
-        error: `インタビュー設定の更新に失敗しました: ${error.message}`,
-      };
-    }
+    const data = await updateInterviewConfigRecord(configId, {
+      name: validatedData.name,
+      status: validatedData.status,
+      mode: validatedData.mode,
+      themes: validatedData.themes || null,
+      knowledge_source: validatedData.knowledge_source || null,
+      updated_at: new Date().toISOString(),
+    });
 
     // web側のキャッシュを無効化
     await invalidateWebCache();
@@ -168,16 +117,10 @@ export async function duplicateInterviewConfig(
   try {
     await requireAdmin();
 
-    const supabase = createAdminClient();
-
     // 元の設定を取得
-    const { data: originalConfig, error: configError } = await supabase
-      .from("interview_configs")
-      .select("*")
-      .eq("id", configId)
-      .single();
+    const originalConfig = await findInterviewConfigById(configId);
 
-    if (configError || !originalConfig) {
+    if (!originalConfig) {
       return {
         success: false,
         error: "複製元のインタビュー設定が見つかりません",
@@ -185,35 +128,28 @@ export async function duplicateInterviewConfig(
     }
 
     // 元の質問を取得
-    const { data: originalQuestions } = await supabase
-      .from("interview_questions")
-      .select("*")
-      .eq("interview_config_id", configId)
-      .order("question_order", { ascending: true });
+    const originalQuestions = await findInterviewQuestionsByConfigId(configId);
 
     // 新しい設定を作成（ステータスは非公開で複製）
-    const { data: newConfig, error: insertError } = await supabase
-      .from("interview_configs")
-      .insert({
+    let newConfig: { id: string };
+    try {
+      newConfig = await createInterviewConfigRecord({
         bill_id: originalConfig.bill_id,
         name: `${originalConfig.name}（コピー）`,
         status: "closed" as const,
-        mode: originalConfig.mode,
+        mode: originalConfig.mode as "loop" | "bulk",
         themes: originalConfig.themes,
         knowledge_source: originalConfig.knowledge_source,
-      })
-      .select()
-      .single();
-
-    if (insertError || !newConfig) {
+      });
+    } catch (error) {
       return {
         success: false,
-        error: `インタビュー設定の複製に失敗しました: ${insertError?.message}`,
+        error: `インタビュー設定の複製に失敗しました: ${error instanceof Error ? error.message : "unknown error"}`,
       };
     }
 
     // 質問を複製
-    if (originalQuestions && originalQuestions.length > 0) {
+    if (originalQuestions.length > 0) {
       const newQuestions = originalQuestions.map((q) => ({
         interview_config_id: newConfig.id,
         question: q.question,
@@ -222,19 +158,14 @@ export async function duplicateInterviewConfig(
         question_order: q.question_order,
       }));
 
-      const { error: questionsError } = await supabase
-        .from("interview_questions")
-        .insert(newQuestions);
-
-      if (questionsError) {
+      try {
+        await createInterviewQuestions(newQuestions);
+      } catch (error) {
         // 質問の複製に失敗した場合、作成した設定も削除
-        await supabase
-          .from("interview_configs")
-          .delete()
-          .eq("id", newConfig.id);
+        await deleteInterviewConfigRecord(newConfig.id);
         return {
           success: false,
-          error: `質問の複製に失敗しました: ${questionsError.message}`,
+          error: `質問の複製に失敗しました: ${error instanceof Error ? error.message : "unknown error"}`,
         };
       }
     }
@@ -264,19 +195,7 @@ export async function deleteInterviewConfig(
   try {
     await requireAdmin();
 
-    const supabase = createAdminClient();
-
-    const { error } = await supabase
-      .from("interview_configs")
-      .delete()
-      .eq("id", configId);
-
-    if (error) {
-      return {
-        success: false,
-        error: `インタビュー設定の削除に失敗しました: ${error.message}`,
-      };
-    }
+    await deleteInterviewConfigRecord(configId);
 
     // web側のキャッシュを無効化
     await invalidateWebCache();

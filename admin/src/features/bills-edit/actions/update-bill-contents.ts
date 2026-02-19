@@ -1,6 +1,5 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import {
@@ -8,6 +7,7 @@ import {
   billContentsUpdateSchema,
   type DifficultyLevel,
 } from "../types/bill-contents";
+import { upsertBillContent } from "../repositories/bill-edit-repository";
 
 export type UpdateBillContentsResult =
   | { success: true }
@@ -24,9 +24,6 @@ export async function updateBillContents(
     // バリデーション
     const validatedData = billContentsUpdateSchema.parse(input);
 
-    // Supabaseで更新
-    const supabase = createAdminClient();
-
     // 各難易度レベルのupsertを並行実行
     const upsertPromises = (["normal", "hard"] as DifficultyLevel[]).map(
       async (difficulty) => {
@@ -37,25 +34,13 @@ export async function updateBillContents(
           return;
         }
 
-        const { error } = await supabase.from("bill_contents").upsert(
-          {
-            bill_id: billId,
-            difficulty_level: difficulty,
-            title: data.title || "",
-            summary: data.summary || "",
-            content: data.content || "",
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "bill_id,difficulty_level",
-          }
-        );
-
-        if (error) {
-          throw new Error(
-            `議案コンテンツ（${difficulty}）のupsertに失敗しました: ${error.message}`
-          );
-        }
+        await upsertBillContent({
+          billId,
+          difficultyLevel: difficulty,
+          title: data.title || "",
+          summary: data.summary || "",
+          content: data.content || "",
+        });
       }
     );
 

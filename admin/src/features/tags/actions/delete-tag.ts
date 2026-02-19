@@ -1,24 +1,22 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import type { DeleteTagInput } from "../types";
+import { deleteTagRecord } from "../repositories/tag-repository";
 
 export async function deleteTag(input: DeleteTagInput) {
   try {
     await requireAdmin();
 
-    const supabase = createAdminClient();
+    const result = await deleteTagRecord(input.id);
 
-    const { error } = await supabase.from("tags").delete().eq("id", input.id);
-
-    if (error) {
+    if (result.error) {
       // レコードが見つからない
-      if (error.code === "PGRST116") {
+      if (result.error.code === "PGRST116") {
         return { error: "タグが見つかりません" };
       }
-      return { error: `タグの削除に失敗しました: ${error.message}` };
+      return { error: `タグの削除に失敗しました: ${result.error.message}` };
     }
 
     // web側のキャッシュを無効化

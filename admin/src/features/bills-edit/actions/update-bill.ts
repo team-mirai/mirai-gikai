@@ -1,9 +1,9 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import { type BillUpdateInput, billUpdateSchema } from "../types";
+import { updateBillRecord } from "../repositories/bill-edit-repository";
 
 export async function updateBill(id: string, input: BillUpdateInput) {
   try {
@@ -14,21 +14,13 @@ export async function updateBill(id: string, input: BillUpdateInput) {
     const validatedData = billUpdateSchema.parse(input);
 
     // Supabaseで更新
-    const supabase = createAdminClient();
-    const { error } = await supabase
-      .from("bills")
-      .update({
-        ...validatedData,
-        published_at: validatedData.published_at
-          ? new Date(validatedData.published_at).toISOString()
-          : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
-
-    if (error) {
-      throw new Error(`議案の更新に失敗しました: ${error.message}`);
-    }
+    await updateBillRecord(id, {
+      ...validatedData,
+      published_at: validatedData.published_at
+        ? new Date(validatedData.published_at).toISOString()
+        : null,
+      updated_at: new Date().toISOString(),
+    });
 
     // web側のキャッシュを無効化
     await invalidateWebCache();

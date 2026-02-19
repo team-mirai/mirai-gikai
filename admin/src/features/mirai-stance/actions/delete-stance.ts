@@ -1,21 +1,11 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { deleteMiraiStance } from "../repositories/mirai-stance-repository";
 
 export async function deleteStance(stanceId: string) {
   try {
-    const supabase = createAdminClient();
-
-    const { error } = await supabase
-      .from("mirai_stances")
-      .delete()
-      .eq("id", stanceId);
-
-    if (error) {
-      console.error("Error deleting stance:", error);
-      throw new Error("スタンスの削除に失敗しました");
-    }
+    await deleteMiraiStance(stanceId);
 
     invalidateWebCache();
     return { success: true };

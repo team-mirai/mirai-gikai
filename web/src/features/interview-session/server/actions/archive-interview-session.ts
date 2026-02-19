@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
+import { updateInterviewSessionArchived } from "../repositories/interview-session-repository";
 import { verifySessionOwnership } from "../utils/verify-session-ownership";
 
 interface ArchiveInterviewSessionResult {
@@ -21,16 +21,10 @@ export async function archiveInterviewSession(
     return { success: false, error: ownershipResult.error };
   }
 
-  const supabase = createAdminClient();
-
-  // アーカイブ実行
-  const { error: updateError } = await supabase
-    .from("interview_sessions")
-    .update({ archived_at: new Date().toISOString() })
-    .eq("id", sessionId);
-
-  if (updateError) {
-    console.error("Failed to archive interview session:", updateError);
+  try {
+    await updateInterviewSessionArchived(sessionId);
+  } catch (error) {
+    console.error("Failed to archive interview session:", error);
     return { success: false, error: "アーカイブに失敗しました" };
   }
 

@@ -1,7 +1,5 @@
 import "server-only";
 
-import type { Database } from "@mirai-gikai/supabase";
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { LanguageModelUsage } from "ai";
 
 import {
@@ -11,9 +9,12 @@ import {
   sanitizeUsage,
 } from "@/lib/ai/calculate-ai-cost";
 
-type ChatUsageInsert =
-  Database["public"]["Tables"]["chat_usage_events"]["Insert"];
-type ChatUsageRow = Database["public"]["Tables"]["chat_usage_events"]["Row"];
+import {
+  type ChatUsageInsert,
+  type ChatUsageRow,
+  findChatUsageEvents,
+  insertChatUsageEvent,
+} from "../repositories/chat-usage-repository";
 
 type RecordChatUsageParams = {
   userId: string;
@@ -36,8 +37,6 @@ export async function recordChatUsage({
   metadata,
   costUsd,
 }: RecordChatUsageParams) {
-  const supabase = createAdminClient();
-
   const sanitizedUsage = sanitizeUsage(usage ?? undefined);
   const costUsdNumber = resolveCostUsd(model, sanitizedUsage, costUsd);
   const payload: ChatUsageInsert = {
@@ -53,13 +52,7 @@ export async function recordChatUsage({
     metadata: metadata ?? null,
   };
 
-  const { error } = await supabase.from("chat_usage_events").insert(payload);
-
-  if (error) {
-    throw new Error(`Failed to record chat usage: ${error.message}`, {
-      cause: error,
-    });
-  }
+  await insertChatUsageEvent(payload);
 }
 
 export async function getUsageCostUsd(
@@ -67,22 +60,8 @@ export async function getUsageCostUsd(
   fromIso: string,
   toIso: string
 ): Promise<number> {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("chat_usage_events")
-    .select("cost_usd, occurred_at")
-    .eq("user_id", userId)
-    .gte("occurred_at", fromIso)
-    .lt("occurred_at", toIso);
-
-  if (error) {
-    throw new Error(`Failed to fetch chat usage: ${error.message}`, {
-      cause: error,
-    });
-  }
-
-  return (data ?? []).reduce((acc, row) => acc + parseCost(row), 0);
+  const rows = await findChatUsageEvents(userId, fromIso, toIso);
+  return rows.reduce((acc, row) => acc + parseCost(row), 0);
 }
 
 function parseCost(row: Pick<ChatUsageRow, "cost_usd">): number {
