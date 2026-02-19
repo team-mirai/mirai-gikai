@@ -1,10 +1,8 @@
 import "server-only";
 
-import {
-  type InterviewReportData,
-  interviewChatWithReportSchema,
-} from "../../shared/schemas";
+import type { InterviewReportData } from "../../shared/schemas";
 import type { InterviewReport } from "../../shared/types";
+import { extractReportFromMessage } from "../../shared/utils/report-extraction";
 import {
   findInterviewMessagesBySessionIdDesc,
   updateInterviewSessionCompleted,
@@ -14,23 +12,6 @@ import {
 type CompleteInterviewSessionParams = {
   sessionId: string;
 };
-
-/**
- * メッセージからレポートを抽出する
- */
-function extractReportFromMessage(content: string): InterviewReportData | null {
-  try {
-    const parsed = JSON.parse(content);
-    const result = interviewChatWithReportSchema.safeParse(parsed);
-    if (result.success) {
-      return result.data.report;
-    }
-  } catch (e) {
-    // JSONでない場合は無視
-    console.error("Failed to parse report from message content", content, e);
-  }
-  return null;
-}
 
 /**
  * インタビューを完了し、会話中に生成されたレポートを保存する
