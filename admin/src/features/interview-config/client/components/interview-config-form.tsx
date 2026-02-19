@@ -55,11 +55,13 @@ export function InterviewConfigForm({
 
   const defaultName = () => {
     if (config?.name) return config.name;
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    return `${y}/${m}/${d} 作成`;
+    const date = new Intl.DateTimeFormat("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "Asia/Tokyo",
+    }).format(new Date());
+    return `${date} 作成`;
   };
 
   const form = useForm<InterviewConfigInput>({
