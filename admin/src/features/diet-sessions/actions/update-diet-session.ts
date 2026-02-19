@@ -1,15 +1,13 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import type { UpdateDietSessionInput } from "../types";
+import { updateDietSessionRecord } from "../repositories/diet-session-repository";
 
 export async function updateDietSession(input: UpdateDietSessionInput) {
   try {
     await requireAdmin();
-
-    const supabase = createAdminClient();
 
     // バリデーション
     if (!input.name || input.name.trim().length === 0) {
@@ -39,22 +37,13 @@ export async function updateDietSession(input: UpdateDietSessionInput) {
       return { error: "終了日は開始日以降の日付を指定してください" };
     }
 
-    const { data, error } = await supabase
-      .from("diet_sessions")
-      .update({
-        name: input.name.trim(),
-        slug: input.slug?.trim() || null,
-        shugiin_url: input.shugiin_url?.trim() || null,
-        start_date: input.start_date,
-        end_date: input.end_date,
-      })
-      .eq("id", input.id)
-      .select()
-      .single();
-
-    if (error) {
-      return { error: `国会会期の更新に失敗しました: ${error.message}` };
-    }
+    const data = await updateDietSessionRecord(input.id, {
+      name: input.name.trim(),
+      slug: input.slug?.trim() || null,
+      shugiin_url: input.shugiin_url?.trim() || null,
+      start_date: input.start_date,
+      end_date: input.end_date,
+    });
 
     await invalidateWebCache();
     return { data };
