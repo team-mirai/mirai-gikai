@@ -1,5 +1,5 @@
-import type { DietSession } from "../types";
-import { DietSessionItem } from "./diet-session-item";
+import type { DietSession } from "../../shared/types";
+import { DietSessionItem } from "../../client/components/diet-session-item";
 
 type DietSessionListProps = {
   sessions: DietSession[];
