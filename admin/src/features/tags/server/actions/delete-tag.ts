@@ -2,7 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
-import type { DeleteTagInput } from "../types";
+import type { DeleteTagInput } from "../../shared/types";
 import { deleteTagRecord } from "../repositories/tag-repository";
 
 export async function deleteTag(input: DeleteTagInput) {

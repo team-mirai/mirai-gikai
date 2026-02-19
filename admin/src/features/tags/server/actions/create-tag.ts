@@ -2,7 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
-import type { CreateTagInput } from "../types";
+import type { CreateTagInput } from "../../shared/types";
 import { createTagRecord } from "../repositories/tag-repository";
 
 export async function createTag(input: CreateTagInput) {

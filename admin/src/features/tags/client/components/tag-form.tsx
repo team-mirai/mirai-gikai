@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createTag } from "../actions/create-tag";
+import { createTag } from "../../server/actions/create-tag";
 
 export function TagForm() {
   const inputId = useId();

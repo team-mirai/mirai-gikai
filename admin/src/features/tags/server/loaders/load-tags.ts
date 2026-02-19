@@ -1,4 +1,4 @@
-import type { TagWithBillCount } from "../types";
+import type { TagWithBillCount } from "../../shared/types";
 import { findAllTagsWithBillCount } from "../repositories/tag-repository";
 
 export async function loadTags(): Promise<TagWithBillCount[]> {

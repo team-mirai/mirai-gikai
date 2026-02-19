@@ -1,6 +1,6 @@
-import { TagForm } from "@/features/tags/components/tag-form";
-import { TagList } from "@/features/tags/components/tag-list";
-import { loadTags } from "@/features/tags/loaders/load-tags";
+import { TagForm } from "@/features/tags/client/components/tag-form";
+import { TagList } from "@/features/tags/server/components/tag-list";
+import { loadTags } from "@/features/tags/server/loaders/load-tags";
 
 export default async function TagsPage() {
   const tags = await loadTags();

@@ -17,9 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { deleteTag } from "../actions/delete-tag";
-import { updateTag } from "../actions/update-tag";
-import type { TagWithBillCount } from "../types";
+import { deleteTag } from "../../server/actions/delete-tag";
+import { updateTag } from "../../server/actions/update-tag";
+import type { TagWithBillCount } from "../../shared/types";
 
 type TagItemProps = {
   tag: TagWithBillCount;

@@ -1,5 +1,5 @@
-import type { TagWithBillCount } from "../types";
-import { TagItem } from "./tag-item";
+import type { TagWithBillCount } from "../../shared/types";
+import { TagItem } from "../../client/components/tag-item";
 
 type TagListProps = {
   tags: TagWithBillCount[];
