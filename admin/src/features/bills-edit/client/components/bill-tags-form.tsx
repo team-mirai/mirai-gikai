@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import type { Tag } from "@/features/tags/shared/types";
-import { updateBillTags } from "../actions/update-bill-tags";
+import { updateBillTags } from "../../server/actions/update-bill-tags";
 
 interface BillTagsFormProps {
   billId: string;

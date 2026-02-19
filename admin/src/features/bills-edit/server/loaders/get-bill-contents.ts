@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import type { BillContent } from "../types/bill-contents";
+import type { BillContent } from "../../shared/types/bill-contents";
 import { findBillContentsByBillId } from "../repositories/bill-edit-repository";
 
 export async function getBillContents(billId: string): Promise<BillContent[]> {

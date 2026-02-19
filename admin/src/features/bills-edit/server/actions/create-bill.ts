@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
-import { type BillCreateInput, billCreateSchema } from "../types";
+import { type BillCreateInput, billCreateSchema } from "../../shared/types";
 import { createBillRecord } from "../repositories/bill-edit-repository";
 
 export async function createBill(input: BillCreateInput) {
