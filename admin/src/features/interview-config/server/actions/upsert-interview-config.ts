@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   type InterviewConfigInput,
   interviewConfigSchema,
@@ -55,12 +56,12 @@ export async function createInterviewConfig(
     return { success: true, data: { id: data.id } };
   } catch (error) {
     console.error("Create interview config error:", error);
-    if (error instanceof Error) {
-      return { success: false, error: error.message };
-    }
     return {
       success: false,
-      error: "インタビュー設定の作成中にエラーが発生しました",
+      error: getErrorMessage(
+        error,
+        "インタビュー設定の作成中にエラーが発生しました"
+      ),
     };
   }
 }
@@ -101,12 +102,12 @@ export async function updateInterviewConfig(
     return { success: true, data: { id: data.id } };
   } catch (error) {
     console.error("Update interview config error:", error);
-    if (error instanceof Error) {
-      return { success: false, error: error.message };
-    }
     return {
       success: false,
-      error: "インタビュー設定の更新中にエラーが発生しました",
+      error: getErrorMessage(
+        error,
+        "インタビュー設定の更新中にエラーが発生しました"
+      ),
     };
   }
 }
@@ -147,7 +148,7 @@ export async function duplicateInterviewConfig(
     } catch (error) {
       return {
         success: false,
-        error: `インタビュー設定の複製に失敗しました: ${error instanceof Error ? error.message : "unknown error"}`,
+        error: `インタビュー設定の複製に失敗しました: ${getErrorMessage(error, "unknown error")}`,
       };
     }
 
@@ -168,7 +169,7 @@ export async function duplicateInterviewConfig(
         await deleteInterviewConfigRecord(newConfig.id);
         return {
           success: false,
-          error: `質問の複製に失敗しました: ${error instanceof Error ? error.message : "unknown error"}`,
+          error: `質問の複製に失敗しました: ${getErrorMessage(error, "unknown error")}`,
         };
       }
     }
@@ -179,12 +180,12 @@ export async function duplicateInterviewConfig(
     return { success: true, data: { id: newConfig.id } };
   } catch (error) {
     console.error("Duplicate interview config error:", error);
-    if (error instanceof Error) {
-      return { success: false, error: error.message };
-    }
     return {
       success: false,
-      error: "インタビュー設定の複製中にエラーが発生しました",
+      error: getErrorMessage(
+        error,
+        "インタビュー設定の複製中にエラーが発生しました"
+      ),
     };
   }
 }
@@ -206,12 +207,12 @@ export async function deleteInterviewConfig(
     return { success: true, data: { id: configId } };
   } catch (error) {
     console.error("Delete interview config error:", error);
-    if (error instanceof Error) {
-      return { success: false, error: error.message };
-    }
     return {
       success: false,
-      error: "インタビュー設定の削除中にエラーが発生しました",
+      error: getErrorMessage(
+        error,
+        "インタビュー設定の削除中にエラーが発生しました"
+      ),
     };
   }
 }

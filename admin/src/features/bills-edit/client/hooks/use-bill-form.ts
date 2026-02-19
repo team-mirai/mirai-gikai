@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { isNextRedirectError } from "@/lib/utils/redirect";
 
 export function useBillForm() {
@@ -24,7 +25,7 @@ export function useBillForm() {
       if (isNextRedirectError(err)) {
         throw err;
       }
-      setError(err instanceof Error ? err.message : errorMessage);
+      setError(getErrorMessage(err, errorMessage));
     } finally {
       setIsSubmitting(false);
     }

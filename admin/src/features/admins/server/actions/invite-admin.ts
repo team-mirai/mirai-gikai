@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import type { CreateAdminInput } from "../../shared/types";
 import { validateEmail } from "../../shared/utils/validate-email";
 import {
@@ -41,21 +42,17 @@ export async function createAdmin(input: CreateAdminInput) {
     try {
       await createAuthUser({ email, password });
     } catch (createError) {
-      if (createError instanceof Error) {
-        if (
-          createError.message.includes("already been registered") ||
-          createError.message.includes("already exists")
-        ) {
-          return {
-            error: "このメールアドレスは既に登録されています",
-          };
-        }
+      const msg = getErrorMessage(createError, "");
+      if (
+        msg.includes("already been registered") ||
+        msg.includes("already exists")
+      ) {
         return {
-          error: `管理者の作成に失敗しました: ${createError.message}`,
+          error: "このメールアドレスは既に登録されています",
         };
       }
       return {
-        error: "管理者の作成に失敗しました",
+        error: `管理者の作成に失敗しました: ${getErrorMessage(createError, "不明なエラー")}`,
       };
     }
 
@@ -63,9 +60,8 @@ export async function createAdmin(input: CreateAdminInput) {
     return { success: true };
   } catch (error) {
     console.error("Create admin error:", error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "管理者の作成中にエラーが発生しました" };
+    return {
+      error: getErrorMessage(error, "管理者の作成中にエラーが発生しました"),
+    };
   }
 }

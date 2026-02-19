@@ -2,7 +2,9 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import type { DeleteTagInput } from "../../shared/types";
+import { mapTagDbError } from "../../shared/utils/map-tag-db-error";
 import { deleteTagRecord } from "../repositories/tag-repository";
 
 export async function deleteTag(input: DeleteTagInput) {
@@ -12,11 +14,7 @@ export async function deleteTag(input: DeleteTagInput) {
     const result = await deleteTagRecord(input.id);
 
     if (result.error) {
-      // レコードが見つからない
-      if (result.error.code === "PGRST116") {
-        return { error: "タグが見つかりません" };
-      }
-      return { error: `タグの削除に失敗しました: ${result.error.message}` };
+      return { error: mapTagDbError(result.error, "削除") };
     }
 
     // web側のキャッシュを無効化
@@ -25,9 +23,8 @@ export async function deleteTag(input: DeleteTagInput) {
     return { success: true };
   } catch (error) {
     console.error("Delete tag error:", error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "タグの削除中にエラーが発生しました" };
+    return {
+      error: getErrorMessage(error, "タグの削除中にエラーが発生しました"),
+    };
   }
 }

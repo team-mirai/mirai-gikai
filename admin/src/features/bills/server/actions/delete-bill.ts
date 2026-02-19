@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { deleteBillById } from "../repositories/bill-repository";
 
 export async function deleteBill(id: string) {
@@ -15,9 +16,8 @@ export async function deleteBill(id: string) {
     revalidatePath("/bills");
   } catch (error) {
     console.error("Delete bill error:", error);
-    if (error instanceof Error) {
-      throw new Error(error.message);
-    }
-    throw new Error("議案の削除中にエラーが発生しました");
+    throw new Error(
+      getErrorMessage(error, "議案の削除中にエラーが発生しました")
+    );
   }
 }
