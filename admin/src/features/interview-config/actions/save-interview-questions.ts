@@ -1,12 +1,15 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import {
   type InterviewQuestionsInput,
   interviewQuestionsInputSchema,
 } from "../types";
+import {
+  createInterviewQuestions,
+  deleteInterviewQuestionsByConfigId,
+} from "../repositories/interview-config-repository";
 
 export type SaveInterviewQuestionsResult =
   | { success: true }
@@ -22,20 +25,8 @@ export async function saveInterviewQuestions(
     // バリデーション
     const validatedQuestions = interviewQuestionsInputSchema.parse(questions);
 
-    const supabase = createAdminClient();
-
     // 既存の質問を全て削除
-    const { error: deleteError } = await supabase
-      .from("interview_questions")
-      .delete()
-      .eq("interview_config_id", interviewConfigId);
-
-    if (deleteError) {
-      return {
-        success: false,
-        error: `既存の質問の削除に失敗しました: ${deleteError.message}`,
-      };
-    }
+    await deleteInterviewQuestionsByConfigId(interviewConfigId);
 
     // 質問が空の場合はここで終了
     if (validatedQuestions.length === 0) {
@@ -52,16 +43,7 @@ export async function saveInterviewQuestions(
       question_order: index + 1,
     }));
 
-    const { error: insertError } = await supabase
-      .from("interview_questions")
-      .insert(questionsToInsert);
-
-    if (insertError) {
-      return {
-        success: false,
-        error: `質問の保存に失敗しました: ${insertError.message}`,
-      };
-    }
+    await createInterviewQuestions(questionsToInsert);
 
     // web側のキャッシュを無効化
     await invalidateWebCache();

@@ -1,48 +1,41 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import type { UpdateTagInput } from "../types";
+import { updateTagRecord } from "../repositories/tag-repository";
 
 export async function updateTag(input: UpdateTagInput) {
   try {
     await requireAdmin();
-
-    const supabase = createAdminClient();
 
     // バリデーション
     if (!input.label || input.label.trim().length === 0) {
       return { error: "タグ名を入力してください" };
     }
 
-    const { data, error } = await supabase
-      .from("tags")
-      .update({
-        label: input.label.trim(),
-        description: input.description,
-        featured_priority: input.featured_priority,
-      })
-      .eq("id", input.id)
-      .select()
-      .single();
+    const result = await updateTagRecord(input.id, {
+      label: input.label.trim(),
+      description: input.description,
+      featured_priority: input.featured_priority,
+    });
 
-    if (error) {
+    if (result.error) {
       // UNIQUE制約違反
-      if (error.code === "23505") {
+      if (result.error.code === "23505") {
         return { error: "このタグ名は既に存在します" };
       }
       // レコードが見つからない
-      if (error.code === "PGRST116") {
+      if (result.error.code === "PGRST116") {
         return { error: "タグが見つかりません" };
       }
-      return { error: `タグの更新に失敗しました: ${error.message}` };
+      return { error: `タグの更新に失敗しました: ${result.error.message}` };
     }
 
     // web側のキャッシュを無効化
     await invalidateWebCache();
 
-    return { data };
+    return { data: result.data };
   } catch (error) {
     console.error("Update tag error:", error);
     if (error instanceof Error) {

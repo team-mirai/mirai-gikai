@@ -1,11 +1,15 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import type { Bill, BillInsert } from "../types";
+import {
+  findBillById,
+  createBill,
+  findBillContentsByBillId,
+  createBillContents,
+} from "../repositories/bill-repository";
 
-const supabase = createAdminClient();
 /**
  * 議案を複製する
  * 元の議案とそのコンテンツを複製し、新しい議案として作成する
@@ -39,21 +43,16 @@ export async function duplicateBill(billId: string) {
  * 元の議案を取得
  */
 async function _fetchOriginalBill(billId: string) {
-  const { data, error } = await supabase
-    .from("bills")
-    .select("*")
-    .eq("id", billId)
-    .single();
-
-  if (error || !data) {
+  try {
+    const data = await findBillById(billId);
+    return { success: true as const, data };
+  } catch (error) {
     console.error("Error fetching original bill:", error);
     return {
       success: false as const,
       error: "元の議案が見つかりません",
     };
   }
-
-  return { success: true as const, data };
 }
 
 /**
@@ -73,67 +72,49 @@ async function _createDuplicateBill(originalBill: Bill) {
     publish_status: "draft", // 複製後は下書き状態
   };
 
-  const { data, error } = await supabase
-    .from("bills")
-    .insert(insertData)
-    .select("id")
-    .single();
-
-  if (error || !data) {
+  try {
+    const data = await createBill(insertData);
+    return { success: true as const, data };
+  } catch (error) {
     console.error("Error creating new bill:", error);
     return {
       success: false as const,
       error: "新しい議案の作成に失敗しました",
     };
   }
-
-  return { success: true as const, data };
 }
 
 /**
  * 議案のコンテンツを複製
  */
 async function _duplicateContents(originalBillId: string, newBillId: string) {
-  // 元のコンテンツを取得
-  const { data: originalContents, error: fetchError } = await supabase
-    .from("bill_contents")
-    .select("*")
-    .eq("bill_id", originalBillId);
+  try {
+    // 元のコンテンツを取得
+    const originalContents = await findBillContentsByBillId(originalBillId);
 
-  if (fetchError) {
-    console.error("Error fetching contents:", fetchError);
-    return {
-      success: false as const,
-      error: "コンテンツの取得に失敗しました",
-    };
-  }
+    // コンテンツが存在しない場合は成功として扱う
+    if (!originalContents || originalContents.length === 0) {
+      return { success: true as const };
+    }
 
-  // コンテンツが存在しない場合は成功として扱う
-  if (!originalContents || originalContents.length === 0) {
+    // コンテンツを複製用に整形
+    const newContents = originalContents.map((content) => {
+      const { id: _, bill_id: __, ...contentData } = content;
+      return {
+        ...contentData,
+        bill_id: newBillId,
+      };
+    });
+
+    // 新しいコンテンツを挿入
+    await createBillContents(newContents);
+
     return { success: true as const };
-  }
-
-  // コンテンツを複製用に整形
-  const newContents = originalContents.map((content) => {
-    const { id: _, bill_id: __, ...contentData } = content;
-    return {
-      ...contentData,
-      bill_id: newBillId,
-    };
-  });
-
-  // 新しいコンテンツを挿入
-  const { error: insertError } = await supabase
-    .from("bill_contents")
-    .insert(newContents);
-
-  if (insertError) {
-    console.error("Error inserting duplicated contents:", insertError);
+  } catch (error) {
+    console.error("Error duplicating contents:", error);
     return {
       success: false as const,
       error: "コンテンツの複製に失敗しました",
     };
   }
-
-  return { success: true as const };
 }

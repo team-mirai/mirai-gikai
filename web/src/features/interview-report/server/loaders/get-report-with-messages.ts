@@ -1,12 +1,16 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import {
   getAuthenticatedUser,
   isSessionOwner,
 } from "@/features/interview-session/server/utils/verify-session-ownership";
 import type { InterviewMessage } from "@/features/interview-session/shared/types";
 import type { InterviewReport } from "../../shared/types";
+import {
+  findBillWithContentById,
+  findMessagesBySessionId,
+  findReportWithSessionById,
+} from "../repositories/interview-report-repository";
 
 export type ReportWithMessages = {
   report: InterviewReport & {
@@ -36,19 +40,11 @@ export async function getReportWithMessages(
   const authResult = await getAuthenticatedUser();
   const userId = authResult.authenticated ? authResult.userId : null;
 
-  const supabase = createAdminClient();
-
-  // Fetch report with session and config info
-  const { data: report, error: reportError } = await supabase
-    .from("interview_report")
-    .select(
-      "*, interview_sessions(user_id, started_at, completed_at, is_public_by_user, interview_configs(bill_id))"
-    )
-    .eq("id", reportId)
-    .single();
-
-  if (reportError || !report) {
-    console.error("Failed to fetch interview report:", reportError);
+  let report: Awaited<ReturnType<typeof findReportWithSessionById>>;
+  try {
+    report = await findReportWithSessionById(reportId);
+  } catch (error) {
+    console.error("Failed to fetch interview report:", error);
     return null;
   }
 
@@ -75,26 +71,20 @@ export async function getReportWithMessages(
   }
 
   // Fetch messages
-  const { data: messages, error: messagesError } = await supabase
-    .from("interview_messages")
-    .select("*")
-    .eq("interview_session_id", report.interview_session_id)
-    .order("created_at", { ascending: true });
-
-  if (messagesError) {
-    console.error("Failed to fetch interview messages:", messagesError);
+  let messages: InterviewMessage[];
+  try {
+    messages = await findMessagesBySessionId(report.interview_session_id);
+  } catch (error) {
+    console.error("Failed to fetch interview messages:", error);
     return null;
   }
 
   // Fetch bill info
-  const { data: bill, error: billError } = await supabase
-    .from("bills")
-    .select("id, name, thumbnail_url, bill_contents(title)")
-    .eq("id", session.interview_configs.bill_id)
-    .single();
-
-  if (billError || !bill) {
-    console.error("Failed to fetch bill:", billError);
+  let bill: Awaited<ReturnType<typeof findBillWithContentById>>;
+  try {
+    bill = await findBillWithContentById(session.interview_configs.bill_id);
+  } catch (error) {
+    console.error("Failed to fetch bill:", error);
     return null;
   }
 

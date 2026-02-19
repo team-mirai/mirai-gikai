@@ -1,5 +1,8 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { InterviewConfig } from "../types";
+import {
+  findInterviewConfigById,
+  findInterviewConfigsByBillId,
+} from "../repositories/interview-config-repository";
 
 /**
  * 法案IDからすべてのインタビュー設定を取得する（複数設定対応）
@@ -7,20 +10,12 @@ import type { InterviewConfig } from "../types";
 export async function getInterviewConfigs(
   billId: string
 ): Promise<InterviewConfig[]> {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("interview_configs")
-    .select("*")
-    .eq("bill_id", billId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
+  try {
+    return await findInterviewConfigsByBillId(billId);
+  } catch (error) {
     console.error("Failed to fetch interview configs:", error);
     return [];
   }
-
-  return data || [];
 }
 
 /**
@@ -29,21 +24,10 @@ export async function getInterviewConfigs(
 export async function getInterviewConfigById(
   configId: string
 ): Promise<InterviewConfig | null> {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("interview_configs")
-    .select("*")
-    .eq("id", configId)
-    .single();
-
-  if (error) {
-    if (error.code === "PGRST116") {
-      return null;
-    }
+  try {
+    return await findInterviewConfigById(configId);
+  } catch (error) {
     console.error("Failed to fetch interview config:", error);
     return null;
   }
-
-  return data;
 }

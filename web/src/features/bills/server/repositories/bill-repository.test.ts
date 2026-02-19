@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { groupTagsByBillId } from "./get-bill-tags";
+import { groupTagsByBillId } from "./bill-repository";
 
 type BillTag = {
   bill_id: string;

@@ -1,6 +1,10 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import type { BillWithContent } from "../../shared/types";
+import {
+  findBillById,
+  findMiraiStanceByBillId,
+  findTagsByBillId,
+} from "../repositories/bill-repository";
 import { getBillContentWithDifficulty } from "./helpers/get-bill-content";
 
 /**
@@ -12,28 +16,21 @@ export async function getBillByIdAdmin(
   id: string
 ): Promise<BillWithContent | null> {
   const difficultyLevel = await getDifficultyLevel();
-  const supabase = createAdminClient();
 
   // 基本的なbill情報、見解、コンテンツ、タグを並列取得
   // ステータスに関係なく取得（管理者用）
-  const [billResult, miraiStanceResult, billContent, tagsResult] =
-    await Promise.all([
-      supabase.from("bills").select("*").eq("id", id).single(),
-      supabase.from("mirai_stances").select("*").eq("bill_id", id).single(),
-      getBillContentWithDifficulty(id, difficultyLevel),
-      supabase.from("bills_tags").select("tags(id, label)").eq("bill_id", id),
-    ]);
+  const [bill, miraiStance, billContent, billTags] = await Promise.all([
+    findBillById(id),
+    findMiraiStanceByBillId(id),
+    getBillContentWithDifficulty(id, difficultyLevel),
+    findTagsByBillId(id),
+  ]);
 
-  const { data: bill, error: billError } = billResult;
-  if (billError || !bill) {
-    console.error("Failed to fetch bill:", billError);
+  if (!bill) {
+    console.error("Failed to fetch bill");
     return null;
   }
 
-  const { data: miraiStance } = miraiStanceResult;
-  const { data: billTags } = tagsResult;
-
-  // タグデータを整形
   const tags =
     billTags
       ?.map((bt) => bt.tags)

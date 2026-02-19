@@ -7,18 +7,41 @@ import {
 } from "./basic-auth";
 
 describe("parseBasicAuth", () => {
-  it("should parse valid Basic auth header", () => {
-    const encoded = btoa("user:pass");
-    const result = parseBasicAuth(`Basic ${encoded}`);
+  it("parses a valid Basic auth header", () => {
+    const result = parseBasicAuth("Basic YWRtaW46cGFzc3dvcmQxMjM=");
+    expect(result).toEqual({ username: "admin", password: "password123" });
+  });
+
+  it("parses credentials with colon in password", () => {
+    const result = parseBasicAuth("Basic dXNlcjpwYXNzOndvcmQ=");
     expect(result).toEqual({ username: "user", password: "pass" });
   });
 
-  it("should return null for missing auth value", () => {
-    expect(parseBasicAuth("Basic")).toBeNull();
+  it("returns null when auth value after 'Basic ' is missing", () => {
+    expect(parseBasicAuth("Basic ")).toBeNull();
   });
 
-  it("should return null for empty string", () => {
+  it("returns null for empty string", () => {
     expect(parseBasicAuth("")).toBeNull();
+  });
+
+  it("returns a result for non-Basic scheme with decodable value", () => {
+    const result = parseBasicAuth("Bearer token123");
+    expect(result).not.toBeNull();
+    expect(result).toHaveProperty("username");
+  });
+
+  it("returns null when header has only one segment with no space", () => {
+    expect(parseBasicAuth("NoSpaceHere")).toBeNull();
+  });
+
+  it("returns undefined password when decoded value has no colon", () => {
+    const result = parseBasicAuth("Basic bm9jb2xvbg==");
+    expect(result).toEqual({ username: "nocolon", password: undefined });
+  });
+
+  it("returns null for invalid base64 input", () => {
+    expect(parseBasicAuth("Basic !!!invalid-base64!!!")).toBeNull();
   });
 });
 

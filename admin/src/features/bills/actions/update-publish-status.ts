@@ -1,10 +1,10 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import type { BillPublishStatus } from "../types";
+import { updateBillPublishStatus } from "../repositories/bill-repository";
 
 interface UpdatePublishStatusResult {
   success: boolean;
@@ -36,20 +36,7 @@ async function _updateBillPublishStatus(
   publishStatus: BillPublishStatus
 ): Promise<UpdatePublishStatusResult> {
   try {
-    const supabase = createAdminClient();
-
-    const { error } = await supabase
-      .from("bills")
-      .update({ publish_status: publishStatus })
-      .eq("id", billId);
-
-    if (error) {
-      console.error("Failed to update publish status:", error);
-      return {
-        success: false,
-        error: "ステータスの更新に失敗しました",
-      };
-    }
+    await updateBillPublishStatus(billId, publishStatus);
 
     // web側のキャッシュを無効化
     await invalidateWebCache();
@@ -59,7 +46,7 @@ async function _updateBillPublishStatus(
     console.error("Error updating publish status:", error);
     return {
       success: false,
-      error: "予期しないエラーが発生しました",
+      error: "ステータスの更新に失敗しました",
     };
   }
 }

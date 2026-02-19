@@ -1,19 +1,11 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { Bill } from "../types";
+import { findBillById } from "../repositories/bill-edit-repository";
 
 export async function getBillById(id: string): Promise<Bill | null> {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("bills")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
+  try {
+    return await findBillById(id);
+  } catch (error) {
     console.error("Failed to fetch bill:", error);
     return null;
   }
-
-  return data;
 }
