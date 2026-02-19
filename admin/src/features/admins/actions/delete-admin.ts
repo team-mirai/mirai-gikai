@@ -1,9 +1,9 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import type { DeleteAdminInput } from "../types";
+import { deleteAuthUser } from "../repositories/admin-repository";
 
 export async function deleteAdmin(input: DeleteAdminInput) {
   try {
@@ -13,12 +13,15 @@ export async function deleteAdmin(input: DeleteAdminInput) {
       return { error: "自分自身を削除することはできません" };
     }
 
-    const supabase = createAdminClient();
-
-    const { error } = await supabase.auth.admin.deleteUser(input.id);
-
-    if (error) {
-      return { error: `管理者の削除に失敗しました: ${error.message}` };
+    try {
+      await deleteAuthUser(input.id);
+    } catch (deleteError) {
+      if (deleteError instanceof Error) {
+        return {
+          error: `管理者の削除に失敗しました: ${deleteError.message}`,
+        };
+      }
+      return { error: "管理者の削除に失敗しました" };
     }
 
     revalidatePath("/admins");
