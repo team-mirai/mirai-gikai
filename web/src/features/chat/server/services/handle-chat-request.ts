@@ -1,6 +1,11 @@
 import { openai } from "@ai-sdk/openai";
 import type { Database } from "@mirai-gikai/supabase";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import {
+  convertToModelMessages,
+  streamText,
+  type LanguageModel,
+  type UIMessage,
+} from "ai";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
@@ -32,7 +37,7 @@ type ChatRequestParams = {
 /** テスト時にモック注入するための外部依存 */
 export type HandleChatDeps = {
   promptProvider?: PromptProvider;
-  model?: Parameters<typeof streamText>[0]["model"];
+  model?: LanguageModel;
 };
 
 type ChatUsageMetadata =

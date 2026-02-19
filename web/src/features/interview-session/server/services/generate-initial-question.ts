@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Output, generateText } from "ai";
+import { Output, generateText, type LanguageModel } from "ai";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
@@ -19,7 +19,7 @@ type GenerateInitialQuestionParams = {
 
 /** テスト時にモック注入するための外部依存 */
 export type GenerateQuestionDeps = {
-  model?: Parameters<typeof generateText>[0]["model"];
+  model?: LanguageModel;
 };
 
 /**

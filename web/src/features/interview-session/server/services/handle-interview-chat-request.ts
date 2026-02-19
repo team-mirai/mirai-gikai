@@ -1,6 +1,12 @@
 import "server-only";
 
-import { convertToModelMessages, generateText, Output, streamText } from "ai";
+import {
+  convertToModelMessages,
+  generateText,
+  type LanguageModel,
+  Output,
+  streamText,
+} from "ai";
 import { z } from "zod";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
@@ -39,9 +45,9 @@ const modeLogicMap = {
 
 /** テスト時にモック注入するための外部依存 */
 export type InterviewChatDeps = {
-  facilitatorModel?: Parameters<typeof generateText>[0]["model"];
-  chatModel?: Parameters<typeof streamText>[0]["model"];
-  summaryModel?: Parameters<typeof streamText>[0]["model"];
+  facilitatorModel?: LanguageModel;
+  chatModel?: LanguageModel;
+  summaryModel?: LanguageModel;
 };
 
 /**
@@ -156,7 +162,7 @@ async function determinNextStage({
   questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
   dbMessages: Array<{ role: string; content: string }>;
   logic: (typeof modeLogicMap)[keyof typeof modeLogicMap];
-  facilitatorModel?: Parameters<typeof generateText>[0]["model"];
+  facilitatorModel?: LanguageModel;
 }): Promise<InterviewStage> {
   // ファシリテーション不要な場合は現在のステージを維持
   if (!logic.shouldFacilitate({ currentStage })) {
@@ -236,8 +242,8 @@ async function generateStreamingResponse({
   sessionId: string;
   isSummaryPhase: boolean;
   nextStage: InterviewStage;
-  chatModel?: Parameters<typeof streamText>[0]["model"];
-  summaryModel?: Parameters<typeof streamText>[0]["model"];
+  chatModel?: LanguageModel;
+  summaryModel?: LanguageModel;
 }) {
   // summaryフェーズはGemini、chatフェーズはGPT-4o-mini
   const model = isSummaryPhase
