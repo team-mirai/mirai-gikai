@@ -25,15 +25,15 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-import { createStance } from "../actions/create-stance";
-import { deleteStance } from "../actions/delete-stance";
-import { updateStance } from "../actions/update-stance";
+import { createStance } from "../../server/actions/create-stance";
+import { deleteStance } from "../../server/actions/delete-stance";
+import { updateStance } from "../../server/actions/update-stance";
 import {
   type MiraiStance,
   STANCE_TYPE_LABELS,
   type StanceInput,
   stanceInputSchema,
-} from "../types";
+} from "../../shared/types";
 
 interface StanceFormProps {
   billId: string;

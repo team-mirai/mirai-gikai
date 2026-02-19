@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { StanceInput } from "../types";
+import type { StanceInput } from "../../shared/types";
 
 export async function findStanceByBillId(billId: string) {
   const supabase = createAdminClient();

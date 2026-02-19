@@ -1,7 +1,7 @@
 "use server";
 
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
-import type { StanceInput } from "../types";
+import type { StanceInput } from "../../shared/types";
 import { createMiraiStance } from "../repositories/mirai-stance-repository";
 
 export async function createStance(billId: string, data: StanceInput) {
