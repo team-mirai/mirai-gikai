@@ -8,7 +8,7 @@ import { getBillTagIds } from "@/features/bills-edit/loaders/get-bill-tag-ids";
 import { loadDietSessions } from "@/features/diet-sessions/loaders/load-diet-sessions";
 import { StanceForm } from "@/features/mirai-stance/components/stance-form";
 import { getStanceByBillId } from "@/features/mirai-stance/loaders/get-stance-by-bill-id";
-import { loadTags } from "@/features/tags/loaders/load-tags";
+import { loadTags } from "@/features/tags/server/loaders/load-tags";
 
 interface BillEditPageProps {
   params: Promise<{
