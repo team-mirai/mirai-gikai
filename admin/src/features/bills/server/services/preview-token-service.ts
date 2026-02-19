@@ -5,7 +5,7 @@ import {
   deletePreviewTokenByBillId,
   findPreviewTokenForValidation,
 } from "../repositories/bill-repository";
-import { isTokenValid } from "../shared/utils/is-token-valid";
+import { isTokenValid } from "../../shared/utils/is-token-valid";
 
 export interface PreviewTokenInfo {
   token: string;

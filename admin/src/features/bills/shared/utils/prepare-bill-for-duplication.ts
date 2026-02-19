@@ -1,4 +1,4 @@
-import type { Bill, BillInsert } from "../../types";
+import type { Bill, BillInsert } from "../types";
 
 /**
  * 議案データから複製用のinsertデータを生成する

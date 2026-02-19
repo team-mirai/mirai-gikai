@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Bill } from "../../types";
+import type { Bill } from "../types";
 import {
   prepareBillForDuplication,
   prepareBillContentsForDuplication,
