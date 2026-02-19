@@ -41,7 +41,7 @@ export function middleware(request: NextRequest) {
 /**
  * 有効な難易度レベルかチェック
  */
-function _isValidDifficultyLevel(
+export function isValidDifficultyLevel(
   value: string | null
 ): value is DifficultyLevelEnum {
   if (!value) return false;
@@ -58,7 +58,7 @@ function _handleDifficultyCookie(request: NextRequest): NextResponse {
   const response = NextResponse.next();
 
   // 有効なdifficulty値の場合、Cookieにセット
-  if (_isValidDifficultyLevel(difficulty)) {
+  if (isValidDifficultyLevel(difficulty)) {
     response.cookies.set(
       DIFFICULTY_COOKIE_NAME,
       difficulty,
@@ -69,7 +69,11 @@ function _handleDifficultyCookie(request: NextRequest): NextResponse {
   return response;
 }
 
+export function isHtmlAcceptHeader(accept: string): boolean {
+  return accept.includes("text/html");
+}
+
 function _isHtmlRequest(request: NextRequest) {
   const accept = request.headers.get("accept") || "";
-  return accept.includes("text/html");
+  return isHtmlAcceptHeader(accept);
 }

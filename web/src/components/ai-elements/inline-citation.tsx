@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import { formatCitationLabel } from "./utils/citation-utils";
 import {
   type ComponentProps,
   createContext,
@@ -68,14 +69,7 @@ export const InlineCitationCardTrigger = ({
       variant="secondary"
       {...props}
     >
-      {sources.length ? (
-        <>
-          {new URL(sources[0]).hostname}{" "}
-          {sources.length > 1 && `+${sources.length - 1}`}
-        </>
-      ) : (
-        "unknown"
-      )}
+      {formatCitationLabel(sources)}
     </Badge>
   </HoverCardTrigger>
 );

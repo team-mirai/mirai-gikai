@@ -1,8 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("server-only", () => ({}));
-
-import { collectAskedQuestionIds } from "./interview-logic";
+import { describe, expect, it } from "vitest";
+import { collectAskedQuestionIds } from "./collect-asked-question-ids";
 
 describe("collectAskedQuestionIds", () => {
   it("空のメッセージ配列なら空のSetを返す", () => {
