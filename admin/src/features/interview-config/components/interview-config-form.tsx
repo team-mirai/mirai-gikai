@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
+import type { MutableRefObject } from "react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -45,6 +46,16 @@ interface InterviewConfigFormProps {
   config: InterviewConfig | null;
   aiGeneratedThemes?: string[] | null;
   onAiThemesApplied?: () => void;
+  onConfigCreated?: (configId: string) => Promise<void>;
+  getFormValuesRef?: MutableRefObject<
+    | (() => {
+        name: string;
+        knowledge_source: string;
+        mode: string;
+        themes: string[];
+      })
+    | null
+  >;
 }
 
 export function InterviewConfigForm({
@@ -52,6 +63,8 @@ export function InterviewConfigForm({
   config,
   aiGeneratedThemes,
   onAiThemesApplied,
+  onConfigCreated,
+  getFormValuesRef,
 }: InterviewConfigFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,6 +80,21 @@ export function InterviewConfigForm({
       knowledge_source: config?.knowledge_source || "",
     },
   });
+
+  // 親コンポーネントからフォーム値を読み取れるようにする
+  useEffect(() => {
+    if (getFormValuesRef) {
+      getFormValuesRef.current = () => {
+        const values = form.getValues();
+        return {
+          name: values.name,
+          knowledge_source: values.knowledge_source || "",
+          mode: values.mode,
+          themes: values.themes || [],
+        };
+      };
+    }
+  }, [form, getFormValuesRef]);
 
   // AI生成テーマの反映
   useEffect(() => {
@@ -85,14 +113,15 @@ export function InterviewConfigForm({
         : await updateInterviewConfig(config.id, data);
 
       if (result.success) {
-        toast.success(
-          isNew
-            ? "インタビュー設定を作成しました"
-            : "インタビュー設定を保存しました"
-        );
         if (isNew) {
+          // 新規作成時: 質問があればコールバックで保存してから遷移
+          if (onConfigCreated) {
+            await onConfigCreated(result.data.id);
+          }
+          toast.success("インタビュー設定を作成しました");
           router.push(`/bills/${billId}/interview/${result.data.id}/edit`);
         } else {
+          toast.success("インタビュー設定を保存しました");
           router.refresh();
         }
       } else {

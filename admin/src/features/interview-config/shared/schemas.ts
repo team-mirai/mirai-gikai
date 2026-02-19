@@ -17,7 +17,7 @@ export type ConfigGenerationStage = z.infer<typeof configGenerationStageSchema>;
  */
 export const themeProposalSchema = z.object({
   text: z.string().describe("AIの説明テキスト"),
-  themes: z.array(z.string()).optional().describe("提案するテーマの配列"),
+  themes: z.array(z.string()).describe("提案するテーマの配列"),
 });
 
 export type ThemeProposal = z.infer<typeof themeProposalSchema>;
@@ -33,15 +33,14 @@ export const questionProposalSchema = z.object({
         question: z.string().describe("質問文"),
         instruction: z
           .string()
-          .optional()
+          .nullable()
           .describe("AIへの指示（深掘り方法など）"),
         quick_replies: z
           .array(z.string())
-          .optional()
+          .nullable()
           .describe("クイックリプライの選択肢"),
       })
     )
-    .optional()
     .describe("提案する質問の配列"),
 });
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
-import { InterviewConfigForm } from "@/features/interview-config/components/interview-config-form";
+import { InterviewConfigEditClient } from "@/features/interview-config/client/components/interview-config-edit-client";
 
 interface InterviewNewPageProps {
   params: Promise<{
@@ -42,7 +42,11 @@ export default async function InterviewNewPage({
         </p>
       </div>
 
-      <InterviewConfigForm billId={bill.id} config={null} />
+      <InterviewConfigEditClient
+        billId={bill.id}
+        config={null}
+        questions={[]}
+      />
     </div>
   );
 }

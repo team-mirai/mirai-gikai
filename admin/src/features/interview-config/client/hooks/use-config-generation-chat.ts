@@ -38,7 +38,7 @@ export function useConfigGenerationChat({
     InterviewQuestionInput[]
   >([]);
 
-  const { object, submit, isLoading, error } = useObject({
+  const { object, submit, isLoading, error, stop } = useObject({
     api: "/api/interview-config/generate",
     schema: configGenerationResponseSchema,
     onFinish: ({ object: finishedObject, error: finishedError }) => {
@@ -106,6 +106,14 @@ export function useConfigGenerationChat({
   );
 
   const startGeneration = useCallback(() => {
+    setMessages([
+      {
+        id: "greeting",
+        role: "assistant",
+        content:
+          "インタビュー設定アシスタントです。法案内容を分析して、テーマと質問を提案します。まずはテーマから始めますね。",
+      },
+    ]);
     submit({
       messages: [],
       billId,
@@ -158,6 +166,59 @@ export function useConfigGenerationChat({
     [onQuestionsConfirmed]
   );
 
+  const skipToQuestions = useCallback(
+    (themes: string[]) => {
+      if (isLoading) stop();
+
+      setConfirmedThemes(themes);
+      setStage("question_proposal");
+      setProposedThemes([]);
+      setProposedQuestions([]);
+
+      const skipMessage: ChatMessage = {
+        id: `system-${Date.now()}`,
+        role: "assistant",
+        content:
+          themes.length > 0
+            ? "質問提案に移ります。フォームのテーマを使用します。"
+            : "質問提案に移ります。法案内容から質問を提案します。",
+      };
+      setMessages((prev) => [...prev, skipMessage]);
+
+      submit({
+        messages: [],
+        billId,
+        configId,
+        stage: "question_proposal",
+        confirmedThemes: themes.length > 0 ? themes : undefined,
+      });
+    },
+    [billId, configId, isLoading, stop, submit]
+  );
+
+  const switchToThemes = useCallback(() => {
+    if (isLoading) stop();
+
+    setStage("theme_proposal");
+    setConfirmedThemes([]);
+    setProposedThemes([]);
+    setProposedQuestions([]);
+
+    const switchMessage: ChatMessage = {
+      id: `system-${Date.now()}`,
+      role: "assistant",
+      content: "テーマ提案に戻ります。法案内容を分析してテーマを提案します。",
+    };
+    setMessages((prev) => [...prev, switchMessage]);
+
+    submit({
+      messages: [],
+      billId,
+      configId,
+      stage: "theme_proposal",
+    });
+  }, [billId, configId, isLoading, stop, submit]);
+
   return {
     input,
     setInput,
@@ -172,5 +233,7 @@ export function useConfigGenerationChat({
     handleSubmit,
     confirmThemes,
     confirmQuestions,
+    skipToQuestions,
+    switchToThemes,
   };
 }
