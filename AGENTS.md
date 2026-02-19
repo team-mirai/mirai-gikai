@@ -64,17 +64,7 @@ src/features/{feature}/
     └── utils/         # 共通ユーティリティ
 ```
 
-admin の feature はフラット構成で `server/` を挟まず直下に配置します：
-
-```
-src/features/{feature}/
-├── repositories/      # データアクセス層（Supabase呼び出しを集約）
-├── loaders/           # データ取得関数
-├── actions/           # Server Actions ("use server")
-├── services/          # ビジネスロジック層
-├── components/        # コンポーネント
-└── types/             # 型定義
-```
+`web/` と `admin/` の両方で同じ server/client/shared 構成を採用します。ただし `admin/` では Server Components が中心のため `client/` ディレクトリを省略している feature もあります。
 
 - Server側ファイルには `"server-only"` を、Client Componentsには `"use client"` を付与
 - 型定義やServer/Client両方で使う関数は `shared/` に配置
