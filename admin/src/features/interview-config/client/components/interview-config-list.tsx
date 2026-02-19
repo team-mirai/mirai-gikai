@@ -29,8 +29,8 @@ import {
 import {
   deleteInterviewConfig,
   duplicateInterviewConfig,
-} from "../actions/upsert-interview-config";
-import type { InterviewConfig } from "../types";
+} from "../../server/actions/upsert-interview-config";
+import type { InterviewConfig } from "../../shared/types";
 
 interface InterviewConfigListProps {
   billId: string;

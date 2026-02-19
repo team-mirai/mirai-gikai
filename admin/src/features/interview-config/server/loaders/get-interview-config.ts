@@ -1,4 +1,4 @@
-import type { InterviewConfig } from "../types";
+import type { InterviewConfig } from "../../shared/types";
 import {
   findInterviewConfigById,
   findInterviewConfigsByBillId,

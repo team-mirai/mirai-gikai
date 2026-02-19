@@ -5,7 +5,7 @@ import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import {
   type InterviewQuestionsInput,
   interviewQuestionsInputSchema,
-} from "../types";
+} from "../../shared/types";
 import {
   createInterviewQuestions,
   deleteInterviewQuestionsByConfigId,

@@ -33,12 +33,12 @@ import {
   interviewConfigSchema,
   arrayToText,
   textToArray,
-} from "../types";
+} from "../../shared/types";
 import {
   createInterviewConfig,
   updateInterviewConfig,
-} from "../actions/upsert-interview-config";
-import { generateInterviewPreviewUrl } from "../actions/generate-interview-preview-url";
+} from "../../server/actions/upsert-interview-config";
+import { generateInterviewPreviewUrl } from "../../server/actions/generate-interview-preview-url";
 
 interface InterviewConfigFormProps {
   billId: string;

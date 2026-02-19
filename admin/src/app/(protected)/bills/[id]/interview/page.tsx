@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
-import { InterviewConfigList } from "@/features/interview-config/components/interview-config-list";
-import { getInterviewConfigs } from "@/features/interview-config/loaders/get-interview-config";
+import { InterviewConfigList } from "@/features/interview-config/client/components/interview-config-list";
+import { getInterviewConfigs } from "@/features/interview-config/server/loaders/get-interview-config";
 
 interface InterviewListPageProps {
   params: Promise<{
