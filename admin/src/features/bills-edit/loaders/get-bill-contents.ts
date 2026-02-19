@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/features/auth/lib/auth-server";
+import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import type { BillContent } from "../types/bill-contents";
 import { findBillContentsByBillId } from "../repositories/bill-edit-repository";
 

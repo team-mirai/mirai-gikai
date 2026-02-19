@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { AlertCircle } from "lucide-react";
 
-import { loginSchema, type LoginFormData } from "../types";
+import { loginSchema, type LoginFormData } from "../../shared/types";
 import { useLogin } from "../hooks/use-login";
 
 export function LoginForm() {

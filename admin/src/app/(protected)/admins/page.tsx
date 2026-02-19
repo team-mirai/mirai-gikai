@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentAdmin } from "@/features/auth/lib/auth-server";
+import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
 import { AdminList } from "@/features/admins/components/admin-list";
 import { InviteAdminForm } from "@/features/admins/components/invite-admin-form";
 import { loadAdmins } from "@/features/admins/loaders/load-admins";
