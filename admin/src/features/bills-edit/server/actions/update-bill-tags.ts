@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import { calculateSetDiff } from "@/lib/utils/calculate-set-diff";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
 import {
   findBillsTagsByBillId,
@@ -16,24 +17,17 @@ export async function updateBillTags(billId: string, tagIds: string[]) {
   await requireAdmin();
 
   try {
-    // 既存のタグIDを取得
-    const existingTagIds = new Set(await findBillsTagsByBillId(billId));
-    const newTagIds = new Set(tagIds);
-
-    // 削除すべきタグ
-    const tagsToDelete = [...existingTagIds].filter((id) => !newTagIds.has(id));
-
-    // 追加すべきタグ
-    const tagsToAdd = [...newTagIds].filter((id) => !existingTagIds.has(id));
+    const existingTagIds = await findBillsTagsByBillId(billId);
+    const { toAdd, toDelete } = calculateSetDiff(existingTagIds, tagIds);
 
     // 削除処理
-    if (tagsToDelete.length > 0) {
-      await deleteBillsTags(billId, tagsToDelete);
+    if (toDelete.length > 0) {
+      await deleteBillsTags(billId, toDelete);
     }
 
     // 追加処理
-    if (tagsToAdd.length > 0) {
-      await createBillsTags(billId, tagsToAdd);
+    if (toAdd.length > 0) {
+      await createBillsTags(billId, toAdd);
     }
 
     // キャッシュを更新

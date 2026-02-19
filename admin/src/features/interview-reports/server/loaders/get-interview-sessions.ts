@@ -1,4 +1,5 @@
 import type { InterviewSessionWithDetails } from "../../shared/types";
+import { calculatePaginationRange } from "../../shared/utils/pagination-utils";
 import {
   countInterviewSessionsByConfigId,
   findInterviewConfigIdByBillId,
@@ -19,8 +20,7 @@ export async function getInterviewSessions(
   }
 
   // ページネーション計算
-  const from = (page - 1) * SESSIONS_PER_PAGE;
-  const to = from + SESSIONS_PER_PAGE - 1;
+  const { from, to } = calculatePaginationRange(page, SESSIONS_PER_PAGE);
 
   // セッション一覧を取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;

@@ -24,6 +24,7 @@ import {
 import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
 import type { InterviewSessionWithDetails } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
+import { generatePageNumbers } from "../../shared/utils/pagination-utils";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 import { VisibilityBadge } from "./visibility-badge";
@@ -192,53 +193,22 @@ export function SessionList({
             </PaginationItem>
 
             {/* ページ番号表示（最大5ページ表示、省略記号付き） */}
-            {(() => {
-              const pages: (number | "ellipsis-start" | "ellipsis-end")[] = [];
-              if (totalPages <= 5) {
-                // 5ページ以下の場合はすべて表示
-                for (let i = 1; i <= totalPages; i++) {
-                  pages.push(i);
-                }
-              } else {
-                // 最初のページ
-                pages.push(1);
-
-                if (currentPage > 3) {
-                  pages.push("ellipsis-start");
-                }
-
-                // 現在のページ周辺
-                const start = Math.max(2, currentPage - 1);
-                const end = Math.min(totalPages - 1, currentPage + 1);
-                for (let i = start; i <= end; i++) {
-                  pages.push(i);
-                }
-
-                if (currentPage < totalPages - 2) {
-                  pages.push("ellipsis-end");
-                }
-
-                // 最後のページ
-                pages.push(totalPages);
-              }
-
-              return pages.map((page) =>
-                typeof page === "string" ? (
-                  <PaginationItem key={page}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      href={`/bills/${billId}/reports?page=${page}`}
-                      isActive={page === currentPage}
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              );
-            })()}
+            {generatePageNumbers(totalPages, currentPage).map((page) =>
+              typeof page === "string" ? (
+                <PaginationItem key={page}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    href={`/bills/${billId}/reports?page=${page}`}
+                    isActive={page === currentPage}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
 
             <PaginationItem>
               <PaginationNext
