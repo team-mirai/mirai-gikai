@@ -46,6 +46,7 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 ```
 src/features/{feature}/
 ├── server/
+│   ├── repositories/  # データアクセス層（Supabase呼び出しを集約）
 │   ├── components/    # Server Components
 │   ├── loaders/       # Server Components用データ取得関数
 │   ├── actions/       # Server Actions ("use server")
@@ -60,9 +61,49 @@ src/features/{feature}/
     └── utils/         # 共通ユーティリティ
 ```
 
+admin の feature はフラット構成で `server/` を挟まず直下に配置します：
+
+```
+src/features/{feature}/
+├── repositories/      # データアクセス層（Supabase呼び出しを集約）
+├── loaders/           # データ取得関数
+├── actions/           # Server Actions ("use server")
+├── services/          # ビジネスロジック層
+├── components/        # コンポーネント
+└── types/             # 型定義
+```
+
 - Server側ファイルには `"server-only"` を、Client Componentsには `"use client"` を付与
 - 型定義やServer/Client両方で使う関数は `shared/` に配置
 - シンプルな feature は従来の `components|actions|api|types` 構成でも可
+
+### Repository レイヤー
+Supabase への直接アクセスは `repositories/` に集約し、loaders/actions/services からは repository 関数を呼び出します。
+
+```typescript
+// repositories/{feature}-repository.ts
+import "server-only";
+import { createAdminClient } from "@mirai-gikai/supabase";
+
+export async function findBillById(id: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error) {
+    throw new Error(`Failed to fetch bill: ${error.message}`);
+  }
+  return data;
+}
+```
+
+- **`import "server-only"`** を必ず先頭に付与
+- **`createAdminClient()`** の呼び出しは repository 内に閉じ込め、loaders/actions/services からは直接呼ばない
+- repository 関数は「Supabase クエリ実行 + エラーハンドリング」のみを担当し、ビジネスロジック（キャッシュ制御、認証チェック、データ変換等）は呼び出し元に残す
+- 関数名は操作に応じて `find*` / `create*` / `update*` / `delete*` で統一
+- クライアント側の Supabase 呼び出し（`createBrowserClient` を使う認証・Storage 操作等）は repository の対象外
 
 ## Build, Test, and Development Commands
 - 依存導入は `pnpm install`、全てのスクリプトは pnpm 経由で実行します。
