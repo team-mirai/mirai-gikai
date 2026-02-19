@@ -3,6 +3,7 @@
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { calculateSetDiff } from "@/lib/utils/calculate-set-diff";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   findBillsTagsByBillId,
   deleteBillsTags,
@@ -37,7 +38,7 @@ export async function updateBillTags(billId: string, tagIds: string[]) {
   } catch (error) {
     return {
       success: false,
-      error: `タグの更新中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+      error: `タグの更新中にエラーが発生しました: ${getErrorMessage(error, "不明なエラー")}`,
     };
   }
 }

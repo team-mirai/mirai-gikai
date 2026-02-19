@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { type BillUpdateInput, billUpdateSchema } from "../../shared/types";
 import { updateBillRecord } from "../repositories/bill-edit-repository";
 
@@ -26,9 +27,8 @@ export async function updateBill(id: string, input: BillUpdateInput) {
     await invalidateWebCache();
   } catch (error) {
     console.error("Update bill error:", error);
-    if (error instanceof Error) {
-      throw new Error(error.message);
-    }
-    throw new Error("議案の更新中にエラーが発生しました");
+    throw new Error(
+      getErrorMessage(error, "議案の更新中にエラーが発生しました")
+    );
   }
 }

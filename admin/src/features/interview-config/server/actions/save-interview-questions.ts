@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   type InterviewQuestionsInput,
   interviewQuestionsInputSchema,
@@ -49,12 +50,9 @@ export async function saveInterviewQuestions(
     return { success: true };
   } catch (error) {
     console.error("Save interview questions error:", error);
-    if (error instanceof Error) {
-      return { success: false, error: error.message };
-    }
     return {
       success: false,
-      error: "質問の保存中にエラーが発生しました",
+      error: getErrorMessage(error, "質問の保存中にエラーが発生しました"),
     };
   }
 }

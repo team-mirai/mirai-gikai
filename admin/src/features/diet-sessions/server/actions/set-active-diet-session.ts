@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   setActiveDietSessionRecord,
   findDietSessionById,
@@ -26,9 +27,11 @@ export async function setActiveDietSession(input: SetActiveDietSessionInput) {
     return { data };
   } catch (error) {
     console.error("Set active diet session error:", error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "アクティブセッションの設定中にエラーが発生しました" };
+    return {
+      error: getErrorMessage(
+        error,
+        "アクティブセッションの設定中にエラーが発生しました"
+      ),
+    };
   }
 }

@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { trimOrNull } from "@/lib/utils/normalize-string";
 import type { CreateDietSessionInput } from "../../shared/types";
 import { validateDateRange } from "../../shared/utils/validate-date-range";
@@ -47,9 +48,8 @@ export async function createDietSession(input: CreateDietSessionInput) {
     return { data };
   } catch (error) {
     console.error("Create diet session error:", error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "国会会期の作成中にエラーが発生しました" };
+    return {
+      error: getErrorMessage(error, "国会会期の作成中にエラーが発生しました"),
+    };
   }
 }

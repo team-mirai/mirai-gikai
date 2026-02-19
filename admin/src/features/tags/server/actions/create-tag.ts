@@ -2,7 +2,9 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import type { CreateTagInput } from "../../shared/types";
+import { mapTagDbError } from "../../shared/utils/map-tag-db-error";
 import { createTagRecord } from "../repositories/tag-repository";
 
 export async function createTag(input: CreateTagInput) {
@@ -19,11 +21,7 @@ export async function createTag(input: CreateTagInput) {
     });
 
     if (result.error) {
-      // UNIQUE制約違反
-      if (result.error.code === "23505") {
-        return { error: "このタグ名は既に存在します" };
-      }
-      return { error: `タグの作成に失敗しました: ${result.error.message}` };
+      return { error: mapTagDbError(result.error, "作成") };
     }
 
     // web側のキャッシュを無効化
@@ -32,9 +30,8 @@ export async function createTag(input: CreateTagInput) {
     return { data: result.data };
   } catch (error) {
     console.error("Create tag error:", error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "タグの作成中にエラーが発生しました" };
+    return {
+      error: getErrorMessage(error, "タグの作成中にエラーが発生しました"),
+    };
   }
 }

@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   type BillContentsUpdateInput,
   billContentsUpdateSchema,
@@ -52,11 +53,12 @@ export async function updateBillContents(
     return { success: true };
   } catch (error) {
     console.error("Update bill contents error:", error);
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "議案コンテンツの更新中にエラーが発生しました";
-
-    return { success: false, error: errorMessage };
+    return {
+      success: false,
+      error: getErrorMessage(
+        error,
+        "議案コンテンツの更新中にエラーが発生しました"
+      ),
+    };
   }
 }
