@@ -10,6 +10,9 @@
     "seed": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed seed",
     "seed:csv": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed seed:csv",
     "test": "pnpm -r --parallel run test",
+    "test:coverage": "pnpm -r --parallel run test:coverage",
+    "test:supabase": "dotenv -e .env -- vitest run --config tests/supabase/vitest.config.mts",
+    "test:supabase:watch": "dotenv -e .env -- vitest --config tests/supabase/vitest.config.mts",
     "typecheck": "pnpm -r run typecheck",
     "lint": "biome format . && biome lint .",
     "lint:fix": "biome format --write . && biome lint --write .",
@@ -17,9 +20,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
+    "@supabase/supabase-js": "^2.49.4",
     "dotenv-cli": "^7.4.2",
     "lint-staged": "^15.5.2",
-    "simple-git-hooks": "^2.13.1"
+    "simple-git-hooks": "^2.13.1",
+    "vitest": "^3.2.4"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"

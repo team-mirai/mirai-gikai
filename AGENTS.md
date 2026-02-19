@@ -22,6 +22,9 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 
 - **目的**: developブランチを常にクリーンに保ち、作業の分離と並列作業を容易にする
 
+### Codexレビュー必須
+実装完了後（コミット前）に、必ず `/review-codex` スキルを実行してCodex CLIによるコードレビューを受けること。指摘があれば修正してからコミットする。
+
 ### 並列PR作成
 複数の独立したPRを作成する場合は `/parallel-pr` スキルを使用すること。
 
@@ -46,6 +49,7 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 ```
 src/features/{feature}/
 ├── server/
+│   ├── repositories/  # データアクセス層（Supabase呼び出しを集約）
 │   ├── components/    # Server Components
 │   ├── loaders/       # Server Components用データ取得関数
 │   ├── actions/       # Server Actions ("use server")
@@ -60,9 +64,14 @@ src/features/{feature}/
     └── utils/         # 共通ユーティリティ
 ```
 
+`web/` と `admin/` の両方で同じ server/client/shared 構成を採用します。ただし `admin/` では Server Components が中心のため `client/` ディレクトリを省略している feature もあります。
+
 - Server側ファイルには `"server-only"` を、Client Componentsには `"use client"` を付与
 - 型定義やServer/Client両方で使う関数は `shared/` に配置
+- **純粋関数の切り出し**: 新規実装時、外部依存（DB・API・認証等）を持たない計算・変換・判定ロジックは純粋関数として `utils/` に切り出すこと。配置先は用途に応じて `shared/utils/`、`server/utils/`、`client/utils/` を選択する。
 - シンプルな feature は従来の `components|actions|api|types` 構成でも可
+
+Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-layer.md) を参照。
 
 ## Build, Test, and Development Commands
 - 依存導入は `pnpm install`、全てのスクリプトは pnpm 経由で実行します。
@@ -80,10 +89,20 @@ src/features/{feature}/
 
 ## Testing Guidelines
 - Vitest の単体テストを `*.test.ts` として実装と同階層に配置し、AI コスト計算や Markdown 処理などデータ変換の変更時は必ず回帰テストを追加します。
-- Supabase など外部依存はフィクスチャでモックし、単体テストから実サービスへ接続しないでください。
+- **純粋関数にはテスト必須**: `utils/` に切り出した純粋関数は、新規作成時に必ず `*.test.ts` を同階層に作成してテストを書いてください。
+- **mock は極力使わない**: `vi.mock("server-only")` 等のモックに頼らず、テスト対象のロジックを純粋関数として `shared/` に切り出してからテストしてください。`server-only` や外部依存を含むファイルからは re-export で参照を維持します。
+- **ローカルサービスは real で動かす**: Supabase などローカルで起動できるサービスはモックせず、実際のローカルインスタンスに接続してテストします。
+- **外部 API は DI でモックする**: OpenAI などの外部 API クライアントはインターフェースを定義し、テストでは Fake/Mock 実装に差し替えます。
 - PR 前に `pnpm --filter web test:watch` で失敗を早期検知し、必要に応じて `vitest run --coverage` でカバレッジ低下を確認します。
+- テストの書き方・構造化・コード例などの詳細は [docs/テストガイドライン.md](docs/20260219_1000_テストガイドライン.md) を参照。
 
 ## Commit & Pull Request Guidelines
+- **push前のローカル検証（必須）**: `git push` の前に、CIと同じ検証コマンドをローカルで実行して通過を確認すること。CIで落ちてから直すのではなく、手元で事前に検知する。
+  ```bash
+  pnpm lint        # Biome format + lint チェック
+  pnpm typecheck   # TypeScript 型チェック
+  pnpm test        # 全ワークスペースのテスト実行
+  ```
 - **push / PR作成前のGitHub状態確認（必須）**: `git push` やPR作成を行う前に、必ず `gh pr list` や `gh pr view <番号>` でGitHub上のPR状態（open/merged/closed）を確認すること。マージ済みブランチへの追加pushや、既にクローズされたPRとの重複を防ぐ。
 - コミットメッセージは既存履歴同様、短い命令形主体（日本語可）とし、課題連携は `(#id)` を付与します。
 - PR ではスコープ概要、実行テスト記録（例: `pnpm dev`, `pnpm --filter web test`）、UI 変更時のスクリーンショットや GIF を添付します。

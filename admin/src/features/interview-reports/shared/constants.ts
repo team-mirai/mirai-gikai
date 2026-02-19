@@ -20,6 +20,8 @@ export const roleLabels: Record<InterviewReportRole, string> = {
   general_citizen: "一市民として関心",
 };
 
+import { formatRoleLabel as formatRoleLabelPure } from "./utils/format-role-label";
+
 /**
  * 役割ラベルとrole_titleを中黒で結合して表示用文字列を生成
  * 例：「専門家・物流業者」
@@ -28,11 +30,5 @@ export function formatRoleLabel(
   role?: string | null,
   roleTitle?: string | null
 ): string | null {
-  const baseLabel = role
-    ? roleLabels[role as InterviewReportRole] || role
-    : null;
-  if (baseLabel && roleTitle) {
-    return `${baseLabel}・${roleTitle}`;
-  }
-  return roleTitle || baseLabel;
+  return formatRoleLabelPure(role, roleTitle, roleLabels);
 }

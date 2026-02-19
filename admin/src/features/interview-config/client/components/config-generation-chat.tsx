@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { InterviewQuestionInput } from "../../types";
+import type { InterviewQuestionInput } from "../../shared/types";
 import { useConfigGenerationChat } from "../hooks/use-config-generation-chat";
 
 interface ConfigGenerationChatProps {

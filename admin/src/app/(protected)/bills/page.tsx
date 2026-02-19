@@ -1,4 +1,4 @@
-import { BillList } from "@/features/bills/components/bill-list/bill-list";
+import { BillList } from "@/features/bills/server/components/bill-list/bill-list";
 
 export default function BillsPage() {
   return (

@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { getReportWithMessages } from "../loaders/get-report-with-messages";
 import { countCharacters } from "../../shared/utils/report-utils";
+import { parseOpinions } from "../../shared/utils/format-utils";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
 import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
@@ -26,9 +27,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
   const { report, messages, bill } = data;
   const billName = bill.bill_content?.title || bill.name;
   const characterCount = countCharacters(messages);
-  const opinions = Array.isArray(report.opinions)
-    ? (report.opinions as Array<{ title: string; content: string }>)
-    : [];
+  const opinions = parseOpinions(report.opinions);
 
   return (
     <div className="min-h-screen bg-[#F7F4F0]">

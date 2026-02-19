@@ -8,14 +8,14 @@ import type {
   InterviewConfig,
   InterviewQuestion,
   InterviewQuestionInput,
-} from "../../types";
+} from "../../shared/types";
 import {
   createInterviewConfig,
   updateInterviewConfig,
-} from "../../actions/upsert-interview-config";
-import { saveInterviewQuestions } from "../../actions/save-interview-questions";
-import { InterviewConfigForm } from "../../components/interview-config-form";
-import { InterviewQuestionList } from "../../components/interview-question-list";
+} from "../../server/actions/upsert-interview-config";
+import { saveInterviewQuestions } from "../../server/actions/save-interview-questions";
+import { InterviewConfigForm } from "./interview-config-form";
+import { InterviewQuestionList } from "./interview-question-list";
 import { ConfigGenerationChat } from "./config-generation-chat";
 
 interface InterviewConfigEditClientProps {

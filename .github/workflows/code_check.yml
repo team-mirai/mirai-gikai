@@ -34,5 +34,11 @@ jobs:
       - name: Run TypeScript type checking
         run: pnpm run typecheck
 
-      - name: Run Test
-        run: pnpm run test
+      - name: Run Test with Coverage
+        run: pnpm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+        with:
+          files: ./web/coverage/coverage-final.json
+          token: ${{ secrets.CODECOV_TOKEN }}

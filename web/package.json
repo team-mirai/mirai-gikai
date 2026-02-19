@@ -8,8 +8,11 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "dotenv -e ../.env -- vitest run --config vitest.integration.config.mts",
+    "test:integration:coverage": "dotenv -e ../.env -- vitest run --config vitest.integration.config.mts --coverage"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.1",
@@ -69,6 +72,7 @@
     "@types/react-dom": "^19",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/unist": "^3.0.3",
+    "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.8",

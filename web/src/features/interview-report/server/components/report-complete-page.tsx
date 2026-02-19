@@ -14,6 +14,7 @@ import {
   calculateDuration,
   countCharacters,
 } from "../../shared/utils/report-utils";
+import { parseOpinions } from "../../shared/utils/format-utils";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
 import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
@@ -47,9 +48,7 @@ export async function ReportCompletePage({
     notFound();
   }
 
-  const opinions = Array.isArray(report.opinions)
-    ? (report.opinions as Array<{ title: string; content: string }>)
-    : [];
+  const opinions = parseOpinions(report.opinions);
   const duration = calculateDuration(
     report.session_started_at,
     report.session_completed_at

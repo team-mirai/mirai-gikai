@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/features/auth/lib/auth-server";
+import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { handleConfigGeneration } from "@/features/interview-config/server/services/handle-config-generation";
 
 export async function POST(req: Request) {

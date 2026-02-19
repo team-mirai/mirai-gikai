@@ -2,10 +2,10 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
+import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { InterviewConfigEditClient } from "@/features/interview-config/client/components/interview-config-edit-client";
-import { getInterviewConfigById } from "@/features/interview-config/loaders/get-interview-config";
-import { getInterviewQuestions } from "@/features/interview-config/loaders/get-interview-questions";
+import { getInterviewConfigById } from "@/features/interview-config/server/loaders/get-interview-config";
+import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 
 interface InterviewEditPageProps {
   params: Promise<{

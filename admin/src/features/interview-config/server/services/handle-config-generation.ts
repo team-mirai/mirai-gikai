@@ -1,8 +1,8 @@
 import "server-only";
 
 import { convertToModelMessages, Output, streamText } from "ai";
-import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
-import { getBillContents } from "@/features/bills-edit/loaders/get-bill-contents";
+import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
+import { getBillContents } from "@/features/bills-edit/server/loaders/get-bill-contents";
 import { AI_MODELS } from "@/lib/ai/models";
 import { injectJsonFields } from "@/lib/stream/inject-json-fields";
 import {
@@ -11,7 +11,7 @@ import {
   questionProposalSchema,
 } from "../../shared/schemas";
 import { buildConfigGenerationPrompt } from "../utils/build-config-generation-prompt";
-import { getInterviewConfigById } from "../../loaders/get-interview-config";
+import { getInterviewConfigById } from "../loaders/get-interview-config";
 
 interface HandleConfigGenerationParams {
   messages: Array<{ role: string; content: string }>;

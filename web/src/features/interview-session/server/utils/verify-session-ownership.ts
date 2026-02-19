@@ -1,7 +1,7 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+import { findSessionOwnerById } from "../repositories/interview-session-repository";
 
 export type AuthenticatedUserResult =
   | {
@@ -54,16 +54,15 @@ export async function verifySessionOwnership(
   }
 
   const { userId } = authResult;
-  const supabase = createAdminClient();
 
-  const { data: session, error: sessionError } = await supabase
-    .from("interview_sessions")
-    .select("user_id")
-    .eq("id", sessionId)
-    .single();
-
-  if (sessionError || !session) {
-    return { authorized: false, error: "セッションが見つかりません" };
+  let session: { user_id: string };
+  try {
+    session = await findSessionOwnerById(sessionId);
+  } catch {
+    return {
+      authorized: false,
+      error: "セッションが見つかりません",
+    };
   }
 
   if (session.user_id !== userId) {
@@ -76,12 +75,5 @@ export async function verifySessionOwnership(
   return { authorized: true, userId };
 }
 
-/**
- * セッションの所有者かどうかをチェックする（既に取得したuser_idと比較）
- */
-export function isSessionOwner(
-  sessionUserId: string,
-  currentUserId: string
-): boolean {
-  return sessionUserId === currentUserId;
-}
+// Re-export from shared
+export { isSessionOwner } from "../../shared/utils/ownership-check";

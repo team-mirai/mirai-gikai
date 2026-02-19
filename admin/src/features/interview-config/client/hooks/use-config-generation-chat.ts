@@ -6,7 +6,7 @@ import {
   type ConfigGenerationStage,
   configGenerationResponseSchema,
 } from "../../shared/schemas";
-import type { InterviewQuestionInput } from "../../types";
+import type { InterviewQuestionInput } from "../../shared/types";
 
 interface ChatMessage {
   id: string;
