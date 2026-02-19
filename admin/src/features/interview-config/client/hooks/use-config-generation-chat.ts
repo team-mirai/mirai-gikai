@@ -19,6 +19,8 @@ interface ChatMessage {
 interface UseConfigGenerationChatProps {
   billId: string;
   configId?: string;
+  existingThemes?: string[];
+  existingQuestions?: InterviewQuestionInput[];
   onThemesConfirmed: (themes: string[]) => void;
   onQuestionsConfirmed: (questions: InterviewQuestionInput[]) => void;
 }
@@ -26,9 +28,13 @@ interface UseConfigGenerationChatProps {
 export function useConfigGenerationChat({
   billId,
   configId,
+  existingThemes,
+  existingQuestions,
   onThemesConfirmed,
   onQuestionsConfirmed,
 }: UseConfigGenerationChatProps) {
+  const hasExistingThemes = (existingThemes?.length ?? 0) > 0;
+  const hasExistingQuestions = (existingQuestions?.length ?? 0) > 0;
   const [input, setInput] = useState("");
   const [stage, setStage] = useState<ConfigGenerationStage>("theme_proposal");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -100,27 +106,84 @@ export function useConfigGenerationChat({
         stage: apiStage,
         confirmedThemes:
           apiStage === "question_proposal" ? confirmedThemes : undefined,
+        existingThemes:
+          apiStage === "theme_proposal" && hasExistingThemes
+            ? existingThemes
+            : undefined,
+        existingQuestions:
+          apiStage === "question_proposal" && hasExistingQuestions
+            ? existingQuestions
+            : undefined,
       });
     },
-    [messages, billId, configId, stage, confirmedThemes, isLoading, submit]
+    [
+      messages,
+      billId,
+      configId,
+      stage,
+      confirmedThemes,
+      isLoading,
+      submit,
+      hasExistingThemes,
+      existingThemes,
+      hasExistingQuestions,
+      existingQuestions,
+    ]
   );
 
   const startGeneration = useCallback(() => {
-    setMessages([
-      {
-        id: "greeting",
-        role: "assistant",
-        content:
-          "インタビュー設定アシスタントです。法案内容を分析して、テーマと質問を提案します。まずはテーマから始めますね。",
-      },
-    ]);
-    submit({
-      messages: [],
-      billId,
-      configId,
-      stage: "theme_proposal",
-    });
-  }, [billId, configId, submit]);
+    if (hasExistingThemes || hasExistingQuestions) {
+      // 既存設定あり: ブラッシュアップモード
+      const parts: string[] = [
+        "インタビュー設定アシスタントです。現在の設定を確認しました。",
+      ];
+      if (hasExistingThemes) {
+        parts.push(
+          `\n\n**現在のテーマ（${existingThemes?.length}件）:**\n${existingThemes?.map((t) => `- ${t}`).join("\n")}`
+        );
+      }
+      if (hasExistingQuestions) {
+        parts.push(
+          `\n\n**現在の質問（${existingQuestions?.length}件）:**\n${existingQuestions?.map((q, i) => `${i + 1}. ${q.question}`).join("\n")}`
+        );
+      }
+      parts.push(
+        "\n\nどのようにブラッシュアップしますか？修正の要望をテキストで入力するか、バッジをクリックしてテーマ・質問の再生成ができます。"
+      );
+      setMessages([
+        {
+          id: "greeting",
+          role: "assistant",
+          content: parts.join(""),
+        },
+      ]);
+      // 既存設定がある場合は自動生成せず、ユーザーの指示を待つ
+    } else {
+      // 新規: 自動でテーマ提案
+      setMessages([
+        {
+          id: "greeting",
+          role: "assistant",
+          content:
+            "インタビュー設定アシスタントです。法案内容を分析して、テーマと質問を提案します。まずはテーマから始めますね。",
+        },
+      ]);
+      submit({
+        messages: [],
+        billId,
+        configId,
+        stage: "theme_proposal",
+      });
+    }
+  }, [
+    billId,
+    configId,
+    submit,
+    hasExistingThemes,
+    hasExistingQuestions,
+    existingThemes,
+    existingQuestions,
+  ]);
 
   const confirmThemes = useCallback(
     (themes: string[]) => {
@@ -153,9 +216,18 @@ export function useConfigGenerationChat({
         configId,
         stage: "question_proposal",
         confirmedThemes: themes,
+        existingQuestions: hasExistingQuestions ? existingQuestions : undefined,
       });
     },
-    [billId, configId, messages, onThemesConfirmed, submit]
+    [
+      billId,
+      configId,
+      messages,
+      onThemesConfirmed,
+      submit,
+      hasExistingQuestions,
+      existingQuestions,
+    ]
   );
 
   const confirmQuestions = useCallback(
@@ -191,9 +263,18 @@ export function useConfigGenerationChat({
         configId,
         stage: "question_proposal",
         confirmedThemes: themes.length > 0 ? themes : undefined,
+        existingQuestions: hasExistingQuestions ? existingQuestions : undefined,
       });
     },
-    [billId, configId, isLoading, stop, submit]
+    [
+      billId,
+      configId,
+      isLoading,
+      stop,
+      submit,
+      hasExistingQuestions,
+      existingQuestions,
+    ]
   );
 
   const switchToThemes = useCallback(() => {
@@ -216,8 +297,17 @@ export function useConfigGenerationChat({
       billId,
       configId,
       stage: "theme_proposal",
+      existingThemes: hasExistingThemes ? existingThemes : undefined,
     });
-  }, [billId, configId, isLoading, stop, submit]);
+  }, [
+    billId,
+    configId,
+    isLoading,
+    stop,
+    submit,
+    hasExistingThemes,
+    existingThemes,
+  ]);
 
   return {
     input,

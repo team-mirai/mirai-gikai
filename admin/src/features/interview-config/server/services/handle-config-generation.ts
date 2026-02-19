@@ -13,12 +13,20 @@ import {
 import { buildConfigGenerationPrompt } from "../utils/build-config-generation-prompt";
 import { getInterviewConfigById } from "../loaders/get-interview-config";
 
+interface ExistingQuestion {
+  question: string;
+  instruction?: string | null;
+  quick_replies?: string[] | null;
+}
+
 interface HandleConfigGenerationParams {
   messages: Array<{ role: string; content: string }>;
   billId: string;
   configId?: string;
   stage: ConfigGenerationStage;
   confirmedThemes?: string[];
+  existingThemes?: string[];
+  existingQuestions?: ExistingQuestion[];
 }
 
 export async function handleConfigGeneration({
@@ -27,6 +35,8 @@ export async function handleConfigGeneration({
   configId,
   stage,
   confirmedThemes,
+  existingThemes,
+  existingQuestions,
 }: HandleConfigGenerationParams) {
   const [bill, billContents, config] = await Promise.all([
     getBillById(billId),
@@ -51,6 +61,8 @@ export async function handleConfigGeneration({
     stage,
     confirmedThemes,
     knowledgeSource: config?.knowledge_source || undefined,
+    existingThemes,
+    existingQuestions,
   });
 
   // メッセージが空の場合は初回呼び出し用のユーザーメッセージを追加
