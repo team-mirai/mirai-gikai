@@ -75,12 +75,5 @@ export async function verifySessionOwnership(
   return { authorized: true, userId };
 }
 
-/**
- * セッションの所有者かどうかをチェックする（既に取得したuser_idと比較）
- */
-export function isSessionOwner(
-  sessionUserId: string,
-  currentUserId: string
-): boolean {
-  return sessionUserId === currentUserId;
-}
+// Re-export from shared
+export { isSessionOwner } from "../../shared/utils/ownership-check";

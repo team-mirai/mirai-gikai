@@ -2,16 +2,11 @@ import "server-only";
 
 import type { LanguageModelUsage } from "ai";
 
-import {
-  calculateUsageCostUsd,
-  roundCost,
-  type SanitizedUsage,
-  sanitizeUsage,
-} from "@/lib/ai/calculate-ai-cost";
+import { sanitizeUsage } from "@/lib/ai/calculate-ai-cost";
+import { parseCost, resolveCostUsd } from "../../shared/utils/cost-utils";
 
 import {
   type ChatUsageInsert,
-  type ChatUsageRow,
   findChatUsageEvents,
   insertChatUsageEvent,
 } from "../repositories/chat-usage-repository";
@@ -62,29 +57,4 @@ export async function getUsageCostUsd(
 ): Promise<number> {
   const rows = await findChatUsageEvents(userId, fromIso, toIso);
   return rows.reduce((acc, row) => acc + parseCost(row), 0);
-}
-
-function parseCost(row: Pick<ChatUsageRow, "cost_usd">): number {
-  const value = Number(row.cost_usd);
-  return Number.isFinite(value) ? value : 0;
-}
-
-function resolveCostUsd(
-  model: string,
-  usage: SanitizedUsage,
-  costOverride?: number | null
-): number {
-  if (typeof costOverride === "number" && Number.isFinite(costOverride)) {
-    return roundCost(costOverride);
-  }
-
-  if (usage.inputTokens > 0 || usage.outputTokens > 0) {
-    try {
-      return calculateUsageCostUsd(model, usage);
-    } catch (error) {
-      console.error("Failed to calculate usage cost:", error);
-    }
-  }
-
-  return 0;
 }
