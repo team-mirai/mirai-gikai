@@ -1,8 +1,8 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { BillInsert } from "../types";
-import type { DifficultyLevel } from "../types/bill-contents";
+import type { BillInsert } from "../../shared/types";
+import type { DifficultyLevel } from "../../shared/types/bill-contents";
 
 export async function findBillById(id: string) {
   const supabase = createAdminClient();

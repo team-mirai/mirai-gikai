@@ -8,52 +8,60 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 
 import type { DietSession } from "@/features/diet-sessions/shared/types";
-import { createBill } from "../actions/create-bill";
+import { updateBill } from "../../server/actions/update-bill";
 import { useBillForm } from "../hooks/use-bill-form";
-import { type BillCreateInput, billCreateSchema } from "../types";
+import { type Bill, type BillUpdateInput, billUpdateSchema } from "../../shared/types";
 import { BillFormFields } from "./bill-form-fields";
 
-interface BillCreateFormProps {
+interface BillEditFormProps {
+  bill: Bill;
   dietSessions: DietSession[];
 }
 
-export function BillCreateForm({ dietSessions }: BillCreateFormProps) {
+export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
   const { isSubmitting, error, handleSubmit, handleCancel } = useBillForm();
 
-  // Default to the latest session (first in the list, sorted by start_date desc)
+  // If bill has no diet_session_id, default to the latest session (first in the list)
   const defaultDietSessionId =
-    dietSessions.length > 0 ? dietSessions[0].id : null;
+    bill.diet_session_id ??
+    (dietSessions.length > 0 ? dietSessions[0].id : null);
 
-  const form = useForm<BillCreateInput>({
-    resolver: zodResolver(billCreateSchema),
+  const form = useForm<BillUpdateInput>({
+    resolver: zodResolver(billUpdateSchema),
     defaultValues: {
-      name: "",
-      status: "preparing",
-      originating_house: "HR",
-      status_note: null,
-      published_at: new Date().toISOString().slice(0, 16),
-      thumbnail_url: null,
-      share_thumbnail_url: null,
-      shugiin_url: null,
-      is_featured: false,
+      name: bill.name,
+      status: bill.status,
+      originating_house: bill.originating_house,
+      status_note: bill.status_note,
+      published_at: bill.published_at
+        ? new Date(bill.published_at).toISOString().slice(0, 16)
+        : "",
+      thumbnail_url: bill.thumbnail_url,
+      share_thumbnail_url: bill.share_thumbnail_url,
+      shugiin_url: bill.shugiin_url,
+      is_featured: bill.is_featured,
       diet_session_id: defaultDietSessionId,
     },
   });
 
-  const onSubmit = (data: BillCreateInput) => {
-    handleSubmit(() => createBill(data), "作成中にエラーが発生しました");
+  const onSubmit = (data: BillUpdateInput) => {
+    handleSubmit(
+      () => updateBill(bill.id, data),
+      "更新中にエラーが発生しました"
+    );
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>議案新規作成</CardTitle>
+        <CardTitle>議案基本情報編集</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <BillFormFields
               control={form.control}
+              billId={bill.id}
               dietSessions={dietSessions}
             />
 
@@ -65,7 +73,7 @@ export function BillCreateForm({ dietSessions }: BillCreateFormProps) {
 
             <div className="flex items-center gap-4">
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "作成中..." : "作成"}
+                {isSubmitting ? "保存中..." : "保存"}
               </Button>
               <Button
                 type="button"

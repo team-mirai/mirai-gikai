@@ -6,7 +6,7 @@ import {
   type BillContentsUpdateInput,
   billContentsUpdateSchema,
   type DifficultyLevel,
-} from "../types/bill-contents";
+} from "../../shared/types/bill-contents";
 import { upsertBillContent } from "../repositories/bill-edit-repository";
 
 export type UpdateBillContentsResult =

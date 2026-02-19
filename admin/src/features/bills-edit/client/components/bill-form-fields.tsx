@@ -23,9 +23,9 @@ import {
   type BillStatus,
   HOUSE_LABELS,
   type OriginatingHouse,
-} from "@/features/bills/types";
+} from "@/features/bills/shared/types";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
-import type { BillCreateInput } from "../types";
+import type { BillCreateInput } from "../../shared/types";
 import { ThumbnailUpload } from "./thumbnail-upload";
 
 const BILL_STATUS_OPTIONS: Array<{ value: BillStatus; label: string }> = [

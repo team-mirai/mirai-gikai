@@ -2,8 +2,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
-import { InterviewConfigForm } from "@/features/interview-config/client/components/interview-config-form";
+import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
+import { InterviewConfigForm } from "@/features/interview-config/server/components/interview-config-form";
 
 interface InterviewNewPageProps {
   params: Promise<{

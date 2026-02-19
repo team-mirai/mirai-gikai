@@ -1,10 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BillEditForm } from "@/features/bills-edit/components/bill-edit-form";
-import { BillTagsForm } from "@/features/bills-edit/components/bill-tags-form";
-import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
-import { getBillTagIds } from "@/features/bills-edit/loaders/get-bill-tag-ids";
+import { BillEditForm } from "@/features/bills-edit/client/components/bill-edit-form";
+import { BillTagsForm } from "@/features/bills-edit/client/components/bill-tags-form";
+import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
+import { getBillTagIds } from "@/features/bills-edit/server/loaders/get-bill-tag-ids";
 import { loadDietSessions } from "@/features/diet-sessions/server/loaders/load-diet-sessions";
 import { StanceForm } from "@/features/mirai-stance/client/components/stance-form";
 import { getStanceByBillId } from "@/features/mirai-stance/server/loaders/get-stance-by-bill-id";
