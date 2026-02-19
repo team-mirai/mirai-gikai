@@ -22,8 +22,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
-import type { InterviewSessionWithDetails } from "../types";
-import { formatDuration, getSessionStatus } from "../types";
+import type { InterviewSessionWithDetails } from "../../shared/types";
+import { formatDuration, getSessionStatus } from "../../shared/types";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 import { VisibilityBadge } from "./visibility-badge";

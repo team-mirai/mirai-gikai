@@ -1,4 +1,4 @@
-import type { InterviewSessionDetail } from "../types";
+import type { InterviewSessionDetail } from "../../shared/types";
 import {
   findInterviewMessagesBySessionId,
   findInterviewReportBySessionId,

@@ -1,4 +1,4 @@
-import type { InterviewSessionWithDetails } from "../types";
+import type { InterviewSessionWithDetails } from "../../shared/types";
 import {
   countInterviewSessionsByConfigId,
   findInterviewConfigIdByBillId,

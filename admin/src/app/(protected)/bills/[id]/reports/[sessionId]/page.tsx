@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/loaders/get-bill-by-id";
-import { SessionDetail } from "@/features/interview-reports/components/session-detail";
-import { getInterviewSessionDetail } from "@/features/interview-reports/loaders/get-interview-session-detail";
+import { SessionDetail } from "@/features/interview-reports/server/components/session-detail";
+import { getInterviewSessionDetail } from "@/features/interview-reports/server/loaders/get-interview-session-detail";
 
 interface ReportDetailPageProps {
   params: Promise<{
