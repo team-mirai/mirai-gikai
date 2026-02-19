@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { BillStatusEnum, MiraiStance } from "../../../shared/types";
-import { STANCE_LABELS } from "../../../shared/types";
+import { getStanceStyles } from "../../../shared/utils/stance-styles";
 
 interface MiraiStanceCardProps {
   stance?: MiraiStance;
@@ -15,42 +15,7 @@ export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
     return null; // スタンスがなく、法案提出前でもない場合は何も表示しない
   }
 
-  // スタンスタイプに応じた背景色とボーダー色を設定
-  const getStanceStyles = () => {
-    if (isPreparing) {
-      return {
-        bg: "bg-white",
-        border: "border-[#8E8E93]",
-        textColor: "text-[#8E8E93]",
-        label: "法案提出前",
-      };
-    }
-
-    switch (stance?.type) {
-      case "for":
-      case "conditional_for":
-        return {
-          bg: "bg-[#ECFCF1]",
-          textColor: "text-[#0F8472]",
-          label: STANCE_LABELS[stance.type],
-        };
-      case "against":
-      case "conditional_against":
-        return {
-          bg: "bg-[#FFF1F1]",
-          textColor: "text-[#C9272A]",
-          label: STANCE_LABELS[stance.type],
-        };
-      default:
-        return {
-          bg: "bg-[#E5E5EA]",
-          textColor: "text-black",
-          label: stance != null ? STANCE_LABELS[stance.type] : "中立",
-        };
-    }
-  };
-
-  const styles = getStanceStyles();
+  const styles = getStanceStyles(stance, isPreparing);
   const comment = isPreparing
     ? "法案提出後に賛否を表明します。"
     : stance?.comment;
