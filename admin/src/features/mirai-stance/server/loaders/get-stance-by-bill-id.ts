@@ -1,4 +1,4 @@
-import type { MiraiStance } from "../types";
+import type { MiraiStance } from "../../shared/types";
 import { findStanceByBillId } from "../repositories/mirai-stance-repository";
 
 export async function getStanceByBillId(
