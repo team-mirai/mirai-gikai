@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import type { DeleteAdminInput } from "../types";
+import type { DeleteAdminInput } from "../../shared/types";
 import { deleteAuthUser } from "../repositories/admin-repository";
 
 export async function deleteAdmin(input: DeleteAdminInput) {

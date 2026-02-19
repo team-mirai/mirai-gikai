@@ -17,8 +17,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { deleteAdmin } from "../actions/delete-admin";
-import type { Admin } from "../types";
+import { deleteAdmin } from "../../server/actions/delete-admin";
+import type { Admin } from "../../shared/types";
 
 type AdminItemProps = {
   admin: Admin;

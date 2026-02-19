@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import type { CreateAdminInput } from "../types";
+import type { CreateAdminInput } from "../../shared/types";
 import {
   findAdminUsers,
   createAuthUser,
