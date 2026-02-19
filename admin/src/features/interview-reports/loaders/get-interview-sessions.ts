@@ -1,5 +1,10 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { InterviewSessionWithDetails } from "../types";
+import {
+  countInterviewSessionsByConfigId,
+  findInterviewConfigIdByBillId,
+  findInterviewMessageCounts,
+  findInterviewSessionsWithReport,
+} from "../repositories/interview-report-repository";
 
 export const SESSIONS_PER_PAGE = 30;
 
@@ -7,16 +12,9 @@ export async function getInterviewSessions(
   billId: string,
   page = 1
 ): Promise<InterviewSessionWithDetails[]> {
-  const supabase = createAdminClient();
+  const config = await findInterviewConfigIdByBillId(billId);
 
-  // まずinterview_configを取得
-  const { data: config, error: configError } = await supabase
-    .from("interview_configs")
-    .select("id")
-    .eq("bill_id", billId)
-    .single();
-
-  if (configError || !config) {
+  if (!config) {
     return [];
   }
 
@@ -25,33 +23,24 @@ export async function getInterviewSessions(
   const to = from + SESSIONS_PER_PAGE - 1;
 
   // セッション一覧を取得
-  const { data: sessions, error: sessionsError } = await supabase
-    .from("interview_sessions")
-    .select(
-      `
-      *,
-      interview_report(*)
-    `
-    )
-    .eq("interview_config_id", config.id)
-    .order("started_at", { ascending: false })
-    .range(from, to);
-
-  if (sessionsError || !sessions) {
-    console.error("Failed to fetch interview sessions:", sessionsError);
+  let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
+  try {
+    sessions = await findInterviewSessionsWithReport(config.id, from, to);
+  } catch (error) {
+    console.error("Failed to fetch interview sessions:", error);
     return [];
   }
 
   // 全セッションのメッセージ数を一括取得（RPCで1クエリ集計）
   const sessionIds = sessions.map((s) => s.id);
-  const { data: messageCounts, error: countError } = await supabase.rpc(
-    "get_interview_message_counts",
-    { session_ids: sessionIds }
-  );
-
-  if (countError) {
+  let messageCounts:
+    | Awaited<ReturnType<typeof findInterviewMessageCounts>>
+    | undefined;
+  try {
+    messageCounts = await findInterviewMessageCounts(sessionIds);
+  } catch (error) {
     console.error("Failed to fetch message counts:", {
-      countError,
+      error,
       sessionIds,
     });
   }
@@ -87,28 +76,16 @@ export async function getInterviewSessions(
 export async function getInterviewSessionsCount(
   billId: string
 ): Promise<number> {
-  const supabase = createAdminClient();
+  const config = await findInterviewConfigIdByBillId(billId);
 
-  // まずinterview_configを取得
-  const { data: config, error: configError } = await supabase
-    .from("interview_configs")
-    .select("id")
-    .eq("bill_id", billId)
-    .single();
-
-  if (configError || !config) {
+  if (!config) {
     return 0;
   }
 
-  const { count, error } = await supabase
-    .from("interview_sessions")
-    .select("*", { count: "exact", head: true })
-    .eq("interview_config_id", config.id);
-
-  if (error) {
+  try {
+    return await countInterviewSessionsByConfigId(config.id);
+  } catch (error) {
     console.error("Failed to fetch session count:", error);
     return 0;
   }
-
-  return count || 0;
 }
