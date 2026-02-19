@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import type { Bill, BillInsert } from "../types";
+import type { Bill, BillInsert } from "../../shared/types";
 import {
   findBillById,
   createBill,

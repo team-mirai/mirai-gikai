@@ -2,7 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { env } from "@/lib/env";
-import { previewTokenService } from "../../../bills/services/preview-token-service";
+import { previewTokenService } from "../../../bills/server/services/preview-token-service";
 
 interface GenerateInterviewPreviewUrlResult {
   success: boolean;

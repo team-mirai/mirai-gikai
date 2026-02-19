@@ -3,7 +3,7 @@
 import { Eye } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { generatePreviewUrl } from "../../actions/generate-preview-url";
+import { generatePreviewUrl } from "../../../server/actions/generate-preview-url";
 
 interface PreviewButtonProps {
   billId: string;

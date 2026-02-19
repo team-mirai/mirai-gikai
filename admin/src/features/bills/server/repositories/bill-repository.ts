@@ -1,7 +1,7 @@
 import "server-only";
 import type { Database } from "@mirai-gikai/supabase";
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { BillInsert, BillPublishStatus } from "../types";
+import type { BillInsert, BillPublishStatus } from "../../shared/types";
 
 type BillContentInsert =
   Database["public"]["Tables"]["bill_contents"]["Insert"];
