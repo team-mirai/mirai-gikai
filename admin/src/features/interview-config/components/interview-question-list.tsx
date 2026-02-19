@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,11 +11,15 @@ import { InterviewQuestionForm } from "./interview-question-form";
 interface InterviewQuestionListProps {
   interviewConfigId: string;
   questions: InterviewQuestion[];
+  aiGeneratedQuestions?: InterviewQuestionInput[] | null;
+  onAiQuestionsApplied?: () => void;
 }
 
 export function InterviewQuestionList({
   interviewConfigId,
   questions: initialQuestions,
+  aiGeneratedQuestions,
+  onAiQuestionsApplied,
 }: InterviewQuestionListProps) {
   const [questions, setQuestions] = useState<InterviewQuestionInput[]>(
     initialQuestions.map((q) => ({
@@ -27,18 +31,31 @@ export function InterviewQuestionList({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const saveQuestions = (questionsToSave: InterviewQuestionInput[]) => {
-    startTransition(async () => {
-      const result = await saveInterviewQuestions(
-        interviewConfigId,
-        questionsToSave
-      );
+  const saveQuestions = useCallback(
+    (questionsToSave: InterviewQuestionInput[]) => {
+      startTransition(async () => {
+        const result = await saveInterviewQuestions(
+          interviewConfigId,
+          questionsToSave
+        );
 
-      if (!result.success) {
-        toast.error(result.error || "質問の保存に失敗しました");
-      }
-    });
-  };
+        if (!result.success) {
+          toast.error(result.error || "質問の保存に失敗しました");
+        }
+      });
+    },
+    [interviewConfigId]
+  );
+
+  // AI生成質問の反映
+  useEffect(() => {
+    if (aiGeneratedQuestions && aiGeneratedQuestions.length > 0) {
+      setQuestions(aiGeneratedQuestions);
+      saveQuestions(aiGeneratedQuestions);
+      onAiQuestionsApplied?.();
+      toast.success(`AIが${aiGeneratedQuestions.length}件の質問を生成しました`);
+    }
+  }, [aiGeneratedQuestions, saveQuestions, onAiQuestionsApplied]);
 
   const handleAdd = (newQuestion: InterviewQuestionInput) => {
     const newQuestions = [...questions, newQuestion];

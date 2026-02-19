@@ -1,0 +1,320 @@
+"use client";
+
+import { Bot, Check, Loader2, Send, Sparkles } from "lucide-react";
+import type { FormEvent } from "react";
+import { useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import type { InterviewQuestionInput } from "../../types";
+import { useConfigGenerationChat } from "../hooks/use-config-generation-chat";
+
+interface ConfigGenerationChatProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  billId: string;
+  configId?: string;
+  onThemesConfirmed: (themes: string[]) => void;
+  onQuestionsConfirmed: (questions: InterviewQuestionInput[]) => void;
+}
+
+export function ConfigGenerationChat({
+  open,
+  onOpenChange,
+  billId,
+  configId,
+  onThemesConfirmed,
+  onQuestionsConfirmed,
+}: ConfigGenerationChatProps) {
+  const {
+    input,
+    setInput,
+    stage,
+    messages,
+    isLoading,
+    error,
+    object,
+    proposedThemes,
+    proposedQuestions,
+    startGeneration,
+    handleSubmit,
+    confirmThemes,
+    confirmQuestions,
+  } = useConfigGenerationChat({
+    billId,
+    configId,
+    onThemesConfirmed,
+    onQuestionsConfirmed,
+  });
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasStartedRef = useRef(false);
+
+  // パネル開始時にAI生成を自動実行
+  useEffect(() => {
+    if (open && !hasStartedRef.current) {
+      hasStartedRef.current = true;
+      startGeneration();
+    }
+  }, [open, startGeneration]);
+
+  // 新しいメッセージで自動スクロール
+  // biome-ignore lint/correctness/useExhaustiveDependencies: messagesとobjectの変化でスクロールをトリガーする
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length, object?.text]);
+
+  const handleFormSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    handleSubmit(input);
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="sm:max-w-lg flex flex-col">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            AIで設定を生成
+          </SheetTitle>
+          <SheetDescription>
+            法案内容に基づいてテーマと質問を提案します
+          </SheetDescription>
+        </SheetHeader>
+
+        {/* ステージ表示 */}
+        <div className="flex gap-2 px-4">
+          <StageBadge
+            label="テーマ提案"
+            active={stage === "theme_proposal"}
+            completed={
+              stage === "theme_confirmed" ||
+              stage === "question_proposal" ||
+              stage === "question_confirmed"
+            }
+          />
+          <StageBadge
+            label="質問提案"
+            active={stage === "question_proposal"}
+            completed={stage === "question_confirmed"}
+          />
+        </div>
+
+        {/* メッセージエリア */}
+        <div className="flex-1 overflow-y-auto px-4 space-y-4">
+          {messages.map((message) => (
+            <div key={message.id}>
+              {message.role === "assistant" ? (
+                <AssistantMessage
+                  content={message.content}
+                  themes={message.themes}
+                  questions={message.questions}
+                />
+              ) : (
+                <UserMessage content={message.content} />
+              )}
+            </div>
+          ))}
+
+          {/* ストリーミング中のコンテンツ */}
+          {isLoading && object && (
+            <AssistantMessage
+              content={object.text || ""}
+              themes={object.themes as string[] | undefined}
+              questions={
+                object.questions as InterviewQuestionInput[] | undefined
+              }
+              isStreaming
+            />
+          )}
+
+          {isLoading && !object && (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              AIが考え中...
+            </div>
+          )}
+
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 p-3 rounded">
+              エラーが発生しました。もう一度お試しください。
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* 確定ボタン */}
+        {!isLoading &&
+          proposedThemes.length > 0 &&
+          stage === "theme_proposal" && (
+            <div className="px-4 py-2 border-t">
+              <p className="text-sm text-gray-600 mb-2">
+                提案されたテーマを確定しますか？
+              </p>
+              <Button
+                onClick={() => confirmThemes(proposedThemes)}
+                className="w-full"
+              >
+                <Check className="mr-2 h-4 w-4" />
+                テーマを確定して質問生成へ
+              </Button>
+            </div>
+          )}
+
+        {!isLoading &&
+          proposedQuestions.length > 0 &&
+          stage === "question_proposal" && (
+            <div className="px-4 py-2 border-t">
+              <p className="text-sm text-gray-600 mb-2">
+                提案された質問を確定しますか？
+              </p>
+              <Button
+                onClick={() => confirmQuestions(proposedQuestions)}
+                className="w-full"
+              >
+                <Check className="mr-2 h-4 w-4" />
+                質問を確定してフォームに反映
+              </Button>
+            </div>
+          )}
+
+        {stage === "question_confirmed" && (
+          <div className="px-4 py-2 border-t">
+            <p className="text-sm text-green-700 bg-green-50 p-3 rounded">
+              テーマと質問をフォームに反映しました。
+              パネルを閉じて内容を確認・調整してください。
+            </p>
+          </div>
+        )}
+
+        {/* テキスト入力 */}
+        {stage !== "question_confirmed" && (
+          <form onSubmit={handleFormSubmit} className="px-4 pb-4 flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="修正の要望を入力..."
+              disabled={isLoading}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={isLoading || !input.trim()}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function StageBadge({
+  label,
+  active,
+  completed,
+}: {
+  label: string;
+  active: boolean;
+  completed: boolean;
+}) {
+  return (
+    <span
+      className={`text-xs px-2 py-1 rounded-full inline-flex items-center ${
+        completed
+          ? "bg-green-100 text-green-800"
+          : active
+            ? "bg-blue-100 text-blue-800"
+            : "bg-gray-100 text-gray-500"
+      }`}
+    >
+      {completed && <Check className="h-3 w-3 mr-1" />}
+      {label}
+    </span>
+  );
+}
+
+function AssistantMessage({
+  content,
+  themes,
+  questions,
+  isStreaming,
+}: {
+  content: string;
+  themes?: string[];
+  questions?: InterviewQuestionInput[];
+  isStreaming?: boolean;
+}) {
+  return (
+    <div className="flex gap-2">
+      <Bot className="h-5 w-5 text-blue-600 flex-shrink-0 mt-1" />
+      <div className="space-y-2 flex-1 min-w-0">
+        {content && <p className="text-sm whitespace-pre-wrap">{content}</p>}
+        {themes && themes.length > 0 && (
+          <Card>
+            <CardContent className="py-2">
+              <p className="text-xs font-medium text-gray-500 mb-1">
+                提案テーマ:
+              </p>
+              <ul className="text-sm space-y-1">
+                {themes.map((theme, i) => (
+                  <li key={`theme-${i}-${theme.slice(0, 10)}`}>・{theme}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+        {questions && questions.length > 0 && (
+          <Card>
+            <CardContent className="py-2">
+              <p className="text-xs font-medium text-gray-500 mb-1">
+                提案質問:
+              </p>
+              <div className="text-sm space-y-2">
+                {questions.map((q, i) => (
+                  <div key={`q-${i}-${q.question.slice(0, 10)}`}>
+                    <p className="font-medium">
+                      Q{i + 1}: {q.question}
+                    </p>
+                    {q.instruction && (
+                      <p className="text-xs text-gray-500 ml-4">
+                        指示: {q.instruction}
+                      </p>
+                    )}
+                    {q.quick_replies && q.quick_replies.length > 0 && (
+                      <p className="text-xs text-gray-500 ml-4">
+                        選択肢: {q.quick_replies.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {isStreaming && (
+          <Loader2 className="h-3 w-3 animate-spin text-gray-400" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UserMessage({ content }: { content: string }) {
+  return (
+    <div className="flex justify-end">
+      <div className="bg-blue-50 rounded-lg px-3 py-2 max-w-[80%]">
+        <p className="text-sm">{content}</p>
+      </div>
+    </div>
+  );
+}

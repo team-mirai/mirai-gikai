@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -43,11 +43,15 @@ import { generateInterviewPreviewUrl } from "../actions/generate-interview-previ
 interface InterviewConfigFormProps {
   billId: string;
   config: InterviewConfig | null;
+  aiGeneratedThemes?: string[] | null;
+  onAiThemesApplied?: () => void;
 }
 
 export function InterviewConfigForm({
   billId,
   config,
+  aiGeneratedThemes,
+  onAiThemesApplied,
 }: InterviewConfigFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,6 +67,15 @@ export function InterviewConfigForm({
       knowledge_source: config?.knowledge_source || "",
     },
   });
+
+  // AI生成テーマの反映
+  useEffect(() => {
+    if (aiGeneratedThemes && aiGeneratedThemes.length > 0) {
+      form.setValue("themes", aiGeneratedThemes, { shouldDirty: true });
+      onAiThemesApplied?.();
+      toast.success(`AIが${aiGeneratedThemes.length}件のテーマを設定しました`);
+    }
+  }, [aiGeneratedThemes, form, onAiThemesApplied]);
 
   const handleSubmit = async (data: InterviewConfigInput) => {
     setIsSubmitting(true);
