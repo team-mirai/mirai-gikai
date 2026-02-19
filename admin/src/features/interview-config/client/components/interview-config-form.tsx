@@ -34,6 +34,7 @@ import {
   arrayToText,
   textToArray,
 } from "../../shared/types";
+import { generateDefaultConfigName } from "../../shared/utils/default-config-name";
 import {
   createInterviewConfig,
   updateInterviewConfig,
@@ -53,21 +54,10 @@ export function InterviewConfigForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isNew = !config;
 
-  const defaultName = () => {
-    if (config?.name) return config.name;
-    const date = new Intl.DateTimeFormat("ja-JP", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      timeZone: "Asia/Tokyo",
-    }).format(new Date());
-    return `${date} 作成`;
-  };
-
   const form = useForm<InterviewConfigInput>({
     resolver: zodResolver(interviewConfigSchema),
     defaultValues: {
-      name: defaultName(),
+      name: config?.name || generateDefaultConfigName(),
       status: config?.status || "closed",
       mode: config?.mode || "loop",
       themes: config?.themes || [],
