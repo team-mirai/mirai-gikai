@@ -9,10 +9,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Clock, MessageCircle, User } from "lucide-react";
-import type { InterviewSessionDetail } from "../types";
-import { formatRoleLabel } from "../shared/constants";
-import { formatDuration, getSessionStatus } from "../types";
-import { ReportVisibilityToggle } from "./report-visibility-toggle";
+import type { InterviewSessionDetail } from "../../shared/types";
+import { formatRoleLabel } from "../../shared/constants";
+import { formatDuration, getSessionStatus } from "../../shared/types";
+import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 

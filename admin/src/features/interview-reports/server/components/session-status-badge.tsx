@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { SessionStatus } from "../types";
+import type { SessionStatus } from "../../shared/types";
 
 interface SessionStatusBadgeProps {
   status: SessionStatus;

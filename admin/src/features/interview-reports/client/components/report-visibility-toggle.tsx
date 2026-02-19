@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Eye, EyeOff } from "lucide-react";
 import { useId, useTransition } from "react";
 import { toast } from "sonner";
-import { updateReportVisibilityAction } from "../actions/update-report-visibility";
+import { updateReportVisibilityAction } from "../../server/actions/update-report-visibility";
 
 interface ReportVisibilityToggleProps {
   reportId: string;
