@@ -2,7 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
-import { type BillUpdateInput, billUpdateSchema } from "../types";
+import { type BillUpdateInput, billUpdateSchema } from "../../shared/types";
 import { updateBillRecord } from "../repositories/bill-edit-repository";
 
 export async function updateBill(id: string, input: BillUpdateInput) {

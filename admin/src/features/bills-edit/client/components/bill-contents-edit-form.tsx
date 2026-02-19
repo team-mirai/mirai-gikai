@@ -21,17 +21,17 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
-import { updateBillContents } from "../actions/update-bill-contents";
-import type { Bill } from "../types";
+import { updateBillContents } from "../../server/actions/update-bill-contents";
+import type { Bill } from "../../shared/types";
 import type {
   BillContent,
   BillContentsUpdateInput,
   DifficultyLevel,
-} from "../types/bill-contents";
+} from "../../shared/types/bill-contents";
 import {
   billContentsUpdateSchema,
   DIFFICULTY_LEVELS,
-} from "../types/bill-contents";
+} from "../../shared/types/bill-contents";
 
 interface BillContentsEditFormProps {
   bill: Bill;
