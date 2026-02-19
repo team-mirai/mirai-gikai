@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack --port 3001",
     "build": "next build --turbopack",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

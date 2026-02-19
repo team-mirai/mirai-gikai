@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import type { CreateAdminInput } from "../../shared/types";
+import { validateEmail } from "../../shared/utils/validate-email";
 import {
   findAdminUsers,
   createAuthUser,
@@ -17,9 +18,9 @@ export async function createAdmin(input: CreateAdminInput) {
       return { error: "メールアドレスを入力してください" };
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return { error: "有効なメールアドレスを入力してください" };
+    const emailError = validateEmail(email);
+    if (emailError) {
+      return { error: emailError };
     }
 
     const password = input.password;
