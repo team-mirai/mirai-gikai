@@ -10,6 +10,7 @@ import {
   createInterviewQuestions,
   deleteInterviewQuestionsByConfigId,
 } from "../repositories/interview-config-repository";
+import { prepareQuestionsForInsert } from "../../shared/utils/prepare-questions-for-insert";
 
 export type SaveInterviewQuestionsResult =
   | { success: true }
@@ -35,13 +36,10 @@ export async function saveInterviewQuestions(
     }
 
     // 新しい質問を一括挿入（question_orderは自動採番）
-    const questionsToInsert = validatedQuestions.map((question, index) => ({
-      interview_config_id: interviewConfigId,
-      question: question.question,
-      instruction: question.instruction || null,
-      quick_replies: question.quick_replies || null,
-      question_order: index + 1,
-    }));
+    const questionsToInsert = prepareQuestionsForInsert(
+      validatedQuestions,
+      interviewConfigId
+    );
 
     await createInterviewQuestions(questionsToInsert);
 

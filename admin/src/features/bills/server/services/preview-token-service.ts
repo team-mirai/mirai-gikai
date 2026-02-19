@@ -5,6 +5,7 @@ import {
   deletePreviewTokenByBillId,
   findPreviewTokenForValidation,
 } from "../repositories/bill-repository";
+import { isTokenValid } from "../../shared/utils/is-token-valid";
 
 export interface PreviewTokenInfo {
   token: string;
@@ -26,10 +27,7 @@ export const previewTokenService = {
       return null;
     }
 
-    const expiresAt = new Date(data.expires_at);
-    const now = new Date();
-
-    if (expiresAt > now) {
+    if (isTokenValid(data.expires_at)) {
       return {
         token: data.token,
         expiresAt: data.expires_at,
@@ -70,9 +68,6 @@ export const previewTokenService = {
       return false;
     }
 
-    const expiresAt = new Date(data.expires_at);
-    const now = new Date();
-
-    return expiresAt > now;
+    return isTokenValid(data.expires_at);
   },
 };
