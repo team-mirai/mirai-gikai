@@ -2,13 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import type { Bill, BillInsert } from "../../shared/types";
+import type { Bill } from "../../shared/types";
 import {
   findBillById,
   createBill,
   findBillContentsByBillId,
   createBillContents,
 } from "../repositories/bill-repository";
+import {
+  prepareBillForDuplication,
+  prepareBillContentsForDuplication,
+} from "../../shared/utils/prepare-bill-for-duplication";
 
 /**
  * 議案を複製する
@@ -59,18 +63,7 @@ async function _fetchOriginalBill(billId: string) {
  * 複製した議案を作成
  */
 async function _createDuplicateBill(originalBill: Bill) {
-  const {
-    id: _,
-    created_at: __,
-    updated_at: ___,
-    ...billWithoutId
-  } = originalBill;
-
-  const insertData: BillInsert = {
-    ...billWithoutId,
-    name: `${originalBill.name} (複製)`,
-    publish_status: "draft", // 複製後は下書き状態
-  };
+  const insertData = prepareBillForDuplication(originalBill);
 
   try {
     const data = await createBill(insertData);
@@ -98,13 +91,10 @@ async function _duplicateContents(originalBillId: string, newBillId: string) {
     }
 
     // コンテンツを複製用に整形
-    const newContents = originalContents.map((content) => {
-      const { id: _, bill_id: __, ...contentData } = content;
-      return {
-        ...contentData,
-        bill_id: newBillId,
-      };
-    });
+    const newContents = prepareBillContentsForDuplication(
+      originalContents,
+      newBillId
+    );
 
     // 新しいコンテンツを挿入
     await createBillContents(newContents);

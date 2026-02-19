@@ -16,6 +16,7 @@ import {
   findInterviewQuestionsByConfigId,
   updateInterviewConfigRecord,
 } from "../repositories/interview-config-repository";
+import { prepareQuestionsForDuplication } from "../../shared/utils/prepare-questions-for-duplication";
 
 export type InterviewConfigResult =
   | { success: true; data: { id: string } }
@@ -153,13 +154,10 @@ export async function duplicateInterviewConfig(
 
     // 質問を複製
     if (originalQuestions.length > 0) {
-      const newQuestions = originalQuestions.map((q) => ({
-        interview_config_id: newConfig.id,
-        question: q.question,
-        instruction: q.instruction,
-        quick_replies: q.quick_replies,
-        question_order: q.question_order,
-      }));
+      const newQuestions = prepareQuestionsForDuplication(
+        originalQuestions,
+        newConfig.id
+      );
 
       try {
         await createInterviewQuestions(newQuestions);

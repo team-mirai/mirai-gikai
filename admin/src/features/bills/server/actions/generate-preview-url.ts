@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { env } from "@/lib/env";
+import { buildPreviewUrl } from "@/lib/utils/build-preview-url";
 import { previewTokenService } from "../services/preview-token-service";
 
 interface GeneratePreviewUrlResult {
@@ -26,7 +27,11 @@ export async function generatePreviewUrl(
 
     return {
       success: true,
-      url: _buildPreviewUrl(billId, tokenInfo.token),
+      url: buildPreviewUrl(
+        env.webUrl,
+        `/preview/bills/${billId}`,
+        tokenInfo.token
+      ),
       token: tokenInfo.token,
       expiresAt: tokenInfo.expiresAt,
     };
@@ -37,9 +42,4 @@ export async function generatePreviewUrl(
       error: "予期しないエラーが発生しました",
     };
   }
-}
-
-// プレビューURLを構築
-function _buildPreviewUrl(billId: string, token: string): string {
-  return `${env.webUrl}/preview/bills/${billId}?token=${token}`;
 }
