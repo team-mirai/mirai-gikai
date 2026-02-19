@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { InterviewConfig, InterviewQuestion } from "../types";
+import type { InterviewConfig, InterviewQuestion } from "../../shared/types";
 
 export async function findInterviewConfigsByBillId(
   billId: string

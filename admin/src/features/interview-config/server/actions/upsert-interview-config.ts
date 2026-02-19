@@ -2,7 +2,10 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
-import { type InterviewConfigInput, interviewConfigSchema } from "../types";
+import {
+  type InterviewConfigInput,
+  interviewConfigSchema,
+} from "../../shared/types";
 import {
   closeOtherPublicConfigs,
   createInterviewConfigRecord,

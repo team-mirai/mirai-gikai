@@ -1,4 +1,4 @@
-import type { InterviewQuestion } from "../types";
+import type { InterviewQuestion } from "../../shared/types";
 import { findInterviewQuestionsByConfigId } from "../repositories/interview-config-repository";
 
 export async function getInterviewQuestions(
