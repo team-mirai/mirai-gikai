@@ -1,16 +1,11 @@
 import { unstable_noStore as noStore } from "next/cache";
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { Admin } from "../types";
+import { findAdminUsers } from "../repositories/admin-repository";
 
 export async function loadAdmins(): Promise<Admin[]> {
   noStore();
-  const supabase = createAdminClient();
 
-  const { data, error } = await supabase.rpc("get_admin_users");
-
-  if (error) {
-    throw new Error(`管理者一覧の取得に失敗しました: ${error.message}`);
-  }
+  const data = await findAdminUsers();
 
   return (data ?? []).map((user) => ({
     id: user.id,

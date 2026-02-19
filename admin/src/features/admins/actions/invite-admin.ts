@@ -1,15 +1,16 @@
 "use server";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/lib/auth-server";
 import type { CreateAdminInput } from "../types";
+import {
+  findAdminUsers,
+  createAuthUser,
+} from "../repositories/admin-repository";
 
 export async function createAdmin(input: CreateAdminInput) {
   try {
     await requireAdmin();
-
-    const supabase = createAdminClient();
 
     const email = input.email.trim().toLowerCase();
     if (!email) {
@@ -27,7 +28,7 @@ export async function createAdmin(input: CreateAdminInput) {
     }
 
     // 作成前に既存の管理者かチェック（DB関数でadminのみ効率的に取得）
-    const { data: admins } = await supabase.rpc("get_admin_users");
+    const admins = await findAdminUsers();
     const alreadyAdmin = admins?.find((a) => a.email?.toLowerCase() === email);
     if (alreadyAdmin) {
       return {
@@ -36,24 +37,24 @@ export async function createAdmin(input: CreateAdminInput) {
     }
 
     // パスワード指定で管理者ユーザーを作成
-    const { error: createError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      app_metadata: { roles: ["admin"] },
-    });
-
-    if (createError) {
-      if (
-        createError.message.includes("already been registered") ||
-        createError.message.includes("already exists")
-      ) {
+    try {
+      await createAuthUser({ email, password });
+    } catch (createError) {
+      if (createError instanceof Error) {
+        if (
+          createError.message.includes("already been registered") ||
+          createError.message.includes("already exists")
+        ) {
+          return {
+            error: "このメールアドレスは既に登録されています",
+          };
+        }
         return {
-          error: "このメールアドレスは既に登録されています",
+          error: `管理者の作成に失敗しました: ${createError.message}`,
         };
       }
       return {
-        error: `管理者の作成に失敗しました: ${createError.message}`,
+        error: "管理者の作成に失敗しました",
       };
     }
 
