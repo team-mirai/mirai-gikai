@@ -10,7 +10,11 @@ import { Form } from "@/components/ui/form";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
 import { updateBill } from "../../server/actions/update-bill";
 import { useBillForm } from "../hooks/use-bill-form";
-import { type Bill, type BillUpdateInput, billUpdateSchema } from "../../shared/types";
+import {
+  type Bill,
+  type BillUpdateInput,
+  billUpdateSchema,
+} from "../../shared/types";
 import { BillFormFields } from "./bill-form-fields";
 
 interface BillEditFormProps {
