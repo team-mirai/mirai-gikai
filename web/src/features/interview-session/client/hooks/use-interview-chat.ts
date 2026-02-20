@@ -1,7 +1,7 @@
 "use client";
 
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   type InterviewStage,
@@ -35,6 +35,12 @@ export function useInterviewChat({
   const [conversationMessages, setConversationMessages] = useState<
     ConversationMessage[]
   >([]);
+
+  // onFinishコールバック内で最新の値を参照するためのref
+  const conversationMessagesRef = useRef<ConversationMessage[]>([]);
+  conversationMessagesRef.current = conversationMessages;
+  const stageRef = useRef<InterviewStage>(initialStage);
+  stageRef.current = stage;
 
   // リトライロジック
   const retry = useInterviewRetry();
@@ -71,19 +77,34 @@ export function useInterviewChat({
           setStage(next_stage);
         }
 
-        setConversationMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-            content: text ?? "",
-            report: convertPartialReport(report),
-            quickReplies:
-              questionId && Array.isArray(quick_replies) ? quick_replies : [],
-            questionId,
-            topicTitle,
-          },
-        ]);
+        const newAssistantMessage: ConversationMessage = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: text ?? "",
+          report: convertPartialReport(report),
+          quickReplies:
+            questionId && Array.isArray(quick_replies) ? quick_replies : [],
+          questionId,
+          topicTitle,
+        };
+
+        setConversationMessages((prev) => [...prev, newAssistantMessage]);
+
+        // chat→summaryへの遷移時のみ、自動でサマリーリクエストを送信
+        // （summaryステージ中にnext_stage="summary"が返る場合はループ防止のため送信しない）
+        if (next_stage === "summary" && stageRef.current === "chat") {
+          const allMessages = buildMessagesForApi(parsedInitialMessages, [
+            ...conversationMessagesRef.current,
+            newAssistantMessage,
+          ]);
+          const requestParams = {
+            messages: allMessages,
+            billId,
+            currentStage: "summary" as InterviewStage,
+          };
+          retry.saveRequestParams(requestParams);
+          submit(requestParams);
+        }
       }
     },
   });
@@ -134,7 +155,6 @@ export function useInterviewChat({
   };
 
   // メッセージ送信
-  // ファシリテーション判定はバックエンドで行われ、レスポンスのnext_stageでステージが更新される
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
     if (!hasText || isChatLoading || stage === "summary_complete") {
@@ -156,7 +176,6 @@ export function useInterviewChat({
     setInput("");
 
     // 現在のステージでメッセージ送信
-    // バックエンドでファシリテーション判定が行われ、レスポンスにnext_stageが含まれる
     submitChatMessage(userMessageText, stage);
   };
 
