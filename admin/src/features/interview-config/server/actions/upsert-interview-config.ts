@@ -49,6 +49,7 @@ export async function createInterviewConfig(
       mode: validatedData.mode,
       themes: validatedData.themes || null,
       knowledge_source: validatedData.knowledge_source || null,
+      chat_model: validatedData.chat_model || null,
     });
 
     // web側のキャッシュを無効化
@@ -94,6 +95,7 @@ export async function updateInterviewConfig(
       mode: validatedData.mode,
       themes: validatedData.themes || null,
       knowledge_source: validatedData.knowledge_source || null,
+      chat_model: validatedData.chat_model || null,
       updated_at: new Date().toISOString(),
     });
 
@@ -145,6 +147,7 @@ export async function duplicateInterviewConfig(
         mode: originalConfig.mode as "loop" | "bulk",
         themes: originalConfig.themes,
         knowledge_source: originalConfig.knowledge_source,
+        chat_model: originalConfig.chat_model,
       });
     } catch (error) {
       return {

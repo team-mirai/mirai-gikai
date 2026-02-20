@@ -20,7 +20,7 @@ import {
   interviewChatWithReportSchema,
 } from "@/features/interview-session/shared/schemas";
 import type { InterviewChatRequestParams } from "@/features/interview-session/shared/types";
-import { AI_MODELS } from "@/lib/ai/models";
+import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { logger } from "@/lib/logger";
 import { injectJsonFields } from "@/lib/stream/inject-json-fields";
 import {
@@ -143,6 +143,7 @@ export async function handleInterviewChatRequest({
     nextStage,
     chatModel: deps?.chatModel,
     summaryModel: deps?.summaryModel,
+    configChatModel: interviewConfig.chat_model,
   });
 }
 
@@ -236,6 +237,7 @@ async function generateStreamingResponse({
   nextStage,
   chatModel,
   summaryModel,
+  configChatModel,
 }: {
   systemPrompt: string;
   messages: { role: string; content: string }[];
@@ -244,11 +246,12 @@ async function generateStreamingResponse({
   nextStage: InterviewStage;
   chatModel?: LanguageModel;
   summaryModel?: LanguageModel;
+  configChatModel?: string | null;
 }) {
-  // summaryフェーズはGemini、chatフェーズはGPT-4o-mini
+  // summaryフェーズはGemini固定、chatフェーズは設定のモデルを優先
   const model = isSummaryPhase
     ? (summaryModel ?? AI_MODELS.gemini3_flash)
-    : (chatModel ?? AI_MODELS.gpt4o_mini);
+    : (chatModel ?? configChatModel ?? DEFAULT_INTERVIEW_CHAT_MODEL);
 
   const handleError = (error: unknown) => {
     console.error("LLM generation error:", error);
