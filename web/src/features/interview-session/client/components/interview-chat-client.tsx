@@ -76,7 +76,7 @@ export function InterviewChatClient({
   const showStreamingMessage = object && !isStreamingMessageCommitted;
 
   return (
-    <div className="flex flex-col h-screen md:h-[calc(100vh-96px)] pt-24 md:pt-4 bg-white">
+    <div className="flex flex-col h-dvh md:h-[calc(100dvh-96px)] pt-24 md:pt-4 bg-white">
       {showProgressBar && progress && (
         <div className="px-4 pb-1 pt-2">
           <InterviewProgressBar
