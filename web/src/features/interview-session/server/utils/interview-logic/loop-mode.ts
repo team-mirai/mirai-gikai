@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isSkipMessage } from "../../../shared/utils/skip-detection";
 import type {
   FacilitatorParams,
   FacilitatorResult,
@@ -122,8 +123,27 @@ ${modeInstructions}
     return undefined;
   },
 
-  checkProgress(_params: FacilitatorParams): FacilitatorResult | null {
-    // Loop Mode: アルゴリズム判定なし、常にLLMで判定
+  checkProgress(params: FacilitatorParams): FacilitatorResult | null {
+    const { currentStage, messages, remainingQuestions } = params;
+
+    // chatステージ以外はアルゴリズム判定しない
+    if (currentStage !== "chat") {
+      return null;
+    }
+
+    // 最新のユーザーメッセージがスキップリクエストで、
+    // かつ未回答の質問が残っている場合は、LLMに委ねずchatを継続
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find((m) => m.role === "user");
+    if (lastUserMessage && remainingQuestions > 0) {
+      const isSkipRequest = isSkipMessage(lastUserMessage.content);
+      if (isSkipRequest) {
+        return { nextStage: "chat", source: "algorithm" };
+      }
+    }
+
+    // それ以外はLLMで判定
     return null;
   },
 
@@ -196,10 +216,15 @@ ${remainingQuestionsList}
     : ""
 }
 
+## スキップと終了の区別（重要）
+- 「次のテーマに進みたいです」「スキップ」「次の質問」などは **テーマのスキップ** であり、インタビュー終了の意思ではありません。未回答の質問が残っている場合は必ず nextStage を "chat" にしてください。
+- インタビュー終了とは「もう終わりにしたい」「終了したい」「以上です」など明確な終了意思の表明を指します。
+
 ## 終了判定の目安（chatステージの場合）
-- 事前定義質問を概ね終えた、または十分な知見を得た
+- 事前定義質問をすべて終えた、かつ十分な知見を得た
 - これ以上の深掘りが難しい
-- ユーザーが終了を希望した
+- ユーザーが明確にインタビューの終了を希望した（「終わりにしたい」等）
+- **注意**: 未回答の質問が残っている場合は、原則として "chat" を継続してください
 
 ## 完了判定の目安（summaryステージの場合）
 - ユーザーがレポート内容に同意した
