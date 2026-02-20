@@ -46,7 +46,7 @@ describe("CHAT_MODEL_GROUPS", () => {
     for (const group of CHAT_MODEL_GROUPS) {
       for (const option of group.options) {
         expect(option.estimatedCost).not.toBeNull();
-        expect(option.estimatedCost).toMatch(/^~\$/);
+        expect(option.estimatedCost).toMatch(/^~\d+円$/);
       }
     }
   });

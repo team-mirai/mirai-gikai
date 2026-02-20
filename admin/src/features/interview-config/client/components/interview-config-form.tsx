@@ -299,7 +299,7 @@ export function InterviewConfigForm({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="__default__">
-                          デフォルト（GPT-4o mini ~$0.01/回）
+                          デフォルト（GPT-4o mini ~2円/回）
                         </SelectItem>
                         {CHAT_MODEL_GROUPS.map((group) => (
                           <SelectGroup key={group.provider}>
