@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import {
   DIFFICULTY_COOKIE_NAME,
   DIFFICULTY_COOKIE_OPTIONS,
@@ -11,9 +11,14 @@ import {
   isPageSpeedInsights,
   validateBasicAuth,
 } from "./lib/basic-auth";
+import { refreshSupabaseSession } from "./lib/supabase-middleware";
 
-export function middleware(request: NextRequest) {
-  const response = _handleDifficultyCookie(request);
+export async function middleware(request: NextRequest) {
+  // Supabaseセッションのリフレッシュ（トークン期限切れ対策）
+  const response = await refreshSupabaseSession(request);
+
+  // 難易度Cookie処理
+  _handleDifficultyCookie(request, response);
 
   const authConfig = getBasicAuthConfig();
 
@@ -51,11 +56,12 @@ export function isValidDifficultyLevel(
 /**
  * URLパラメータからdifficultyを取得し、Cookieにセット
  */
-function _handleDifficultyCookie(request: NextRequest): NextResponse {
+function _handleDifficultyCookie(
+  request: NextRequest,
+  response: NextResponse
+): void {
   const { searchParams } = new URL(request.url);
   const difficulty = searchParams.get("difficulty");
-
-  const response = NextResponse.next();
 
   // 有効なdifficulty値の場合、Cookieにセット
   if (isValidDifficultyLevel(difficulty)) {
@@ -65,8 +71,6 @@ function _handleDifficultyCookie(request: NextRequest): NextResponse {
       DIFFICULTY_COOKIE_OPTIONS
     );
   }
-
-  return response;
 }
 
 export function isHtmlAcceptHeader(accept: string): boolean {
@@ -77,3 +81,14 @@ function _isHtmlRequest(request: NextRequest) {
   const accept = request.headers.get("accept") || "";
   return isHtmlAcceptHeader(accept);
 }
+
+/**
+ * ミドルウェアの対象パスを制限
+ * 静的アセット（_next/static, _next/image, favicon, 画像等）を除外し、
+ * 不要なSupabaseセッションリフレッシュを防ぐ
+ */
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
+};
