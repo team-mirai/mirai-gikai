@@ -23,7 +23,9 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -35,7 +37,7 @@ import {
   arrayToText,
   textToArray,
 } from "../../shared/types";
-import { CHAT_MODEL_OPTIONS } from "../../shared/utils/chat-model-options";
+import { CHAT_MODEL_GROUPS } from "../../shared/utils/chat-model-options";
 import { generateDefaultConfigName } from "../../shared/utils/default-config-name";
 import {
   createInterviewConfig,
@@ -297,17 +299,30 @@ export function InterviewConfigForm({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="__default__">
-                          デフォルト（GPT-4o mini）
+                          デフォルト（GPT-4o mini ~$0.01/回）
                         </SelectItem>
-                        {CHAT_MODEL_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
+                        {CHAT_MODEL_GROUPS.map((group) => (
+                          <SelectGroup key={group.provider}>
+                            <SelectLabel>{group.provider}</SelectLabel>
+                            {group.options.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                                {option.estimatedCost && (
+                                  <span className="ml-2 text-muted-foreground">
+                                    {option.estimatedCost}/回
+                                  </span>
+                                )}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      インタビュー対話に使用するAIモデルを選択します
+                      インタビュー対話に使用するAIモデルを選択します。コストは1インタビューあたりの推定値です。
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
