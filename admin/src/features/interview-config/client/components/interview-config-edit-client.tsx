@@ -163,7 +163,7 @@ export function InterviewConfigEditClient({
           existingThemes={initialConfig?.themes ?? undefined}
           existingQuestions={questions.map((q) => ({
             question: q.question,
-            instruction: q.instruction ?? undefined,
+            follow_up_guide: q.follow_up_guide ?? undefined,
             quick_replies: q.quick_replies ?? undefined,
           }))}
           onThemesConfirmed={handleThemesConfirmed}
@@ -208,10 +208,10 @@ function AiQuestionsPreview({
                         {question.question}
                       </div>
                     </div>
-                    {question.instruction && (
+                    {question.follow_up_guide && (
                       <div className="text-sm text-gray-600">
-                        <span className="font-medium">AIへの指示:</span>{" "}
-                        {question.instruction}
+                        <span className="font-medium">フォローアップ指針:</span>{" "}
+                        {question.follow_up_guide}
                       </div>
                     )}
                     {question.quick_replies &&

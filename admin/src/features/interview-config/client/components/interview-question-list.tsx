@@ -27,7 +27,7 @@ export function InterviewQuestionList({
   const [questions, setQuestions] = useState<InterviewQuestionInput[]>(
     initialQuestions.map((q) => ({
       question: q.question,
-      instruction: q.instruction || undefined,
+      follow_up_guide: q.follow_up_guide || undefined,
       quick_replies: q.quick_replies || undefined,
     }))
   );
@@ -131,12 +131,12 @@ export function InterviewQuestionList({
                                   {question.question}
                                 </div>
                               </div>
-                              {question.instruction && (
+                              {question.follow_up_guide && (
                                 <div className="text-sm text-gray-600">
                                   <span className="font-medium">
-                                    AIへの指示:
+                                    フォローアップ指針:
                                   </span>{" "}
-                                  {question.instruction}
+                                  {question.follow_up_guide}
                                 </div>
                               )}
                               {question.quick_replies &&

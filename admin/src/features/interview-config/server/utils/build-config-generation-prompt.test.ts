@@ -101,7 +101,7 @@ describe("buildConfigGenerationPrompt", () => {
     it("各質問フィールドの説明を含む", () => {
       const result = buildConfigGenerationPrompt(questionParams);
       expect(result).toContain("question: 質問文");
-      expect(result).toContain("instruction: AIへの指示");
+      expect(result).toContain("follow_up_guide: フォローアップ指針");
       expect(result).toContain("quick_replies: クイックリプライの選択肢");
     });
 

@@ -11,7 +11,7 @@ export function prepareQuestionsForInsert(
   return questions.map((question, index) => ({
     interview_config_id: interviewConfigId,
     question: question.question,
-    instruction: question.instruction || null,
+    follow_up_guide: question.follow_up_guide || null,
     quick_replies: question.quick_replies || null,
     question_order: index + 1,
   }));

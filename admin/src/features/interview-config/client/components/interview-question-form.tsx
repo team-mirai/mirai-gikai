@@ -23,11 +23,11 @@ export function InterviewQuestionForm({
   submitLabel = "追加",
 }: InterviewQuestionFormProps) {
   const questionId = useId();
-  const instructionId = useId();
+  const followUpGuideId = useId();
   const quickRepliesId = useId();
   const [question, setQuestion] = useState(initialData?.question || "");
-  const [instruction, setInstruction] = useState(
-    initialData?.instruction || ""
+  const [followUpGuide, setFollowUpGuide] = useState(
+    initialData?.follow_up_guide || ""
   );
   const [quickRepliesText, setQuickRepliesText] = useState(
     arrayToText(initialData?.quick_replies)
@@ -42,7 +42,7 @@ export function InterviewQuestionForm({
 
     onSubmit({
       question: question.trim(),
-      instruction: instruction.trim() || undefined,
+      follow_up_guide: followUpGuide.trim() || undefined,
       quick_replies:
         quickRepliesText.trim() !== ""
           ? textToArray(quickRepliesText)
@@ -51,7 +51,7 @@ export function InterviewQuestionForm({
 
     // フォームをリセット
     setQuestion("");
-    setInstruction("");
+    setFollowUpGuide("");
     setQuickRepliesText("");
   };
 
@@ -61,7 +61,7 @@ export function InterviewQuestionForm({
     } else {
       // フォームをリセット
       setQuestion("");
-      setInstruction("");
+      setFollowUpGuide("");
       setQuickRepliesText("");
     }
   };
@@ -86,12 +86,12 @@ export function InterviewQuestionForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={instructionId}>AIへの指示（任意）</Label>
+        <Label htmlFor={followUpGuideId}>フォローアップ指針（任意）</Label>
         <Textarea
-          id={instructionId}
-          value={instruction}
-          onChange={(e) => setInstruction(e.target.value)}
-          placeholder="質問の深掘り方法などの指示を入力"
+          id={followUpGuideId}
+          value={followUpGuide}
+          onChange={(e) => setFollowUpGuide(e.target.value)}
+          placeholder="回答後の深掘り方法などの指針を入力"
           className="min-h-[80px] resize-y"
         />
       </div>

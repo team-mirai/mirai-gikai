@@ -20,7 +20,7 @@ import type {
  * ## モードの特徴
  * - 1つのテーマについて多角的に掘り下げる
  * - ユーザーの回答に共感し、追加の質問を重ねる
- * - instruction を質問リストに含める
+ * - follow_up_guide を質問リストに含める
  */
 export const loopModeLogic: InterviewModeLogic = {
   buildSystemPrompt(params: InterviewPromptParams): string {
@@ -33,11 +33,11 @@ export const loopModeLogic: InterviewModeLogic = {
     const themes = interviewConfig?.themes || [];
     const knowledgeSource = interviewConfig?.knowledge_source || "";
 
-    // Loop Mode: instruction を含める
+    // Loop Mode: follow_up_guide を含める
     const questionsText = questions
       .map(
         (q, index) =>
-          `${index + 1}. [ID: ${q.id}] ${q.question}${q.instruction ? `\n   指示: ${q.instruction}` : ""}${q.quick_replies ? `\n   クイックリプライ: ${q.quick_replies.join(", ")}` : ""}`
+          `${index + 1}. [ID: ${q.id}] ${q.question}${q.follow_up_guide ? `\n   フォローアップ指針: ${q.follow_up_guide}` : ""}${q.quick_replies ? `\n   クイックリプライ: ${q.quick_replies.join(", ")}` : ""}`
       )
       .join("\n");
 
@@ -108,7 +108,10 @@ ${modeInstructions}
 ## 注意事項
 - 丁寧で親しみやすい口調で話してください
 - ユーザーの回答を尊重し、押し付けがましくならないようにしてください
-- **1つのメッセージにつき1つの質問のみをしてください。** 一度に複数の質問をしないでください。
+- **1つのメッセージでは1つの論点だけを聞いてください。** 括弧書きや補足で別の論点を追加しないでください。
+  - 悪い例: 「どの程度関係がありますか？（どのように関係しているかも教えてください）」→ 程度と具体的内容の2つを同時に聞いている
+  - 良い例: 「どの程度関係がありますか？」→ まず程度だけを聞き、回答後に具体的内容を深掘りする
+- **フォローアップ指針は、回答を得た後のフォローアップの指針です。** 最初の質問に混ぜず、ユーザーの回答を受けてから活用してください。
 - 回答が抽象的な場合は具体的な例を求めてください
 - 法案に関する質問のみに集中してください
 `;

@@ -368,8 +368,8 @@ export type Database = {
       interview_questions: {
         Row: {
           created_at: string
+          follow_up_guide: string | null
           id: string
-          instruction: string | null
           interview_config_id: string
           question: string
           question_order: number
@@ -378,8 +378,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          follow_up_guide?: string | null
           id?: string
-          instruction?: string | null
           interview_config_id: string
           question: string
           question_order: number
@@ -388,8 +388,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          follow_up_guide?: string | null
           id?: string
-          instruction?: string | null
           interview_config_id?: string
           question?: string
           question_order?: number
