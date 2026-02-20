@@ -35,13 +35,17 @@ describe("estimateInterviewCostUsd", () => {
 });
 
 describe("formatEstimatedCost", () => {
-  it("$0.01未満のコストを~$0.01と表示する", () => {
-    expect(formatEstimatedCost(0.005)).toBe("~$0.01");
+  it("1円未満のコストを~1円と表示する", () => {
+    // $0.005 * 150 = 0.75円 → ~1円
+    expect(formatEstimatedCost(0.005)).toBe("~1円");
   });
 
-  it("$0.01以上のコストを小数第2位まで表示する", () => {
-    expect(formatEstimatedCost(0.0135)).toBe("~$0.01");
-    expect(formatEstimatedCost(0.225)).toBe("~$0.23");
-    expect(formatEstimatedCost(0.5)).toBe("~$0.50");
+  it("コストを四捨五入して円表示する", () => {
+    // $0.01455 * 150 = 2.18円 → ~2円
+    expect(formatEstimatedCost(0.01455)).toBe("~2円");
+    // $0.225 * 150 = 33.75円 → ~34円
+    expect(formatEstimatedCost(0.225)).toBe("~34円");
+    // $0.5 * 150 = 75円 → ~75円
+    expect(formatEstimatedCost(0.5)).toBe("~75円");
   });
 });

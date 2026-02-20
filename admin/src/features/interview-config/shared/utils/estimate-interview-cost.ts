@@ -63,13 +63,17 @@ export function estimateInterviewCostUsd(modelId: string): number | null {
   return inputCost + outputCost;
 }
 
+/** USD→JPY換算レート */
+const USD_TO_JPY = 150;
+
 /**
- * 推定コストを表示用文字列にフォーマットする
- * 例: "~$0.01", "~$0.23", "~$0.50"
+ * 推定コストを日本円の表示用文字列にフォーマットする
+ * 例: "~2円", "~21円", "~75円"
  */
 export function formatEstimatedCost(costUsd: number): string {
-  if (costUsd < 0.01) {
-    return "~$0.01";
+  const yen = Math.round(costUsd * USD_TO_JPY);
+  if (yen < 1) {
+    return "~1円";
   }
-  return `~$${costUsd.toFixed(2)}`;
+  return `~${yen}円`;
 }
