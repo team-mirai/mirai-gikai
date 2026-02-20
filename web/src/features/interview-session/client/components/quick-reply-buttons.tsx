@@ -15,8 +15,16 @@ export function QuickReplyButtons({
     return null;
   }
 
+  const isHorizontal = replies.length >= 5;
+
   return (
-    <div className="flex flex-col items-end gap-2 mt-2">
+    <div
+      className={
+        isHorizontal
+          ? "flex flex-row flex-wrap justify-end gap-2 mt-2 ml-auto w-1/2"
+          : "flex flex-col items-end gap-2 mt-2"
+      }
+    >
       {replies.map((reply) => (
         <button
           key={reply}
