@@ -56,7 +56,7 @@ export async function ReportCompletePage({
   const characterCount = countCharacters(messages);
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0]">
+    <div className="min-h-dvh bg-[#F7F4F0]">
       {/* 法案サムネイル画像 */}
       {bill.thumbnail_url && (
         <div className="relative w-full h-[320px]">

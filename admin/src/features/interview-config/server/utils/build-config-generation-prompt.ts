@@ -2,6 +2,12 @@ import "server-only";
 
 import type { ConfigGenerationStage } from "../../shared/schemas";
 
+interface ExistingQuestion {
+  question: string;
+  instruction?: string | null;
+  quick_replies?: string[] | null;
+}
+
 interface BuildPromptParams {
   billName: string;
   billTitle: string;
@@ -10,6 +16,8 @@ interface BuildPromptParams {
   stage: ConfigGenerationStage;
   confirmedThemes?: string[];
   knowledgeSource?: string;
+  existingThemes?: string[];
+  existingQuestions?: ExistingQuestion[];
 }
 
 export function buildConfigGenerationPrompt(params: BuildPromptParams): string {
@@ -21,6 +29,8 @@ export function buildConfigGenerationPrompt(params: BuildPromptParams): string {
     stage,
     confirmedThemes,
     knowledgeSource,
+    existingThemes,
+    existingQuestions,
   } = params;
 
   const billSection = `## 法案情報
@@ -39,10 +49,15 @@ ${billContent}`;
 管理者と対話しながら、より良いインタビュー設定を一緒に作り上げてください。`;
 
   if (stage === "theme_proposal") {
+    const existingThemesSection =
+      existingThemes && existingThemes.length > 0
+        ? `\n## 現在設定されているテーマ\n${existingThemes.map((t) => `- ${t}`).join("\n")}\n\n管理者は既存のテーマのブラッシュアップを希望しています。既存テーマを踏まえて改善提案をしてください。`
+        : "";
+
     return `${baseRole}
 
 ${billSection}
-${knowledgeSection}
+${knowledgeSection}${existingThemesSection}
 ## あなたの役割
 この法案について、市民インタビューで扱うべきテーマを3〜5個提案してください。
 
@@ -66,18 +81,35 @@ ${knowledgeSection}
       ? `## 確定テーマ\n${confirmedThemes.map((t) => `- ${t}`).join("\n")}`
       : "## テーマ\n（テーマ未設定）";
 
+    const existingQuestionsSection =
+      existingQuestions && existingQuestions.length > 0
+        ? `\n## 現在設定されている質問\n${existingQuestions.map((q, i) => `${i + 1}. ${q.question}${q.instruction ? `\n   指示: ${q.instruction}` : ""}${q.quick_replies?.length ? `\n   選択肢: ${q.quick_replies.join(", ")}` : ""}`).join("\n")}\n\n管理者は既存の質問のブラッシュアップを希望しています。既存質問を踏まえて改善提案をしてください。`
+        : "";
+
     return `${baseRole}
 
 ${billSection}
 ${knowledgeSection}
-${themesSection}
+${themesSection}${existingQuestionsSection}
 
 ## あなたの役割
 確定したテーマに基づいて、インタビュー質問を提案してください。
 
 ## 質問提案のガイドライン
+
+### ラポール形成・専門知識レベル確認（最初の1〜2問）
+質問リストの最初に、ラポール形成と専門知識レベルの確認を目的とした質問を1〜2問配置してください。
+これらの質問は、インタビュー冒頭で回答者との信頼関係を築き、どの程度の専門知識を持っているかを把握するためのものです。
+以下の観点を含めてください:
+- 法案との関わり（例: 「この法案のテーマについて、どのような関わりがありますか？」）
+- 日々の業務・生活との関係（例: 「普段のお仕事や暮らしの中で、この分野とどの程度関係がありますか？」）
+- 知識レベルの確認（例: 「この分野について、どの程度ご存知ですか？」）
+これらの質問にも適切なクイックリプライを付けてください（例: 「専門的に関わっている」「業務で関係がある」「暮らしに影響がある」「一般市民として関心がある」等）。
+instructionには「回答内容から専門知識レベルを判断し、以降の質問の深さや用語の使い方を調整してください」といった指示を含めてください。
+
+### 本題の質問（ラポール形成質問の後）
 - 各テーマから少なくとも1つの質問を作成する
-- 合計5〜8個の質問を提案する
+- ラポール形成質問と合わせて合計5〜8個の質問を提案する
 - 自由回答を促す開かれた質問にする
 - 各質問に適切なクイックリプライ（3〜5個）を用意する
 - 必要に応じてAIへの深掘り指示を添える

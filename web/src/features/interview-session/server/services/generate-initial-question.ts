@@ -63,6 +63,14 @@ export async function generateInitialQuestion({
       model,
       prompt: enhancedSystemPrompt,
       output: Output.object({ schema: interviewChatTextSchema }),
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId: "interview-initial-question",
+        metadata: {
+          sessionId,
+          billId,
+        },
+      },
     });
 
     const generatedText = result.text;

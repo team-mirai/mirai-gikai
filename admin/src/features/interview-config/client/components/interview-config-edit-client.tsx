@@ -160,6 +160,12 @@ export function InterviewConfigEditClient({
         <ConfigGenerationChat
           billId={billId}
           configId={configId}
+          existingThemes={initialConfig?.themes ?? undefined}
+          existingQuestions={questions.map((q) => ({
+            question: q.question,
+            instruction: q.instruction ?? undefined,
+            quick_replies: q.quick_replies ?? undefined,
+          }))}
           onThemesConfirmed={handleThemesConfirmed}
           onQuestionsConfirmed={handleQuestionsConfirmed}
           getFormThemes={getFormThemes}

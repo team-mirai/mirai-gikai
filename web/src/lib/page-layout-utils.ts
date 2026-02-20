@@ -21,6 +21,12 @@ export function isInterviewPage(pathname: string): boolean {
   return /\/bills\/[^/]+\/interview\/chat$/.test(pathname);
 }
 
+/** インタビューセクション（LP・チャット含む）かどうかを判定 */
+export function isInterviewSection(pathname: string): boolean {
+  // /bills/[id]/interview 以下すべて
+  return /\/bills\/[^/]+\/interview(\/|$)/.test(pathname);
+}
+
 /** インタビューページからbillIdを抽出 */
 export function extractBillIdFromPath(pathname: string): string | null {
   const match = pathname.match(/\/bills\/([^/]+)/);

@@ -60,6 +60,9 @@ export async function handleInterviewChatRequest({
   isRetry = false,
   deps,
 }: InterviewChatRequestParams & { deps?: InterviewChatDeps }) {
+  // リクエスト単位のトレースID（同一リクエスト内のLLM呼び出しをまとめる）
+  const traceId = crypto.randomUUID();
+
   // インタビュー設定と法案情報を取得
   const [interviewConfig, bill] = await Promise.all([
     getInterviewConfigAdmin(billId),
@@ -110,6 +113,7 @@ export async function handleInterviewChatRequest({
     dbMessages,
     logic,
     facilitatorModel: deps?.facilitatorModel,
+    telemetry: { sessionId: session.id, billId, traceId },
   });
 
   // 実際に使用するステージ（ファシリテーション結果を反映）
@@ -144,6 +148,12 @@ export async function handleInterviewChatRequest({
     chatModel: deps?.chatModel,
     summaryModel: deps?.summaryModel,
     configChatModel: interviewConfig.chat_model,
+    telemetry: {
+      sessionId: session.id,
+      billId,
+      traceId,
+      stage: effectiveStage,
+    },
   });
 }
 
@@ -157,6 +167,7 @@ async function determinNextStage({
   dbMessages,
   logic,
   facilitatorModel,
+  telemetry,
 }: {
   messages: Array<{ role: string; content: string }>;
   currentStage: InterviewStage;
@@ -164,6 +175,7 @@ async function determinNextStage({
   dbMessages: Array<{ role: string; content: string }>;
   logic: (typeof modeLogicMap)[keyof typeof modeLogicMap];
   facilitatorModel?: LanguageModel;
+  telemetry?: { sessionId: string; billId: string; traceId: string };
 }): Promise<InterviewStage> {
   // ファシリテーション不要な場合は現在のステージを維持
   if (!logic.shouldFacilitate({ currentStage })) {
@@ -221,6 +233,17 @@ async function determinNextStage({
     model,
     prompt: `${facilitatorPrompt}\n\n# 会話履歴\n${conversationText}`,
     output: Output.object({ schema: facilitatorResultSchema }),
+    experimental_telemetry: telemetry
+      ? {
+          isEnabled: true,
+          functionId: "interview-facilitator",
+          metadata: {
+            langfuseTraceId: telemetry.traceId,
+            sessionId: telemetry.sessionId,
+            billId: telemetry.billId,
+          },
+        }
+      : undefined,
   });
 
   return result.output.nextStage;
@@ -238,6 +261,7 @@ async function generateStreamingResponse({
   chatModel,
   summaryModel,
   configChatModel,
+  telemetry,
 }: {
   systemPrompt: string;
   messages: { role: string; content: string }[];
@@ -247,6 +271,12 @@ async function generateStreamingResponse({
   chatModel?: LanguageModel;
   summaryModel?: LanguageModel;
   configChatModel?: string | null;
+  telemetry?: {
+    sessionId: string;
+    billId: string;
+    traceId: string;
+    stage: string;
+  };
 }) {
   // summaryフェーズはGemini固定、chatフェーズは設定のモデルを優先
   const model = isSummaryPhase
@@ -280,12 +310,26 @@ async function generateStreamingResponse({
     parts: [{ type: "text" as const, text: message.content }],
   }));
 
+  const functionId = isSummaryPhase ? "interview-summary" : "interview-chat";
+
   const streamParams = {
     model,
     system: systemPrompt,
     messages: await convertToModelMessages(uiMessages),
     onError: handleError,
     onFinish: handleFinish,
+    experimental_telemetry: telemetry
+      ? {
+          isEnabled: true as const,
+          functionId,
+          metadata: {
+            langfuseTraceId: telemetry.traceId,
+            sessionId: telemetry.sessionId,
+            billId: telemetry.billId,
+            stage: telemetry.stage,
+          },
+        }
+      : undefined,
   } as const;
 
   try {
