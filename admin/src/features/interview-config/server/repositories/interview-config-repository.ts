@@ -160,7 +160,7 @@ export async function createInterviewQuestions(
   questions: {
     interview_config_id: string;
     question: string;
-    instruction: string | null;
+    follow_up_guide: string | null;
     quick_replies: string[] | null;
     question_order: number;
   }[]

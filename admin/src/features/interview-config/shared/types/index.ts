@@ -41,9 +41,9 @@ export const interviewQuestionSchema = z.object({
     .string()
     .min(1, "質問文は必須です")
     .max(1000, "質問文は1000文字以内で入力してください"),
-  instruction: z
+  follow_up_guide: z
     .string()
-    .max(2000, "指示は2000文字以内で入力してください")
+    .max(2000, "フォローアップ指針は2000文字以内で入力してください")
     .optional(),
   quick_replies: z.array(z.string().min(1)).optional(),
 });

@@ -15,7 +15,7 @@ import { getInterviewConfigById } from "../loaders/get-interview-config";
 
 interface ExistingQuestion {
   question: string;
-  instruction?: string | null;
+  follow_up_guide?: string | null;
   quick_replies?: string[] | null;
 }
 

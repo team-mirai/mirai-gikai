@@ -7,7 +7,7 @@ const baseQuestions: InterviewQuestion[] = [
     id: "q-001",
     interview_config_id: "config-001",
     question: "質問1",
-    instruction: "指示1",
+    follow_up_guide: "指示1",
     quick_replies: ["はい", "いいえ"],
     question_order: 1,
     created_at: "2025-01-01T00:00:00Z",
@@ -17,7 +17,7 @@ const baseQuestions: InterviewQuestion[] = [
     id: "q-002",
     interview_config_id: "config-001",
     question: "質問2",
-    instruction: null,
+    follow_up_guide: null,
     quick_replies: null,
     question_order: 2,
     created_at: "2025-01-01T00:00:00Z",
@@ -55,11 +55,11 @@ describe("prepareQuestionsForDuplication", () => {
     );
     expect(result).toHaveLength(2);
     expect(result[0].question).toBe("質問1");
-    expect(result[0].instruction).toBe("指示1");
+    expect(result[0].follow_up_guide).toBe("指示1");
     expect(result[0].quick_replies).toEqual(["はい", "いいえ"]);
     expect(result[0].question_order).toBe(1);
     expect(result[1].question).toBe("質問2");
-    expect(result[1].instruction).toBeNull();
+    expect(result[1].follow_up_guide).toBeNull();
     expect(result[1].quick_replies).toBeNull();
     expect(result[1].question_order).toBe(2);
   });

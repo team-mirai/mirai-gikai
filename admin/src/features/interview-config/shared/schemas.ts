@@ -31,10 +31,10 @@ export const questionProposalSchema = z.object({
     .array(
       z.object({
         question: z.string().describe("質問文"),
-        instruction: z
+        follow_up_guide: z
           .string()
           .nullable()
-          .describe("AIへの指示（深掘り方法など）"),
+          .describe("フォローアップ指針（深掘り方法など）"),
         quick_replies: z
           .array(z.string())
           .nullable()
@@ -57,7 +57,7 @@ export const configGenerationResponseSchema = z.object({
     .array(
       z.object({
         question: z.string(),
-        instruction: z.string().optional(),
+        follow_up_guide: z.string().optional(),
         quick_replies: z.array(z.string()).optional(),
       })
     )

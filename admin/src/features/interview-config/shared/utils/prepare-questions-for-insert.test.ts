@@ -5,7 +5,7 @@ import { prepareQuestionsForInsert } from "./prepare-questions-for-insert";
 const questions: InterviewQuestionInput[] = [
   {
     question: "質問A",
-    instruction: "指示A",
+    follow_up_guide: "指示A",
     quick_replies: ["選択肢1", "選択肢2"],
   },
   {
@@ -13,7 +13,7 @@ const questions: InterviewQuestionInput[] = [
   },
   {
     question: "質問C",
-    instruction: undefined,
+    follow_up_guide: undefined,
     quick_replies: undefined,
   },
 ];
@@ -36,15 +36,15 @@ describe("prepareQuestionsForInsert", () => {
   it("質問内容を保持する", () => {
     const result = prepareQuestionsForInsert(questions, "config-123");
     expect(result[0].question).toBe("質問A");
-    expect(result[0].instruction).toBe("指示A");
+    expect(result[0].follow_up_guide).toBe("指示A");
     expect(result[0].quick_replies).toEqual(["選択肢1", "選択肢2"]);
   });
 
-  it("未設定のinstruction/quick_repliesをnullに変換する", () => {
+  it("未設定のfollow_up_guide/quick_repliesをnullに変換する", () => {
     const result = prepareQuestionsForInsert(questions, "config-123");
-    expect(result[1].instruction).toBeNull();
+    expect(result[1].follow_up_guide).toBeNull();
     expect(result[1].quick_replies).toBeNull();
-    expect(result[2].instruction).toBeNull();
+    expect(result[2].follow_up_guide).toBeNull();
     expect(result[2].quick_replies).toBeNull();
   });
 
