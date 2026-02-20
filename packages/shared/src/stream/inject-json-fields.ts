@@ -19,7 +19,7 @@ export function injectJsonFields(
   const encoder = new TextEncoder();
   // 末尾の数文字をバッファリングして、最後の閉じ括弧を検出
   let tail = "";
-  const TAIL_SIZE = 10;
+  const TAIL_SIZE = 64;
 
   // 注入するJSONフィールドを構築
   const fieldEntries = Object.entries(fields);
@@ -27,7 +27,7 @@ export function injectJsonFields(
     fieldEntries.length > 0
       ? "," +
         fieldEntries
-          .map(([key, value]) => `"${key}":${JSON.stringify(value)}`)
+          .map(([key, value]) => `${JSON.stringify(key)}:${JSON.stringify(value)}`)
           .join(",")
       : "";
 
@@ -51,6 +51,11 @@ export function injectJsonFields(
         const after = tail.slice(lastBrace + 1);
         controller.enqueue(encoder.encode(`${before}${injection}}${after}`));
       } else {
+        if (injection) {
+          console.warn(
+            "[injectJsonFields] No closing brace found in stream tail; fields were not injected."
+          );
+        }
         controller.enqueue(encoder.encode(tail));
       }
     },
