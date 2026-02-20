@@ -47,6 +47,7 @@ export function InterviewConfigEditClient({
         knowledge_source: string;
         mode: string;
         themes: string[];
+        chat_model: string | null;
       })
     | null
   >(null);
@@ -70,6 +71,7 @@ export function InterviewConfigEditClient({
           mode: (formValues?.mode as "loop" | "bulk") || "loop",
           themes,
           knowledge_source: formValues?.knowledge_source || "",
+          chat_model: formValues?.chat_model || null,
         });
         if (result.success) {
           setConfigId(result.data.id);
@@ -98,6 +100,8 @@ export function InterviewConfigEditClient({
             formValues?.knowledge_source ||
             initialConfig?.knowledge_source ||
             "",
+          chat_model:
+            formValues?.chat_model ?? initialConfig?.chat_model ?? null,
         });
       }
     },

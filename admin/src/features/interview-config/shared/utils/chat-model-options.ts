@@ -1,0 +1,41 @@
+/**
+ * インタビューチャットで選択可能なAIモデルの定義
+ * Vercel AI Gateway（https://vercel.com/ai-gateway/models）で利用可能なモデル
+ */
+export const CHAT_MODEL_OPTIONS = [
+  // --- OpenAI ---
+  {
+    value: "openai/gpt-4o-mini",
+    label: "GPT-4o mini（デフォルト）",
+  },
+  { value: "openai/gpt-4o", label: "GPT-4o" },
+  { value: "openai/gpt-4.1", label: "GPT-4.1" },
+  { value: "openai/gpt-4.1-mini", label: "GPT-4.1 mini" },
+  { value: "openai/gpt-4.1-nano", label: "GPT-4.1 nano" },
+  { value: "openai/o3-mini", label: "o3-mini" },
+  { value: "openai/o4-mini", label: "o4-mini" },
+  { value: "openai/gpt-5", label: "GPT-5" },
+  { value: "openai/gpt-5-mini", label: "GPT-5 mini" },
+  { value: "openai/gpt-5-nano", label: "GPT-5 nano" },
+  { value: "openai/gpt-5-chat", label: "GPT-5 Chat" },
+  { value: "openai/gpt-5.1-instant", label: "GPT-5.1 Instant" },
+  { value: "openai/gpt-5.1-thinking", label: "GPT-5.1 Thinking" },
+  { value: "openai/gpt-5.2", label: "GPT-5.2" },
+  // --- Google ---
+  { value: "google/gemini-3-flash", label: "Gemini 3 Flash" },
+  {
+    value: "google/gemini-3.1-pro-preview",
+    label: "Gemini 3.1 Pro Preview",
+  },
+  // --- Anthropic ---
+  { value: "anthropic/claude-haiku-4.5", label: "Claude Haiku 4.5" },
+  { value: "anthropic/claude-sonnet-4.6", label: "Claude Sonnet 4.6" },
+  { value: "anthropic/claude-opus-4.6", label: "Claude Opus 4.6" },
+] as const;
+
+export type ChatModelValue = (typeof CHAT_MODEL_OPTIONS)[number]["value"];
+
+/** 文字列が有効なチャットモデルIDかどうかを検証する */
+export function isValidChatModel(model: string): model is ChatModelValue {
+  return CHAT_MODEL_OPTIONS.some((opt) => opt.value === model);
+}
