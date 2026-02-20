@@ -3,6 +3,7 @@
  * Vercel AI Gateway（https://vercel.com/ai-gateway/models）で利用可能なモデル
  */
 
+import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import {
   estimateInterviewCostUsd,
   formatEstimatedCost,
@@ -21,12 +22,6 @@ export type ChatModelGroup = {
 
 const OPENAI_MODELS = [
   { value: "openai/gpt-4o-mini", label: "GPT-4o mini" },
-  { value: "openai/gpt-4o", label: "GPT-4o" },
-  { value: "openai/gpt-4.1", label: "GPT-4.1" },
-  { value: "openai/gpt-4.1-mini", label: "GPT-4.1 mini" },
-  { value: "openai/gpt-4.1-nano", label: "GPT-4.1 nano" },
-  { value: "openai/o3-mini", label: "o3-mini" },
-  { value: "openai/o4-mini", label: "o4-mini" },
   { value: "openai/gpt-5", label: "GPT-5" },
   { value: "openai/gpt-5-mini", label: "GPT-5 mini" },
   { value: "openai/gpt-5-nano", label: "GPT-5 nano" },
@@ -83,3 +78,13 @@ export const CHAT_MODEL_GROUPS: ChatModelGroup[] = [
 export function isValidChatModel(model: string): model is ChatModelValue {
   return CHAT_MODEL_OPTIONS.some((opt) => opt.value === model);
 }
+
+/** デフォルトモデルの表示ラベル（例: "GPT-5.2 ~29円/回"） */
+export const DEFAULT_MODEL_LABEL = (() => {
+  const model = CHAT_MODEL_OPTIONS.find(
+    (opt) => opt.value === DEFAULT_INTERVIEW_CHAT_MODEL
+  );
+  const cost = estimateInterviewCostUsd(DEFAULT_INTERVIEW_CHAT_MODEL);
+  const costStr = cost !== null ? ` ${formatEstimatedCost(cost)}/回` : "";
+  return `${model?.label ?? DEFAULT_INTERVIEW_CHAT_MODEL}${costStr}`;
+})();

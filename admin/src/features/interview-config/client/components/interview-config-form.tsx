@@ -37,7 +37,10 @@ import {
   arrayToText,
   textToArray,
 } from "../../shared/types";
-import { CHAT_MODEL_GROUPS } from "../../shared/utils/chat-model-options";
+import {
+  CHAT_MODEL_GROUPS,
+  DEFAULT_MODEL_LABEL,
+} from "../../shared/utils/chat-model-options";
 import { generateDefaultConfigName } from "../../shared/utils/default-config-name";
 import {
   createInterviewConfig,
@@ -299,7 +302,7 @@ export function InterviewConfigForm({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="__default__">
-                          デフォルト（GPT-4o mini ~2円/回）
+                          デフォルト（{DEFAULT_MODEL_LABEL}）
                         </SelectItem>
                         {CHAT_MODEL_GROUPS.map((group) => (
                           <SelectGroup key={group.provider}>

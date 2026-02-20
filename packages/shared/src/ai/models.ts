@@ -29,4 +29,4 @@ export const AI_MODELS = {
 export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
 
 /** インタビューチャットのデフォルトモデル */
-export const DEFAULT_INTERVIEW_CHAT_MODEL = AI_MODELS.gpt4o_mini;
+export const DEFAULT_INTERVIEW_CHAT_MODEL = AI_MODELS.gpt5_2;
