@@ -35,6 +35,7 @@ import {
   arrayToText,
   textToArray,
 } from "../../shared/types";
+import { CHAT_MODEL_OPTIONS } from "../../shared/utils/chat-model-options";
 import { generateDefaultConfigName } from "../../shared/utils/default-config-name";
 import {
   createInterviewConfig,
@@ -54,6 +55,7 @@ interface InterviewConfigFormProps {
         knowledge_source: string;
         mode: string;
         themes: string[];
+        chat_model: string | null;
       })
     | null
   >;
@@ -79,6 +81,7 @@ export function InterviewConfigForm({
       mode: config?.mode || "loop",
       themes: config?.themes || [],
       knowledge_source: config?.knowledge_source || "",
+      chat_model: config?.chat_model || null,
     },
   });
 
@@ -92,6 +95,7 @@ export function InterviewConfigForm({
           knowledge_source: values.knowledge_source || "",
           mode: values.mode,
           themes: values.themes || [],
+          chat_model: values.chat_model || null,
         };
       };
     }
@@ -268,6 +272,42 @@ export function InterviewConfigForm({
                     <FormDescription>
                       loop: 質問ごとに深掘り / bulk:
                       事前定義質問を先にすべて消化してから深掘り
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="chat_model"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>AIモデル</FormLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(value === "__default__" ? null : value)
+                      }
+                      value={field.value ?? "__default__"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="モデルを選択" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__default__">
+                          デフォルト（GPT-4o mini）
+                        </SelectItem>
+                        {CHAT_MODEL_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      インタビュー対話に使用するAIモデルを選択します
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

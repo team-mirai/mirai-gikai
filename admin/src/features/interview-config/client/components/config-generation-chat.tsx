@@ -12,6 +12,8 @@ import { useConfigGenerationChat } from "../hooks/use-config-generation-chat";
 interface ConfigGenerationChatProps {
   billId: string;
   configId?: string;
+  existingThemes?: string[];
+  existingQuestions?: InterviewQuestionInput[];
   onThemesConfirmed: (themes: string[]) => void;
   onQuestionsConfirmed: (questions: InterviewQuestionInput[]) => void;
   getFormThemes?: () => string[];
@@ -20,6 +22,8 @@ interface ConfigGenerationChatProps {
 export function ConfigGenerationChat({
   billId,
   configId,
+  existingThemes,
+  existingQuestions,
   onThemesConfirmed,
   onQuestionsConfirmed,
   getFormThemes,
@@ -43,6 +47,8 @@ export function ConfigGenerationChat({
   } = useConfigGenerationChat({
     billId,
     configId,
+    existingThemes,
+    existingQuestions,
     onThemesConfirmed,
     onQuestionsConfirmed,
   });

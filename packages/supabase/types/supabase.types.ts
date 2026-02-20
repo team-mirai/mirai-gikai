@@ -289,6 +289,7 @@ export type Database = {
       interview_configs: {
         Row: {
           bill_id: string
+          chat_model: string | null
           created_at: string
           id: string
           knowledge_source: string | null
@@ -300,6 +301,7 @@ export type Database = {
         }
         Insert: {
           bill_id: string
+          chat_model?: string | null
           created_at?: string
           id?: string
           knowledge_source?: string | null
@@ -311,6 +313,7 @@ export type Database = {
         }
         Update: {
           bill_id?: string
+          chat_model?: string | null
           created_at?: string
           id?: string
           knowledge_source?: string | null
@@ -613,12 +616,12 @@ export type Database = {
     }
     Functions: {
       get_admin_users: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
-          id: string
-          email: string
           created_at: string
-          last_sign_in_at: string | null
+          email: string
+          id: string
+          last_sign_in_at: string
         }[]
       }
       get_interview_message_counts: {

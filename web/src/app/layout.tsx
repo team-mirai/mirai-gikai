@@ -98,7 +98,7 @@ export default function RootLayout({
 
         <MainLayout>
           <Header />
-          <main className="min-h-screen bg-[#F7F4F0]">{children}</main>
+          <main className="min-h-dvh bg-[#F7F4F0]">{children}</main>
           <Footer />
         </MainLayout>
       </body>

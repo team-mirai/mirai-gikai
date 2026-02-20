@@ -1,5 +1,6 @@
 import type { Database } from "@mirai-gikai/supabase";
 import { z } from "zod";
+import { isValidChatModel } from "../utils/chat-model-options";
 
 // Database types
 export type InterviewConfig =
@@ -26,6 +27,13 @@ export const interviewConfigSchema = z.object({
   mode: z.enum(["loop", "bulk"]),
   themes: z.array(z.string().min(1)).optional(),
   knowledge_source: z.string().optional(),
+  chat_model: z
+    .string()
+    .nullable()
+    .optional()
+    .refine((val) => !val || isValidChatModel(val), {
+      message: "無効なAIモデルが指定されています",
+    }),
 });
 
 export const interviewQuestionSchema = z.object({
