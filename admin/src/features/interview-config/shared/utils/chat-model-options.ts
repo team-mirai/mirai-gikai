@@ -3,6 +3,7 @@
  * Vercel AI Gateway（https://vercel.com/ai-gateway/models）で利用可能なモデル
  */
 
+import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import {
   estimateInterviewCostUsd,
   formatEstimatedCost,
@@ -77,3 +78,13 @@ export const CHAT_MODEL_GROUPS: ChatModelGroup[] = [
 export function isValidChatModel(model: string): model is ChatModelValue {
   return CHAT_MODEL_OPTIONS.some((opt) => opt.value === model);
 }
+
+/** デフォルトモデルの表示ラベル（例: "GPT-5.2 ~29円/回"） */
+export const DEFAULT_MODEL_LABEL = (() => {
+  const model = CHAT_MODEL_OPTIONS.find(
+    (opt) => opt.value === DEFAULT_INTERVIEW_CHAT_MODEL
+  );
+  const cost = estimateInterviewCostUsd(DEFAULT_INTERVIEW_CHAT_MODEL);
+  const costStr = cost !== null ? ` ${formatEstimatedCost(cost)}/回` : "";
+  return `${model?.label ?? DEFAULT_INTERVIEW_CHAT_MODEL}${costStr}`;
+})();
