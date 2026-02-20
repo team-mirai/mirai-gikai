@@ -21,11 +21,17 @@ export function buildInterviewSystemPrompt({
   interviewConfig,
   questions,
   nextQuestionId,
+  currentStage,
+  askedQuestionIds,
+  totalQuestions,
 }: {
   bill: BillWithContent | null;
   interviewConfig: Awaited<ReturnType<typeof getInterviewConfig>>;
   questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
   nextQuestionId?: string;
+  currentStage: "chat" | "summary" | "summary_complete";
+  askedQuestionIds: Set<string>;
+  totalQuestions: number;
 }): string {
   // DBの設定からモードを取得
   const mode = interviewConfig?.mode ?? "loop";
@@ -36,30 +42,28 @@ export function buildInterviewSystemPrompt({
     interviewConfig,
     questions,
     nextQuestionId,
+    currentStage,
+    askedQuestionIds,
+    totalQuestions,
   });
 }
 
 /**
  * 要約用システムプロンプトを構築（summaryフェーズ用）
+ *
+ * 会話履歴はmessagesパラメータで渡されるため、システムプロンプトには含めない
  */
 export function buildSummarySystemPrompt({
   bill,
   interviewConfig,
-  messages,
 }: {
   bill: BillWithContent | null;
   interviewConfig: Awaited<ReturnType<typeof getInterviewConfig>>;
-  messages: Array<{ role: string; content: string }>;
 }): string {
   const billName = bill?.name || "";
   const billTitle = bill?.bill_content?.title || "";
   const billSummary = bill?.bill_content?.summary || "";
   const themes = interviewConfig?.themes || [];
-
-  // 会話履歴を {role}: {content} のフォーマットで連結
-  const conversationLog = messages
-    .map((m) => `${m.role}: ${m.content}`)
-    .join("\n");
 
   return `あなたは半構造化デプスインタビューを実施する熟練のインタビュアーです。
 
@@ -74,11 +78,15 @@ ${themes.length > 0 ? themes.map((t) => `- ${t}`).join("\n") : "（テーマ未�
 ## あなたの役割
 以下の会話履歴を読み、インタビュー内容を要約してレポート案を生成してください。
 
-## 会話履歴
-${conversationLog}
-
 ## 留意点
 要約をすること、また要約の内容が問題ないかの確認に徹して、質問は一切しないでください。
+
+## ステージ遷移の判定（next_stageフィールド）
+next_stageフィールドを以下のルールで設定してください。
+
+- レポートの修正や追加の要約が必要: next_stage = "summary"
+- ユーザーが内容に同意し完了すべき場合: next_stage = "summary_complete"
+- ユーザーがインタビューの再開を希望した場合: next_stage = "chat"
 
 ## レポート（reportフィールド）に含めるべき内容
 

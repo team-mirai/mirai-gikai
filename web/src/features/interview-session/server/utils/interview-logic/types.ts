@@ -13,6 +13,9 @@ export interface InterviewPromptParams {
   interviewConfig: Awaited<ReturnType<typeof getInterviewConfig>>;
   questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
   nextQuestionId?: string;
+  currentStage: "chat" | "summary" | "summary_complete";
+  askedQuestionIds: Set<string>;
+  totalQuestions: number;
 }
 
 /**

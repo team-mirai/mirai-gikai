@@ -1,7 +1,7 @@
 "use client";
 
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   type InterviewStage,
@@ -39,6 +39,9 @@ export function useInterviewChat({
   // リトライロジック
   const retry = useInterviewRetry();
 
+  // chat→summary遷移時の自動summaryリクエスト用
+  const isTransitioningToSummary = useRef(false);
+
   // useObjectフックを使用（streamObjectの結果を受け取る）
   const { object, submit, isLoading, error } = useObject({
     api: "/api/interview/chat",
@@ -68,6 +71,10 @@ export function useInterviewChat({
 
         // レスポンスからnext_stageを取得してステージを更新
         if (next_stage) {
+          // chat→summary遷移を検知してフラグを立てる
+          if (next_stage === "summary" && stage === "chat") {
+            isTransitioningToSummary.current = true;
+          }
           setStage(next_stage);
         }
 
@@ -133,8 +140,24 @@ export function useInterviewChat({
     submit(requestParams);
   };
 
+  // submitChatMessageの最新参照を保持（useEffect内から安全に呼び出すため）
+  const submitChatRef = useRef(submitChatMessage);
+  submitChatRef.current = submitChatMessage;
+
+  // chat→summary遷移時に自動でsummaryリクエストを発行
+  useEffect(() => {
+    if (
+      isTransitioningToSummary.current &&
+      stage === "summary" &&
+      !isChatLoading
+    ) {
+      isTransitioningToSummary.current = false;
+      submitChatRef.current("", "summary");
+    }
+  }, [stage, isChatLoading]);
+
   // メッセージ送信
-  // ファシリテーション判定はバックエンドで行われ、レスポンスのnext_stageでステージが更新される
+  // LLMがnext_stageを直接出力し、レスポンスのnext_stageでステージが更新される
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
     if (!hasText || isChatLoading || stage === "summary_complete") {

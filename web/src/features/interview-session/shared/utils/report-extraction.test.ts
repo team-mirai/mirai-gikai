@@ -60,6 +60,15 @@ describe("extractReportFromMessage", () => {
     expect(result).toBeNull();
   });
 
+  it("next_stageを含む新形式からもレポートを抽出できる", () => {
+    const reportWithNextStage = { ...validReport, next_stage: "summary" };
+    const result = extractReportFromMessage(
+      JSON.stringify(reportWithNextStage)
+    );
+    expect(result).not.toBeNull();
+    expect(result?.summary).toBe("テスト要約");
+  });
+
   it("スコアの小数値は丸められる", () => {
     const reportWithDecimalScores = {
       text: "まとめ",

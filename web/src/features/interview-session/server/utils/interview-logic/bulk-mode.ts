@@ -26,7 +26,15 @@ import type {
  */
 export const bulkModeLogic: InterviewModeLogic = {
   buildSystemPrompt(params: InterviewPromptParams): string {
-    const { bill, interviewConfig, questions, nextQuestionId } = params;
+    const {
+      bill,
+      interviewConfig,
+      questions,
+      nextQuestionId,
+      currentStage,
+      askedQuestionIds,
+      totalQuestions,
+    } = params;
 
     const billName = bill?.name || "";
     const billTitle = bill?.bill_content?.title || "";
@@ -34,6 +42,29 @@ export const bulkModeLogic: InterviewModeLogic = {
     const billContent = bill?.bill_content?.content || "";
     const themes = interviewConfig?.themes || [];
     const knowledgeSource = interviewConfig?.knowledge_source || "";
+
+    // 質問進捗情報
+    const completedQuestions = askedQuestionIds.size;
+    const remainingQuestions = totalQuestions - completedQuestions;
+
+    // ステージ遷移ガイダンスを構築
+    const stageTransitionGuidance =
+      currentStage === "chat"
+        ? `## ステージ遷移の判定（next_stageフィールド）
+応答と同時にインタビューの進行を判断し、next_stageフィールドを設定してください。
+
+- 現在のステージ: chat（インタビュー中）
+- インタビューを継続する場合: next_stage = "chat"
+- 要約フェーズに移行する場合: next_stage = "summary"
+
+### 事前定義質問の進捗
+- 全体: ${totalQuestions}問中${completedQuestions}問完了（残り${remainingQuestions}問）
+
+### 要約への移行基準
+- **重要**: 現在は「一括回答優先モード」です。事前定義質問をすべて終え、十分な深掘りが完了した場合に移行してください
+- ユーザーから終了やまとめの意思表示があった場合
+- 移行する場合は「これまでの内容をまとめ、レポートを作成します」と案内すること`
+        : "";
 
     // Bulk Mode: instruction を含めない
     const questionsText = questions
@@ -62,6 +93,8 @@ export const bulkModeLogic: InterviewModeLogic = {
 ## クイックリプライについて
 quick_repliesフィールドについては以下を使用してください。
 ${nextQuestion.quick_replies}
+
+${stageTransitionGuidance}
 `;
       }
     }
@@ -137,6 +170,8 @@ ${modeInstructions}
 - **1つのメッセージにつき1つの質問のみをしてください。** 一度に複数の質問をしないでください。
 - 回答が抽象的な場合は具体的な例を求めてください
 - 法案に関する質問のみに集中してください
+
+${stageTransitionGuidance}
 `;
   },
 

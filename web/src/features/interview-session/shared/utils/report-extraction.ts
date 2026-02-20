@@ -1,7 +1,13 @@
 import {
   type InterviewReportData,
   interviewChatWithReportSchema,
+  interviewStageSchema,
 } from "../schemas";
+
+// DB保存済みメッセージの後方互換（next_stageがない旧形式も許容）
+const reportParseSchema = interviewChatWithReportSchema.extend({
+  next_stage: interviewStageSchema.optional(),
+});
 
 /**
  * メッセージからレポートを抽出する
@@ -11,7 +17,7 @@ export function extractReportFromMessage(
 ): InterviewReportData | null {
   try {
     const parsed = JSON.parse(content);
-    const result = interviewChatWithReportSchema.safeParse(parsed);
+    const result = reportParseSchema.safeParse(parsed);
     if (result.success) {
       return result.data.report;
     }

@@ -44,11 +44,14 @@ export async function generateInitialQuestion({
       throw new Error("Interview config not found");
     }
 
-    // プロンプトを構築
+    // プロンプトを構築（初回なので全て未回答、chatステージ）
     const systemPrompt = buildInterviewSystemPrompt({
       bill,
       interviewConfig,
       questions,
+      currentStage: "chat",
+      askedQuestionIds: new Set<string>(),
+      totalQuestions: questions.length,
     });
 
     // インタビュー開始の指示を追加（最初の質問にはクイックリプライとquestion_idを含める）
