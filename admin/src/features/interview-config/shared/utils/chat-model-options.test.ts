@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { CHAT_MODEL_OPTIONS, isValidChatModel } from "./chat-model-options";
+import {
+  CHAT_MODEL_OPTIONS,
+  CHAT_MODEL_GROUPS,
+  isValidChatModel,
+} from "./chat-model-options";
 
 describe("CHAT_MODEL_OPTIONS", () => {
   it("全てのオプションがprovider/model形式のvalueを持つ", () => {
@@ -17,6 +21,34 @@ describe("CHAT_MODEL_OPTIONS", () => {
   it("重複するvalueがない", () => {
     const values = CHAT_MODEL_OPTIONS.map((opt) => opt.value);
     expect(new Set(values).size).toBe(values.length);
+  });
+});
+
+describe("CHAT_MODEL_GROUPS", () => {
+  it("3つのプロバイダーグループが存在する", () => {
+    expect(CHAT_MODEL_GROUPS).toHaveLength(3);
+    expect(CHAT_MODEL_GROUPS.map((g) => g.provider)).toEqual([
+      "OpenAI",
+      "Google",
+      "Anthropic",
+    ]);
+  });
+
+  it("全グループのモデル数がフラット一覧と一致する", () => {
+    const groupTotal = CHAT_MODEL_GROUPS.reduce(
+      (sum, g) => sum + g.options.length,
+      0
+    );
+    expect(groupTotal).toBe(CHAT_MODEL_OPTIONS.length);
+  });
+
+  it("全モデルに推定コストが設定されている", () => {
+    for (const group of CHAT_MODEL_GROUPS) {
+      for (const option of group.options) {
+        expect(option.estimatedCost).not.toBeNull();
+        expect(option.estimatedCost).toMatch(/^~\$/);
+      }
+    }
   });
 });
 
