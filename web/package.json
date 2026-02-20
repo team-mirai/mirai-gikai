@@ -17,6 +17,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.1",
     "@ai-sdk/react": "^3.0.3",
+    "@mirai-gikai/shared": "workspace:*",
     "@mirai-gikai/supabase": "workspace:*",
     "@opentelemetry/sdk-node": "^0.206.0",
     "@radix-ui/react-avatar": "^1.1.10",
