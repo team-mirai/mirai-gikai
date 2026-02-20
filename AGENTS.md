@@ -104,7 +104,7 @@ Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-l
   pnpm typecheck   # TypeScript 型チェック
   pnpm test        # 全ワークスペースのテスト実行
   ```
-- **push / PR作成前のGitHub状態確認（必須）**: `git push` やPR作成を行う前に、必ず `gh pr list` や `gh pr view <番号>` でGitHub上のPR状態（open/merged/closed）を確認すること。マージ済みブランチへの追加pushや、既にクローズされたPRとの重複を防ぐ。
+- **push / PR作成前のGitHub状態確認（必須）**: `git push` やPR作成を行う前に、必ず `gh pr list` や `gh pr view <番号>` でGitHub上のPR状態（open/merged/closed）を確認すること。マージ済みブランチへの追加pushや、既にクローズされたPRとの重複を防ぐ。**特に既存ブランチに追加コミットする場合は、対応PRがマージ済みでないことを `gh pr list --state all --head <branch>` で必ず確認すること。**マージ済みの場合は新しいブランチを作成してcherry-pickする。
 - コミットメッセージは既存履歴同様、短い命令形主体（日本語可）とし、課題連携は `(#id)` を付与します。
 - PR ではスコープ概要、実行テスト記録（例: `pnpm dev`, `pnpm --filter web test`）、UI 変更時のスクリーンショットや GIF を添付します。
 - スキーマ・シード・環境変数の変更は本文で明示し、レビューフィードバックへの対応状況を追跡コメントで共有して Ready for Review に切り替えます。
