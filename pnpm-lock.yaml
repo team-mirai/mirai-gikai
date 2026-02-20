@@ -35,6 +35,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.1
         version: 5.2.2(react-hook-form@7.64.0(react@19.1.2))
+      '@mirai-gikai/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
       '@mirai-gikai/supabase':
         specifier: workspace:*
         version: link:../packages/supabase
@@ -155,6 +158,12 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  packages/shared:
+    devDependencies:
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+
   packages/supabase:
     dependencies:
       '@supabase/ssr':
@@ -179,6 +188,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^3.0.3
         version: 3.0.3(react@19.1.2)(zod@4.1.12)
+      '@mirai-gikai/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
       '@mirai-gikai/supabase':
         specifier: workspace:*
         version: link:../packages/supabase
