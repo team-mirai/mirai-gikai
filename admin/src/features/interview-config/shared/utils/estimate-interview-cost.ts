@@ -1,9 +1,9 @@
 /**
  * 1インタビューあたりの推定コスト算出
  *
- * 推定前提:
- * - 1インタビューあたり入力トークン: 約50,000（システムプロンプト + 履歴の累積）
- * - 1インタビューあたり出力トークン: 約10,000（AI応答の合計）
+ * 推定前提（実測ベース: GPT-5.1 Instant / 15ターン）:
+ * - 1インタビューあたり入力トークン: 約85,000（システムプロンプト + 履歴の累積）
+ * - 1インタビューあたり出力トークン: 約3,000（AI応答の合計）
  */
 
 type ModelPricing = {
@@ -12,8 +12,8 @@ type ModelPricing = {
 };
 
 /** 1インタビューあたりの推定トークン使用量 */
-const ESTIMATED_INPUT_TOKENS = 50_000;
-const ESTIMATED_OUTPUT_TOKENS = 10_000;
+const ESTIMATED_INPUT_TOKENS = 85_000;
+const ESTIMATED_OUTPUT_TOKENS = 3_000;
 
 /**
  * モデルごとの料金（USD / 1Mトークン）
