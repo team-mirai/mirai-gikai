@@ -3,11 +3,7 @@ import { isValidReport, parseMessageContent } from "../../shared/message-utils";
 
 // Re-export from shared for backwards compatibility
 export { isValidReport, parseMessageContent };
-export {
-  buildMessagesForApi,
-  buildMessagesForFacilitator,
-} from "../../shared/utils/message-builders";
-export type { SimpleMessage } from "../../shared/types";
+export { buildMessagesForApi } from "../../shared/utils/message-builders";
 
 /**
  * 会話メッセージの型定義

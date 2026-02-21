@@ -1,12 +1,9 @@
 import "server-only";
 
 import type {
-  FacilitatorParams,
-  FacilitatorResult,
   InterviewModeLogic,
   InterviewPromptParams,
   NextQuestionParams,
-  ShouldFacilitateParams,
 } from "./types";
 
 /**
@@ -14,7 +11,7 @@ import type {
  *
  * このファイルを見れば、Loop Modeに関する以下を把握できる：
  * - システムプロンプトの構築方法
- * - ファシリテーションのロジック
+ * - ステージ遷移判定の指針
  * - モード固有の判定条件
  *
  * ## モードの特徴
@@ -24,7 +21,8 @@ import type {
  */
 export const loopModeLogic: InterviewModeLogic = {
   buildSystemPrompt(params: InterviewPromptParams): string {
-    const { bill, interviewConfig, questions } = params;
+    const { bill, interviewConfig, questions, currentStage, askedQuestionIds } =
+      params;
 
     const billName = bill?.name || "";
     const billTitle = bill?.bill_content?.title || "";
@@ -40,6 +38,13 @@ export const loopModeLogic: InterviewModeLogic = {
           `${index + 1}. [ID: ${q.id}] ${q.question}${q.follow_up_guide ? `\n   フォローアップ指針: ${q.follow_up_guide}` : ""}${q.quick_replies ? `\n   クイックリプライ: ${q.quick_replies.join(", ")}` : ""}`
       )
       .join("\n");
+
+    // ステージ遷移ガイダンスを構築
+    const stageTransitionGuidance = buildStageTransitionGuidance({
+      currentStage,
+      questions,
+      askedQuestionIds,
+    });
 
     const modeInstructions = `
 ## インタビューモード: **都度深掘りモード** (Loop Mode)
@@ -105,6 +110,8 @@ ${modeInstructions}
 - 例: 「業務への影響」「家計への影響」「医療制度の変化」
 - 深掘り質問など、事前定義質問以外の質問をする場合は \`topic_title\` を含めないでください
 
+${stageTransitionGuidance}
+
 ## 注意事項
 - 丁寧で親しみやすい口調で話してください
 - ユーザーの回答を尊重し、押し付けがましくならないようにしてください
@@ -121,98 +128,59 @@ ${modeInstructions}
     // Loop Mode: 次の質問を強制しない（LLMに任せる）
     return undefined;
   },
+};
 
-  checkProgress(_params: FacilitatorParams): FacilitatorResult | null {
-    // Loop Mode: アルゴリズム判定なし、常にLLMで判定
-    return null;
-  },
+/**
+ * ステージ遷移判定のガイダンスを構築（Loop Mode用）
+ */
+function buildStageTransitionGuidance({
+  currentStage,
+  questions,
+  askedQuestionIds,
+}: {
+  currentStage: string;
+  questions: { id: string; question: string }[];
+  askedQuestionIds: Set<string>;
+}): string {
+  const totalQuestions = questions.length;
+  const completedQuestions = askedQuestionIds.size;
+  const remainingQuestions = totalQuestions - completedQuestions;
 
-  buildFacilitatorPrompt(params: FacilitatorParams): string {
-    const {
-      currentStage,
-      questions,
-      askedQuestionIds,
-      totalQuestions,
-      completedQuestions,
-      remainingQuestions,
-    } = params;
+  const completedQuestionsList = questions
+    .filter((q) => askedQuestionIds.has(q.id))
+    .map((q) => `  - [ID: ${q.id}] ${q.question}`)
+    .join("\n");
 
-    // 完了した質問と未回答の質問をリスト化
-    const completedQuestionsList = questions
-      .filter((q) => askedQuestionIds.has(q.id))
-      .map((q) => `- [ID: ${q.id}] ${q.question}`)
-      .join("\n");
+  const remainingQuestionsList = questions
+    .filter((q) => !askedQuestionIds.has(q.id))
+    .map((q) => `  - [ID: ${q.id}] ${q.question}`)
+    .join("\n");
 
-    const remainingQuestionsList = questions
-      .filter((q) => !askedQuestionIds.has(q.id))
-      .map((q) => `- [ID: ${q.id}] ${q.question}`)
-      .join("\n");
+  let stageGuidance = "";
+  if (currentStage === "chat") {
+    stageGuidance = `- 現在のステージ: **chat**（インタビュー中）
+- インタビューを継続する場合は next_stage を "chat" にしてください
+- 要約フェーズに移行すべきと判断した場合は next_stage を "summary" にしてください
+- 事前定義質問を概ね完了し、十分な深掘りを行った場合に "summary" への移行を検討してください
+- ユーザーが終了を希望した場合も "summary" に移行してください
+- これ以上の深掘りが難しい場合も "summary" に移行してください`;
+  } else if (currentStage === "summary") {
+    stageGuidance = `- 現在のステージ: **summary**（要約フェーズ）
+- ユーザーがレポート内容に同意し、完了すべきと判断した場合は next_stage を "summary_complete" にしてください
+- まだ修正や追加の要約が必要な場合は next_stage を "summary" にしてください
+- ユーザーが明確にインタビューの再開や追加の質問への回答を希望した場合は next_stage を "chat" にしてください`;
+  } else {
+    stageGuidance = `- 現在のステージ: **summary_complete**（完了済み）
+- next_stage を "summary_complete" にしてください`;
+  }
 
-    // 現在のステージに応じてプロンプトを調整
-    let stageGuidance = "";
-    if (currentStage === "chat") {
-      stageGuidance = `現在のステージ: chat（インタビュー中）
-- インタビューを継続する場合は nextStage を "chat" にしてください。
-- 要約フェーズに移行すべきと判断した場合は nextStage を "summary" にしてください。
-- 必ず chat → summary の順に進むようにしてください。`;
-    } else if (currentStage === "summary") {
-      stageGuidance = `現在のステージ: summary（要約フェーズ）
-- ユーザーがレポート内容に同意し、完了すべきと判断した場合は nextStage を "summary_complete" にしてください。
-- まだ修正や追加の要約が必要な場合は nextStage を "summary" にしてください。
-- ユーザーが明確にインタビューの再開や追加の質問への回答を希望した場合は nextStage を "chat" にしてください。`;
-    } else {
-      stageGuidance = `現在のステージ: summary_complete（完了済み）
-- このステージでは判定は不要です。nextStage を "summary_complete" にしてください。`;
-    }
+  return `## ステージ遷移判定（next_stageフィールド）
+レスポンスの \`next_stage\` フィールドで、インタビューのステージ遷移を判定してください。
 
-    return `
-  あなたは熟練の半構造化デプスインタビューのファシリテーターです。
-  あなたの目標は、以下を達成することです。
-  - インタビューを進行させ、
-  - 十分に深堀りを行い、
-  - 深い考察を行い、
-  - ユーザー独自の知見を抽出したうえで
-  - 最終的に要約を生成すること
-
-## あなたの役割（ファシリテーター）
-- 以下の会話履歴を読み、インタビューの進行状況を判断してください。
 ${stageGuidance}
 
-## 事前定義質問の進捗状況
+### 事前定義質問の進捗状況
 - **全体**: ${totalQuestions}問中${completedQuestions}問完了（残り${remainingQuestions}問）
-
-${
-  completedQuestionsList
-    ? `### 完了した事前定義質問
-${completedQuestionsList}
-`
-    : ""
+${completedQuestionsList ? `\n#### 完了した質問\n${completedQuestionsList}` : ""}
+${remainingQuestionsList ? `\n#### 未回答の質問\n${remainingQuestionsList}` : ""}`;
 }
-${
-  remainingQuestionsList
-    ? `### 未回答の事前定義質問
-${remainingQuestionsList}
-`
-    : ""
-}
-
-## 終了判定の目安（chatステージの場合）
-- 事前定義質問を概ね終えた、または十分な知見を得た
-- これ以上の深掘りが難しい
-- ユーザーが終了を希望した
-
-## 完了判定の目安（summaryステージの場合）
-- ユーザーがレポート内容に同意した
-- レポートの修正要望がなく、完了を希望している
-
-## 注意
-- JSON以外のテキストを出力しないでください。
-- 基本的なステージ遷移は chat → summary → summary_complete の順ですが、summaryフェーズでユーザーがインタビュー再開を希望した場合は chat に戻ることができます。
-`;
-  },
-
-  shouldFacilitate(params: ShouldFacilitateParams): boolean {
-    // summary_complete の場合はファシリテーション不要
-    return params.currentStage !== "summary_complete";
-  },
-};
