@@ -77,11 +77,14 @@ export function useInterviewChat({
           setStage(next_stage);
         }
 
+        // summary→chat遷移時はレポートを含めない（LLMがスキーマ上生成しても無視）
+        const shouldIncludeReport = next_stage !== "chat";
+
         const newAssistantMessage: ConversationMessage = {
           id: `assistant-${Date.now()}`,
           role: "assistant",
           content: text ?? "",
-          report: convertPartialReport(report),
+          report: shouldIncludeReport ? convertPartialReport(report) : null,
           quickReplies:
             questionId && Array.isArray(quick_replies) ? quick_replies : [],
           questionId,
