@@ -91,16 +91,6 @@ export function useInterviewChat({
   // ローディング状態
   const isChatLoading = isLoading;
 
-  // 完了時のコールバック（summary_completeへの遷移用）
-  const handleComplete = (reportId: string | null) => {
-    setStage("summary_complete");
-    setCompletedReportId(reportId);
-  };
-
-  const [completedReportId, setCompletedReportId] = useState<string | null>(
-    null
-  );
-
   // 初期メッセージと会話履歴を統合
   const messages = [...parsedInitialMessages, ...conversationMessages];
 
@@ -184,13 +174,11 @@ export function useInterviewChat({
     object,
     streamingReportData,
     currentQuickReplies,
-    completedReportId,
     canRetry: retry.canRetry,
 
     // アクション
     handleSubmit,
     handleQuickReply,
-    handleComplete,
     handleRetry,
   };
 }

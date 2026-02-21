@@ -11,7 +11,6 @@ import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
 import { InterviewProgressBar } from "./interview-progress-bar";
-import { InterviewSubmitSection } from "./interview-submit-section";
 import { InterviewSummaryInput } from "./interview-summary-input";
 import { QuickReplyButtons } from "./quick-reply-buttons";
 
@@ -45,11 +44,9 @@ export function InterviewChatClient({
     object,
     streamingReportData,
     currentQuickReplies,
-    completedReportId,
     canRetry,
     handleSubmit,
     handleQuickReply,
-    handleComplete,
     handleRetry,
   } = useInterviewChat({
     billId,
@@ -143,15 +140,6 @@ export function InterviewChatClient({
             isRetrying={isLoading}
           />
 
-          {/* 完了メッセージ */}
-          {stage === "summary_complete" && (
-            <p className="text-sm font-medium">
-              インタビューにご協力いただきありがとうございました！
-              <br />
-              インタビュー内容を提出に進めてください。
-            </p>
-          )}
-
           {/* クイックリプライボタン */}
           {!isLoading && stage === "chat" && currentQuickReplies.length > 0 && (
             <QuickReplyButtons
@@ -165,22 +153,14 @@ export function InterviewChatClient({
 
       {/* 入力エリア */}
       <div className="px-6 pb-4 pt-2">
-        {stage === "summary" && (
+        {(stage === "summary" || stage === "summary_complete") && (
           <InterviewSummaryInput
             sessionId={sessionId}
             input={input}
             onInputChange={setInput}
             onSubmit={handleSubmit}
-            onComplete={handleComplete}
             isLoading={isLoading}
             error={error}
-          />
-        )}
-
-        {stage === "summary_complete" && completedReportId && (
-          <InterviewSubmitSection
-            sessionId={sessionId}
-            reportId={completedReportId}
           />
         )}
 
