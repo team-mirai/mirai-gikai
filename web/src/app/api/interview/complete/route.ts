@@ -1,30 +1,28 @@
 import { NextResponse } from "next/server";
-import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+import { updateSessionPublicSetting } from "@/features/interview-report/server/repositories/interview-report-repository";
 import { completeInterviewSession } from "@/features/interview-session/server/services/complete-interview-session";
+import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
 
 export async function POST(req: Request) {
-  const { sessionId } = await req.json();
-
-  const {
-    data: { user },
-    error: getUserError,
-  } = await getChatSupabaseUser();
-
-  if (getUserError || !user) {
-    return NextResponse.json(
-      { error: "Anonymous session required" },
-      { status: 401 }
-    );
-  }
+  const { sessionId, isPublic } = await req.json();
 
   if (!sessionId) {
     return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
+  }
+
+  const ownershipResult = await verifySessionOwnership(sessionId);
+  if (!ownershipResult.authorized) {
+    return NextResponse.json({ error: ownershipResult.error }, { status: 403 });
   }
 
   try {
     const report = await completeInterviewSession({
       sessionId,
     });
+
+    if (typeof isPublic === "boolean") {
+      await updateSessionPublicSetting(sessionId, isPublic);
+    }
 
     return NextResponse.json({ report });
   } catch (error) {
