@@ -22,12 +22,7 @@ export function TimeUpPrompt({
         目安時間が終了しました。レポート作成に進みますか？
       </p>
       <div className="flex gap-2">
-        <Button
-          size="sm"
-          onClick={onEndInterview}
-          disabled={disabled}
-          className="bg-[#0F8472] hover:bg-[#0d7364]"
-        >
+        <Button size="sm" onClick={onEndInterview} disabled={disabled}>
           レポート作成に進む
         </Button>
         <Button
