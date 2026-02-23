@@ -1,7 +1,7 @@
 "use client";
 
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   type InterviewStage,
@@ -36,8 +36,22 @@ export function useInterviewChat({
     ConversationMessage[]
   >([]);
 
+  // onFinishコールバック内で最新の値を参照するためのref
+  const conversationMessagesRef = useRef<ConversationMessage[]>([]);
+  conversationMessagesRef.current = conversationMessages;
+  const stageRef = useRef<InterviewStage>(initialStage);
+  stageRef.current = stage;
+
   // リトライロジック
   const retry = useInterviewRetry();
+
+  // chat→summary自動遷移用の保留リクエスト
+  // onFinish内で直接submit()を呼ぶと再入になるため、useEffectで遅延実行する
+  const [pendingSummaryRequest, setPendingSummaryRequest] = useState<{
+    messages: { role: string; content: string }[];
+    billId: string;
+    currentStage: InterviewStage;
+  } | null>(null);
 
   // useObjectフックを使用（streamObjectの結果を受け取る）
   const { object, submit, isLoading, error } = useObject({
@@ -71,22 +85,47 @@ export function useInterviewChat({
           setStage(next_stage);
         }
 
-        setConversationMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-            content: text ?? "",
-            report: convertPartialReport(report),
-            quickReplies:
-              questionId && Array.isArray(quick_replies) ? quick_replies : [],
-            questionId,
-            topicTitle,
-          },
-        ]);
+        // summary→chat遷移時はレポートを含めない（LLMがスキーマ上生成しても無視）
+        const shouldIncludeReport = next_stage !== "chat";
+
+        const newAssistantMessage: ConversationMessage = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: text ?? "",
+          report: shouldIncludeReport ? convertPartialReport(report) : null,
+          quickReplies:
+            questionId && Array.isArray(quick_replies) ? quick_replies : [],
+          questionId,
+          topicTitle,
+        };
+
+        setConversationMessages((prev) => [...prev, newAssistantMessage]);
+
+        // chat→summaryへの遷移時のみ、自動でサマリーリクエストを予約
+        // （summaryステージ中にnext_stage="summary"が返る場合はループ防止のため送信しない）
+        if (next_stage === "summary" && stageRef.current === "chat") {
+          const allMessages = buildMessagesForApi(parsedInitialMessages, [
+            ...conversationMessagesRef.current,
+            newAssistantMessage,
+          ]);
+          setPendingSummaryRequest({
+            messages: allMessages,
+            billId,
+            currentStage: "summary" as InterviewStage,
+          });
+        }
       }
     },
   });
+
+  // chat→summary自動遷移: onFinishで予約されたリクエストをuseEffectで送信
+  useEffect(() => {
+    if (pendingSummaryRequest) {
+      retry.saveRequestParams(pendingSummaryRequest);
+      submit(pendingSummaryRequest);
+      setPendingSummaryRequest(null);
+    }
+  }, [pendingSummaryRequest, retry.saveRequestParams, submit]);
 
   // ローディング状態
   const isChatLoading = isLoading;
@@ -100,8 +139,9 @@ export function useInterviewChat({
     isLoading: isChatLoading,
   });
 
-  // objectからreportを取得
-  const streamingReportData = convertPartialReport(object?.report);
+  // objectからreportを取得（chat遷移時はストリーミング中もレポート非表示）
+  const streamingReportData =
+    object?.next_stage === "chat" ? null : convertPartialReport(object?.report);
 
   // チャットAPI送信のヘルパー（リクエストパラメータを保存）
   const submitChatMessage = (
@@ -124,7 +164,6 @@ export function useInterviewChat({
   };
 
   // メッセージ送信
-  // ファシリテーション判定はバックエンドで行われ、レスポンスのnext_stageでステージが更新される
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
     if (!hasText || isChatLoading || stage === "summary_complete") {
@@ -146,7 +185,6 @@ export function useInterviewChat({
     setInput("");
 
     // 現在のステージでメッセージ送信
-    // バックエンドでファシリテーション判定が行われ、レスポンスにnext_stageが含まれる
     submitChatMessage(userMessageText, stage);
   };
 

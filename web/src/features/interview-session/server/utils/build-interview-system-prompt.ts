@@ -21,11 +21,15 @@ export function buildInterviewSystemPrompt({
   interviewConfig,
   questions,
   nextQuestionId,
+  currentStage,
+  askedQuestionIds,
 }: {
   bill: BillWithContent | null;
   interviewConfig: Awaited<ReturnType<typeof getInterviewConfig>>;
   questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
   nextQuestionId?: string;
+  currentStage: "chat" | "summary" | "summary_complete";
+  askedQuestionIds: Set<string>;
 }): string {
   // DBの設定からモードを取得
   const mode = interviewConfig?.mode ?? "loop";
@@ -36,6 +40,8 @@ export function buildInterviewSystemPrompt({
     interviewConfig,
     questions,
     nextQuestionId,
+    currentStage,
+    askedQuestionIds,
   });
 }
 
@@ -120,6 +126,12 @@ ${conversationLog}
 - **impact**: 影響度（0-100）- 法案が与える社会的影響や関係者への影響について言及があるか
 - **constructiveness**: 建設性（0-100）- 問題点の指摘だけでなく、改善案や代替案の提示があるか
 - **reasoning**: スコアの根拠を簡潔に説明（100文字以内）
+
+## ステージ遷移判定（next_stageフィールド）
+レスポンスの \`next_stage\` フィールドで、ステージ遷移を判定してください。
+- レポートを提示し、ユーザーの確認を待つ場合: next_stage を "summary" にし、reportフィールドにレポートを含めてください
+- ユーザーがレポート内容に同意し、完了すべきと判断した場合: next_stage を "summary_complete" にし、reportフィールドに最終版レポートを含めてください
+- ユーザーが明確にインタビューの再開や追加の質問への回答を希望した場合: next_stage を "chat" にし、**reportフィールドは省略してください**。テキストでは「承知しました、インタビューを続けましょう」のように簡潔に伝え、レポートの内容には一切言及しないでください
 
 ## 注意事項
 - インタビュイーが時間を割いてくれたことに感謝してください

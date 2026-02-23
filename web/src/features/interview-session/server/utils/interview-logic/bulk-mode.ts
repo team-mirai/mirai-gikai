@@ -1,14 +1,11 @@
 import "server-only";
 
-import { parseMessageContent } from "../../../shared/message-utils";
+import { buildBulkModeStageGuidance } from "@/features/interview-session/shared/utils/stage-transition-guidance";
 import { collectAskedQuestionIds } from "../interview-logic";
 import type {
-  FacilitatorParams,
-  FacilitatorResult,
   InterviewModeLogic,
   InterviewPromptParams,
   NextQuestionParams,
-  ShouldFacilitateParams,
 } from "./types";
 
 /**
@@ -16,7 +13,7 @@ import type {
  *
  * このファイルを見れば、Bulk Modeに関する以下を把握できる：
  * - システムプロンプトの構築方法
- * - ファシリテーションのロジック
+ * - ステージ遷移判定の指針
  * - モード固有の判定条件
  *
  * ## モードの特徴
@@ -26,7 +23,14 @@ import type {
  */
 export const bulkModeLogic: InterviewModeLogic = {
   buildSystemPrompt(params: InterviewPromptParams): string {
-    const { bill, interviewConfig, questions, nextQuestionId } = params;
+    const {
+      bill,
+      interviewConfig,
+      questions,
+      nextQuestionId,
+      currentStage,
+      askedQuestionIds,
+    } = params;
 
     const billName = bill?.name || "";
     const billTitle = bill?.bill_content?.title || "";
@@ -42,6 +46,13 @@ export const bulkModeLogic: InterviewModeLogic = {
           `${index + 1}. [ID: ${q.id}] ${q.question}${q.quick_replies ? `\n   クイックリプライ: ${q.quick_replies.join(", ")}` : ""}`
       )
       .join("\n");
+
+    // 質問進捗情報を構築
+    const stageTransitionGuidance = buildBulkModeStageGuidance({
+      currentStage,
+      questions,
+      askedQuestionIds,
+    });
 
     // nextQuestionId がある場合の特別なプロンプト
     if (nextQuestionId) {
@@ -62,6 +73,8 @@ export const bulkModeLogic: InterviewModeLogic = {
 ## クイックリプライについて
 quick_repliesフィールドについては以下を使用してください。
 ${nextQuestion.quick_replies}
+
+${stageTransitionGuidance}
 `;
       }
     }
@@ -131,6 +144,8 @@ ${modeInstructions}
 - クイックリプライは事前定義質問に設定されているもののみを使用してください
 - 深掘り質問など、事前定義質問以外の質問をする場合は \`question_id\` を含めず、\`quick_replies\` も含めないでください
 
+${stageTransitionGuidance}
+
 ## 注意事項
 - 丁寧で親しみやすい口調で話してください
 - ユーザーの回答を尊重し、押し付けがましくならないようにしてください
@@ -149,121 +164,5 @@ ${modeInstructions}
     const askedQuestionIds = collectAskedQuestionIds(messages);
     const nextUnasked = questions.find((q) => !askedQuestionIds.has(q.id));
     return nextUnasked?.id;
-  },
-
-  checkProgress(params: FacilitatorParams): FacilitatorResult | null {
-    const { currentStage, dbMessages } = params;
-
-    // chatステージ以外はアルゴリズム判定しない
-    if (currentStage !== "chat") {
-      return null;
-    }
-
-    // Bulk Mode専用のアルゴリズム判定:
-    // 事前定義質問以外のassistantメッセージ（深掘り質問）をカウント
-    const followUpQuestionsCount = dbMessages.filter(
-      (m) =>
-        m.role === "assistant" && !parseMessageContent(m.content).questionId
-    ).length;
-
-    // 深掘り質問が2つ以下の場合は、LLMを呼ばずにchatステージを継続
-    if (followUpQuestionsCount <= 2) {
-      return { nextStage: "chat", source: "algorithm" };
-    }
-
-    // LLMによる判定が必要
-    return null;
-  },
-
-  buildFacilitatorPrompt(params: FacilitatorParams): string {
-    const {
-      currentStage,
-      questions,
-      askedQuestionIds,
-      totalQuestions,
-      completedQuestions,
-      remainingQuestions,
-    } = params;
-
-    // 完了した質問と未回答の質問をリスト化
-    const completedQuestionsList = questions
-      .filter((q) => askedQuestionIds.has(q.id))
-      .map((q) => `- [ID: ${q.id}] ${q.question}`)
-      .join("\n");
-
-    const remainingQuestionsList = questions
-      .filter((q) => !askedQuestionIds.has(q.id))
-      .map((q) => `- [ID: ${q.id}] ${q.question}`)
-      .join("\n");
-
-    // 現在のステージに応じてプロンプトを調整
-    let stageGuidance = "";
-    if (currentStage === "chat") {
-      stageGuidance = `現在のステージ: chat（インタビュー中）
-- インタビューを継続する場合は nextStage を "chat" にしてください。
-- 要約フェーズに移行すべきと判断した場合は nextStage を "summary" にしてください。
-- **重要**: 現在は「一括回答優先モード」です。
-- 事前質問の全回答を得たあと、ユーザーにフォローアップのために十分な深堀りをおこないます。このフェーズは nextStage を "chat" としてください。
-- ユーザーに十分な深堀りをし終えたあとに summary に移行してください。このフェーズは nextStage を "summary" にしてください。
-- 必ず chat → summary の順に進むようにしてください。`;
-    } else if (currentStage === "summary") {
-      stageGuidance = `現在のステージ: summary（要約フェーズ）
-- ユーザーがレポート内容に同意し、完了すべきと判断した場合は nextStage を "summary_complete" にしてください。
-- まだ修正や追加の要約が必要な場合は nextStage を "summary" にしてください。
-- ユーザーが明確にインタビューの再開や追加の質問への回答を希望した場合は nextStage を "chat" にしてください。`;
-    } else {
-      stageGuidance = `現在のステージ: summary_complete（完了済み）
-- このステージでは判定は不要です。nextStage を "summary_complete" にしてください。`;
-    }
-
-    return `
-  あなたは熟練の半構造化デプスインタビューのファシリテーターです。
-  あなたの目標は、以下を達成することです。
-  - インタビューを進行させ、
-  - 十分に深堀りを行い、
-  - 深い考察を行い、
-  - ユーザー独自の知見を抽出したうえで
-  - 最終的に要約を生成すること
-
-## あなたの役割（ファシリテーター）
-- 以下の会話履歴を読み、インタビューの進行状況を判断してください。
-${stageGuidance}
-
-## 事前定義質問の進捗状況
-- **全体**: ${totalQuestions}問中${completedQuestions}問完了（残り${remainingQuestions}問）
-
-${
-  completedQuestionsList
-    ? `### 完了した事前定義質問
-${completedQuestionsList}
-`
-    : ""
-}
-${
-  remainingQuestionsList
-    ? `### 未回答の事前定義質問
-${remainingQuestionsList}
-`
-    : ""
-}
-
-## 終了判定の目安（chatステージの場合）
-- 十分な知見を得た
-- これ以上の深掘りが難しい
-- ユーザーが終了を希望した
-
-## 完了判定の目安（summaryステージの場合）
-- ユーザーがレポート内容に同意した
-- レポートの修正要望がなく、完了を希望している
-
-## 注意
-- JSON以外のテキストを出力しないでください。
-- 基本的なステージ遷移は chat → summary → summary_complete の順ですが、summaryフェーズでユーザーがインタビュー再開を希望した場合は chat に戻ることができます。
-`;
-  },
-
-  shouldFacilitate(params: ShouldFacilitateParams): boolean {
-    // summary_complete の場合はファシリテーション不要
-    return params.currentStage !== "summary_complete";
   },
 };
