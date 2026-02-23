@@ -1,6 +1,5 @@
 import type { UIMessage } from "@ai-sdk/react";
 import { Message, MessageContent } from "@/components/ai-elements/message";
-import { Response } from "@/components/ai-elements/response";
 
 interface UserMessageProps {
   message: UIMessage;
@@ -16,9 +15,12 @@ export function UserMessage({ message }: UserMessageProps) {
         {message.parts.map((part, i: number) => {
           if (part.type === "text") {
             return (
-              <Response key={`${message.id}-${i}`} className="break-words">
+              <span
+                key={`${message.id}-${i}`}
+                className="whitespace-pre-wrap break-words"
+              >
                 {part.text}
-              </Response>
+              </span>
             );
           }
           return null;
