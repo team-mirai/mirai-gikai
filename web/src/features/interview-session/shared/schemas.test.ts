@@ -334,6 +334,7 @@ describe("interviewChatTextSchema", () => {
       quick_replies: ["はい", "いいえ"],
       question_id: "q1",
       topic_title: "トピック",
+      next_stage: "chat" as const,
     };
     const result = interviewChatTextSchema.parse(data);
     expect(result).toEqual(data);
@@ -345,6 +346,7 @@ describe("interviewChatTextSchema", () => {
       quick_replies: null,
       question_id: "q1",
       topic_title: "トピック",
+      next_stage: "chat" as const,
     });
     expect(result.quick_replies).toBeNull();
   });
@@ -355,6 +357,7 @@ describe("interviewChatTextSchema", () => {
       quick_replies: [],
       question_id: null,
       topic_title: "トピック",
+      next_stage: "chat" as const,
     });
     expect(result.question_id).toBeNull();
   });
@@ -365,8 +368,19 @@ describe("interviewChatTextSchema", () => {
       quick_replies: [],
       question_id: "q1",
       topic_title: null,
+      next_stage: "chat" as const,
     });
     expect(result.topic_title).toBeNull();
+  });
+
+  it("next_stage を必須とする", () => {
+    const result = interviewChatTextSchema.safeParse({
+      text: "テスト",
+      quick_replies: [],
+      question_id: "q1",
+      topic_title: "トピック",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("text が欠けている場合を拒否する", () => {
@@ -374,32 +388,47 @@ describe("interviewChatTextSchema", () => {
       quick_replies: [],
       question_id: "q1",
       topic_title: "トピック",
+      next_stage: "chat",
     });
     expect(result.success).toBe(false);
   });
 });
 
 describe("interviewChatWithReportSchema", () => {
-  it("text と report の正常データをパースできる", () => {
+  it("text, report, next_stage の正常データをパースできる", () => {
     const data = {
       text: "まとめです",
       report: validReport,
+      next_stage: "summary" as const,
     };
     const result = interviewChatWithReportSchema.parse(data);
     expect(result.text).toBe("まとめです");
-    expect(result.report.summary).toBe(validReport.summary);
+    expect(result.report?.summary).toBe(validReport.summary);
+    expect(result.next_stage).toBe("summary");
+  });
+
+  it("report は optional（省略可能）", () => {
+    const result = interviewChatWithReportSchema.parse({
+      text: "インタビューを再開します",
+      next_stage: "chat" as const,
+    });
+    expect(result.text).toBe("インタビューを再開します");
+    expect(result.report).toBeUndefined();
+    expect(result.next_stage).toBe("chat");
   });
 
   it("text が欠けている場合を拒否する", () => {
     const result = interviewChatWithReportSchema.safeParse({
       report: validReport,
+      next_stage: "summary",
     });
     expect(result.success).toBe(false);
   });
 
-  it("report が欠けている場合を拒否する", () => {
+  it("next_stage が欠けている場合を拒否する", () => {
     const result = interviewChatWithReportSchema.safeParse({
       text: "テスト",
+      report: validReport,
     });
     expect(result.success).toBe(false);
   });

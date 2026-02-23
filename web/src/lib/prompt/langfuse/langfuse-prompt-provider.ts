@@ -1,6 +1,7 @@
 import type { Langfuse } from "langfuse";
 import type { PromptProvider } from "../interface/prompt-provider";
 import type { CompiledPrompt, PromptVariables } from "../interface/types";
+import { compilePrompt } from "../shared/compile-prompt";
 import { env } from "@/lib/env";
 
 export class LangfusePromptProvider implements PromptProvider {
@@ -15,15 +16,7 @@ export class LangfusePromptProvider implements PromptProvider {
         label: env.langfuse.promptLabel,
       });
 
-      const content = fetchedPrompt.compile(variables || {});
-
-      // Langfuse prompt linkingのためのJSON形式データ
-      const metadata = fetchedPrompt.toJSON();
-
-      return {
-        content,
-        metadata,
-      };
+      return compilePrompt(fetchedPrompt, variables);
     } catch (error) {
       throw new Error(
         `Failed to fetch prompt "${name}" from Langfuse: ${error instanceof Error ? error.message : String(error)}`

@@ -21,11 +21,15 @@ export function buildInterviewSystemPrompt({
   interviewConfig,
   questions,
   nextQuestionId,
+  currentStage,
+  askedQuestionIds,
 }: {
   bill: BillWithContent | null;
   interviewConfig: Awaited<ReturnType<typeof getInterviewConfig>>;
   questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
   nextQuestionId?: string;
+  currentStage: "chat" | "summary" | "summary_complete";
+  askedQuestionIds: Set<string>;
 }): string {
   // DBの設定からモードを取得
   const mode = interviewConfig?.mode ?? "loop";
@@ -36,6 +40,8 @@ export function buildInterviewSystemPrompt({
     interviewConfig,
     questions,
     nextQuestionId,
+    currentStage,
+    askedQuestionIds,
   });
 }
 
