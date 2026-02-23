@@ -3,6 +3,7 @@
 import { ArrowRight, FileText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RestartInterviewButton } from "@/features/interview-session/client/components/restart-interview-button";
@@ -24,6 +25,7 @@ export function InterviewActionButtons({
   sessionInfo,
   previewToken,
 }: InterviewActionButtonsProps) {
+  const router = useRouter();
   const [showConsentModal, setShowConsentModal] = useState(false);
   const isActive = sessionInfo?.status === "active";
   const isCompleted = sessionInfo?.status === "completed";
@@ -48,25 +50,30 @@ export function InterviewActionButtons({
     );
   }
 
-  // 進行中の場合は直接遷移
+  // 進行中の場合は直接遷移（router.refresh()でキャッシュを破棄し最新データを取得）
   if (isActive) {
-    const chatLink = getInterviewChatLink(billId, previewToken);
+    const handleResume = () => {
+      const chatLink = getInterviewChatLink(billId, previewToken);
+      router.refresh();
+      router.push(chatLink);
+    };
 
     return (
       <>
-        <Link href={chatLink}>
-          <Button className="w-full bg-mirai-gradient text-black border border-black rounded-[100px] h-[48px] px-6 font-bold text-[15px] hover:opacity-90 transition-opacity flex items-center justify-center gap-4">
-            <Image
-              src="/icons/messages-square-icon.svg"
-              alt=""
-              width={24}
-              height={24}
-              className="object-contain"
-            />
-            <span>AIインタビューを再開する</span>
-            <ArrowRight className="size-5" />
-          </Button>
-        </Link>
+        <Button
+          onClick={handleResume}
+          className="w-full bg-mirai-gradient text-black border border-black rounded-[100px] h-[48px] px-6 font-bold text-[15px] hover:opacity-90 transition-opacity flex items-center justify-center gap-4"
+        >
+          <Image
+            src="/icons/messages-square-icon.svg"
+            alt=""
+            width={24}
+            height={24}
+            className="object-contain"
+          />
+          <span>AIインタビューを再開する</span>
+          <ArrowRight className="size-5" />
+        </Button>
         <RestartInterviewButton
           sessionId={sessionInfo.id}
           billId={billId}
