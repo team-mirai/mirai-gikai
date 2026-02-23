@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildBulkModeStageGuidance,
   buildLoopModeStageGuidance,
+  buildTimeManagementGuidance,
 } from "./stage-transition-guidance";
 
 const sampleQuestions = [
@@ -160,5 +161,56 @@ describe("buildLoopModeStageGuidance", () => {
     });
 
     expect(result).toContain("完了済み");
+  });
+});
+
+describe("buildTimeManagementGuidance", () => {
+  it("remainingMinutesがnullの場合は空文字を返す", () => {
+    const result = buildTimeManagementGuidance({
+      remainingMinutes: null,
+      remainingQuestions: 3,
+    });
+
+    expect(result).toBe("");
+  });
+
+  it("remainingMinutesがundefinedの場合は空文字を返す", () => {
+    const result = buildTimeManagementGuidance({
+      remainingMinutes: undefined,
+      remainingQuestions: 3,
+    });
+
+    expect(result).toBe("");
+  });
+
+  it("remainingMinutesが0以下の場合は超過メッセージを返す", () => {
+    const result = buildTimeManagementGuidance({
+      remainingMinutes: 0,
+      remainingQuestions: 2,
+    });
+
+    expect(result).toContain("目安時間を超過しています");
+    expect(result).toContain("2問");
+  });
+
+  it("remainingMinutesが負の場合も超過メッセージを返す", () => {
+    const result = buildTimeManagementGuidance({
+      remainingMinutes: -5,
+      remainingQuestions: 1,
+    });
+
+    expect(result).toContain("目安時間を超過しています");
+    expect(result).toContain("1問");
+  });
+
+  it("remainingMinutesが正の場合は残り時間と残り質問数を含む", () => {
+    const result = buildTimeManagementGuidance({
+      remainingMinutes: 10,
+      remainingQuestions: 3,
+    });
+
+    expect(result).toContain("残り目安時間");
+    expect(result).toContain("10分");
+    expect(result).toContain("3問");
   });
 });

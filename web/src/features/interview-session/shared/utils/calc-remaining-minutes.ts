@@ -11,7 +11,7 @@ export function calcRemainingMinutes(
   sessionStartedAt: string,
   now?: Date
 ): number | null {
-  if (!estimatedDuration) return null;
+  if (estimatedDuration == null) return null;
   const elapsed =
     ((now ?? new Date()).getTime() - new Date(sessionStartedAt).getTime()) /
     60000;
