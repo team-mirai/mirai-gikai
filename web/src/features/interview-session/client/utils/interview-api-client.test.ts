@@ -19,7 +19,10 @@ describe("callCompleteApi", () => {
       })
     );
 
-    const result = await callCompleteApi({ sessionId: "session-1" });
+    const result = await callCompleteApi({
+      sessionId: "session-1",
+      isPublic: true,
+    });
 
     expect(result).toEqual({ report: { id: "report-123" } });
   });
@@ -31,9 +34,9 @@ describe("callCompleteApi", () => {
       })
     );
 
-    await expect(callCompleteApi({ sessionId: "invalid" })).rejects.toThrow(
-      "Session not found"
-    );
+    await expect(
+      callCompleteApi({ sessionId: "invalid", isPublic: false })
+    ).rejects.toThrow("Session not found");
   });
 
   it('エラーレスポンスでjsonパースエラー: "Failed to complete interview"でError throw', async () => {
@@ -44,9 +47,9 @@ describe("callCompleteApi", () => {
       })
     );
 
-    await expect(callCompleteApi({ sessionId: "session-1" })).rejects.toThrow(
-      "Failed to complete interview"
-    );
+    await expect(
+      callCompleteApi({ sessionId: "session-1", isPublic: true })
+    ).rejects.toThrow("Failed to complete interview");
   });
 
   it("POSTメソッドで正しいbodyが送信される", async () => {
@@ -54,12 +57,12 @@ describe("callCompleteApi", () => {
       new Response(JSON.stringify({ report: { id: "r-1" } }), { status: 200 })
     );
 
-    await callCompleteApi({ sessionId: "session-42" });
+    await callCompleteApi({ sessionId: "session-42", isPublic: false });
 
     expect(globalThis.fetch).toHaveBeenCalledWith("/api/interview/complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: "session-42" }),
+      body: JSON.stringify({ sessionId: "session-42", isPublic: false }),
     });
   });
 });
