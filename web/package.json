@@ -67,6 +67,7 @@
     "@next/third-parties": "^15.5.5",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.16",
+    "@testing-library/react": "^16.3.2",
     "@types/hast": "^3.0.4",
     "@types/node": "^20",
     "@types/react": "^19",
