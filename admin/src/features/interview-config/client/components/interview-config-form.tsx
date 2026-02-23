@@ -61,6 +61,7 @@ interface InterviewConfigFormProps {
         mode: string;
         themes: string[];
         chat_model: string | null;
+        estimated_duration: number | null;
       })
     | null
   >;
@@ -87,6 +88,7 @@ export function InterviewConfigForm({
       themes: config?.themes || [],
       knowledge_source: config?.knowledge_source || "",
       chat_model: config?.chat_model || null,
+      estimated_duration: config?.estimated_duration ?? null,
     },
   });
 
@@ -101,6 +103,7 @@ export function InterviewConfigForm({
           mode: values.mode,
           themes: values.themes || [],
           chat_model: values.chat_model || null,
+          estimated_duration: values.estimated_duration ?? null,
         };
       };
     }
@@ -326,6 +329,35 @@ export function InterviewConfigForm({
                     </Select>
                     <FormDescription>
                       インタビュー対話に使用するAIモデルを選択します。コストは1インタビューあたりの推定値です。
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="estimated_duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>目安時間（分）</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="例: 15"
+                        min={1}
+                        max={180}
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          field.onChange(
+                            val === "" ? null : Number.parseInt(val, 10)
+                          );
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      設定するとインタビュー中に残り時間が表示されます。未設定の場合は時間制限なしです。
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

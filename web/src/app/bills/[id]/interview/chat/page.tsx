@@ -47,6 +47,8 @@ export default async function InterviewChatPage({
         initialMessages={messages}
         mode={interviewConfig.mode}
         totalQuestions={questions.length}
+        estimatedDuration={interviewConfig.estimated_duration}
+        sessionStartedAt={session.started_at}
       />
     );
   } catch (error) {

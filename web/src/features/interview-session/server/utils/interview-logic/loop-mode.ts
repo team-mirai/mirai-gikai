@@ -1,6 +1,9 @@
 import "server-only";
 
-import { buildLoopModeStageGuidance } from "@/features/interview-session/shared/utils/stage-transition-guidance";
+import {
+  buildLoopModeStageGuidance,
+  buildTimeManagementGuidance,
+} from "@/features/interview-session/shared/utils/stage-transition-guidance";
 import type {
   InterviewModeLogic,
   InterviewPromptParams,
@@ -22,8 +25,14 @@ import type {
  */
 export const loopModeLogic: InterviewModeLogic = {
   buildSystemPrompt(params: InterviewPromptParams): string {
-    const { bill, interviewConfig, questions, currentStage, askedQuestionIds } =
-      params;
+    const {
+      bill,
+      interviewConfig,
+      questions,
+      currentStage,
+      askedQuestionIds,
+      remainingMinutes,
+    } = params;
 
     const billName = bill?.name || "";
     const billTitle = bill?.bill_content?.title || "";
@@ -45,6 +54,15 @@ export const loopModeLogic: InterviewModeLogic = {
       currentStage,
       questions,
       askedQuestionIds,
+    });
+
+    // タイムマネジメントガイダンスを構築
+    const remainingQuestionsCount =
+      questions.length -
+      questions.filter((q) => askedQuestionIds.has(q.id)).length;
+    const timeManagementGuidance = buildTimeManagementGuidance({
+      remainingMinutes,
+      remainingQuestions: remainingQuestionsCount,
     });
 
     const modeInstructions = `
@@ -112,6 +130,8 @@ ${modeInstructions}
 - 深掘り質問など、事前定義質問以外の質問をする場合は \`topic_title\` を含めないでください
 
 ${stageTransitionGuidance}
+
+${timeManagementGuidance}
 
 ## 注意事項
 - 丁寧で親しみやすい口調で話してください

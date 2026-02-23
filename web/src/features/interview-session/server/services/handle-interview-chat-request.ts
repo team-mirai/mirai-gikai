@@ -110,6 +110,17 @@ export async function handleInterviewChatRequest({
     questions,
   });
 
+  // 残り目安時間を計算（estimated_durationが設定されている場合のみ）
+  const remainingMinutes = interviewConfig.estimated_duration
+    ? Math.max(
+        0,
+        Math.ceil(
+          interviewConfig.estimated_duration -
+            (Date.now() - new Date(session.started_at).getTime()) / 60000
+        )
+      )
+    : null;
+
   // システムプロンプトを構築（ステージ遷移ガイダンスを含む）
   const systemPrompt = isSummaryPhase
     ? buildSummarySystemPrompt({ bill, interviewConfig, messages })
@@ -120,6 +131,7 @@ export async function handleInterviewChatRequest({
         nextQuestionId: effectiveNextQuestionId,
         currentStage,
         askedQuestionIds,
+        remainingMinutes,
       });
 
   logger.debug("System Prompt:", systemPrompt);

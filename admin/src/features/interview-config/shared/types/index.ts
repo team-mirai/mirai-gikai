@@ -34,6 +34,13 @@ export const interviewConfigSchema = z.object({
     .refine((val) => !val || isValidChatModel(val), {
       message: "無効なAIモデルが指定されています",
     }),
+  estimated_duration: z
+    .number()
+    .int("整数で入力してください")
+    .min(1, "1分以上で設定してください")
+    .max(180, "180分以内で設定してください")
+    .nullable()
+    .optional(),
 });
 
 export const interviewQuestionSchema = z.object({

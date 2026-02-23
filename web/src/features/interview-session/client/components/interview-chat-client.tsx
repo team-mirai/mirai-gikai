@@ -1,18 +1,21 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Conversation,
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { useInterviewChat } from "../hooks/use-interview-chat";
+import { useInterviewTimer } from "../hooks/use-interview-timer";
 import { calcInterviewProgress } from "../utils/calc-interview-progress";
 import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
 import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewSummaryInput } from "./interview-summary-input";
+import { InterviewTimer } from "./interview-timer";
 import { QuickReplyButtons } from "./quick-reply-buttons";
+import { TimeUpPrompt } from "./time-up-prompt";
 
 interface InterviewChatClientProps {
   billId: string;
@@ -25,6 +28,8 @@ interface InterviewChatClientProps {
   }>;
   mode?: "loop" | "bulk";
   totalQuestions?: number;
+  estimatedDuration?: number | null;
+  sessionStartedAt?: string;
 }
 
 export function InterviewChatClient({
@@ -33,6 +38,8 @@ export function InterviewChatClient({
   initialMessages,
   mode,
   totalQuestions,
+  estimatedDuration,
+  sessionStartedAt,
 }: InterviewChatClientProps) {
   const {
     input,
@@ -53,15 +60,35 @@ export function InterviewChatClient({
     initialMessages,
   });
 
+  const { remainingMinutes, isTimeUp } = useInterviewTimer({
+    estimatedDuration,
+    sessionStartedAt,
+  });
+
+  const [timeUpDismissed, setTimeUpDismissed] = useState(false);
+
   const progress = useMemo(
     () => calcInterviewProgress(totalQuestions, stage, messages),
     [messages, totalQuestions, stage]
   );
 
   const showProgressBar = mode === "loop" && progress !== null;
+  const showTimer = remainingMinutes !== null && stage === "chat";
+  const showTimeUpPrompt =
+    isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
 
   const handleSkipTopic = () => {
     handleSubmit({ text: "次のテーマに進みたいです" });
+  };
+
+  const handleEndInterview = () => {
+    handleSubmit({
+      text: "目安時間になりました。レポート作成に進みたいです。",
+    });
+  };
+
+  const handleContinueInterview = () => {
+    setTimeUpDismissed(true);
   };
 
   // ストリーミング中のメッセージがすでに会話履歴に追加されているかどうか
@@ -74,15 +101,24 @@ export function InterviewChatClient({
 
   return (
     <div className="flex flex-col h-dvh md:h-[calc(100dvh-96px)] pt-24 md:pt-4 bg-white">
-      {showProgressBar && progress && (
+      {(showProgressBar || showTimer) && (
         <div className="px-4 pb-1 pt-2">
-          <InterviewProgressBar
-            percentage={progress.percentage}
-            currentTopic={progress.currentTopic}
-            showSkip={progress.showSkip}
-            onSkip={handleSkipTopic}
-            disabled={isLoading}
-          />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              {showProgressBar && progress && (
+                <InterviewProgressBar
+                  percentage={progress.percentage}
+                  currentTopic={progress.currentTopic}
+                  showSkip={progress.showSkip}
+                  onSkip={handleSkipTopic}
+                  disabled={isLoading}
+                />
+              )}
+            </div>
+            {showTimer && (
+              <InterviewTimer remainingMinutes={remainingMinutes} />
+            )}
+          </div>
         </div>
       )}
       <Conversation className="flex-1 overflow-y-auto">
@@ -150,6 +186,15 @@ export function InterviewChatClient({
           )}
         </ConversationContent>
       </Conversation>
+
+      {/* 時間超過プロンプト */}
+      {showTimeUpPrompt && (
+        <TimeUpPrompt
+          onEndInterview={handleEndInterview}
+          onContinue={handleContinueInterview}
+          disabled={isLoading}
+        />
+      )}
 
       {/* 入力エリア */}
       <div className="px-6 pb-4 pt-2">
