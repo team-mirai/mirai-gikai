@@ -1,4 +1,7 @@
 import { notFound } from "next/navigation";
+
+export const dynamic = "force-dynamic";
+
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";

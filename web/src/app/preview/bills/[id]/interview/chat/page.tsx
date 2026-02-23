@@ -1,5 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";

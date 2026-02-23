@@ -34,9 +34,6 @@ export function RestartInterviewButton({
         // アーカイブ成功後、チャットページに遷移（新しいセッションが作成される）
         // 遷移完了までローディングを維持するため、成功時は setIsLoading(false) を呼ばない
         const chatLink = getInterviewChatLink(billId, previewToken);
-        // router.refresh() でServer Componentのキャッシュを破棄し、
-        // 新しいセッションのデータ（started_at等）を確実に取得する
-        router.refresh();
         router.push(chatLink);
       } else {
         console.error("Failed to archive session:", result.error);
