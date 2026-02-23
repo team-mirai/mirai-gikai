@@ -14,17 +14,10 @@ interface InterviewTimerProps {
  * - 残り0分で超過表示
  */
 export function InterviewTimer({ remainingMinutes }: InterviewTimerProps) {
-  const isWarning = remainingMinutes <= 5 && remainingMinutes > 0;
   const isOver = remainingMinutes <= 0;
 
-  const textColor = isOver
-    ? "text-red-500"
-    : isWarning
-      ? "text-orange-500"
-      : "text-gray-500";
-
   return (
-    <div className={`flex items-center gap-1 text-sm ${textColor}`}>
+    <div className="flex items-center gap-1 text-sm text-gray-500">
       <Clock className="h-3.5 w-3.5" />
       {isOver ? (
         <span>目安時間超過</span>
