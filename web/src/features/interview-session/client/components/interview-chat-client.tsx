@@ -13,7 +13,6 @@ import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
 import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewSummaryInput } from "./interview-summary-input";
-import { InterviewTimer } from "./interview-timer";
 import { QuickReplyButtons } from "./quick-reply-buttons";
 import { TimeUpPrompt } from "./time-up-prompt";
 
@@ -73,8 +72,10 @@ export function InterviewChatClient({
   );
 
   const showProgressBar = mode === "loop" && progress !== null;
-  const showTimer =
-    remainingMinutes !== null && stage === "chat" && !timeUpDismissed;
+  const timerMinutes =
+    remainingMinutes !== null && stage === "chat" && !timeUpDismissed
+      ? remainingMinutes
+      : null;
   const showTimeUpPrompt =
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
 
@@ -103,24 +104,16 @@ export function InterviewChatClient({
 
   return (
     <div className="flex flex-col h-dvh md:h-[calc(100dvh-96px)] pt-24 md:pt-4 bg-white">
-      {(showProgressBar || showTimer) && (
+      {showProgressBar && progress && (
         <div className="px-4 pb-1 pt-2">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              {showProgressBar && progress && (
-                <InterviewProgressBar
-                  percentage={progress.percentage}
-                  currentTopic={progress.currentTopic}
-                  showSkip={progress.showSkip}
-                  onSkip={handleSkipTopic}
-                  disabled={isLoading}
-                />
-              )}
-            </div>
-            {showTimer && (
-              <InterviewTimer remainingMinutes={remainingMinutes} />
-            )}
-          </div>
+          <InterviewProgressBar
+            percentage={progress.percentage}
+            currentTopic={progress.currentTopic}
+            showSkip={progress.showSkip}
+            onSkip={handleSkipTopic}
+            disabled={isLoading}
+            remainingMinutes={timerMinutes}
+          />
         </div>
       )}
       <Conversation className="flex-1 overflow-y-auto">
