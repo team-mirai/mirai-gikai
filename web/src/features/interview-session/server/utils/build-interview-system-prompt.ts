@@ -23,6 +23,7 @@ export function buildInterviewSystemPrompt({
   nextQuestionId,
   currentStage,
   askedQuestionIds,
+  remainingMinutes,
 }: {
   bill: BillWithContent | null;
   interviewConfig: Awaited<ReturnType<typeof getInterviewConfig>>;
@@ -30,6 +31,7 @@ export function buildInterviewSystemPrompt({
   nextQuestionId?: string;
   currentStage: "chat" | "summary" | "summary_complete";
   askedQuestionIds: Set<string>;
+  remainingMinutes?: number | null;
 }): string {
   // DBの設定からモードを取得
   const mode = interviewConfig?.mode ?? "loop";
@@ -42,6 +44,7 @@ export function buildInterviewSystemPrompt({
     nextQuestionId,
     currentStage,
     askedQuestionIds,
+    remainingMinutes,
   });
 }
 

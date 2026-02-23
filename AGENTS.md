@@ -90,6 +90,7 @@ Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-l
 - ファイル名は `bill-contents-data.ts` のようにローワーハイフンで表記し、スタイルは Tailwind ユーティリティを先に検討します。
 - **アイコン**: インラインSVGは禁止です。必ず `lucide-react` からアイコンコンポーネントをインポートして使用してください。
 - **ボタン**: `<button>` タグの使用は禁止です。必ず `@/components/ui/button` の `Button` コンポーネントを使用してください。
+- **色**: 新しい色（Tailwindクラスやカスタムカラーコード）を使う前に、既存コードで同じ色が使用されているかを確認してください。プロジェクト内で未使用の色を勝手に導入しないこと。
 
 ## Testing Guidelines
 - Vitest の単体テストを `*.test.ts` として実装と同階層に配置し、AI コスト計算や Markdown 処理などデータ変換の変更時は必ず回帰テストを追加します。

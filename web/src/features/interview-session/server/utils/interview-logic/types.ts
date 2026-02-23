@@ -14,6 +14,8 @@ export interface InterviewPromptParams {
   nextQuestionId?: string;
   currentStage: "chat" | "summary" | "summary_complete";
   askedQuestionIds: Set<string>;
+  /** 残り目安時間（分）。タイムマネジメント不要の場合はnull */
+  remainingMinutes?: number | null;
 }
 
 /**

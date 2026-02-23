@@ -100,6 +100,7 @@ export async function createInterviewConfigRecord(params: {
   themes: string[] | null;
   knowledge_source: string | null;
   chat_model: string | null;
+  estimated_duration: number | null;
 }): Promise<{ id: string }> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -124,6 +125,7 @@ export async function updateInterviewConfigRecord(
     themes: string[] | null;
     knowledge_source: string | null;
     chat_model: string | null;
+    estimated_duration: number | null;
     updated_at: string;
   }
 ): Promise<{ id: string }> {

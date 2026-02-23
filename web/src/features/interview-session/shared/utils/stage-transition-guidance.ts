@@ -11,6 +11,40 @@ interface StageTransitionParams {
   askedQuestionIds: Set<string>;
 }
 
+interface TimeManagementParams {
+  remainingMinutes: number | null | undefined;
+  remainingQuestions: number;
+}
+
+/**
+ * タイムマネジメントガイダンスを構築する
+ *
+ * remainingMinutesがnull/undefinedの場合は空文字列を返す（時間制限なし）
+ */
+export function buildTimeManagementGuidance({
+  remainingMinutes,
+  remainingQuestions,
+}: TimeManagementParams): string {
+  if (remainingMinutes == null) return "";
+
+  const isTimeUp = remainingMinutes <= 0;
+
+  if (isTimeUp) {
+    return `## タイムマネジメント
+- **目安時間を超過しています**
+- 残り事前質問数: ${remainingQuestions}問
+- ユーザーがレポート作成に進みたいと言った場合は、速やかに next_stage を "summary" にしてください
+- ユーザーがインタビューを続けたい場合は、時間を気にせず通常通り深掘りしてください`;
+  }
+
+  return `## タイムマネジメント
+- 残り目安時間: 約${remainingMinutes}分
+- 残り事前質問数: ${remainingQuestions}問
+- 残り時間と残り質問数のバランスを意識してください
+- 残り時間が少なく質問が多い場合: 深掘りを控えめにし、次の質問に進むことを優先してください
+- 残り時間に余裕があり質問が少ない場合: より深い掘り下げが可能です`;
+}
+
 /**
  * 質問の進捗状況を計算する
  */
