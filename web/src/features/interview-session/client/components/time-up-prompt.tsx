@@ -17,8 +17,8 @@ export function TimeUpPrompt({
   disabled,
 }: TimeUpPromptProps) {
   return (
-    <div className="mx-4 rounded-lg border border-orange-200 bg-orange-50 p-4">
-      <p className="mb-3 text-sm font-medium text-orange-800">
+    <div className="mx-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+      <p className="mb-3 text-sm font-medium text-gray-700">
         目安時間が終了しました。レポート作成に進みますか？
       </p>
       <div className="flex gap-2">
