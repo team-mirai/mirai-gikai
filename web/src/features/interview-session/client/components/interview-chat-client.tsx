@@ -73,7 +73,8 @@ export function InterviewChatClient({
   );
 
   const showProgressBar = mode === "loop" && progress !== null;
-  const showTimer = remainingMinutes !== null && stage === "chat";
+  const showTimer =
+    remainingMinutes !== null && stage === "chat" && !timeUpDismissed;
   const showTimeUpPrompt =
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
 
@@ -82,6 +83,7 @@ export function InterviewChatClient({
   };
 
   const handleEndInterview = () => {
+    setTimeUpDismissed(true);
     handleSubmit({
       text: "目安時間になりました。レポート作成に進みたいです。",
     });
