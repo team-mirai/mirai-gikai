@@ -1,7 +1,7 @@
 "use client";
 
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   type InterviewStage,
@@ -44,6 +44,14 @@ export function useInterviewChat({
 
   // リトライロジック
   const retry = useInterviewRetry();
+
+  // chat→summary自動遷移用の保留リクエスト
+  // onFinish内で直接submit()を呼ぶと再入になるため、useEffectで遅延実行する
+  const [pendingSummaryRequest, setPendingSummaryRequest] = useState<{
+    messages: { role: string; content: string }[];
+    billId: string;
+    currentStage: InterviewStage;
+  } | null>(null);
 
   // useObjectフックを使用（streamObjectの結果を受け取る）
   const { object, submit, isLoading, error } = useObject({
@@ -93,24 +101,31 @@ export function useInterviewChat({
 
         setConversationMessages((prev) => [...prev, newAssistantMessage]);
 
-        // chat→summaryへの遷移時のみ、自動でサマリーリクエストを送信
+        // chat→summaryへの遷移時のみ、自動でサマリーリクエストを予約
         // （summaryステージ中にnext_stage="summary"が返る場合はループ防止のため送信しない）
         if (next_stage === "summary" && stageRef.current === "chat") {
           const allMessages = buildMessagesForApi(parsedInitialMessages, [
             ...conversationMessagesRef.current,
             newAssistantMessage,
           ]);
-          const requestParams = {
+          setPendingSummaryRequest({
             messages: allMessages,
             billId,
             currentStage: "summary" as InterviewStage,
-          };
-          retry.saveRequestParams(requestParams);
-          submit(requestParams);
+          });
         }
       }
     },
   });
+
+  // chat→summary自動遷移: onFinishで予約されたリクエストをuseEffectで送信
+  useEffect(() => {
+    if (pendingSummaryRequest) {
+      retry.saveRequestParams(pendingSummaryRequest);
+      submit(pendingSummaryRequest);
+      setPendingSummaryRequest(null);
+    }
+  }, [pendingSummaryRequest, retry.saveRequestParams, submit]);
 
   // ローディング状態
   const isChatLoading = isLoading;

@@ -235,7 +235,6 @@ async function generateStreamingResponse({
       });
       textStream = result.textStream;
     } else {
-      console.log("model used for chat:", model);
       const result = streamText({
         ...streamParams,
         output: Output.object({ schema: interviewChatTextSchema }),
@@ -244,16 +243,7 @@ async function generateStreamingResponse({
     }
 
     // LLMがnext_stageを直接出力するため、ストリームをそのまま返す
-    const encoder = new TextEncoder();
-    const encodedStream = textStream.pipeThrough(
-      new TransformStream<string, Uint8Array>({
-        transform(chunk, controller) {
-          controller.enqueue(encoder.encode(chunk));
-        },
-      })
-    );
-
-    return new Response(encodedStream, {
+    return new Response(textStream.pipeThrough(new TextEncoderStream()), {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (error) {

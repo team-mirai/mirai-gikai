@@ -1,5 +1,6 @@
 import "server-only";
 
+import { buildBulkModeStageGuidance } from "@/features/interview-session/shared/utils/stage-transition-guidance";
 import { collectAskedQuestionIds } from "../interview-logic";
 import type {
   InterviewModeLogic,
@@ -47,7 +48,7 @@ export const bulkModeLogic: InterviewModeLogic = {
       .join("\n");
 
     // 質問進捗情報を構築
-    const stageTransitionGuidance = buildStageTransitionGuidance({
+    const stageTransitionGuidance = buildBulkModeStageGuidance({
       currentStage,
       questions,
       askedQuestionIds,
@@ -165,60 +166,3 @@ ${stageTransitionGuidance}
     return nextUnasked?.id;
   },
 };
-
-/**
- * ステージ遷移判定のガイダンスを構築（Bulk Mode用）
- */
-function buildStageTransitionGuidance({
-  currentStage,
-  questions,
-  askedQuestionIds,
-}: {
-  currentStage: string;
-  questions: { id: string; question: string }[];
-  askedQuestionIds: Set<string>;
-}): string {
-  const totalQuestions = questions.length;
-  const completedQuestions = askedQuestionIds.size;
-  const remainingQuestions = totalQuestions - completedQuestions;
-
-  const completedQuestionsList = questions
-    .filter((q) => askedQuestionIds.has(q.id))
-    .map((q) => `  - [ID: ${q.id}] ${q.question}`)
-    .join("\n");
-
-  const remainingQuestionsList = questions
-    .filter((q) => !askedQuestionIds.has(q.id))
-    .map((q) => `  - [ID: ${q.id}] ${q.question}`)
-    .join("\n");
-
-  let stageGuidance = "";
-  if (currentStage === "chat") {
-    stageGuidance = `- 現在のステージ: **chat**（インタビュー中）
-- インタビューを継続する場合は next_stage を "chat" にしてください
-- 要約フェーズに移行すべきと判断した場合は next_stage を "summary" にしてください
-- **重要（一括回答優先モード専用ルール）**:
-  - 事前定義質問がまだ残っている場合は、必ず next_stage を "chat" にしてください
-  - 事前定義質問をすべて完了した後も、深掘りが十分でない場合は next_stage を "chat" にしてください
-  - 事前定義質問をすべて完了し、十分な深掘りを行った後に初めて "summary" への移行を検討してください
-  - ユーザーが終了を希望した場合も "summary" に移行してください`;
-  } else if (currentStage === "summary") {
-    stageGuidance = `- 現在のステージ: **summary**（要約フェーズ）
-- ユーザーがレポート内容に同意し、完了すべきと判断した場合は next_stage を "summary_complete" にしてください
-- まだ修正や追加の要約が必要な場合は next_stage を "summary" にしてください
-- ユーザーが明確にインタビューの再開や追加の質問への回答を希望した場合は next_stage を "chat" にしてください`;
-  } else {
-    stageGuidance = `- 現在のステージ: **summary_complete**（完了済み）
-- next_stage を "summary_complete" にしてください`;
-  }
-
-  return `## ステージ遷移判定（next_stageフィールド）
-レスポンスの \`next_stage\` フィールドで、インタビューのステージ遷移を判定してください。
-
-${stageGuidance}
-
-### 事前定義質問の進捗状況
-- **全体**: ${totalQuestions}問中${completedQuestions}問完了（残り${remainingQuestions}問）
-${completedQuestionsList ? `\n#### 完了した質問\n${completedQuestionsList}` : ""}
-${remainingQuestionsList ? `\n#### 未回答の質問\n${remainingQuestionsList}` : ""}`;
-}
