@@ -16,7 +16,13 @@ import {
   interviewChatTextSchema,
   interviewChatWithReportSchema,
 } from "@/features/interview-session/shared/schemas";
-import type { InterviewChatRequestParams } from "@/features/interview-session/shared/types";
+import type { BillWithContent } from "@/features/bills/shared/types";
+import type { InterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config-admin";
+import type {
+  InterviewChatRequestParams,
+  InterviewMessage,
+  InterviewSession,
+} from "@/features/interview-session/shared/types";
 import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { logger } from "@/lib/logger";
 import {
@@ -38,6 +44,14 @@ const modeLogicMap = {
 export type InterviewChatDeps = {
   chatModel?: LanguageModel;
   summaryModel?: LanguageModel;
+  /** テスト時に認証をバイパスするためのセッション取得関数 */
+  getSession?: (configId: string) => Promise<InterviewSession | null>;
+  /** テスト時に認証をバイパスするためのメッセージ取得関数 */
+  getMessages?: (sessionId: string) => Promise<InterviewMessage[]>;
+  /** テスト時にcookies依存をバイパスするための法案取得関数 */
+  getBill?: (billId: string) => Promise<BillWithContent | null>;
+  /** テスト時にnext/cache依存をバイパスするためのインタビュー設定取得関数 */
+  getInterviewConfig?: (billId: string) => Promise<InterviewConfig | null>;
 };
 
 /**
@@ -56,19 +70,23 @@ export async function handleInterviewChatRequest({
   // リクエスト単位のトレースID（同一リクエスト内のLLM呼び出しをまとめる）
   const traceId = crypto.randomUUID();
 
-  // インタビュー設定と法案情報を取得
+  // インタビュー設定と法案情報を取得（テスト時はdeps経由でNext.js依存をバイパス）
+  const getInterviewConfigFn =
+    deps?.getInterviewConfig ?? getInterviewConfigAdmin;
+  const getBillFn = deps?.getBill ?? getBillByIdAdmin;
   const [interviewConfig, bill] = await Promise.all([
-    getInterviewConfigAdmin(billId),
-    getBillByIdAdmin(billId),
+    getInterviewConfigFn(billId),
+    getBillFn(billId),
   ]);
 
   if (!interviewConfig) {
     throw new Error("Interview config not found");
   }
 
-  // セッション取得または作成
+  // セッション取得または作成（テスト時はdeps経由で認証をバイパス）
+  const getSessionFn = deps?.getSession ?? getInterviewSession;
   const session =
-    (await getInterviewSession(interviewConfig.id)) ??
+    (await getSessionFn(interviewConfig.id)) ??
     (await createInterviewSession({ interviewConfigId: interviewConfig.id }));
 
   // 最新のメッセージを取得
@@ -95,8 +113,9 @@ export async function handleInterviewChatRequest({
   const mode = interviewConfig.mode;
   const logic = modeLogicMap[mode] ?? bulkModeLogic;
 
-  // DBから最新を含む全メッセージを取得
-  const dbMessages = await getInterviewMessages(session.id);
+  // DBから最新を含む全メッセージを取得（テスト時はdeps経由で認証をバイパス）
+  const getMessagesFn = deps?.getMessages ?? getInterviewMessages;
+  const dbMessages = await getMessagesFn(session.id);
 
   // 既に聞いた質問IDを収集
   const askedQuestionIds = collectAskedQuestionIds(dbMessages);
