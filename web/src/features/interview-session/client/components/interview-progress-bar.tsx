@@ -30,7 +30,7 @@ export function InterviewProgressBar({
       {(currentTopic || showSkip || remainingMinutes != null) && (
         <div className="mt-3 flex items-center gap-2">
           {currentTopic ? (
-            <p className="min-w-0 truncate text-sm font-bold leading-[1.8] text-[#1F2937]">
+            <p className="min-w-0 flex-1 truncate text-sm font-bold leading-[1.8] text-[#1F2937]">
               {currentTopic}
             </p>
           ) : (
@@ -47,7 +47,7 @@ export function InterviewProgressBar({
             </Button>
           )}
           {remainingMinutes != null && (
-            <div className="ml-auto shrink-0">
+            <div className="shrink-0">
               <InterviewTimer remainingMinutes={remainingMinutes} />
             </div>
           )}
