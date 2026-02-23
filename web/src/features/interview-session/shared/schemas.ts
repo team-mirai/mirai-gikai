@@ -108,9 +108,14 @@ export const interviewChatTextSchema = z.object({
 export type InterviewChatText = z.infer<typeof interviewChatTextSchema>;
 
 // summaryフェーズ用スキーマ（LLM出力用 - next_stageを含む）
+// chat遷移時はreportを省略できるようoptionalにしている
 export const interviewChatWithReportSchema = z.object({
   text: z.string(),
-  report: interviewReportSchema,
+  report: interviewReportSchema
+    .optional()
+    .describe(
+      "インタビュー内容をまとめたレポート。next_stageがchatの場合は省略すること"
+    ),
   next_stage: interviewStageSchema.describe(
     "ステージ遷移判定。summary=レポート修正継続、summary_complete=レポート完了、chat=インタビュー再開"
   ),

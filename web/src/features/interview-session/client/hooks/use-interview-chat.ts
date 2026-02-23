@@ -134,8 +134,9 @@ export function useInterviewChat({
     isLoading: isChatLoading,
   });
 
-  // objectからreportを取得
-  const streamingReportData = convertPartialReport(object?.report);
+  // objectからreportを取得（chat遷移時はストリーミング中もレポート非表示）
+  const streamingReportData =
+    object?.next_stage === "chat" ? null : convertPartialReport(object?.report);
 
   // チャットAPI送信のヘルパー（リクエストパラメータを保存）
   const submitChatMessage = (
