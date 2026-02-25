@@ -99,6 +99,8 @@ export async function createInterviewConfigRecord(params: {
   mode: "loop" | "bulk";
   themes: string[] | null;
   knowledge_source: string | null;
+  voice_enabled?: boolean;
+  voice_instruction?: string | null;
 }): Promise<{ id: string }> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -122,6 +124,8 @@ export async function updateInterviewConfigRecord(
     mode: "loop" | "bulk";
     themes: string[] | null;
     knowledge_source: string | null;
+    voice_enabled?: boolean;
+    voice_instruction?: string | null;
     updated_at: string;
   }
 ): Promise<{ id: string }> {

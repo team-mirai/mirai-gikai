@@ -297,6 +297,8 @@ export type Database = {
           status: Database["public"]["Enums"]["interview_config_status_enum"]
           themes: string[] | null
           updated_at: string
+          voice_enabled: boolean
+          voice_instruction: string | null
         }
         Insert: {
           bill_id: string
@@ -308,6 +310,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
+          voice_enabled?: boolean
+          voice_instruction?: string | null
         }
         Update: {
           bill_id?: string
@@ -319,6 +323,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
+          voice_enabled?: boolean
+          voice_instruction?: string | null
         }
         Relationships: [
           {
@@ -613,12 +619,12 @@ export type Database = {
     }
     Functions: {
       get_admin_users: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
-          id: string
-          email: string
           created_at: string
-          last_sign_in_at: string | null
+          email: string
+          id: string
+          last_sign_in_at: string
         }[]
       }
       get_interview_message_counts: {

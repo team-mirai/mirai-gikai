@@ -47,6 +47,8 @@ export function InterviewConfigEditClient({
         knowledge_source: string;
         mode: string;
         themes: string[];
+        voice_enabled: boolean;
+        voice_instruction: string;
       })
     | null
   >(null);
@@ -70,6 +72,8 @@ export function InterviewConfigEditClient({
           mode: (formValues?.mode as "loop" | "bulk") || "loop",
           themes,
           knowledge_source: formValues?.knowledge_source || "",
+          voice_enabled: formValues?.voice_enabled ?? false,
+          voice_instruction: formValues?.voice_instruction || "",
         });
         if (result.success) {
           setConfigId(result.data.id);
@@ -97,6 +101,12 @@ export function InterviewConfigEditClient({
           knowledge_source:
             formValues?.knowledge_source ||
             initialConfig?.knowledge_source ||
+            "",
+          voice_enabled:
+            formValues?.voice_enabled ?? initialConfig?.voice_enabled ?? false,
+          voice_instruction:
+            formValues?.voice_instruction ||
+            initialConfig?.voice_instruction ||
             "",
         });
       }
