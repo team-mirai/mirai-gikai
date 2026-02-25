@@ -1,26 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DIFFICULTY_COOKIE_OPTIONS } from "../../shared/types/index";
+import {
+  setDifficultyLevelCore,
+  type CookieStore,
+} from "../services/set-difficulty-level-core";
 
-// vi.mock はファイル先頭にホイストされるため vi.hoisted() で変数を宣言
-const { mockSet } = vi.hoisted(() => ({
-  mockSet: vi.fn(),
-}));
-
-vi.mock("next/headers", () => ({
-  cookies: vi.fn().mockResolvedValue({
-    set: mockSet,
-  }),
-}));
-
-import { DIFFICULTY_COOKIE_OPTIONS } from "../../shared/types";
-import { setDifficultyLevel } from "./set-difficulty-level";
+function createMockCookieStore() {
+  const mockSet = vi.fn();
+  const store: CookieStore = { set: mockSet };
+  return { store, mockSet };
+}
 
 describe("setDifficultyLevel 統合テスト", () => {
+  let mockSet: ReturnType<typeof vi.fn>;
+  let deps: { getCookies: () => Promise<CookieStore> };
+
   beforeEach(() => {
-    mockSet.mockReset();
+    const mock = createMockCookieStore();
+    mockSet = mock.mockSet;
+    deps = { getCookies: async () => mock.store };
   });
 
   it("'normal' をCookieに保存する", async () => {
-    await setDifficultyLevel("normal");
+    await setDifficultyLevelCore("normal", deps);
 
     expect(mockSet).toHaveBeenCalledWith(
       "bill_difficulty_level",
@@ -30,7 +32,7 @@ describe("setDifficultyLevel 統合テスト", () => {
   });
 
   it("'hard' をCookieに保存する", async () => {
-    await setDifficultyLevel("hard");
+    await setDifficultyLevelCore("hard", deps);
 
     expect(mockSet).toHaveBeenCalledWith(
       "bill_difficulty_level",
@@ -40,7 +42,7 @@ describe("setDifficultyLevel 統合テスト", () => {
   });
 
   it("Cookie設定オプションにhttpOnly・path・maxAgeが含まれる", async () => {
-    await setDifficultyLevel("normal");
+    await setDifficultyLevelCore("normal", deps);
 
     const options = mockSet.mock.calls[0][2];
     expect(options.httpOnly).toBe(true);
