@@ -16,10 +16,19 @@ interface UseVoiceInterviewOptions {
 }
 
 /**
- * APIレスポンス（JSON文字列）からtextフィールドを抽出する。
+ * APIレスポンスやDBメッセージ（JSON文字列）からtextフィールドを抽出する。
  * パースに失敗した場合は元のテキストをそのまま返す。
  */
-function extractTextFromResponse(raw: string): {
+function extractText(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed.text ?? raw;
+  } catch {
+    return raw;
+  }
+}
+
+function extractTextAndStage(raw: string): {
   text: string;
   nextStage?: string;
 } {
@@ -34,17 +43,30 @@ function extractTextFromResponse(raw: string): {
   }
 }
 
+/**
+ * initialMessages の content をプレーンテキストに変換する。
+ * DB由来のメッセージはJSON文字列の場合があるため。
+ */
+function normalizeMessages(
+  msgs: VoiceInterviewMessage[]
+): VoiceInterviewMessage[] {
+  return msgs.map((m) => ({
+    ...m,
+    content: extractText(m.content),
+  }));
+}
+
 export function useVoiceInterview(options: UseVoiceInterviewOptions) {
   const { billId, speechRate, initialMessages = [] } = options;
+  const normalized = normalizeMessages(initialMessages);
 
   const [state, setState] = useState<VoiceState>("idle");
-  const [messages, setMessages] =
-    useState<VoiceInterviewMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<VoiceInterviewMessage[]>(normalized);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const stateRef = useRef<VoiceState>("idle");
-  const messagesRef = useRef<VoiceInterviewMessage[]>(initialMessages);
+  const messagesRef = useRef<VoiceInterviewMessage[]>(normalized);
   const currentStageRef = useRef<string>("chat");
 
   const speechRecognition = useSpeechRecognition();
@@ -92,16 +114,17 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
 
         const responseText = await response.text();
         const { text: spokenText, nextStage } =
-          extractTextFromResponse(responseText);
+          extractTextAndStage(responseText);
 
         // next_stageを追跡して次のリクエストに反映
         if (nextStage) {
           currentStageRef.current = nextStage;
         }
 
+        // contentはプレーンテキストで保存（JSON生テキストではなく）
         const assistantMessage: VoiceInterviewMessage = {
           role: "assistant",
-          content: responseText,
+          content: spokenText,
         };
         const finalMessages = [...messagesRef.current, assistantMessage];
         messagesRef.current = finalMessages;
