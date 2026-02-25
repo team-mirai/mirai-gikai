@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   adminClient,
   createTestUser,
@@ -7,29 +7,20 @@ import {
   cleanupTestBill,
   type TestUser,
 } from "@test-utils/utils";
+import type { GetUserFn } from "../utils/verify-session-ownership";
 import { getLatestInterviewSession } from "./get-latest-interview-session";
 
-// getChatSupabaseUser はNext.js cookies依存のため差し替える
-vi.mock("@/features/chat/server/utils/supabase-server", () => ({
-  getChatSupabaseUser: vi.fn(),
-  createChatSupabaseServerClient: vi.fn(),
-}));
-
-import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
-
-function mockAuthUser(userId: string) {
-  vi.mocked(getChatSupabaseUser).mockResolvedValue({
-    data: { user: { id: userId } as never },
+function createGetUser(userId: string): GetUserFn {
+  return async () => ({
+    data: { user: { id: userId } },
     error: null,
   });
 }
 
-function mockUnauthenticated() {
-  vi.mocked(getChatSupabaseUser).mockResolvedValue({
-    data: { user: null },
-    error: new Error("Not authenticated") as never,
-  });
-}
+const getUnauthenticatedUser: GetUserFn = async () => ({
+  data: { user: null },
+  error: new Error("Not authenticated"),
+});
 
 describe("getLatestInterviewSession 統合テスト", () => {
   let testUser: TestUser;
@@ -46,15 +37,14 @@ describe("getLatestInterviewSession 統合テスト", () => {
   });
 
   afterEach(async () => {
-    vi.resetAllMocks();
     await cleanupTestBill(billId);
     await cleanupTestUser(testUser.id);
   });
 
   it("進行中セッションを active として返す", async () => {
-    mockAuthUser(testUser.id);
-
-    const result = await getLatestInterviewSession(interviewConfigId);
+    const result = await getLatestInterviewSession(interviewConfigId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(result).not.toBeNull();
     expect(result?.id).toBe(sessionId);
@@ -63,14 +53,14 @@ describe("getLatestInterviewSession 統合テスト", () => {
   });
 
   it("完了済みセッションを completed として返す", async () => {
-    mockAuthUser(testUser.id);
-
     await adminClient
       .from("interview_sessions")
       .update({ completed_at: new Date().toISOString() })
       .eq("id", sessionId);
 
-    const result = await getLatestInterviewSession(interviewConfigId);
+    const result = await getLatestInterviewSession(interviewConfigId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(result).not.toBeNull();
     expect(result?.id).toBe(sessionId);
@@ -78,39 +68,36 @@ describe("getLatestInterviewSession 統合テスト", () => {
   });
 
   it("未認証の場合はnullを返す", async () => {
-    mockUnauthenticated();
-
-    const result = await getLatestInterviewSession(interviewConfigId);
+    const result = await getLatestInterviewSession(interviewConfigId, {
+      getUser: getUnauthenticatedUser,
+    });
 
     expect(result).toBeNull();
   });
 
   it("セッションが存在しない場合はnullを返す", async () => {
-    mockAuthUser(testUser.id);
-
     const result = await getLatestInterviewSession(
-      "00000000-0000-0000-0000-000000000000"
+      "00000000-0000-0000-0000-000000000000",
+      { getUser: createGetUser(testUser.id) }
     );
 
     expect(result).toBeNull();
   });
 
   it("アーカイブ済みセッションはnullを返す", async () => {
-    mockAuthUser(testUser.id);
-
     await adminClient
       .from("interview_sessions")
       .update({ archived_at: new Date().toISOString() })
       .eq("id", sessionId);
 
-    const result = await getLatestInterviewSession(interviewConfigId);
+    const result = await getLatestInterviewSession(interviewConfigId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(result).toBeNull();
   });
 
   it("複数セッションがある場合は最新を返す", async () => {
-    mockAuthUser(testUser.id);
-
     // 古いセッションをアーカイブして新しいセッションを作成
     await adminClient
       .from("interview_sessions")
@@ -127,7 +114,11 @@ describe("getLatestInterviewSession 統合テスト", () => {
       .select()
       .single();
 
-    const result = await getLatestInterviewSession(interviewConfigId);
+    expect(newSession).not.toBeNull();
+
+    const result = await getLatestInterviewSession(interviewConfigId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(result?.id).toBe(newSession?.id);
     expect(result?.status).toBe("active");

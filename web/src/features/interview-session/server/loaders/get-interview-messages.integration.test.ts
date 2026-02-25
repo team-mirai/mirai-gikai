@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   adminClient,
   createTestUser,
@@ -8,29 +8,20 @@ import {
   cleanupTestBill,
   type TestUser,
 } from "@test-utils/utils";
+import type { GetUserFn } from "../utils/verify-session-ownership";
 import { getInterviewMessages } from "./get-interview-messages";
 
-// getChatSupabaseUser はNext.js cookies依存のため差し替える
-vi.mock("@/features/chat/server/utils/supabase-server", () => ({
-  getChatSupabaseUser: vi.fn(),
-  createChatSupabaseServerClient: vi.fn(),
-}));
-
-import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
-
-function mockAuthUser(userId: string) {
-  vi.mocked(getChatSupabaseUser).mockResolvedValue({
-    data: { user: { id: userId } as never },
+function createGetUser(userId: string): GetUserFn {
+  return async () => ({
+    data: { user: { id: userId } },
     error: null,
   });
 }
 
-function mockUnauthenticated() {
-  vi.mocked(getChatSupabaseUser).mockResolvedValue({
-    data: { user: null },
-    error: new Error("Not authenticated") as never,
-  });
-}
+const getUnauthenticatedUser: GetUserFn = async () => ({
+  data: { user: null },
+  error: new Error("Not authenticated"),
+});
 
 describe("getInterviewMessages 統合テスト", () => {
   let testUser: TestUser;
@@ -45,53 +36,55 @@ describe("getInterviewMessages 統合テスト", () => {
   });
 
   afterEach(async () => {
-    vi.resetAllMocks();
     await cleanupTestBill(billId);
     await cleanupTestUser(testUser.id);
   });
 
   it("セッション所有者はメッセージ一覧を取得できる", async () => {
-    mockAuthUser(testUser.id);
     await createTestInterviewMessages(sessionId, 3);
 
-    const messages = await getInterviewMessages(sessionId);
+    const messages = await getInterviewMessages(sessionId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(messages).toHaveLength(3);
     expect(messages[0].interview_session_id).toBe(sessionId);
   });
 
   it("未認証の場合は空配列を返す", async () => {
-    mockUnauthenticated();
     await createTestInterviewMessages(sessionId, 2);
 
-    const messages = await getInterviewMessages(sessionId);
+    const messages = await getInterviewMessages(sessionId, {
+      getUser: getUnauthenticatedUser,
+    });
 
     expect(messages).toEqual([]);
   });
 
   it("セッションを所有していない別ユーザーは空配列を返す", async () => {
     const otherUser = await createTestUser();
-    mockAuthUser(otherUser.id);
-    await createTestInterviewMessages(sessionId, 2);
+    try {
+      await createTestInterviewMessages(sessionId, 2);
 
-    const messages = await getInterviewMessages(sessionId);
+      const messages = await getInterviewMessages(sessionId, {
+        getUser: createGetUser(otherUser.id),
+      });
 
-    expect(messages).toEqual([]);
-
-    await cleanupTestUser(otherUser.id);
+      expect(messages).toEqual([]);
+    } finally {
+      await cleanupTestUser(otherUser.id);
+    }
   });
 
   it("メッセージが存在しない場合は空配列を返す", async () => {
-    mockAuthUser(testUser.id);
-
-    const messages = await getInterviewMessages(sessionId);
+    const messages = await getInterviewMessages(sessionId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(messages).toEqual([]);
   });
 
   it("メッセージは作成順で返される", async () => {
-    mockAuthUser(testUser.id);
-
     await adminClient.from("interview_messages").insert([
       {
         interview_session_id: sessionId,
@@ -107,7 +100,9 @@ describe("getInterviewMessages 統合テスト", () => {
       },
     ]);
 
-    const messages = await getInterviewMessages(sessionId);
+    const messages = await getInterviewMessages(sessionId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(messages).toHaveLength(2);
     expect(messages[0].content).toBe("最初の質問");

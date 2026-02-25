@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   adminClient,
   createTestUser,
@@ -8,30 +8,25 @@ import {
   cleanupTestBill,
   type TestUser,
 } from "@test-utils/utils";
-
-// getChatSupabaseUser はNext.js cookies依存のため差し替える
-vi.mock("@/features/chat/server/utils/supabase-server", () => ({
-  getChatSupabaseUser: vi.fn(),
-  createChatSupabaseServerClient: vi.fn(),
-}));
-
-// generateInitialQuestion はLLM依存のため差し替える
-vi.mock(
-  "@/features/interview-session/server/services/generate-initial-question",
-  () => ({
-    generateInitialQuestion: vi.fn().mockResolvedValue(null),
-  })
-);
-
-import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+import { createGenerateMock } from "@/test-utils/mock-language-model";
+import type { GetUserFn } from "../utils/verify-session-ownership";
 import { initializeInterviewChat } from "./initialize-interview-chat";
 
-function mockAuthUser(userId: string) {
-  vi.mocked(getChatSupabaseUser).mockResolvedValue({
-    data: { user: { id: userId } as never },
+function createGetUser(userId: string): GetUserFn {
+  return async () => ({
+    data: { user: { id: userId } },
     error: null,
   });
 }
+
+// interviewChatTextSchema に準拠したモックレスポンス
+const validChatResponse = JSON.stringify({
+  text: "こんにちは！テストインタビューを始めましょう。最初の質問です。",
+  quick_replies: ["はい", "いいえ"],
+  question_id: null,
+  topic_title: null,
+  next_stage: "chat",
+});
 
 describe("initializeInterviewChat 統合テスト", () => {
   let testUser: TestUser;
@@ -48,18 +43,17 @@ describe("initializeInterviewChat 統合テスト", () => {
   });
 
   afterEach(async () => {
-    vi.resetAllMocks();
     await cleanupTestBill(billId);
     await cleanupTestUser(testUser.id);
   });
 
   it("既存セッションとメッセージをそのまま返す", async () => {
-    mockAuthUser(testUser.id);
-
     // メッセージを事前に作成してLLM呼び出しを回避する
     await createTestInterviewMessages(sessionId, 2);
 
-    const result = await initializeInterviewChat(billId, interviewConfigId);
+    const result = await initializeInterviewChat(billId, interviewConfigId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(result.session.id).toBe(sessionId);
     expect(result.session.interview_config_id).toBe(interviewConfigId);
@@ -68,7 +62,7 @@ describe("initializeInterviewChat 統合テスト", () => {
   });
 
   it("セッションが存在しない場合は新しいセッションを作成する", async () => {
-    mockAuthUser(testUser.id);
+    const mockModel = createGenerateMock(validChatResponse);
 
     // 既存セッションをアーカイブして「セッションなし」の状態にする
     await adminClient
@@ -76,13 +70,18 @@ describe("initializeInterviewChat 統合テスト", () => {
       .update({ archived_at: new Date().toISOString() })
       .eq("id", sessionId);
 
-    const result = await initializeInterviewChat(billId, interviewConfigId);
+    const result = await initializeInterviewChat(billId, interviewConfigId, {
+      getUser: createGetUser(testUser.id),
+      model: mockModel,
+    });
 
     // 新しいセッションが作成されていること
     expect(result.session.id).not.toBe(sessionId);
     expect(result.session.interview_config_id).toBe(interviewConfigId);
     expect(result.session.user_id).toBe(testUser.id);
-    // generateInitialQuestionがnullを返すためメッセージなし
-    expect(result.messages).toHaveLength(0);
+    // MockModelが生成した初期質問メッセージが含まれること
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].role).toBe("assistant");
+    expect(result.messages[0].content).toBe(validChatResponse);
   });
 });
