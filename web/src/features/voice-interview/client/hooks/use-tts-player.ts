@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AudioPlayer } from "../utils/audio-player";
 
 function parseRate(rate?: string): number {
@@ -70,6 +70,14 @@ export function useTtsPlayer() {
     return playerRef.current;
   }, []);
 
+  // Cleanup AudioContext on unmount
+  useEffect(() => {
+    return () => {
+      playerRef.current?.dispose();
+      playerRef.current = null;
+    };
+  }, []);
+
   const speak = useCallback(
     async (
       text: string,
@@ -105,17 +113,16 @@ export function useTtsPlayer() {
 
         options?.onStart?.();
 
-        await new Promise<void>((resolve) => {
+        await new Promise<void>((resolve, reject) => {
           player.setOnComplete(() => {
             resolve();
           });
-          player.play(audioData);
+          player.play(audioData).catch(reject);
         });
 
         options?.onEnd?.();
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
-          // Aborted intentionally, don't fallback
           throw err;
         }
 

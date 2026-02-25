@@ -4,20 +4,15 @@ import { AlertTriangle } from "lucide-react";
 import { useVoiceInterview } from "../hooks/use-voice-interview";
 import { VoiceControls } from "./voice-controls";
 import { VoiceStatusIndicator } from "./voice-status-indicator";
-import type { VoiceInterviewMessage } from "../../shared/types";
 
 interface VoiceInterviewClientProps {
   interviewSessionId: string;
-  systemPrompt: string;
   speechRate?: string;
-  onComplete?: (messages: VoiceInterviewMessage[]) => void;
 }
 
 export function VoiceInterviewClient({
   interviewSessionId,
-  systemPrompt,
   speechRate,
-  onComplete,
 }: VoiceInterviewClientProps) {
   const {
     state,
@@ -29,9 +24,7 @@ export function VoiceInterviewClient({
     isSupported,
   } = useVoiceInterview({
     interviewSessionId,
-    systemPrompt,
     speechRate,
-    onComplete,
   });
 
   if (!isSupported) {

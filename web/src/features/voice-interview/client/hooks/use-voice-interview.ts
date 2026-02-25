@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   voiceReducer,
   type VoiceState,
@@ -11,13 +11,11 @@ import { useTtsPlayer } from "./use-tts-player";
 
 interface UseVoiceInterviewOptions {
   interviewSessionId: string;
-  systemPrompt: string;
   speechRate?: string;
-  onComplete?: (messages: VoiceInterviewMessage[]) => void;
 }
 
 export function useVoiceInterview(options: UseVoiceInterviewOptions) {
-  const { interviewSessionId, systemPrompt, speechRate, onComplete } = options;
+  const { interviewSessionId, speechRate } = options;
 
   const [state, setState] = useState<VoiceState>("idle");
   const [messages, setMessages] = useState<VoiceInterviewMessage[]>([]);
@@ -26,7 +24,6 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
 
   const stateRef = useRef<VoiceState>("idle");
   const messagesRef = useRef<VoiceInterviewMessage[]>([]);
-  const transcriptRef = useRef("");
 
   const speechRecognition = useSpeechRecognition();
   const ttsPlayer = useTtsPlayer();
@@ -80,8 +77,6 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         messagesRef.current = finalMessages;
         setMessages(finalMessages);
 
-        dispatch({ type: "LLM_COMPLETE", text: responseText });
-
         try {
           await ttsPlayer.speak(responseText, {
             rate: speechRate,
@@ -125,24 +120,29 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
 
     if (newState !== "listening") return;
 
-    transcriptRef.current = "";
     setCurrentTranscript("");
 
     const started = speechRecognition.start(
       (text: string, isFinal: boolean) => {
         setCurrentTranscript(text);
-        transcriptRef.current = text;
 
         if (isFinal) {
-          dispatch({ type: "SPEECH_END" });
           speechRecognition.stop();
           setCurrentTranscript("");
           if (text.trim()) {
+            dispatch({ type: "SPEECH_END" });
             sendToLlm(text.trim());
           } else {
-            dispatch({ type: "TAP_MIC" });
+            dispatch({ type: "RESET" });
           }
         }
+      },
+      () => {
+        // onError callback from speech recognition
+        if (stateRef.current === "listening") {
+          dispatch({ type: "RESET" });
+        }
+        setCurrentTranscript("");
       }
     );
 
@@ -163,6 +163,13 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
       dispatch({ type: "TTS_END" });
     }
   }, [dispatch, ttsPlayer]);
+
+  // Cleanup TTS player on unmount
+  useEffect(() => {
+    return () => {
+      ttsPlayer.stop();
+    };
+  }, [ttsPlayer]);
 
   return {
     state,

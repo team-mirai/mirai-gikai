@@ -12,6 +12,7 @@ export type VoiceEvent =
   | { type: "LLM_COMPLETE"; text: string }
   | { type: "TTS_START" }
   | { type: "TTS_END" }
+  | { type: "RESET" }
   | { type: "ERROR"; error: string };
 
 export function voiceReducer(state: VoiceState, event: VoiceEvent): VoiceState {
@@ -25,12 +26,12 @@ export function voiceReducer(state: VoiceState, event: VoiceEvent): VoiceState {
       if (event.type === "SPEECH_RESULT") return "listening";
       if (event.type === "SPEECH_END") return "processing";
       if (event.type === "TAP_MIC") return "idle";
+      if (event.type === "RESET") return "idle";
       if (event.type === "ERROR") return "error";
       return state;
 
     case "processing":
       if (event.type === "TTS_START") return "speaking";
-      if (event.type === "LLM_COMPLETE") return "speaking";
       if (event.type === "ERROR") return "error";
       return state;
 

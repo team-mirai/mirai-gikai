@@ -35,16 +35,21 @@ export function useSpeechRecognition() {
   const onResultRef = useRef<((text: string, isFinal: boolean) => void) | null>(
     null
   );
+  const onErrorRef = useRef<(() => void) | null>(null);
 
   const isSupported =
     typeof window !== "undefined" && getSpeechRecognition() !== null;
 
   const start = useCallback(
-    (onResult: (text: string, isFinal: boolean) => void) => {
+    (
+      onResult: (text: string, isFinal: boolean) => void,
+      onError?: () => void
+    ) => {
       const SpeechRecognition = getSpeechRecognition();
       if (!SpeechRecognition) return false;
 
       onResultRef.current = onResult;
+      onErrorRef.current = onError ?? null;
       const recognition = new SpeechRecognition();
       recognition.lang = "ja-JP";
       recognition.continuous = false;
@@ -62,6 +67,7 @@ export function useSpeechRecognition() {
       recognition.onerror = (event) => {
         if (event.error !== "no-speech" && event.error !== "aborted") {
           console.error("[SpeechRecognition] error:", event.error);
+          onErrorRef.current?.();
         }
         setIsListening(false);
       };
@@ -83,6 +89,7 @@ export function useSpeechRecognition() {
     recognitionRef.current?.abort();
     recognitionRef.current = null;
     onResultRef.current = null;
+    onErrorRef.current = null;
     setIsListening(false);
     setTranscript("");
   }, []);

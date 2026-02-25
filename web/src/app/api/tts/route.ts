@@ -1,14 +1,39 @@
 import { synthesizeToBuffer } from "@/features/voice-interview/server/services/edge-tts-client";
 
+export const runtime = "nodejs";
+
+const MAX_TEXT_LENGTH = 2000;
+
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { text, rate }: { text?: string; rate?: string } = body;
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const { text, rate } = body as { text?: string; rate?: string };
 
   if (!text || typeof text !== "string") {
     return new Response(JSON.stringify({ error: "Missing text field" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  if (text.length > MAX_TEXT_LENGTH) {
+    return new Response(
+      JSON.stringify({
+        error: `Text exceeds max length of ${MAX_TEXT_LENGTH} characters`,
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const MAX_RETRIES = 2;

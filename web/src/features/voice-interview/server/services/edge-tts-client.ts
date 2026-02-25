@@ -63,9 +63,18 @@ function makeSpeechConfig(): string {
   ].join("\r\n");
 }
 
+const VALID_RATE_PATTERN = /^[+-]?\d{1,3}%$/;
+
+function sanitizeRate(rate?: string): string | undefined {
+  if (!rate) return undefined;
+  if (VALID_RATE_PATTERN.test(rate)) return rate;
+  return undefined;
+}
+
 function makeSsml(text: string, requestId: string, rate?: string): string {
-  const content = rate
-    ? `<prosody rate="${rate}">${escapeXml(text)}</prosody>`
+  const safeRate = sanitizeRate(rate);
+  const content = safeRate
+    ? `<prosody rate="${safeRate}">${escapeXml(text)}</prosody>`
     : escapeXml(text);
   const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="ja-JP"><voice name="${VOICE}">${content}</voice></speak>`;
 

@@ -26,6 +26,7 @@ describe("voiceReducer", () => {
         { type: "LLM_COMPLETE", text: "response" },
         { type: "TTS_START" },
         { type: "TTS_END" },
+        { type: "RESET" },
       ];
       for (const event of unrelatedEvents) {
         expect(voiceReducer(state, event)).toBe("idle");
@@ -48,6 +49,10 @@ describe("voiceReducer", () => {
 
     it("transitions to idle on TAP_MIC (cancel)", () => {
       expect(voiceReducer(state, { type: "TAP_MIC" })).toBe("idle");
+    });
+
+    it("transitions to idle on RESET (empty transcript)", () => {
+      expect(voiceReducer(state, { type: "RESET" })).toBe("idle");
     });
 
     it("transitions to error on ERROR", () => {
@@ -75,13 +80,10 @@ describe("voiceReducer", () => {
       expect(voiceReducer(state, { type: "TTS_START" })).toBe("speaking");
     });
 
-    it("transitions to speaking on LLM_COMPLETE", () => {
+    it("stays processing on LLM_COMPLETE (waits for TTS_START)", () => {
       expect(
-        voiceReducer(state, {
-          type: "LLM_COMPLETE",
-          text: "response",
-        })
-      ).toBe("speaking");
+        voiceReducer(state, { type: "LLM_COMPLETE", text: "response" })
+      ).toBe("processing");
     });
 
     it("transitions to error on ERROR", () => {
@@ -96,6 +98,7 @@ describe("voiceReducer", () => {
         { type: "SPEECH_RESULT", text: "hello" },
         { type: "SPEECH_END" },
         { type: "TTS_END" },
+        { type: "RESET" },
       ];
       for (const event of unrelatedEvents) {
         expect(voiceReducer(state, event)).toBe("processing");
@@ -126,6 +129,7 @@ describe("voiceReducer", () => {
         { type: "SPEECH_END" },
         { type: "LLM_COMPLETE", text: "response" },
         { type: "TTS_START" },
+        { type: "RESET" },
       ];
       for (const event of unrelatedEvents) {
         expect(voiceReducer(state, event)).toBe("speaking");
@@ -147,6 +151,7 @@ describe("voiceReducer", () => {
         { type: "LLM_COMPLETE", text: "response" },
         { type: "TTS_START" },
         { type: "TTS_END" },
+        { type: "RESET" },
         { type: "ERROR", error: "another error" },
       ];
       for (const event of otherEvents) {
@@ -162,10 +167,7 @@ describe("voiceReducer", () => {
       state = voiceReducer(state, { type: "TAP_MIC" });
       expect(state).toBe("listening");
 
-      state = voiceReducer(state, {
-        type: "SPEECH_RESULT",
-        text: "hello",
-      });
+      state = voiceReducer(state, { type: "SPEECH_RESULT", text: "hello" });
       expect(state).toBe("listening");
 
       state = voiceReducer(state, { type: "SPEECH_END" });
@@ -191,10 +193,7 @@ describe("voiceReducer", () => {
     it("handles error recovery", () => {
       let state: VoiceState = "processing";
 
-      state = voiceReducer(state, {
-        type: "ERROR",
-        error: "api error",
-      });
+      state = voiceReducer(state, { type: "ERROR", error: "api error" });
       expect(state).toBe("error");
 
       state = voiceReducer(state, { type: "TAP_MIC" });
@@ -206,6 +205,26 @@ describe("voiceReducer", () => {
 
       state = voiceReducer(state, { type: "TAP_MIC" });
       expect(state).toBe("idle");
+    });
+
+    it("handles empty transcript reset", () => {
+      let state: VoiceState = "listening";
+
+      state = voiceReducer(state, { type: "RESET" });
+      expect(state).toBe("idle");
+    });
+
+    it("stays in processing until TTS_START, not LLM_COMPLETE", () => {
+      let state: VoiceState = "processing";
+
+      state = voiceReducer(state, {
+        type: "LLM_COMPLETE",
+        text: "response",
+      });
+      expect(state).toBe("processing");
+
+      state = voiceReducer(state, { type: "TTS_START" });
+      expect(state).toBe("speaking");
     });
   });
 });

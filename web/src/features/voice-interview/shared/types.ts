@@ -9,8 +9,7 @@ export interface VoiceInterviewMessage {
 
 export interface VoiceInterviewProps {
   interviewSessionId: string;
-  systemPrompt: string;
-  onComplete?: (messages: VoiceInterviewMessage[]) => void;
+  speechRate?: string;
 }
 
 export interface SpeechRecognitionResult {
