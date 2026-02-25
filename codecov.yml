@@ -12,6 +12,8 @@ coverage:
         target: 80%
 
 ignore:
+  - "web/*.config.*"
+  - "web/vitest.*"
   - "web/src/components/ui/**"
   - "web/src/app/**/page.tsx"
   - "web/src/app/**/layout.tsx"
