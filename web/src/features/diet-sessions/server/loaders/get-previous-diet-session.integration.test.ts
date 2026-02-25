@@ -4,6 +4,9 @@ import {
   cleanupTestDietSession,
 } from "@test-utils/utils";
 
+// unstable_cache はモジュール初期化時に評価されるため、
+// setup の共通モック（vitest.integration.setup.ts）だけでは不十分。
+// テストファイル内で vi.mock → 動的インポートの順序を保証する必要がある。
 vi.mock("next/cache", () => ({
   unstable_cache: (fn: (...args: never[]) => unknown) => fn,
 }));
