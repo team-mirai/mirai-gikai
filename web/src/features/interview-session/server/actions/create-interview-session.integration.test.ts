@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   adminClient,
   createTestUser,
@@ -7,19 +7,20 @@ import {
   cleanupTestBill,
   type TestUser,
 } from "@test-utils/utils";
-import { createInterviewSession } from "./create-interview-session";
+import type { GetUserFn } from "../utils/verify-session-ownership";
+import { createInterviewSessionCore } from "../services/create-interview-session-core";
 
-// getChatSupabaseUser は next/headers に依存するためモック
-vi.mock("@/features/chat/server/utils/supabase-server", () => ({
-  getChatSupabaseUser: vi.fn(),
-}));
+function createGetUser(userId: string): GetUserFn {
+  return async () => ({
+    data: { user: { id: userId } },
+    error: null,
+  });
+}
 
-// next/headers のモック（server-only環境でのcookies()呼び出し回避）
-vi.mock("next/headers", () => ({
-  cookies: vi.fn(() => ({ getAll: () => [], setAll: () => {} })),
-}));
-
-import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+const getUnauthenticatedUser: GetUserFn = async () => ({
+  data: { user: null },
+  error: new Error("Not authenticated"),
+});
 
 describe("createInterviewSession 統合テスト", () => {
   let testUser: TestUser;
@@ -45,31 +46,17 @@ describe("createInterviewSession 統合テスト", () => {
       throw new Error(`interview_config 作成失敗: ${configError?.message}`);
     }
     configId = config.id;
-
-    // 認証済みユーザーとしてテストユーザーを返す
-    vi.mocked(getChatSupabaseUser).mockResolvedValue({
-      data: {
-        user: {
-          id: testUser.id,
-          app_metadata: {},
-          user_metadata: {},
-          aud: "authenticated",
-          created_at: new Date().toISOString(),
-        },
-      },
-      error: null,
-    } as Awaited<ReturnType<typeof getChatSupabaseUser>>);
   });
 
   afterEach(async () => {
     await cleanupTestBill(billId); // CASCADE で interview_configs, interview_sessions も削除
     await cleanupTestUser(testUser.id);
-    vi.resetAllMocks();
   });
 
   it("認証済みユーザーが新しいインタビューセッションを作成できる", async () => {
-    const session = await createInterviewSession({
+    const session = await createInterviewSessionCore({
       interviewConfigId: configId,
+      deps: { getUser: createGetUser(testUser.id) },
     });
 
     expect(session).toBeDefined();
@@ -92,13 +79,11 @@ describe("createInterviewSession 統合テスト", () => {
   });
 
   it("認証失敗時はエラーを throw する", async () => {
-    vi.mocked(getChatSupabaseUser).mockResolvedValue({
-      data: { user: null },
-      error: { message: "Not authenticated", name: "AuthError", status: 401 },
-    } as Awaited<ReturnType<typeof getChatSupabaseUser>>);
-
     await expect(
-      createInterviewSession({ interviewConfigId: configId })
+      createInterviewSessionCore({
+        interviewConfigId: configId,
+        deps: { getUser: getUnauthenticatedUser },
+      })
     ).rejects.toThrow("Failed to get user");
   });
 });

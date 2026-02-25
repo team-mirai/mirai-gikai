@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   adminClient,
   createTestUser,
@@ -7,19 +7,20 @@ import {
   cleanupTestBill,
   type TestUser,
 } from "@test-utils/utils";
-import { archiveInterviewSession } from "./archive-interview-session";
+import type { GetUserFn } from "../utils/verify-session-ownership";
+import { archiveInterviewSessionCore } from "../services/archive-interview-session-core";
 
-// getChatSupabaseUser は next/headers に依存するためモック
-vi.mock("@/features/chat/server/utils/supabase-server", () => ({
-  getChatSupabaseUser: vi.fn(),
-}));
+function createGetUser(userId: string): GetUserFn {
+  return async () => ({
+    data: { user: { id: userId } },
+    error: null,
+  });
+}
 
-// next/headers のモック
-vi.mock("next/headers", () => ({
-  cookies: vi.fn(() => ({ getAll: () => [], setAll: () => {} })),
-}));
-
-import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+const getUnauthenticatedUser: GetUserFn = async () => ({
+  data: { user: null },
+  error: new Error("Not authenticated"),
+});
 
 describe("archiveInterviewSession 統合テスト", () => {
   let testUser: TestUser;
@@ -31,30 +32,17 @@ describe("archiveInterviewSession 統合テスト", () => {
     const data = await createTestInterviewData(testUser.id);
     sessionId = data.session.id;
     billId = data.bill.id;
-
-    // 認証済みユーザーとしてテストユーザーを返す
-    vi.mocked(getChatSupabaseUser).mockResolvedValue({
-      data: {
-        user: {
-          id: testUser.id,
-          app_metadata: {},
-          user_metadata: {},
-          aud: "authenticated",
-          created_at: new Date().toISOString(),
-        },
-      },
-      error: null,
-    } as Awaited<ReturnType<typeof getChatSupabaseUser>>);
   });
 
   afterEach(async () => {
     await cleanupTestBill(billId);
     await cleanupTestUser(testUser.id);
-    vi.resetAllMocks();
   });
 
   it("セッションオーナーがアーカイブに成功する", async () => {
-    const result = await archiveInterviewSession(sessionId);
+    const result = await archiveInterviewSessionCore(sessionId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(result.success).toBe(true);
     expect(result.error).toBeUndefined();
@@ -70,12 +58,9 @@ describe("archiveInterviewSession 統合テスト", () => {
   });
 
   it("未認証ユーザーはアーカイブできない", async () => {
-    vi.mocked(getChatSupabaseUser).mockResolvedValue({
-      data: { user: null },
-      error: { message: "Not authenticated", name: "AuthError", status: 401 },
-    } as Awaited<ReturnType<typeof getChatSupabaseUser>>);
-
-    const result = await archiveInterviewSession(sessionId);
+    const result = await archiveInterviewSessionCore(sessionId, {
+      getUser: getUnauthenticatedUser,
+    });
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("認証が必要です");
@@ -91,44 +76,34 @@ describe("archiveInterviewSession 統合テスト", () => {
   });
 
   it("別ユーザーは他ユーザーのセッションをアーカイブできない", async () => {
-    // 別のテストユーザーを作成
     const anotherUser = await createTestUser();
+    try {
+      const result = await archiveInterviewSessionCore(sessionId, {
+        getUser: createGetUser(anotherUser.id),
+      });
 
-    // 別ユーザーとして認証
-    vi.mocked(getChatSupabaseUser).mockResolvedValue({
-      data: {
-        user: {
-          id: anotherUser.id,
-          app_metadata: {},
-          user_metadata: {},
-          aud: "authenticated",
-          created_at: new Date().toISOString(),
-        },
-      },
-      error: null,
-    } as Awaited<ReturnType<typeof getChatSupabaseUser>>);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("このセッションへのアクセス権限がありません");
 
-    const result = await archiveInterviewSession(sessionId);
+      // DB でセッションが変更されていないことを確認
+      const { data: dbSession } = await adminClient
+        .from("interview_sessions")
+        .select("archived_at")
+        .eq("id", sessionId)
+        .single();
 
-    expect(result.success).toBe(false);
-    expect(result.error).toBe("このセッションへのアクセス権限がありません");
-
-    // DB でセッションが変更されていないことを確認
-    const { data: dbSession } = await adminClient
-      .from("interview_sessions")
-      .select("archived_at")
-      .eq("id", sessionId)
-      .single();
-
-    expect(dbSession?.archived_at).toBeNull();
-
-    await cleanupTestUser(anotherUser.id);
+      expect(dbSession?.archived_at).toBeNull();
+    } finally {
+      await cleanupTestUser(anotherUser.id);
+    }
   });
 
   it("存在しないセッションIDではアーカイブできない", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
 
-    const result = await archiveInterviewSession(nonExistentId);
+    const result = await archiveInterviewSessionCore(nonExistentId, {
+      getUser: createGetUser(testUser.id),
+    });
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("セッションが見つかりません");
