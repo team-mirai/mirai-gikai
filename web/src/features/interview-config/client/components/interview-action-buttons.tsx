@@ -17,12 +17,14 @@ interface InterviewActionButtonsProps {
   billId: string;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  voiceEnabled?: boolean;
 }
 
 export function InterviewActionButtons({
   billId,
   sessionInfo,
   previewToken,
+  voiceEnabled,
 }: InterviewActionButtonsProps) {
   const [showConsentModal, setShowConsentModal] = useState(false);
   const isActive = sessionInfo?.status === "active";
@@ -99,6 +101,7 @@ export function InterviewActionButtons({
         onOpenChange={setShowConsentModal}
         billId={billId}
         previewToken={previewToken}
+        voiceEnabled={voiceEnabled}
       />
     </>
   );

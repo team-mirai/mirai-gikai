@@ -8,7 +8,7 @@ export interface VoiceInterviewMessage {
 }
 
 export interface VoiceInterviewProps {
-  interviewSessionId: string;
+  billId: string;
   speechRate?: string;
 }
 

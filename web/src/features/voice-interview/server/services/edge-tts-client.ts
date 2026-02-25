@@ -1,6 +1,6 @@
 "server-only";
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import WebSocket from "ws";
 
 const TRUSTED_CLIENT_TOKEN = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
@@ -159,6 +159,7 @@ export async function synthesizeToBuffer(
 
     ws.on(
       "unexpected-response",
+      // biome-ignore lint/complexity/noBannedTypes: IncomingMessage-like object from ws
       (_req: unknown, upRes: { statusCode?: number; on: Function }) => {
         let body = "";
         upRes.on("data", (chunk: Buffer) => {

@@ -58,11 +58,13 @@ function _InterviewLPHero({
   billId,
   sessionInfo,
   previewToken,
+  voiceEnabled,
 }: {
   bill: BillWithContent;
   billId: string;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  voiceEnabled?: boolean;
 }) {
   const billLink = getBillDetailLink(billId, previewToken);
 
@@ -111,6 +113,7 @@ function _InterviewLPHero({
           billId={billId}
           sessionInfo={sessionInfo}
           previewToken={previewToken}
+          voiceEnabled={voiceEnabled}
         />
       </div>
     </div>
@@ -235,10 +238,12 @@ function _InterviewFooterActions({
   billId,
   sessionInfo,
   previewToken,
+  voiceEnabled,
 }: {
   billId: string;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  voiceEnabled?: boolean;
 }) {
   const billLink = getBillDetailLink(billId, previewToken);
 
@@ -248,6 +253,7 @@ function _InterviewFooterActions({
         billId={billId}
         sessionInfo={sessionInfo}
         previewToken={previewToken}
+        voiceEnabled={voiceEnabled}
       />
       <Link href={billLink}>
         <Button variant="outline" className="w-full">
@@ -265,6 +271,8 @@ export function InterviewLPPage({
   sessionInfo,
   previewToken,
 }: InterviewLPPageProps) {
+  const voiceEnabled = interviewConfig.voice_enabled ?? false;
+
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
       <_InterviewLPHeader bill={bill} />
@@ -274,6 +282,7 @@ export function InterviewLPPage({
           billId={bill.id}
           sessionInfo={sessionInfo}
           previewToken={previewToken}
+          voiceEnabled={voiceEnabled}
         />
         <_InterviewOverviewSection
           billId={bill.id}
@@ -287,6 +296,7 @@ export function InterviewLPPage({
           billId={bill.id}
           sessionInfo={sessionInfo}
           previewToken={previewToken}
+          voiceEnabled={voiceEnabled}
         />
       </div>
     </div>

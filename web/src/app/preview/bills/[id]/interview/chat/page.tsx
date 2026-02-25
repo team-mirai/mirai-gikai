@@ -5,6 +5,7 @@ import { getInterviewConfigAdmin } from "@/features/interview-config/server/load
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
+import { VoiceInterviewClient } from "@/features/voice-interview/client/components/voice-interview-client";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 import { env } from "@/lib/env";
 
@@ -14,6 +15,7 @@ interface InterviewPreviewChatPageProps {
   }>;
   searchParams: Promise<{
     token?: string;
+    mode?: string;
   }>;
 }
 
@@ -46,7 +48,10 @@ export default async function InterviewPreviewChatPage({
   params,
   searchParams,
 }: InterviewPreviewChatPageProps) {
-  const [{ id: billId }, { token }] = await Promise.all([params, searchParams]);
+  const [{ id: billId }, { token, mode }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   // トークン検証
   const isValidToken = await validatePreviewToken(billId, token);
@@ -61,6 +66,8 @@ export default async function InterviewPreviewChatPage({
     notFound();
   }
 
+  const isVoiceMode = mode === "voice";
+
   // ループモードの場合のみ質問数を取得（プログレスバー用）
   const questions =
     interviewConfig.mode === "loop"
@@ -73,6 +80,23 @@ export default async function InterviewPreviewChatPage({
       billId,
       interviewConfig.id
     );
+
+    // 音声モードの場合は VoiceInterviewClient を表示
+    if (isVoiceMode && interviewConfig.voice_enabled) {
+      const initialVoiceMessages = messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      }));
+      return (
+        <>
+          <PreviewBanner />
+          <VoiceInterviewClient
+            billId={billId}
+            initialMessages={initialVoiceMessages}
+          />
+        </>
+      );
+    }
 
     return (
       <>

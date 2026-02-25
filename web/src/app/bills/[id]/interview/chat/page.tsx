@@ -4,18 +4,25 @@ import { getInterviewConfig } from "@/features/interview-config/server/loaders/g
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
+import { VoiceInterviewClient } from "@/features/voice-interview/client/components/voice-interview-client";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 
 interface InterviewChatPageProps {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{
+    mode?: string;
+  }>;
 }
 
 export default async function InterviewChatPage({
   params,
+  searchParams,
 }: InterviewChatPageProps) {
-  const { id: billId } = await params;
+  const [{ id: billId }, { mode }] = await Promise.all([params, searchParams]);
+
+  const isVoiceMode = mode === "voice";
 
   // 法案とインタビュー設定を取得
   const [bill, interviewConfig] = await Promise.all([
@@ -39,6 +46,20 @@ export default async function InterviewChatPage({
       billId,
       interviewConfig.id
     );
+
+    // 音声モードの場合は VoiceInterviewClient を表示
+    if (isVoiceMode && interviewConfig.voice_enabled) {
+      const initialVoiceMessages = messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      }));
+      return (
+        <VoiceInterviewClient
+          billId={billId}
+          initialMessages={initialVoiceMessages}
+        />
+      );
+    }
 
     return (
       <InterviewChatClient

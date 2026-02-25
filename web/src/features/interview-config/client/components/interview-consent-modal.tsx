@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MessageSquare, Mic } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Markdown from "react-markdown";
@@ -89,6 +89,7 @@ interface InterviewConsentModalProps {
   onOpenChange: (open: boolean) => void;
   billId: string;
   previewToken?: string;
+  voiceEnabled?: boolean;
 }
 
 export function InterviewConsentModal({
@@ -96,57 +97,126 @@ export function InterviewConsentModal({
   onOpenChange,
   billId,
   previewToken,
+  voiceEnabled = false,
 }: InterviewConsentModalProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showModeSelect, setShowModeSelect] = useState(false);
 
   const handleAgree = () => {
+    if (voiceEnabled) {
+      setShowModeSelect(true);
+    } else {
+      setIsLoading(true);
+      router.push(getInterviewChatLink(billId, previewToken));
+    }
+  };
+
+  const handleSelectMode = (mode?: "voice") => {
     setIsLoading(true);
-    const destination = getInterviewChatLink(billId, previewToken);
-    router.push(destination);
+    router.push(getInterviewChatLink(billId, previewToken, mode));
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setShowModeSelect(false);
+    }
+    onOpenChange(nextOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md p-6">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-primary text-center">
-            AIインタビュー同意事項
+            {showModeSelect ? "回答方法を選択" : "AIインタビュー同意事項"}
           </DialogTitle>
           <div className="h-[1px] bg-mirai-gradient mt-4" />
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
-          <p className="text-sm font-bold">
-            回答データは党内での政策検討に利用します。
-          </p>
-          <p className="text-sm font-bold leading-[22px]">
-            インタビュー内容はのちにみらい議会上に公開される場合があります。個人情報および機密情報の記載はお控えください。
-          </p>
-
-          <div className="border border-black rounded-lg p-4">
-            <ScrollArea className="h-[200px]">
-              <div className="text-gray-700 pr-4 prose prose-sm prose-gray max-w-none prose-headings:text-sm prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-0">
-                <Markdown>{TERMS_MARKDOWN}</Markdown>
+        {showModeSelect ? (
+          <div className="space-y-3 mt-4">
+            <p className="text-sm text-muted-foreground text-center">
+              インタビューの回答方法を選んでください
+            </p>
+            <Button
+              onClick={() => handleSelectMode()}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full h-16 flex items-center justify-center gap-3"
+            >
+              <MessageSquare className="size-5" />
+              <div className="text-left">
+                <div className="font-bold text-sm">テキストで回答する</div>
+                <div className="text-xs text-muted-foreground">
+                  チャット形式で入力します
+                </div>
               </div>
-            </ScrollArea>
+              <ArrowRight className="ml-auto size-4" />
+            </Button>
+            <Button
+              onClick={() => handleSelectMode("voice")}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full h-16 flex items-center justify-center gap-3"
+            >
+              <Mic className="size-5" />
+              <div className="text-left">
+                <div className="font-bold text-sm">音声で回答する</div>
+                <div className="text-xs text-muted-foreground">
+                  マイクで話して回答します（Chrome/Edge推奨）
+                </div>
+              </div>
+              <ArrowRight className="ml-auto size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setShowModeSelect(false)}
+              disabled={isLoading}
+              className="w-full text-sm"
+            >
+              戻る
+            </Button>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="space-y-4 mt-4">
+              <p className="text-sm font-bold">
+                回答データは党内での政策検討に利用します。
+              </p>
+              <p className="text-sm font-bold leading-[22px]">
+                インタビュー内容はのちにみらい議会上に公開される場合があります。個人情報および機密情報の記載はお控えください。
+              </p>
 
-        <div className="space-y-3 mt-6">
-          <Button onClick={handleAgree} disabled={isLoading} className="w-full">
-            {"同意してはじめる"}
-            {<ArrowRight className="ml-2 size-5" />}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-            className="w-full"
-          >
-            同意せずに戻る
-          </Button>
-        </div>
+              <div className="border border-black rounded-lg p-4">
+                <ScrollArea className="h-[200px]">
+                  <div className="text-gray-700 pr-4 prose prose-sm prose-gray max-w-none prose-headings:text-sm prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-0">
+                    <Markdown>{TERMS_MARKDOWN}</Markdown>
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+
+            <div className="space-y-3 mt-6">
+              <Button
+                onClick={handleAgree}
+                disabled={isLoading}
+                className="w-full"
+              >
+                {"同意してはじめる"}
+                {<ArrowRight className="ml-2 size-5" />}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+                className="w-full"
+              >
+                同意せずに戻る
+              </Button>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

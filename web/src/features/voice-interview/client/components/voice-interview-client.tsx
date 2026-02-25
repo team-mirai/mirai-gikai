@@ -6,13 +6,15 @@ import { VoiceControls } from "./voice-controls";
 import { VoiceStatusIndicator } from "./voice-status-indicator";
 
 interface VoiceInterviewClientProps {
-  interviewSessionId: string;
+  billId: string;
   speechRate?: string;
+  initialMessages?: Array<{ role: "user" | "assistant"; content: string }>;
 }
 
 export function VoiceInterviewClient({
-  interviewSessionId,
+  billId,
   speechRate,
+  initialMessages,
 }: VoiceInterviewClientProps) {
   const {
     state,
@@ -23,8 +25,9 @@ export function VoiceInterviewClient({
     errorMessage,
     isSupported,
   } = useVoiceInterview({
-    interviewSessionId,
+    billId,
     speechRate,
+    initialMessages,
   });
 
   if (!isSupported) {

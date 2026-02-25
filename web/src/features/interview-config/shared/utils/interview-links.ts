@@ -29,12 +29,19 @@ export function getInterviewLPLink(
  */
 export function getInterviewChatLink(
   billId: string,
-  previewToken?: string
+  previewToken?: string,
+  mode?: "voice"
 ): string {
+  const params = new URLSearchParams();
+  if (previewToken) params.set("token", previewToken);
+  if (mode) params.set("mode", mode);
+  const query = params.toString();
+  const suffix = query ? `?${query}` : "";
+
   if (previewToken) {
-    return `/preview/bills/${billId}/interview/chat?token=${previewToken}`;
+    return `/preview/bills/${billId}/interview/chat${suffix}`;
   }
-  return `/bills/${billId}/interview/chat`;
+  return `/bills/${billId}/interview/chat${suffix}`;
 }
 
 /**

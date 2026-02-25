@@ -10,20 +10,42 @@ import { useSpeechRecognition } from "./use-speech-recognition";
 import { useTtsPlayer } from "./use-tts-player";
 
 interface UseVoiceInterviewOptions {
-  interviewSessionId: string;
+  billId: string;
   speechRate?: string;
+  initialMessages?: VoiceInterviewMessage[];
+}
+
+/**
+ * APIレスポンス（JSON文字列）からtextフィールドを抽出する。
+ * パースに失敗した場合は元のテキストをそのまま返す。
+ */
+function extractTextFromResponse(raw: string): {
+  text: string;
+  nextStage?: string;
+} {
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      text: parsed.text ?? raw,
+      nextStage: parsed.next_stage,
+    };
+  } catch {
+    return { text: raw };
+  }
 }
 
 export function useVoiceInterview(options: UseVoiceInterviewOptions) {
-  const { interviewSessionId, speechRate } = options;
+  const { billId, speechRate, initialMessages = [] } = options;
 
   const [state, setState] = useState<VoiceState>("idle");
-  const [messages, setMessages] = useState<VoiceInterviewMessage[]>([]);
+  const [messages, setMessages] =
+    useState<VoiceInterviewMessage[]>(initialMessages);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const stateRef = useRef<VoiceState>("idle");
-  const messagesRef = useRef<VoiceInterviewMessage[]>([]);
+  const messagesRef = useRef<VoiceInterviewMessage[]>(initialMessages);
+  const currentStageRef = useRef<string>("chat");
 
   const speechRecognition = useSpeechRecognition();
   const ttsPlayer = useTtsPlayer();
@@ -57,8 +79,9 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
               role: m.role,
               content: m.content,
             })),
-            billId: interviewSessionId,
-            currentStage: "chat",
+            billId,
+            currentStage: currentStageRef.current,
+            voice: true,
           }),
         });
 
@@ -68,6 +91,13 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         }
 
         const responseText = await response.text();
+        const { text: spokenText, nextStage } =
+          extractTextFromResponse(responseText);
+
+        // next_stageを追跡して次のリクエストに反映
+        if (nextStage) {
+          currentStageRef.current = nextStage;
+        }
 
         const assistantMessage: VoiceInterviewMessage = {
           role: "assistant",
@@ -78,7 +108,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         setMessages(finalMessages);
 
         try {
-          await ttsPlayer.speak(responseText, {
+          await ttsPlayer.speak(spokenText, {
             rate: speechRate,
             onStart: () => {
               dispatch({ type: "TTS_START" });
@@ -101,7 +131,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         dispatch({ type: "ERROR", error: msg });
       }
     },
-    [interviewSessionId, dispatch, ttsPlayer, speechRate]
+    [billId, dispatch, ttsPlayer, speechRate]
   );
 
   const startListening = useCallback(() => {
