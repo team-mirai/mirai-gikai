@@ -88,7 +88,7 @@ export function InterviewConfigForm({
       themes: config?.themes || [],
       knowledge_source: config?.knowledge_source || "",
       chat_model: config?.chat_model || null,
-      estimated_duration: config?.estimated_duration ?? null,
+      estimated_duration: isNew ? 10 : (config?.estimated_duration ?? null),
     },
   });
 
