@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
+import { coverageExclude } from "./vitest.shared";
 
 export default defineConfig({
   esbuild: {
@@ -13,18 +14,8 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "json-summary"],
       reportsDirectory: "./coverage",
-      exclude: [
-        "src/components/ui/**",
-        "src/app/**/page.tsx",
-        "src/app/**/layout.tsx",
-        "src/app/**/loading.tsx",
-        "src/app/**/not-found.tsx",
-        "src/app/**/error.tsx",
-        "**/types.ts",
-        "**/types/index.ts",
-        "src/lib/telemetry/**",
-        "src/config/**",
-      ],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: coverageExclude,
     },
   },
   resolve: {
