@@ -2,12 +2,16 @@ import "server-only";
 
 import type { InterviewMessage } from "../../shared/types";
 import { findInterviewMessagesBySessionId } from "../repositories/interview-session-repository";
-import { verifySessionOwnership } from "../utils/verify-session-ownership";
+import {
+  verifySessionOwnership,
+  type LoaderDeps,
+} from "../utils/verify-session-ownership";
 
 export async function getInterviewMessages(
-  sessionId: string
+  sessionId: string,
+  deps?: LoaderDeps
 ): Promise<InterviewMessage[]> {
-  const ownershipResult = await verifySessionOwnership(sessionId);
+  const ownershipResult = await verifySessionOwnership(sessionId, deps);
 
   if (!ownershipResult.authorized) {
     console.error(

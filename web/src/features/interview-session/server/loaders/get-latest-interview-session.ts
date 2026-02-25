@@ -2,6 +2,7 @@ import "server-only";
 
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import { findLatestNonArchivedSession } from "../repositories/interview-session-repository";
+import type { LoaderDeps } from "../utils/verify-session-ownership";
 
 export type InterviewSessionStatus = "active" | "completed" | "none";
 
@@ -18,12 +19,14 @@ export interface LatestInterviewSession {
  * - なし（none）: セッションがない、またはすべてアーカイブ済み
  */
 export async function getLatestInterviewSession(
-  interviewConfigId: string
+  interviewConfigId: string,
+  deps?: LoaderDeps
 ): Promise<LatestInterviewSession | null> {
+  const getUser = deps?.getUser ?? getChatSupabaseUser;
   const {
     data: { user },
     error: getUserError,
-  } = await getChatSupabaseUser();
+  } = await getUser();
 
   if (getUserError || !user) {
     return null;

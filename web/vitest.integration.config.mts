@@ -18,6 +18,18 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "json-summary"],
       reportsDirectory: "./coverage-integration",
+      exclude: [
+        "src/components/ui/**",
+        "src/app/**/page.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/**/loading.tsx",
+        "src/app/**/not-found.tsx",
+        "src/app/**/error.tsx",
+        "**/types.ts",
+        "**/types/index.ts",
+        "src/lib/telemetry/**",
+        "src/config/**",
+      ],
     },
   },
   resolve: {
