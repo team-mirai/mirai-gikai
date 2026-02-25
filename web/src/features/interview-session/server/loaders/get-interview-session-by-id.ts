@@ -5,6 +5,7 @@ import { findInterviewSessionWithConfigById } from "../repositories/interview-se
 import {
   getAuthenticatedUser,
   isSessionOwner,
+  type LoaderDeps,
 } from "../utils/verify-session-ownership";
 
 export type InterviewSessionWithBillId = InterviewSession & {
@@ -16,9 +17,10 @@ export type InterviewSessionWithBillId = InterviewSession & {
  * 認可チェック: セッションの所有者のみがセッション情報を取得できる
  */
 export async function getInterviewSessionById(
-  sessionId: string
+  sessionId: string,
+  deps?: LoaderDeps
 ): Promise<InterviewSessionWithBillId | null> {
-  const authResult = await getAuthenticatedUser();
+  const authResult = await getAuthenticatedUser(deps);
 
   if (!authResult.authenticated) {
     console.error("Failed to get user:", authResult.error);
