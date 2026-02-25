@@ -19,19 +19,19 @@ export function TimeUpPrompt({
   return (
     <div className="mx-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
       <p className="mb-3 text-sm font-medium text-gray-700">
-        目安時間が終了しました。レポート作成に進みますか？
+        目安時間を超過しましたが、インタビューを続けてもよいですか？
       </p>
       <div className="flex gap-2">
-        <Button size="sm" onClick={onEndInterview} disabled={disabled}>
-          レポート作成に進む
+        <Button size="sm" onClick={onContinue} disabled={disabled}>
+          インタビューを続ける
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={onContinue}
+          onClick={onEndInterview}
           disabled={disabled}
         >
-          インタビューを続ける
+          終了してレポートを作成
         </Button>
       </div>
     </div>

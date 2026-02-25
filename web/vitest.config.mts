@@ -3,6 +3,10 @@ import path from "path";
 import { coverageExclude } from "./vitest.shared";
 
 export default defineConfig({
+  esbuild: {
+    jsx: "automatic",
+    jsxImportSource: "react",
+  },
   test: {
     globals: true,
     exclude: ["**/*.integration.test.ts", "**/node_modules/**"],

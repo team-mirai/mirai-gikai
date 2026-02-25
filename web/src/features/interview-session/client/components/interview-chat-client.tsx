@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -50,6 +50,7 @@ export function InterviewChatClient({
     object,
     streamingReportData,
     currentQuickReplies,
+    streamingQuickReplies,
     canRetry,
     handleSubmit,
     handleQuickReply,
@@ -78,6 +79,31 @@ export function InterviewChatClient({
       : null;
   const showTimeUpPrompt =
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
+
+  // チャット操作時にタイムアップアラートを自動非表示にする
+  const dismissTimeUpIfNeeded = useCallback(() => {
+    if (isTimeUp && !timeUpDismissed) {
+      setTimeUpDismissed(true);
+    }
+  }, [isTimeUp, timeUpDismissed]);
+
+  const handleChatSubmit = useCallback(
+    (params: { text?: string }) => {
+      if (params.text) {
+        dismissTimeUpIfNeeded();
+      }
+      handleSubmit(params);
+    },
+    [dismissTimeUpIfNeeded, handleSubmit]
+  );
+
+  const handleChatQuickReply = useCallback(
+    (text: string) => {
+      dismissTimeUpIfNeeded();
+      handleQuickReply(text);
+    },
+    [dismissTimeUpIfNeeded, handleQuickReply]
+  );
 
   const handleSkipTopic = () => {
     handleSubmit({ text: "次のテーマに進みたいです" });
@@ -172,12 +198,22 @@ export function InterviewChatClient({
           />
 
           {/* クイックリプライボタン */}
-          {!isLoading && stage === "chat" && currentQuickReplies.length > 0 && (
-            <QuickReplyButtons
-              replies={currentQuickReplies}
-              onSelect={handleQuickReply}
-              disabled={isLoading}
-            />
+          {stage === "chat" && (
+            <>
+              {!isLoading && currentQuickReplies.length > 0 && (
+                <QuickReplyButtons
+                  replies={currentQuickReplies}
+                  onSelect={handleChatQuickReply}
+                />
+              )}
+              {isLoading && streamingQuickReplies.length > 0 && (
+                <QuickReplyButtons
+                  replies={streamingQuickReplies}
+                  onSelect={handleChatQuickReply}
+                  disabled
+                />
+              )}
+            </>
           )}
         </ConversationContent>
       </Conversation>
@@ -208,7 +244,7 @@ export function InterviewChatClient({
           <InterviewChatInput
             input={input}
             onInputChange={setInput}
-            onSubmit={handleSubmit}
+            onSubmit={handleChatSubmit}
             placeholder="AIに質問に回答する"
             isResponding={isLoading}
           />

@@ -1,7 +1,7 @@
 "use client";
 
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   type InterviewStage,
@@ -143,6 +143,14 @@ export function useInterviewChat({
   const streamingReportData =
     object?.next_stage === "chat" ? null : convertPartialReport(object?.report);
 
+  // ストリーミング中のクイックリプライ（パーシャルオブジェクトから抽出）
+  const streamingQuickReplies = useMemo(() => {
+    if (!isChatLoading || !object?.quick_replies) return [];
+    return object.quick_replies.filter(
+      (r): r is string => typeof r === "string" && r.length > 0
+    );
+  }, [isChatLoading, object?.quick_replies]);
+
   // チャットAPI送信のヘルパー（リクエストパラメータを保存）
   const submitChatMessage = (
     userMessageText: string,
@@ -212,6 +220,7 @@ export function useInterviewChat({
     object,
     streamingReportData,
     currentQuickReplies,
+    streamingQuickReplies,
     canRetry: retry.canRetry,
 
     // アクション
