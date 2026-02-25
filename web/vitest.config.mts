@@ -4,6 +4,7 @@ import path from "path";
 export default defineConfig({
   esbuild: {
     jsx: "automatic",
+    jsxImportSource: "react",
   },
   test: {
     globals: true,
@@ -12,6 +13,18 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "json-summary"],
       reportsDirectory: "./coverage",
+      exclude: [
+        "src/components/ui/**",
+        "src/app/**/page.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/**/loading.tsx",
+        "src/app/**/not-found.tsx",
+        "src/app/**/error.tsx",
+        "**/types.ts",
+        "**/types/index.ts",
+        "src/lib/telemetry/**",
+        "src/config/**",
+      ],
     },
   },
   resolve: {
