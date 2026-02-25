@@ -32,7 +32,10 @@ export async function BillDetailLayout({
         - このパターンによりSSRを保持しつつインタラクティブ機能を実装
       */}
       <BillDetailClient bill={bill} currentDifficulty={currentDifficulty}>
-        <BillDetailHeader bill={bill} />
+        <BillDetailHeader
+          bill={bill}
+          hasInterviewConfig={interviewConfig != null}
+        />
         <Container>
           {/* 議案ステータス進捗 */}
           <div className="my-8">
