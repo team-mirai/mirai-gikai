@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
 import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
+import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
@@ -61,8 +62,11 @@ export default async function InterviewPreviewChatPage({
     notFound();
   }
 
-  // 非公開設定も取得可能にする
-  const interviewConfig = await getInterviewConfigAdmin(billId);
+  // 非公開設定も取得可能にする（bill と config を並列取得）
+  const [interviewConfig, bill] = await Promise.all([
+    getInterviewConfigAdmin(billId),
+    getBillByIdAdmin(billId),
+  ]);
 
   if (!interviewConfig) {
     notFound();
@@ -70,17 +74,21 @@ export default async function InterviewPreviewChatPage({
 
   const isVoiceMode = mode === "voice";
 
-  // ループモードの場合のみ質問数を取得（プログレスバー用）
-  const questions =
-    interviewConfig.mode === "loop"
-      ? await getInterviewQuestions(interviewConfig.id)
-      : [];
+  // 質問を取得（プログレスバー用 + 初期質問生成用）
+  const questions = await getInterviewQuestions(interviewConfig.id);
 
   // インタビューチャットの初期化処理
   try {
     const { session, messages } = await initializeInterviewChat(
       billId,
-      interviewConfig.id
+      interviewConfig.id,
+      {
+        prefetched: {
+          bill,
+          interviewConfig,
+          questions,
+        },
+      }
     );
 
     // 音声モードの場合は VoiceInterviewClient を表示

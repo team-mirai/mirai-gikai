@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
+import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
@@ -29,27 +31,37 @@ export default async function InterviewChatPage({
 
   const isVoiceMode = mode === "voice";
 
-  // 法案とインタビュー設定を取得
-  const [bill, interviewConfig] = await Promise.all([
-    getBillById(billId),
-    getInterviewConfig(billId),
-  ]);
+  // 法案・インタビュー設定・質問を並列取得
+  // Admin用も並列取得して初期質問生成時のDB重複クエリを防ぐ
+  const [bill, interviewConfig, billAdmin, interviewConfigAdmin] =
+    await Promise.all([
+      getBillById(billId),
+      getInterviewConfig(billId),
+      getBillByIdAdmin(billId),
+      getInterviewConfigAdmin(billId),
+    ]);
 
   if (!bill || !interviewConfig) {
     notFound();
   }
 
-  // ループモードの場合のみ質問数を取得（プログレスバー用）
-  const questions =
-    interviewConfig.mode === "loop"
-      ? await getInterviewQuestions(interviewConfig.id)
-      : [];
+  // 質問を取得（プログレスバー用 + 初期質問生成用）
+  const questions = await getInterviewQuestions(interviewConfig.id);
 
   // インタビューチャットの初期化処理
   try {
     const { session, messages } = await initializeInterviewChat(
       billId,
-      interviewConfig.id
+      interviewConfig.id,
+      interviewConfigAdmin
+        ? {
+            prefetched: {
+              bill: billAdmin,
+              interviewConfig: interviewConfigAdmin,
+              questions,
+            },
+          }
+        : undefined
     );
 
     // 音声モードの場合は VoiceInterviewClient を表示

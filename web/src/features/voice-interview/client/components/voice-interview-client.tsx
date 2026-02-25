@@ -144,6 +144,11 @@ export function VoiceInterviewClient({
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 話速コントロール（メッセージ上部に固定表示） */}
+      {!isSummaryPhase && (
+        <div className="flex justify-end">{speedSelector}</div>
+      )}
+
       <div className="flex-1 space-y-3 overflow-y-auto">
         {messages.map((msg, i) => (
           <div
@@ -203,7 +208,6 @@ export function VoiceInterviewClient({
       {/* 通常フェーズ: 音声コントロール */}
       {!isSummaryPhase && (
         <div className="flex flex-col items-center gap-3 border-t pt-4">
-          {speedSelector}
           <VoiceStatusIndicator
             state={state}
             errorMessage={errorMessage}
