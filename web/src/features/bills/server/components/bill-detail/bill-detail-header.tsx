@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { UserCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatDateWithDots } from "@/lib/utils/date";
 import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
@@ -73,13 +74,17 @@ export async function BillDetailHeader({
         </p>
         <div className="flex items-center gap-2">
           {hasInterviewConfig && (
-            <Link
-              href={getInterviewLPLink(bill.id)}
-              className="inline-flex items-center gap-1 rounded-full border border-gray-800 bg-white px-3 py-1 text-xs font-medium text-gray-800 hover:bg-gray-50 transition-colors"
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="text-xs gap-1"
             >
-              <UserCheck className="h-[18px] w-[18px]" />
-              意見を伝える
-            </Link>
+              <Link href={getInterviewLPLink(bill.id)}>
+                <UserCheck className="h-[18px] w-[18px]" />
+                意見を伝える
+              </Link>
+            </Button>
           )}
           <BillDetailShareButton
             shareMessage={shareMessage}
