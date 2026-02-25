@@ -14,6 +14,7 @@ coverage:
 ignore:
   - "web/*.config.*"
   - "web/vitest.*"
+  - "web/src/test-utils/**"
   - "web/src/components/ui/**"
   - "web/src/app/**/page.tsx"
   - "web/src/app/**/layout.tsx"
