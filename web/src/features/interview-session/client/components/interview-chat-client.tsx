@@ -50,6 +50,7 @@ export function InterviewChatClient({
     object,
     streamingReportData,
     currentQuickReplies,
+    streamingQuickReplies,
     canRetry,
     handleSubmit,
     handleQuickReply,
@@ -197,12 +198,22 @@ export function InterviewChatClient({
           />
 
           {/* クイックリプライボタン */}
-          {!isLoading && stage === "chat" && currentQuickReplies.length > 0 && (
-            <QuickReplyButtons
-              replies={currentQuickReplies}
-              onSelect={handleChatQuickReply}
-              disabled={isLoading}
-            />
+          {stage === "chat" && (
+            <>
+              {!isLoading && currentQuickReplies.length > 0 && (
+                <QuickReplyButtons
+                  replies={currentQuickReplies}
+                  onSelect={handleChatQuickReply}
+                />
+              )}
+              {isLoading && streamingQuickReplies.length > 0 && (
+                <QuickReplyButtons
+                  replies={streamingQuickReplies}
+                  onSelect={handleChatQuickReply}
+                  disabled
+                />
+              )}
+            </>
           )}
         </ConversationContent>
       </Conversation>
