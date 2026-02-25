@@ -1,3 +1,6 @@
+codecov:
+  branch: develop
+
 coverage:
   status:
     project:
