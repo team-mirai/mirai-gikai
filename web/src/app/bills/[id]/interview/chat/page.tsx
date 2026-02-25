@@ -4,6 +4,7 @@ import { getInterviewConfig } from "@/features/interview-config/server/loaders/g
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
+import { DEFAULT_AUTO_RESPONSES } from "@/features/voice-interview/client/hooks/use-voice-interview";
 import { VoiceInterviewClient } from "@/features/voice-interview/client/components/voice-interview-client";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 
@@ -13,6 +14,7 @@ interface InterviewChatPageProps {
   }>;
   searchParams: Promise<{
     mode?: string;
+    debug?: string;
   }>;
 }
 
@@ -20,7 +22,10 @@ export default async function InterviewChatPage({
   params,
   searchParams,
 }: InterviewChatPageProps) {
-  const [{ id: billId }, { mode }] = await Promise.all([params, searchParams]);
+  const [{ id: billId }, { mode, debug }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   const isVoiceMode = mode === "voice";
 
@@ -55,8 +60,10 @@ export default async function InterviewChatPage({
       }));
       return (
         <VoiceInterviewClient
+          key={session.id}
           billId={billId}
           initialMessages={initialVoiceMessages}
+          autoResponses={debug === "auto" ? DEFAULT_AUTO_RESPONSES : undefined}
         />
       );
     }

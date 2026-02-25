@@ -139,7 +139,7 @@ export async function handleInterviewChatRequest({
 
   // 音声モードの場合、システムプロンプトに追加指示を付与
   if (voice && !isSummaryPhase) {
-    systemPrompt += buildVoicePromptSuffix(interviewConfig.voice_instruction);
+    systemPrompt += buildVoicePromptSuffix();
   }
 
   logger.debug("System Prompt:", systemPrompt);
@@ -345,6 +345,77 @@ async function generateStreamingResponse({
       : undefined,
   } as const;
 
+  // 音声モードはストリーミング不要（TTS に全文が必要）→ generateText を使用
+  if (voice) {
+    const voiceTelemetry = telemetry
+      ? {
+          isEnabled: true as const,
+          functionId,
+          metadata: {
+            langfuseTraceId: telemetry.traceId,
+            sessionId: telemetry.sessionId,
+            billId: telemetry.billId,
+            stage: telemetry.stage,
+          },
+        }
+      : undefined;
+
+    const modelMessages = await convertToModelMessages(uiMessages);
+
+    const buildVoiceResponse = (output: Record<string, unknown>) => {
+      const responseBody = {
+        ...output,
+        next_stage: nextStage,
+        session_id: sessionId,
+      };
+      return new Response(JSON.stringify(responseBody), {
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const saveVoiceMessage = (text: string) =>
+      saveInterviewMessage({
+        sessionId,
+        role: "assistant",
+        content: text,
+      }).catch((err) =>
+        console.error("Failed to save interview message:", err)
+      );
+
+    try {
+      if (isSummaryPhase) {
+        const result = await generateText({
+          model,
+          system: systemPrompt,
+          messages: modelMessages,
+          output: Output.object({
+            schema: interviewChatWithReportSchema,
+          }),
+          experimental_telemetry: voiceTelemetry,
+        });
+        if (result.text) await saveVoiceMessage(result.text);
+        return buildVoiceResponse(
+          (result.output ?? {}) as Record<string, unknown>
+        );
+      }
+
+      const result = await generateText({
+        model,
+        system: systemPrompt,
+        messages: modelMessages,
+        output: Output.object({ schema: voiceChatTextSchema }),
+        experimental_telemetry: voiceTelemetry,
+      });
+      if (result.text) await saveVoiceMessage(result.text);
+      return buildVoiceResponse(
+        (result.output ?? {}) as Record<string, unknown>
+      );
+    } catch (error) {
+      handleError(error);
+      throw error;
+    }
+  }
+
   try {
     let textStream: ReadableStream<string>;
 
@@ -352,12 +423,6 @@ async function generateStreamingResponse({
       const result = streamText({
         ...streamParams,
         output: Output.object({ schema: interviewChatWithReportSchema }),
-      });
-      textStream = result.textStream;
-    } else if (voice) {
-      const result = streamText({
-        ...streamParams,
-        output: Output.object({ schema: voiceChatTextSchema }),
       });
       textStream = result.textStream;
     } else {
@@ -385,10 +450,8 @@ async function generateStreamingResponse({
 /**
  * 音声モード用のシステムプロンプト追加指示を構築
  */
-function buildVoicePromptSuffix(
-  voiceInstruction: string | null | undefined
-): string {
-  let suffix = `
+function buildVoicePromptSuffix(): string {
+  return `
 
 ## 音声モード指示
 このインタビューは音声対話モードで実施されています。以下のルールに従ってください:
@@ -397,13 +460,4 @@ function buildVoicePromptSuffix(
 - quick_replies は出力しないこと
 - 箇条書きや記号（「・」「※」「→」など）は使わず、自然な文章で表現すること
 - 数字や専門用語は読み上げやすい表現にすること`;
-
-  if (voiceInstruction) {
-    suffix += `
-
-## 追加の音声指示
-${voiceInstruction}`;
-  }
-
-  return suffix;
 }

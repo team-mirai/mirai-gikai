@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -28,6 +28,9 @@ function getSpeechRecognition(): SpeechRecognitionConstructor | null {
     w.webkitSpeechRecognition) as SpeechRecognitionConstructor | null;
 }
 
+/** 最後の音声入力から確定までの無音タイムアウト（ミリ秒） */
+const SILENCE_TIMEOUT_MS = 2500;
+
 export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -36,9 +39,32 @@ export function useSpeechRecognition() {
     null
   );
   const onErrorRef = useRef<(() => void) | null>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const accumulatedTextRef = useRef("");
 
-  const isSupported =
-    typeof window !== "undefined" && getSpeechRecognition() !== null;
+  // SSR/CSR 間の hydration mismatch を防ぐため useEffect で判定
+  const [isSupported, setIsSupported] = useState(true);
+  useEffect(() => {
+    setIsSupported(getSpeechRecognition() !== null);
+  }, []);
+
+  const clearSilenceTimer = useCallback(() => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+  }, []);
+
+  const stop = useCallback(() => {
+    clearSilenceTimer();
+    recognitionRef.current?.abort();
+    recognitionRef.current = null;
+    onResultRef.current = null;
+    onErrorRef.current = null;
+    accumulatedTextRef.current = "";
+    setIsListening(false);
+    setTranscript("");
+  }, [clearSilenceTimer]);
 
   const start = useCallback(
     (
@@ -50,21 +76,34 @@ export function useSpeechRecognition() {
 
       onResultRef.current = onResult;
       onErrorRef.current = onError ?? null;
+      accumulatedTextRef.current = "";
       const recognition = new SpeechRecognition();
       recognition.lang = "ja-JP";
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = true;
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
-          const text = result[0].transcript;
-          setTranscript(text);
-          onResultRef.current?.(text, result.isFinal);
+        // continuous モードでは複数の結果が累積される
+        let fullTranscript = "";
+        for (let i = 0; i < event.results.length; i++) {
+          fullTranscript += event.results[i][0].transcript;
         }
+        setTranscript(fullTranscript);
+        onResultRef.current?.(fullTranscript, false);
+
+        // 発話がある度に無音タイマーをリセット
+        clearSilenceTimer();
+        silenceTimerRef.current = setTimeout(() => {
+          // 無音が続いたので確定
+          if (fullTranscript.trim()) {
+            onResultRef.current?.(fullTranscript, true);
+          }
+          recognition.stop();
+        }, SILENCE_TIMEOUT_MS);
       };
 
       recognition.onerror = (event) => {
+        clearSilenceTimer();
         if (event.error !== "no-speech" && event.error !== "aborted") {
           console.error("[SpeechRecognition] error:", event.error);
           onErrorRef.current?.();
@@ -73,6 +112,7 @@ export function useSpeechRecognition() {
       };
 
       recognition.onend = () => {
+        clearSilenceTimer();
         setIsListening(false);
       };
 
@@ -82,17 +122,8 @@ export function useSpeechRecognition() {
       setTranscript("");
       return true;
     },
-    []
+    [clearSilenceTimer]
   );
-
-  const stop = useCallback(() => {
-    recognitionRef.current?.abort();
-    recognitionRef.current = null;
-    onResultRef.current = null;
-    onErrorRef.current = null;
-    setIsListening(false);
-    setTranscript("");
-  }, []);
 
   return {
     isSupported,

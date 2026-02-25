@@ -5,6 +5,7 @@ import { getInterviewConfigAdmin } from "@/features/interview-config/server/load
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
+import { DEFAULT_AUTO_RESPONSES } from "@/features/voice-interview/client/hooks/use-voice-interview";
 import { VoiceInterviewClient } from "@/features/voice-interview/client/components/voice-interview-client";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 import { env } from "@/lib/env";
@@ -16,6 +17,7 @@ interface InterviewPreviewChatPageProps {
   searchParams: Promise<{
     token?: string;
     mode?: string;
+    debug?: string;
   }>;
 }
 
@@ -48,7 +50,7 @@ export default async function InterviewPreviewChatPage({
   params,
   searchParams,
 }: InterviewPreviewChatPageProps) {
-  const [{ id: billId }, { token, mode }] = await Promise.all([
+  const [{ id: billId }, { token, mode, debug }] = await Promise.all([
     params,
     searchParams,
   ]);
@@ -91,8 +93,12 @@ export default async function InterviewPreviewChatPage({
         <>
           <PreviewBanner />
           <VoiceInterviewClient
+            key={session.id}
             billId={billId}
             initialMessages={initialVoiceMessages}
+            autoResponses={
+              debug === "auto" ? DEFAULT_AUTO_RESPONSES : undefined
+            }
           />
         </>
       );

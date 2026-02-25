@@ -27,7 +27,6 @@ export const interviewConfigSchema = z.object({
   themes: z.array(z.string().min(1)).optional(),
   knowledge_source: z.string().optional(),
   voice_enabled: z.boolean().optional(),
-  voice_instruction: z.string().max(5000).optional(),
 });
 
 export const interviewQuestionSchema = z.object({

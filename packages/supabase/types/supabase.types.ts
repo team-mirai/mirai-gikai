@@ -298,7 +298,6 @@ export type Database = {
           themes: string[] | null
           updated_at: string
           voice_enabled: boolean
-          voice_instruction: string | null
         }
         Insert: {
           bill_id: string
@@ -311,7 +310,6 @@ export type Database = {
           themes?: string[] | null
           updated_at?: string
           voice_enabled?: boolean
-          voice_instruction?: string | null
         }
         Update: {
           bill_id?: string
@@ -324,7 +322,6 @@ export type Database = {
           themes?: string[] | null
           updated_at?: string
           voice_enabled?: boolean
-          voice_instruction?: string | null
         }
         Relationships: [
           {

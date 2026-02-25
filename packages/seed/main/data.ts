@@ -226,6 +226,7 @@ export function createInterviewConfig(
     status: "public",
     themes: ["賛否", "理由"],
     knowledge_source: `この法案についてあなたの意見を聞かせてください。`,
+    voice_enabled: true,
   };
 }
 

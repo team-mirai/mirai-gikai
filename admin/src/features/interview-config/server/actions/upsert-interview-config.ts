@@ -42,7 +42,6 @@ export async function createInterviewConfig(
     }
 
     // 新規作成
-    const voiceEnabled = validatedData.voice_enabled ?? false;
     const data = await createInterviewConfigRecord({
       bill_id: billId,
       name: validatedData.name,
@@ -50,10 +49,7 @@ export async function createInterviewConfig(
       mode: validatedData.mode,
       themes: validatedData.themes || null,
       knowledge_source: validatedData.knowledge_source || null,
-      voice_enabled: voiceEnabled,
-      voice_instruction: voiceEnabled
-        ? validatedData.voice_instruction || null
-        : null,
+      voice_enabled: validatedData.voice_enabled ?? false,
     });
 
     // web側のキャッシュを無効化
@@ -93,17 +89,13 @@ export async function updateInterviewConfig(
     }
 
     // 更新
-    const voiceEnabledForUpdate = validatedData.voice_enabled ?? false;
     const data = await updateInterviewConfigRecord(configId, {
       name: validatedData.name,
       status: validatedData.status,
       mode: validatedData.mode,
       themes: validatedData.themes || null,
       knowledge_source: validatedData.knowledge_source || null,
-      voice_enabled: voiceEnabledForUpdate,
-      voice_instruction: voiceEnabledForUpdate
-        ? validatedData.voice_instruction || null
-        : null,
+      voice_enabled: validatedData.voice_enabled ?? false,
       updated_at: new Date().toISOString(),
     });
 
@@ -156,7 +148,6 @@ export async function duplicateInterviewConfig(
         themes: originalConfig.themes,
         knowledge_source: originalConfig.knowledge_source,
         voice_enabled: originalConfig.voice_enabled,
-        voice_instruction: originalConfig.voice_instruction,
       });
     } catch (error) {
       return {

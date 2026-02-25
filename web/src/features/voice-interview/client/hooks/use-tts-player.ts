@@ -25,6 +25,14 @@ function webSpeechFallback(
       return;
     }
 
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+
+    // Chrome workaround: cancel any pending/stuck utterances before speaking
+    window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "ja-JP";
     utterance.rate = parseRate(rate);
@@ -34,10 +42,6 @@ function webSpeechFallback(
       reject(new DOMException("Aborted", "AbortError"));
     };
 
-    if (signal?.aborted) {
-      reject(new DOMException("Aborted", "AbortError"));
-      return;
-    }
     signal?.addEventListener("abort", onAbort, { once: true });
 
     utterance.onend = () => {
@@ -92,11 +96,15 @@ export function useTtsPlayer() {
       setIsSpeaking(true);
 
       try {
+        // Edge TTS のサーバーリトライ待ちを避けるため10秒でタイムアウト
+        const timeoutSignal = AbortSignal.timeout(10_000);
+        const combinedSignal = AbortSignal.any([signal, timeoutSignal]);
+
         const response = await fetch("/api/tts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text, rate: options?.rate }),
-          signal,
+          signal: combinedSignal,
         });
 
         if (!response.ok) {
@@ -107,7 +115,7 @@ export function useTtsPlayer() {
         const arrayBuffer = await response.arrayBuffer();
         const audioData = new Uint8Array(arrayBuffer);
 
-        if (signal.aborted) {
+        if (signal.aborted || combinedSignal.aborted) {
           throw new DOMException("Aborted", "AbortError");
         }
 

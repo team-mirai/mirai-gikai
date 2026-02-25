@@ -32,6 +32,7 @@ export function voiceReducer(state: VoiceState, event: VoiceEvent): VoiceState {
 
     case "processing":
       if (event.type === "TTS_START") return "speaking";
+      if (event.type === "TTS_END") return "idle";
       if (event.type === "ERROR") return "error";
       return state;
 

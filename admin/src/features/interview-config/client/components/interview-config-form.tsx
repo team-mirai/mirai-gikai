@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, Loader2, Sparkles } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { MutableRefObject } from "react";
 import { useEffect, useState } from "react";
@@ -42,7 +42,6 @@ import {
   updateInterviewConfig,
 } from "../../server/actions/upsert-interview-config";
 import { generateInterviewPreviewUrl } from "../../server/actions/generate-interview-preview-url";
-import { generateVoiceInstruction } from "../../server/actions/generate-voice-instruction";
 
 interface InterviewConfigFormProps {
   billId: string;
@@ -57,7 +56,6 @@ interface InterviewConfigFormProps {
         mode: string;
         themes: string[];
         voice_enabled: boolean;
-        voice_instruction: string;
       })
     | null
   >;
@@ -74,8 +72,6 @@ export function InterviewConfigForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isNew = !config;
-  const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
-
   const form = useForm<InterviewConfigInput>({
     resolver: zodResolver(interviewConfigSchema),
     defaultValues: {
@@ -85,38 +81,8 @@ export function InterviewConfigForm({
       themes: config?.themes || [],
       knowledge_source: config?.knowledge_source || "",
       voice_enabled: config?.voice_enabled ?? false,
-      voice_instruction: config?.voice_instruction || "",
     },
   });
-
-  const voiceEnabled = form.watch("voice_enabled");
-
-  const handleGenerateVoiceInstruction = async () => {
-    setIsGeneratingVoice(true);
-    try {
-      const values = form.getValues();
-      const result = await generateVoiceInstruction({
-        themes: values.themes || [],
-        knowledge_source: values.knowledge_source || "",
-        mode: values.mode,
-      });
-
-      if (!result.success) {
-        toast.error(result.error || "音声インタビュー指示の生成に失敗しました");
-        return;
-      }
-
-      form.setValue("voice_instruction", result.data, {
-        shouldDirty: true,
-      });
-      toast.success("音声インタビュー指示を生成しました");
-    } catch (error) {
-      console.error("Voice instruction generation failed:", error);
-      toast.error("音声インタビュー指示の生成中にエラーが発生しました");
-    } finally {
-      setIsGeneratingVoice(false);
-    }
-  };
 
   // 親コンポーネントからフォーム値を読み取れるようにする
   useEffect(() => {
@@ -129,7 +95,6 @@ export function InterviewConfigForm({
           mode: values.mode,
           themes: values.themes || [],
           voice_enabled: values.voice_enabled ?? false,
-          voice_instruction: values.voice_instruction || "",
         };
       };
     }
@@ -379,45 +344,6 @@ export function InterviewConfigForm({
                   </FormItem>
                 )}
               />
-
-              {voiceEnabled && (
-                <FormField
-                  control={form.control}
-                  name="voice_instruction"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>音声インタビュー指示</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="音声インタビュー用のシステムプロンプト指示を入力"
-                          className="min-h-[200px] resize-y"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        音声インタビューでAIが従う指示を入力してください。テキスト設定から自動生成することもできます。
-                      </FormDescription>
-                      <FormMessage />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleGenerateVoiceInstruction}
-                        disabled={isGeneratingVoice}
-                      >
-                        {isGeneratingVoice ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="mr-2 h-4 w-4" />
-                        )}
-                        {isGeneratingVoice
-                          ? "生成中..."
-                          : "テキスト設定から生成"}
-                      </Button>
-                    </FormItem>
-                  )}
-                />
-              )}
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={isSubmitting}>

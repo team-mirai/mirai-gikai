@@ -1,6 +1,11 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, CheckCircle, Mic } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useInterviewCompletion } from "@/features/interview-session/client/hooks/use-interview-completion";
+import { InterviewSubmitSection } from "@/features/interview-session/client/components/interview-submit-section";
+import { InterviewSummary } from "@/features/interview-session/client/components/interview-summary";
 import { useVoiceInterview } from "../hooks/use-voice-interview";
 import { VoiceControls } from "./voice-controls";
 import { VoiceStatusIndicator } from "./voice-status-indicator";
@@ -9,25 +14,41 @@ interface VoiceInterviewClientProps {
   billId: string;
   speechRate?: string;
   initialMessages?: Array<{ role: "user" | "assistant"; content: string }>;
+  /** デバッグ用自動応答リスト（指定するとTTS・音声認識をスキップして自動進行） */
+  autoResponses?: string[];
 }
 
 export function VoiceInterviewClient({
   billId,
   speechRate,
   initialMessages,
+  autoResponses,
 }: VoiceInterviewClientProps) {
+  const [hasStarted, setHasStarted] = useState(false);
+  const [reportId, setReportId] = useState<string | null>(null);
+
   const {
     state,
     messages,
     currentTranscript,
     startListening,
     stopSpeaking,
+    startInterview,
     errorMessage,
     isSupported,
+    interviewStage,
+    sessionId,
+    reportData,
   } = useVoiceInterview({
     billId,
     speechRate,
     initialMessages,
+    autoResponses,
+  });
+
+  const { isCompleting, completeError, handleAgree } = useInterviewCompletion({
+    sessionId: sessionId ?? "",
+    onComplete: (id) => setReportId(id),
   });
 
   if (!isSupported) {
@@ -41,6 +62,30 @@ export function VoiceInterviewClient({
       </div>
     );
   }
+
+  // 開始前: タップして音声インタビューを開始するオーバーレイを表示
+  if (!hasStarted) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6">
+        <div className="text-center text-sm text-muted-foreground">
+          <p>タップして音声インタビューを開始します</p>
+        </div>
+        <Button
+          size="lg"
+          className="h-20 w-20 rounded-full"
+          onClick={() => {
+            setHasStarted(true);
+            startInterview();
+          }}
+        >
+          <Mic className="h-8 w-8" />
+        </Button>
+      </div>
+    );
+  }
+
+  const isSummaryPhase =
+    interviewStage === "summary" || interviewStage === "summary_complete";
 
   return (
     <div className="flex flex-col gap-4">
@@ -71,14 +116,46 @@ export function VoiceInterviewClient({
         )}
       </div>
 
-      <div className="flex flex-col items-center gap-3 border-t pt-4">
-        <VoiceStatusIndicator state={state} errorMessage={errorMessage} />
-        <VoiceControls
-          state={state}
-          onTapMic={startListening}
-          onStopSpeaking={stopSpeaking}
-        />
-      </div>
+      {/* サマリーフェーズ: レポート表示 + 完了アクション（TTS再生中も表示） */}
+      {isSummaryPhase && (
+        <div className="flex flex-col gap-3 border-t pt-4">
+          {reportData && <InterviewSummary report={reportData} />}
+
+          {reportId && sessionId ? (
+            <InterviewSubmitSection sessionId={sessionId} reportId={reportId} />
+          ) : (
+            <>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckCircle className="h-4 w-4" />
+                <span>インタビューが完了しました</span>
+              </div>
+              <Button
+                onClick={handleAgree}
+                disabled={isCompleting || !sessionId}
+              >
+                {isCompleting
+                  ? "保存中..."
+                  : "レポート内容に同意して提出に進む"}
+              </Button>
+              {completeError && (
+                <p className="text-sm text-destructive">{completeError}</p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* 通常フェーズ: 音声コントロール */}
+      {!isSummaryPhase && (
+        <div className="flex flex-col items-center gap-3 border-t pt-4">
+          <VoiceStatusIndicator state={state} errorMessage={errorMessage} />
+          <VoiceControls
+            state={state}
+            onTapMic={startListening}
+            onStopSpeaking={stopSpeaking}
+          />
+        </div>
+      )}
     </div>
   );
 }

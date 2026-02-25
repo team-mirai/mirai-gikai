@@ -86,6 +86,10 @@ describe("voiceReducer", () => {
       ).toBe("processing");
     });
 
+    it("transitions to idle on TTS_END (TTS failed before starting)", () => {
+      expect(voiceReducer(state, { type: "TTS_END" })).toBe("idle");
+    });
+
     it("transitions to error on ERROR", () => {
       expect(voiceReducer(state, { type: "ERROR", error: "api error" })).toBe(
         "error"
@@ -97,7 +101,6 @@ describe("voiceReducer", () => {
         { type: "TAP_MIC" },
         { type: "SPEECH_RESULT", text: "hello" },
         { type: "SPEECH_END" },
-        { type: "TTS_END" },
         { type: "RESET" },
       ];
       for (const event of unrelatedEvents) {
@@ -225,6 +228,20 @@ describe("voiceReducer", () => {
 
       state = voiceReducer(state, { type: "TTS_START" });
       expect(state).toBe("speaking");
+    });
+
+    it("recovers to idle when TTS fails before starting", () => {
+      let state: VoiceState = "idle";
+
+      state = voiceReducer(state, { type: "TAP_MIC" });
+      expect(state).toBe("listening");
+
+      state = voiceReducer(state, { type: "SPEECH_END" });
+      expect(state).toBe("processing");
+
+      // TTS fails before onStart → TTS_END dispatched from processing
+      state = voiceReducer(state, { type: "TTS_END" });
+      expect(state).toBe("idle");
     });
   });
 });

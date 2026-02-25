@@ -100,7 +100,6 @@ export async function createInterviewConfigRecord(params: {
   themes: string[] | null;
   knowledge_source: string | null;
   voice_enabled?: boolean;
-  voice_instruction?: string | null;
 }): Promise<{ id: string }> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -125,7 +124,6 @@ export async function updateInterviewConfigRecord(
     themes: string[] | null;
     knowledge_source: string | null;
     voice_enabled?: boolean;
-    voice_instruction?: string | null;
     updated_at: string;
   }
 ): Promise<{ id: string }> {
