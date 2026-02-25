@@ -1,6 +1,7 @@
 "use client";
 
-import { Loader2, Mic, MicOff, Volume2 } from "lucide-react";
+import { Loader2, Mic, MicOff, RotateCcw, Volume2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { VoiceState } from "../../shared/types";
 
 const STATUS_CONFIG: Record<
@@ -37,20 +38,30 @@ const STATUS_CONFIG: Record<
 interface VoiceStatusIndicatorProps {
   state: VoiceState;
   errorMessage?: string | null;
+  onRetry?: () => void;
 }
 
 export function VoiceStatusIndicator({
   state,
   errorMessage,
+  onRetry,
 }: VoiceStatusIndicatorProps) {
   const config = STATUS_CONFIG[state];
 
   return (
-    <div className={`flex items-center gap-2 text-sm ${config.className}`}>
-      {config.icon}
-      <span>
-        {state === "error" && errorMessage ? errorMessage : config.label}
-      </span>
+    <div className="flex flex-col items-center gap-2">
+      <div className={`flex items-center gap-2 text-sm ${config.className}`}>
+        {config.icon}
+        <span>
+          {state === "error" && errorMessage ? errorMessage : config.label}
+        </span>
+      </div>
+      {state === "error" && onRetry && (
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          <RotateCcw className="mr-1 h-3 w-3" />
+          もう一度試す
+        </Button>
+      )}
     </div>
   );
 }

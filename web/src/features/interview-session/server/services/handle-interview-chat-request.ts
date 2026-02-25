@@ -340,6 +340,7 @@ async function generateStreamingResponse({
             sessionId: telemetry.sessionId,
             billId: telemetry.billId,
             stage: telemetry.stage,
+            voice: voice ? "true" : "false",
           },
         }
       : undefined,
@@ -356,6 +357,7 @@ async function generateStreamingResponse({
             sessionId: telemetry.sessionId,
             billId: telemetry.billId,
             stage: telemetry.stage,
+            voice: "true",
           },
         }
       : undefined;

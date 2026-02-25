@@ -33,7 +33,13 @@ export function VoiceControls({
         className={`h-14 w-14 rounded-full ${MIC_STYLES[state]}`}
         onClick={onTapMic}
         disabled={isProcessing}
-        aria-label={state === "listening" ? "マイクを停止" : "マイクを開始"}
+        aria-label={
+          state === "listening"
+            ? "マイクを停止"
+            : state === "error"
+              ? "もう一度試す"
+              : "マイクを開始"
+        }
       >
         {state === "listening" ? (
           <Mic className="h-6 w-6" />

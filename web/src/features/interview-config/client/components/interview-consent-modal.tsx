@@ -165,6 +165,8 @@ export function InterviewConsentModal({
                 <div className="font-bold text-sm">音声で回答する</div>
                 <div className="text-xs text-muted-foreground">
                   マイクで話して回答します（Chrome/Edge推奨）
+                  <br />
+                  ※Safari/Firefoxは非対応
                 </div>
               </div>
               <ArrowRight className="ml-auto size-4" />

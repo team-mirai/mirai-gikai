@@ -147,6 +147,10 @@ describe("voiceReducer", () => {
       expect(voiceReducer(state, { type: "TAP_MIC" })).toBe("listening");
     });
 
+    it("transitions to idle on RETRY", () => {
+      expect(voiceReducer(state, { type: "RETRY" })).toBe("idle");
+    });
+
     it("stays in error on all other events", () => {
       const otherEvents: VoiceEvent[] = [
         { type: "SPEECH_RESULT", text: "hello" },
@@ -228,6 +232,16 @@ describe("voiceReducer", () => {
 
       state = voiceReducer(state, { type: "TTS_START" });
       expect(state).toBe("speaking");
+    });
+
+    it("handles retry recovery from error to idle", () => {
+      let state: VoiceState = "processing";
+
+      state = voiceReducer(state, { type: "ERROR", error: "api error" });
+      expect(state).toBe("error");
+
+      state = voiceReducer(state, { type: "RETRY" });
+      expect(state).toBe("idle");
     });
 
     it("recovers to idle when TTS fails before starting", () => {

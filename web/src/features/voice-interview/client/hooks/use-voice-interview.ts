@@ -10,6 +10,7 @@ import type {
   InterviewReportViewData,
 } from "@/features/interview-session/shared/schemas";
 import type { VoiceInterviewMessage } from "../../shared/types";
+import { splitSentences } from "../../shared/utils/split-sentences";
 import { useSpeechRecognition } from "./use-speech-recognition";
 import { useTtsPlayer } from "./use-tts-player";
 
@@ -106,6 +107,8 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
   const currentStageRef = useRef<InterviewStage>("chat");
   const initialPlayedRef = useRef(false);
   const autoResponseIndexRef = useRef(0);
+  const retryAttemptedRef = useRef(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const speechRecognition = useSpeechRecognition();
   const ttsPlayer = useTtsPlayer();
@@ -203,6 +206,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
 
   /**
    * テキストを TTS で再生し、終了後に自動で聞き取りを開始する。
+   * 2文以上の場合は句点分割→並列TTS→順次再生で体感速度を改善。
    * auto モードでは TTS をスキップする。
    */
   const speakAndAutoListen = useCallback(
@@ -213,16 +217,23 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         return;
       }
 
+      const ttsOptions = {
+        rate: speechRate,
+        onStart: () => {
+          dispatch({ type: "TTS_START" });
+        },
+        onEnd: () => {
+          dispatch({ type: "TTS_END" });
+        },
+      };
+
       try {
-        await ttsRef.current.speak(text, {
-          rate: speechRate,
-          onStart: () => {
-            dispatch({ type: "TTS_START" });
-          },
-          onEnd: () => {
-            dispatch({ type: "TTS_END" });
-          },
-        });
+        const sentences = splitSentences(text);
+        if (sentences.length > 1) {
+          await ttsRef.current.speakChunked(sentences, ttsOptions);
+        } else {
+          await ttsRef.current.speak(text, ttsOptions);
+        }
       } catch (ttsErr) {
         if (ttsErr instanceof DOMException && ttsErr.name === "AbortError") {
           // ユーザーが割り込み/停止した場合
@@ -248,16 +259,23 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     async (text: string) => {
       if (isAutoMode) return;
 
+      const ttsOptions = {
+        rate: speechRate,
+        onStart: () => {
+          dispatch({ type: "TTS_START" });
+        },
+        onEnd: () => {
+          dispatch({ type: "TTS_END" });
+        },
+      };
+
       try {
-        await ttsRef.current.speak(text, {
-          rate: speechRate,
-          onStart: () => {
-            dispatch({ type: "TTS_START" });
-          },
-          onEnd: () => {
-            dispatch({ type: "TTS_END" });
-          },
-        });
+        const sentences = splitSentences(text);
+        if (sentences.length > 1) {
+          await ttsRef.current.speakChunked(sentences, ttsOptions);
+        } else {
+          await ttsRef.current.speak(text, ttsOptions);
+        }
       } catch (ttsErr) {
         if (ttsErr instanceof DOMException && ttsErr.name === "AbortError") {
           return;
@@ -318,6 +336,9 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
           setReportData(report);
         }
 
+        // リトライカウントをリセット
+        retryAttemptedRef.current = false;
+
         const assistantMessage: VoiceInterviewMessage = {
           role: "assistant",
           content: spokenText,
@@ -338,6 +359,24 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error("[VoiceInterview] LLM error:", msg);
+
+        // 自動リトライ1回（2秒後）
+        if (!retryAttemptedRef.current) {
+          retryAttemptedRef.current = true;
+          const lastUserText =
+            messagesRef.current[messagesRef.current.length - 1]?.content;
+          if (lastUserText) {
+            // 失敗したユーザーメッセージを除去して再送信
+            messagesRef.current = messagesRef.current.slice(0, -1);
+            setMessages(messagesRef.current);
+            retryTimerRef.current = setTimeout(() => {
+              retryTimerRef.current = null;
+              sendToLlmRef.current?.(lastUserText);
+            }, 2_000);
+            return;
+          }
+        }
+
         setErrorMessage(msg);
         dispatch({ type: "ERROR", error: msg });
       }
@@ -381,6 +420,16 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     }
   }, [dispatch, beginRecognition]);
 
+  /**
+   * エラー状態からの手動回復。
+   * 状態を idle に戻してエラーメッセージをクリアする。
+   */
+  const retry = useCallback(() => {
+    retryAttemptedRef.current = false;
+    setErrorMessage(null);
+    dispatch({ type: "RETRY" });
+  }, [dispatch]);
+
   const stopSpeaking = useCallback(() => {
     ttsRef.current.stop();
     if (stateRef.current === "speaking") {
@@ -409,6 +458,10 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     return () => {
       ttsRef.current.stop();
       srRef.current.stop();
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -419,6 +472,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     startListening,
     stopSpeaking,
     startInterview,
+    retry,
     errorMessage,
     isSupported: speechRecognition.isSupported,
     interviewStage,

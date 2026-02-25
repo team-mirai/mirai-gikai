@@ -1,18 +1,40 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { AlertTriangle, CheckCircle, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useInterviewCompletion } from "@/features/interview-session/client/hooks/use-interview-completion";
 import { InterviewSubmitSection } from "@/features/interview-session/client/components/interview-submit-section";
 import { InterviewSummary } from "@/features/interview-session/client/components/interview-summary";
+import { getInterviewChatLink } from "@/features/interview-config/shared/utils/interview-links";
 import { useVoiceInterview } from "../hooks/use-voice-interview";
 import { VoiceControls } from "./voice-controls";
 import { VoiceStatusIndicator } from "./voice-status-indicator";
 
+type SpeechSpeed = "slow" | "normal" | "fast";
+
+const SPEED_RATE_MAP: Record<SpeechSpeed, string | undefined> = {
+  slow: "-20%",
+  normal: undefined,
+  fast: "+30%",
+};
+
+const SPEED_LABELS: Record<SpeechSpeed, string> = {
+  slow: "ゆっくり",
+  normal: "ふつう",
+  fast: "はやい",
+};
+
 interface VoiceInterviewClientProps {
   billId: string;
-  speechRate?: string;
   initialMessages?: Array<{ role: "user" | "assistant"; content: string }>;
   /** デバッグ用自動応答リスト（指定するとTTS・音声認識をスキップして自動進行） */
   autoResponses?: string[];
@@ -20,12 +42,14 @@ interface VoiceInterviewClientProps {
 
 export function VoiceInterviewClient({
   billId,
-  speechRate,
   initialMessages,
   autoResponses,
 }: VoiceInterviewClientProps) {
   const [hasStarted, setHasStarted] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [speechSpeed, setSpeechSpeed] = useState<SpeechSpeed>("normal");
+
+  const speechRate = SPEED_RATE_MAP[speechSpeed];
 
   const {
     state,
@@ -34,6 +58,7 @@ export function VoiceInterviewClient({
     startListening,
     stopSpeaking,
     startInterview,
+    retry,
     errorMessage,
     isSupported,
     interviewStage,
@@ -53,15 +78,44 @@ export function VoiceInterviewClient({
 
   if (!isSupported) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
-        <AlertTriangle className="h-5 w-5 shrink-0" />
-        <p>
-          お使いのブラウザは音声認識に対応していません。Chrome または Edge
-          をご利用ください。
-        </p>
+      <div className="flex flex-col gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <p>
+            お使いのブラウザは音声認識に対応していません。Chrome または Edge
+            をご利用ください。
+          </p>
+        </div>
+        <Link
+          href={getInterviewChatLink(billId)}
+          className="text-blue-700 underline hover:text-blue-900"
+        >
+          テキストモードでインタビューに参加する
+        </Link>
       </div>
     );
   }
+
+  const speedSelector = (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-muted-foreground">話速</span>
+      <Select
+        value={speechSpeed}
+        onValueChange={(v) => setSpeechSpeed(v as SpeechSpeed)}
+      >
+        <SelectTrigger size="sm" className="w-24">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {(Object.keys(SPEED_LABELS) as SpeechSpeed[]).map((key) => (
+            <SelectItem key={key} value={key}>
+              {SPEED_LABELS[key]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   // 開始前: タップして音声インタビューを開始するオーバーレイを表示
   if (!hasStarted) {
@@ -70,6 +124,7 @@ export function VoiceInterviewClient({
         <div className="text-center text-sm text-muted-foreground">
           <p>タップして音声インタビューを開始します</p>
         </div>
+        {speedSelector}
         <Button
           size="lg"
           className="h-20 w-20 rounded-full"
@@ -148,7 +203,12 @@ export function VoiceInterviewClient({
       {/* 通常フェーズ: 音声コントロール */}
       {!isSummaryPhase && (
         <div className="flex flex-col items-center gap-3 border-t pt-4">
-          <VoiceStatusIndicator state={state} errorMessage={errorMessage} />
+          {speedSelector}
+          <VoiceStatusIndicator
+            state={state}
+            errorMessage={errorMessage}
+            onRetry={retry}
+          />
           <VoiceControls
             state={state}
             onTapMic={startListening}

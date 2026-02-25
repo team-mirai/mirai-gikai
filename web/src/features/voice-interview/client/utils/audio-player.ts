@@ -7,7 +7,11 @@ export class AudioPlayer {
   private pendingCount = 0;
 
   constructor() {
-    this.audioContext = new AudioContext();
+    const AudioContextClass =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
+    this.audioContext = new AudioContextClass();
   }
 
   get isPlaying(): boolean {

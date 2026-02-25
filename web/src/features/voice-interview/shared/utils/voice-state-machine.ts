@@ -13,6 +13,7 @@ export type VoiceEvent =
   | { type: "TTS_START" }
   | { type: "TTS_END" }
   | { type: "RESET" }
+  | { type: "RETRY" }
   | { type: "ERROR"; error: string };
 
 export function voiceReducer(state: VoiceState, event: VoiceEvent): VoiceState {
@@ -44,6 +45,7 @@ export function voiceReducer(state: VoiceState, event: VoiceEvent): VoiceState {
 
     case "error":
       if (event.type === "TAP_MIC") return "listening";
+      if (event.type === "RETRY") return "idle";
       return state;
 
     default:

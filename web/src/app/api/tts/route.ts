@@ -38,14 +38,24 @@ export async function POST(req: Request) {
 
   const MAX_RETRIES = 2;
   let lastError: unknown;
+  const startTime = Date.now();
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const attemptStart = Date.now();
     try {
-      console.log(
-        `[EdgeTTS] Synthesizing (attempt ${attempt + 1}): "${text.substring(0, 50)}..."${rate ? ` rate=${rate}` : ""}`
-      );
       const audioBuffer = await synthesizeToBuffer(text, rate);
-      console.log("[EdgeTTS] Done");
+      const latencyMs = Date.now() - attemptStart;
+
+      console.log(
+        JSON.stringify({
+          event: "tts_success",
+          textLength: text.length,
+          rate: rate ?? null,
+          attempt: attempt + 1,
+          latencyMs,
+          audioBytes: audioBuffer.length,
+        })
+      );
 
       return new Response(new Uint8Array(audioBuffer), {
         status: 200,
@@ -61,10 +71,21 @@ export async function POST(req: Request) {
         msg.includes("WS error") ||
         msg.includes("timeout") ||
         msg.includes("closed");
+      const latencyMs = Date.now() - attemptStart;
+
+      console.log(
+        JSON.stringify({
+          event: "tts_error",
+          textLength: text.length,
+          rate: rate ?? null,
+          attempt: attempt + 1,
+          error: msg,
+          isRetryable,
+          latencyMs,
+        })
+      );
+
       if (isRetryable && attempt < MAX_RETRIES) {
-        console.warn(
-          `[EdgeTTS] Retrying (${attempt + 1}/${MAX_RETRIES}): ${msg}`
-        );
         await new Promise((r) => setTimeout(r, 500));
         continue;
       }
@@ -72,7 +93,15 @@ export async function POST(req: Request) {
     }
   }
 
-  console.error("[EdgeTTS] Error:", lastError);
+  const totalLatencyMs = Date.now() - startTime;
+  console.log(
+    JSON.stringify({
+      event: "tts_failed",
+      textLength: text.length,
+      totalLatencyMs,
+    })
+  );
+
   return new Response(
     JSON.stringify({
       error: lastError instanceof Error ? lastError.message : String(lastError),
