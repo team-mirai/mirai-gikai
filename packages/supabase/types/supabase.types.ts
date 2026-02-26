@@ -516,6 +516,7 @@ export type Database = {
           interview_config_id: string
           is_public_by_user: boolean
           langfuse_session_id: string | null
+          rating: number | null
           started_at: string
           updated_at: string
           user_id: string
@@ -528,6 +529,7 @@ export type Database = {
           interview_config_id: string
           is_public_by_user?: boolean
           langfuse_session_id?: string | null
+          rating?: number | null
           started_at?: string
           updated_at?: string
           user_id: string
@@ -540,6 +542,7 @@ export type Database = {
           interview_config_id?: string
           is_public_by_user?: boolean
           langfuse_session_id?: string | null
+          rating?: number | null
           started_at?: string
           updated_at?: string
           user_id?: string
