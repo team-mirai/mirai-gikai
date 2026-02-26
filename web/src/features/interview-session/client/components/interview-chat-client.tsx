@@ -198,23 +198,21 @@ export function InterviewChatClient({
           />
 
           {/* クイックリプライボタン */}
-          {stage === "chat" && (
-            <>
-              {!isLoading && currentQuickReplies.length > 0 && (
-                <QuickReplyButtons
-                  replies={currentQuickReplies}
-                  onSelect={handleChatQuickReply}
-                />
-              )}
-              {isLoading && streamingQuickReplies.length > 0 && (
-                <QuickReplyButtons
-                  replies={streamingQuickReplies}
-                  onSelect={handleChatQuickReply}
-                  disabled
-                />
-              )}
-            </>
-          )}
+          {stage === "chat" &&
+            (() => {
+              const replies = isLoading
+                ? streamingQuickReplies
+                : currentQuickReplies;
+              return (
+                replies.length > 0 && (
+                  <QuickReplyButtons
+                    replies={replies}
+                    onSelect={handleChatQuickReply}
+                    disabled={isLoading}
+                  />
+                )
+              );
+            })()}
         </ConversationContent>
       </Conversation>
 
