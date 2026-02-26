@@ -36,3 +36,14 @@ export function getGlobalAudioContext(): AudioContext {
   }
   return globalAudioContext;
 }
+
+/**
+ * グローバル AudioContext を close して全音声を即停止する。
+ * 次回 getGlobalAudioContext() 呼び出し時に新しいインスタンスが作成される。
+ */
+export function closeGlobalAudioContext(): void {
+  if (globalAudioContext && globalAudioContext.state !== "closed") {
+    globalAudioContext.close();
+    globalAudioContext = null;
+  }
+}

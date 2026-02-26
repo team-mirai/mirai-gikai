@@ -10,6 +10,7 @@ import type {
   InterviewReportViewData,
 } from "@/features/interview-session/shared/schemas";
 import type { VoiceInterviewMessage } from "../../shared/types";
+import { closeGlobalAudioContext } from "../utils/audio-context";
 import {
   extractResponse,
   normalizeMessages,
@@ -413,16 +414,20 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     void speakAndAutoListen(lastMsg.content).catch(console.error);
   }, [speakAndAutoListen]);
 
-  // Cleanup on unmount + pagehide（bfcache対策）
+  // Cleanup on unmount + ブラウザイベント
   useEffect(() => {
     mountedRef.current = true;
 
     const stopAll = () => {
+      if (!mountedRef.current) return; // 多重呼び出し防止
       mountedRef.current = false;
       fetchAbortRef.current?.abort();
       fetchAbortRef.current = null;
       ttsRef.current.stop();
       srRef.current.stop();
+      // AudioContext を直接 close して再生中の音声を確実に停止
+      closeGlobalAudioContext();
+      window.speechSynthesis?.cancel();
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current);
         retryTimerRef.current = null;
@@ -433,11 +438,17 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
       }
     };
 
-    // bfcache（ブラウザバック）やタブ切り替え時にも確実に停止する
+    // popstate: ブラウザの戻る/進むボタン（React unmount より先に発火）
+    // pagehide: bfcache やタブ切り替え時
+    // beforeunload: 完全なページ遷移時
+    window.addEventListener("popstate", stopAll);
     window.addEventListener("pagehide", stopAll);
+    window.addEventListener("beforeunload", stopAll);
 
     return () => {
+      window.removeEventListener("popstate", stopAll);
       window.removeEventListener("pagehide", stopAll);
+      window.removeEventListener("beforeunload", stopAll);
       stopAll();
     };
   }, []);
