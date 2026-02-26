@@ -25,7 +25,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
     notFound();
   }
 
-  const { report, messages, bill, isOwner } = data;
+  const { report, messages, bill } = data;
   const billName = bill.bill_content?.title || bill.name;
   const characterCount = countCharacters(messages);
   const opinions = parseOpinions(report.opinions);
@@ -86,7 +86,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
 
           {/* Back to Report / Bill Buttons */}
           <div className="flex flex-col gap-3">
-            {isOwner && <BackToReportButton reportId={reportId} />}
+            <BackToReportButton reportId={reportId} />
             <BackToBillButton billId={report.bill_id} />
           </div>
 

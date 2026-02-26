@@ -28,7 +28,6 @@ export type ReportWithMessages = {
       title: string;
     } | null;
   };
-  isOwner: boolean;
 };
 
 /**
@@ -110,6 +109,5 @@ export async function getReportWithMessages(
           : bill.bill_contents
         : null,
     },
-    isOwner,
   };
 }
