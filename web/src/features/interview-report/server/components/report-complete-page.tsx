@@ -145,7 +145,6 @@ export async function ReportCompletePage({
             <OpinionsList
               opinions={opinions}
               title="💬主な意見"
-              showBackground={true}
               footer={
                 <Link
                   href={getInterviewChatLogLink(reportId)}

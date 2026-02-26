@@ -8,14 +8,12 @@ export interface Opinion {
 interface OpinionsListProps {
   opinions: Opinion[];
   title?: string;
-  showBackground?: boolean;
   footer?: ReactNode;
 }
 
 export function OpinionsList({
   opinions,
   title = "💬意見の要約",
-  showBackground = true,
   footer,
 }: OpinionsListProps) {
   if (opinions.length === 0) {
@@ -41,14 +39,7 @@ export function OpinionsList({
                 {opinion.title}
               </p>
             </div>
-            {showBackground ? (
-              <div className="flex flex-col gap-1">
-                <p className="text-sm font-bold text-gray-500">背景</p>
-                <p className="text-sm text-gray-800">{opinion.content}</p>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-600">{opinion.content}</p>
-            )}
+            <p className="text-sm text-gray-600">{opinion.content}</p>
           </div>
         ))}
         {footer}
