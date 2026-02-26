@@ -478,6 +478,7 @@ export type Database = {
           interview_config_id: string
           is_public_by_user: boolean
           langfuse_session_id: string | null
+          rating: number | null
           started_at: string
           updated_at: string
           user_id: string
@@ -490,6 +491,7 @@ export type Database = {
           interview_config_id: string
           is_public_by_user?: boolean
           langfuse_session_id?: string | null
+          rating?: number | null
           started_at?: string
           updated_at?: string
           user_id: string
@@ -502,6 +504,7 @@ export type Database = {
           interview_config_id?: string
           is_public_by_user?: boolean
           langfuse_session_id?: string | null
+          rating?: number | null
           started_at?: string
           updated_at?: string
           user_id?: string
@@ -512,35 +515,6 @@ export type Database = {
             columns: ["interview_config_id"]
             isOneToOne: false
             referencedRelation: "interview_configs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      interview_session_ratings: {
-        Row: {
-          created_at: string
-          id: string
-          interview_session_id: string
-          rating: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          interview_session_id: string
-          rating: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          interview_session_id?: string
-          rating?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "interview_session_ratings_interview_session_id_fkey"
-            columns: ["interview_session_id"]
-            isOneToOne: true
-            referencedRelation: "interview_sessions"
             referencedColumns: ["id"]
           },
         ]

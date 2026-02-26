@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createInterviewSessionRating } from "@/features/interview-session/server/repositories/interview-session-repository";
+import { updateInterviewSessionRating } from "@/features/interview-session/server/repositories/interview-session-repository";
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
 
 export async function POST(req: Request) {
@@ -22,10 +22,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    await createInterviewSessionRating({
-      sessionId,
-      rating: Math.round(rating),
-    });
+    await updateInterviewSessionRating(sessionId, Math.round(rating));
 
     return NextResponse.json({ success: true });
   } catch (error) {
