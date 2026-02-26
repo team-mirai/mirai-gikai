@@ -129,7 +129,7 @@ export function InterviewChatClient({
   const showStreamingMessage = object && !isStreamingMessageCommitted;
 
   return (
-    <div className="h-dvh md:h-[calc(100dvh-96px)] md:bg-[#F7F4F0]">
+    <div className="h-dvh md:h-[calc(100dvh-96px)] bg-[#EEEEEE]">
       <div className="flex flex-col h-full pt-24 md:pt-4 bg-white md:rounded-t-[36px] md:px-12">
         {showProgressBar && progress && (
           <div className="px-4 pb-1 pt-2">
