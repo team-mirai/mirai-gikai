@@ -299,6 +299,7 @@ export type Database = {
           status: Database["public"]["Enums"]["interview_config_status_enum"]
           themes: string[] | null
           updated_at: string
+          voice_enabled: boolean
         }
         Insert: {
           bill_id: string
@@ -312,6 +313,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
+          voice_enabled?: boolean
         }
         Update: {
           bill_id?: string
@@ -325,6 +327,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
+          voice_enabled?: boolean
         }
         Relationships: [
           {

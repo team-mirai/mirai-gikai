@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Output, generateText, type LanguageModel } from "ai";
+import type { BillWithContent } from "@/features/bills/shared/types";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
@@ -14,6 +15,14 @@ type GenerateInitialQuestionParams = {
   sessionId: string;
   billId: string;
   interviewConfigId: string;
+  /** 事前取得済みデータ（渡された場合はDBクエリをスキップ） */
+  prefetched?: {
+    bill: BillWithContent | null;
+    interviewConfig: NonNullable<
+      Awaited<ReturnType<typeof getInterviewConfigAdmin>>
+    >;
+    questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
+  };
   deps?: GenerateQuestionDeps;
 };
 
@@ -29,16 +38,29 @@ export async function generateInitialQuestion({
   sessionId,
   billId,
   interviewConfigId,
+  prefetched,
   deps,
 }: GenerateInitialQuestionParams): Promise<InterviewMessage | null> {
   try {
-    // インタビュー設定と法案情報を取得
-    // どちらもサーバーサイドでの生成処理のため、常にAdmin用（非公開制限なし）を使用する
-    const [interviewConfig, bill, questions] = await Promise.all([
-      getInterviewConfigAdmin(billId),
-      getBillByIdAdmin(billId),
-      getInterviewQuestions(interviewConfigId),
-    ]);
+    let interviewConfig: Awaited<ReturnType<typeof getInterviewConfigAdmin>>;
+    let bill: BillWithContent | null;
+    let questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
+
+    if (prefetched) {
+      interviewConfig = prefetched.interviewConfig;
+      bill = prefetched.bill;
+      questions = prefetched.questions;
+    } else {
+      // 事前取得データがない場合はDBから取得
+      const [fetchedConfig, fetchedBill, fetchedQuestions] = await Promise.all([
+        getInterviewConfigAdmin(billId),
+        getBillByIdAdmin(billId),
+        getInterviewQuestions(interviewConfigId),
+      ]);
+      interviewConfig = fetchedConfig;
+      bill = fetchedBill;
+      questions = fetchedQuestions;
+    }
 
     if (!interviewConfig) {
       throw new Error("Interview config not found");

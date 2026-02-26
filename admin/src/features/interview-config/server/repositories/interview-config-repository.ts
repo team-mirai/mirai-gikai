@@ -99,6 +99,7 @@ export async function createInterviewConfigRecord(params: {
   mode: "loop" | "bulk";
   themes: string[] | null;
   knowledge_source: string | null;
+  voice_enabled?: boolean;
   chat_model: string | null;
   estimated_duration: number | null;
 }): Promise<{ id: string }> {
@@ -124,6 +125,7 @@ export async function updateInterviewConfigRecord(
     mode: "loop" | "bulk";
     themes: string[] | null;
     knowledge_source: string | null;
+    voice_enabled?: boolean;
     chat_model: string | null;
     estimated_duration: number | null;
     updated_at: string;

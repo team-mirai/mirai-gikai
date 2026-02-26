@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   type InterviewConfig,
@@ -60,6 +61,7 @@ interface InterviewConfigFormProps {
         knowledge_source: string;
         mode: string;
         themes: string[];
+        voice_enabled: boolean;
         chat_model: string | null;
         estimated_duration: number | null;
       })
@@ -78,7 +80,6 @@ export function InterviewConfigForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isNew = !config;
-
   const form = useForm<InterviewConfigInput>({
     resolver: zodResolver(interviewConfigSchema),
     defaultValues: {
@@ -87,6 +88,7 @@ export function InterviewConfigForm({
       mode: config?.mode || "loop",
       themes: config?.themes || [],
       knowledge_source: config?.knowledge_source || "",
+      voice_enabled: config?.voice_enabled ?? false,
       chat_model: config?.chat_model || null,
       estimated_duration: isNew ? 10 : (config?.estimated_duration ?? null),
     },
@@ -102,6 +104,7 @@ export function InterviewConfigForm({
           knowledge_source: values.knowledge_source || "",
           mode: values.mode,
           themes: values.themes || [],
+          voice_enabled: values.voice_enabled ?? false,
           chat_model: values.chat_model || null,
           estimated_duration: values.estimated_duration ?? null,
         };
@@ -405,6 +408,29 @@ export function InterviewConfigForm({
                       AIが質問を生成する際に参照する情報を入力してください。法案コンテンツは自動で読み込まれます。
                     </FormDescription>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="voice_enabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">
+                        音声インタビュー
+                      </FormLabel>
+                      <FormDescription>
+                        音声によるインタビュー機能を有効にします
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />

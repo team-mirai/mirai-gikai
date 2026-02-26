@@ -1,0 +1,470 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  voiceReducer,
+  type VoiceState,
+} from "../../shared/utils/voice-state-machine";
+import type {
+  InterviewStage,
+  InterviewReportViewData,
+} from "@/features/interview-session/shared/schemas";
+import type { VoiceInterviewMessage } from "../../shared/types";
+import { closeGlobalAudioContext } from "../utils/audio-context";
+import {
+  extractResponse,
+  normalizeMessages,
+} from "../../shared/utils/extract-response";
+import { splitSentences } from "../../shared/utils/split-sentences";
+import { useSpeechRecognition } from "./use-speech-recognition";
+import { useTtsPlayer } from "./use-tts-player";
+
+interface UseVoiceInterviewOptions {
+  billId: string;
+  speechRate?: string;
+  initialMessages?: VoiceInterviewMessage[];
+}
+
+export function useVoiceInterview(options: UseVoiceInterviewOptions) {
+  const { billId, speechRate, initialMessages = [] } = options;
+  const normalized = normalizeMessages(initialMessages);
+
+  const [state, setState] = useState<VoiceState>("idle");
+  const [messages, setMessages] = useState<VoiceInterviewMessage[]>(normalized);
+  const [currentTranscript, setCurrentTranscript] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [interviewStage, setInterviewStage] = useState<InterviewStage>("chat");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [reportData, setReportData] = useState<InterviewReportViewData | null>(
+    null
+  );
+
+  const stateRef = useRef<VoiceState>("idle");
+  const messagesRef = useRef<VoiceInterviewMessage[]>(normalized);
+  const currentStageRef = useRef<InterviewStage>("chat");
+  const currentTranscriptRef = useRef("");
+  const autoStartedRef = useRef(false);
+  const retryAttemptedRef = useRef(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const infoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** ページ離脱検知用: false になったら全 async 処理を中断する */
+  const mountedRef = useRef(true);
+  /** sendToLlm の fetch を中断するための AbortController */
+  const fetchAbortRef = useRef<AbortController | null>(null);
+
+  const speechRecognition = useSpeechRecognition();
+  const ttsPlayer = useTtsPlayer();
+
+  // ref 経由でアクセスし、useCallback の依存配列を安定させる
+  const ttsRef = useRef(ttsPlayer);
+  ttsRef.current = ttsPlayer;
+  const srRef = useRef(speechRecognition);
+  srRef.current = speechRecognition;
+
+  const dispatch = useCallback(
+    (event: Parameters<typeof voiceReducer>[1]): VoiceState => {
+      const newState = voiceReducer(stateRef.current, event);
+      stateRef.current = newState;
+      setState(newState);
+      return newState;
+    },
+    []
+  );
+
+  // sendToLlm を ref で保持して循環依存を回避
+  // (beginRecognition → sendToLlm → beginRecognition)
+  const sendToLlmRef = useRef<((text: string) => Promise<void>) | undefined>(
+    undefined
+  );
+
+  /**
+   * 音声認識を開始する共通ロジック。
+   * startListening（手動）と autoListen（TTS後自動）から呼ばれる。
+   */
+  /** infoMessage を一定時間後に自動クリアする */
+  const showInfoMessage = useCallback((msg: string, durationMs = 5000) => {
+    if (infoTimerRef.current) {
+      clearTimeout(infoTimerRef.current);
+    }
+    setInfoMessage(msg);
+    infoTimerRef.current = setTimeout(() => {
+      infoTimerRef.current = null;
+      setInfoMessage(null);
+    }, durationMs);
+  }, []);
+
+  const beginRecognition = useCallback(() => {
+    setCurrentTranscript("");
+    currentTranscriptRef.current = "";
+
+    const started = srRef.current.start(
+      (text: string, isFinal: boolean) => {
+        setCurrentTranscript(text);
+        currentTranscriptRef.current = text;
+
+        if (isFinal) {
+          srRef.current.stop();
+          setCurrentTranscript("");
+          currentTranscriptRef.current = "";
+          if (text.trim()) {
+            dispatch({ type: "SPEECH_END" });
+            sendToLlmRef.current?.(text.trim());
+          } else {
+            dispatch({ type: "RESET" });
+          }
+        }
+      },
+      () => {
+        if (stateRef.current === "listening") {
+          dispatch({ type: "RESET" });
+        }
+        setCurrentTranscript("");
+        currentTranscriptRef.current = "";
+      },
+      {
+        onMaxDuration: () => {
+          showInfoMessage("回答が長くなったため、ここまでの内容で送信します");
+        },
+      }
+    );
+
+    return started;
+  }, [dispatch, showInfoMessage]);
+
+  /**
+   * TTS終了後に自動で音声認識を開始する。
+   * ボタンを押さなくても連続対話できる。
+   */
+  const autoListen = useCallback(() => {
+    if (!mountedRef.current) return;
+    if (stateRef.current !== "idle") return;
+
+    const newState = dispatch({ type: "TAP_MIC" });
+    if (newState !== "listening") return;
+
+    if (!beginRecognition()) {
+      dispatch({ type: "RESET" });
+    }
+  }, [dispatch, beginRecognition]);
+
+  /**
+   * テキストを TTS で再生し、終了後に自動で聞き取りを開始する。
+   * 2文以上の場合は句点分割→並列TTS→順次再生で体感速度を改善。
+   */
+  const speakAndAutoListen = useCallback(
+    async (text: string) => {
+      const ttsOptions = {
+        rate: speechRate,
+        onStart: () => {
+          dispatch({ type: "TTS_START" });
+        },
+        onEnd: () => {
+          dispatch({ type: "TTS_END" });
+        },
+      };
+
+      try {
+        const sentences = splitSentences(text);
+        if (sentences.length > 1) {
+          await ttsRef.current.speakChunked(sentences, ttsOptions);
+        } else {
+          await ttsRef.current.speak(text, ttsOptions);
+        }
+      } catch (ttsErr) {
+        if (ttsErr instanceof DOMException && ttsErr.name === "AbortError") {
+          // ユーザーが割り込み/停止した場合
+          // startListening 側で既に listening に遷移しているのでここでは何もしない
+          return;
+        }
+        console.error("[VoiceInterview] TTS error:", ttsErr);
+        dispatch({ type: "TTS_END" });
+      }
+
+      // TTS完了後、自動で聞き取りモードに移行（ページ離脱済みなら何もしない）
+      if (mountedRef.current) {
+        autoListen();
+      }
+    },
+    [dispatch, speechRate, autoListen]
+  );
+
+  /**
+   * TTS のみ再生する（自動リスニングなし）。
+   * サマリーフェーズ等、対話を続行しない場合に使用。
+   */
+  const speakOnly = useCallback(
+    async (text: string) => {
+      const ttsOptions = {
+        rate: speechRate,
+        onStart: () => {
+          dispatch({ type: "TTS_START" });
+        },
+        onEnd: () => {
+          dispatch({ type: "TTS_END" });
+        },
+      };
+
+      try {
+        const sentences = splitSentences(text);
+        if (sentences.length > 1) {
+          await ttsRef.current.speakChunked(sentences, ttsOptions);
+        } else {
+          await ttsRef.current.speak(text, ttsOptions);
+        }
+      } catch (ttsErr) {
+        if (ttsErr instanceof DOMException && ttsErr.name === "AbortError") {
+          return;
+        }
+        console.error("[VoiceInterview] TTS error:", ttsErr);
+        dispatch({ type: "TTS_END" });
+      }
+    },
+    [dispatch, speechRate]
+  );
+
+  const sendToLlm = useCallback(
+    async (userText: string) => {
+      const userMessage: VoiceInterviewMessage = {
+        role: "user",
+        content: userText,
+      };
+      const updatedMessages = [...messagesRef.current, userMessage];
+      messagesRef.current = updatedMessages;
+      setMessages(updatedMessages);
+
+      try {
+        // 前回の fetch が残っていたら中断
+        fetchAbortRef.current?.abort();
+        const abortController = new AbortController();
+        fetchAbortRef.current = abortController;
+
+        const response = await fetch("/api/interview/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: updatedMessages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            billId,
+            currentStage: currentStageRef.current,
+            voice: true,
+          }),
+          signal: abortController.signal,
+        });
+
+        if (!mountedRef.current) return;
+
+        if (!response.ok) {
+          const errText = await response.text().catch(() => "");
+          throw new Error(`Chat API error ${response.status}: ${errText}`);
+        }
+
+        const responseText = await response.text();
+        if (!mountedRef.current) return;
+        const {
+          text: spokenText,
+          nextStage,
+          sessionId: sid,
+          report,
+        } = extractResponse(responseText);
+
+        if (nextStage) {
+          currentStageRef.current = nextStage;
+          setInterviewStage(nextStage);
+        }
+        if (sid) {
+          setSessionId(sid);
+        }
+        if (report) {
+          setReportData(report);
+        }
+
+        // リトライカウントをリセット
+        retryAttemptedRef.current = false;
+
+        const assistantMessage: VoiceInterviewMessage = {
+          role: "assistant",
+          content: spokenText,
+        };
+        const finalMessages = [...messagesRef.current, assistantMessage];
+        messagesRef.current = finalMessages;
+        setMessages(finalMessages);
+
+        // サマリーフェーズではTTSのみ（自動リスニングしない）
+        // await せず fire-and-forget で再生し、要約UIを即座に表示する
+        const isSummary =
+          nextStage === "summary" || nextStage === "summary_complete";
+        if (isSummary) {
+          speakOnly(spokenText);
+        } else {
+          await speakAndAutoListen(spokenText);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[VoiceInterview] LLM error:", msg);
+
+        // 自動リトライ1回（2秒後）
+        if (!retryAttemptedRef.current) {
+          retryAttemptedRef.current = true;
+          const lastUserText =
+            messagesRef.current[messagesRef.current.length - 1]?.content;
+          if (lastUserText) {
+            // 失敗したユーザーメッセージを除去して再送信
+            messagesRef.current = messagesRef.current.slice(0, -1);
+            setMessages(messagesRef.current);
+            retryTimerRef.current = setTimeout(() => {
+              retryTimerRef.current = null;
+              sendToLlmRef.current?.(lastUserText);
+            }, 2_000);
+            return;
+          }
+        }
+
+        setErrorMessage(msg);
+        dispatch({ type: "ERROR", error: msg });
+      }
+    },
+    [billId, dispatch, speakAndAutoListen, speakOnly]
+  );
+
+  // ref を常に最新に保つ
+  sendToLlmRef.current = sendToLlm;
+
+  /**
+   * マイクボタンのタップハンドラ（手動トグル）。
+   * - 初回タップ: 最初のAIメッセージをTTS再生→自動リスニング開始
+   * - idle → listening
+   * - listening → idle（キャンセル）
+   * - speaking → listening（割り込み）
+   */
+  const startListening = useCallback(() => {
+    setErrorMessage(null);
+
+    // 初回タップ: AIの最初の質問をTTS再生し、終了後に自動リスニング
+    if (!autoStartedRef.current) {
+      autoStartedRef.current = true;
+      const lastMsg = messagesRef.current[messagesRef.current.length - 1];
+      if (lastMsg?.role === "assistant") {
+        void speakAndAutoListen(lastMsg.content).catch(console.error);
+        return;
+      }
+    }
+
+    // 進行中のTTSを停止（フェッチ中でも確実に中断する）
+    ttsRef.current.stop();
+
+    // listening 中にタップ → 認識途中のテキストがあれば送信する
+    const wasListening = stateRef.current === "listening";
+    const interimText = currentTranscriptRef.current.trim();
+
+    const newState = dispatch({ type: "TAP_MIC" });
+
+    if (newState === "idle") {
+      srRef.current.stop();
+      if (wasListening && interimText) {
+        setCurrentTranscript("");
+        currentTranscriptRef.current = "";
+        dispatch({ type: "SPEECH_END" });
+        sendToLlmRef.current?.(interimText);
+      }
+      return;
+    }
+
+    if (newState !== "listening") return;
+
+    if (!beginRecognition()) {
+      setErrorMessage(
+        "音声認識を開始できませんでした。ブラウザの設定を確認してください。"
+      );
+      dispatch({
+        type: "ERROR",
+        error: "Speech recognition failed to start",
+      });
+    }
+  }, [dispatch, beginRecognition, speakAndAutoListen]);
+
+  /**
+   * エラー状態からの手動回復。
+   * 状態を idle に戻してエラーメッセージをクリアする。
+   */
+  const retry = useCallback(() => {
+    retryAttemptedRef.current = false;
+    setErrorMessage(null);
+    dispatch({ type: "RETRY" });
+  }, [dispatch]);
+
+  const stopSpeaking = useCallback(() => {
+    ttsRef.current.stop();
+    if (stateRef.current === "speaking") {
+      dispatch({ type: "TTS_END" });
+    }
+  }, [dispatch]);
+
+  // マウント時に最初のassistantメッセージをTTS再生＋自動リスニング開始
+  // 遷移元で prewarmAudioContext() 済みのため AudioContext は running 状態
+  useEffect(() => {
+    if (autoStartedRef.current) return;
+    autoStartedRef.current = true;
+
+    const lastMsg = messagesRef.current[messagesRef.current.length - 1];
+    if (!lastMsg || lastMsg.role !== "assistant") return;
+
+    void speakAndAutoListen(lastMsg.content).catch(console.error);
+  }, [speakAndAutoListen]);
+
+  // Cleanup on unmount + ブラウザイベント
+  useEffect(() => {
+    mountedRef.current = true;
+
+    const stopAll = () => {
+      if (!mountedRef.current) return; // 多重呼び出し防止
+      mountedRef.current = false;
+      fetchAbortRef.current?.abort();
+      fetchAbortRef.current = null;
+      ttsRef.current.stop();
+      srRef.current.stop();
+      // AudioContext を直接 close して再生中の音声を確実に停止
+      closeGlobalAudioContext();
+      window.speechSynthesis?.cancel();
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+      if (infoTimerRef.current) {
+        clearTimeout(infoTimerRef.current);
+        infoTimerRef.current = null;
+      }
+    };
+
+    // popstate: ブラウザの戻る/進むボタン（React unmount より先に発火）
+    // pagehide: bfcache やタブ切り替え時
+    // beforeunload: 完全なページ遷移時
+    window.addEventListener("popstate", stopAll);
+    window.addEventListener("pagehide", stopAll);
+    window.addEventListener("beforeunload", stopAll);
+
+    return () => {
+      window.removeEventListener("popstate", stopAll);
+      window.removeEventListener("pagehide", stopAll);
+      window.removeEventListener("beforeunload", stopAll);
+      stopAll();
+    };
+  }, []);
+
+  return {
+    state,
+    messages,
+    currentTranscript,
+    startListening,
+    stopSpeaking,
+    retry,
+    errorMessage,
+    infoMessage,
+    isSupported: speechRecognition.isSupported,
+    interviewStage,
+    sessionId,
+    reportData,
+  };
+}

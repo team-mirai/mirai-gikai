@@ -2,10 +2,12 @@ import "server-only";
 
 import {
   convertToModelMessages,
+  generateText,
   type LanguageModel,
   Output,
   streamText,
 } from "ai";
+import { z } from "zod";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
@@ -65,6 +67,7 @@ export async function handleInterviewChatRequest({
   billId,
   currentStage,
   isRetry = false,
+  voice = false,
   deps,
 }: InterviewChatRequestParams & { deps?: InterviewChatDeps }) {
   // リクエスト単位のトレースID（同一リクエスト内のLLM呼び出しをまとめる）
@@ -141,7 +144,7 @@ export async function handleInterviewChatRequest({
     : null;
 
   // システムプロンプトを構築（ステージ遷移ガイダンスを含む）
-  const systemPrompt = isSummaryPhase
+  let systemPrompt = isSummaryPhase
     ? buildSummarySystemPrompt({ bill, interviewConfig, messages })
     : buildInterviewSystemPrompt({
         bill,
@@ -153,6 +156,11 @@ export async function handleInterviewChatRequest({
         remainingMinutes,
       });
 
+  // 音声モードの場合、システムプロンプトに追加指示を付与
+  if (voice && !isSummaryPhase) {
+    systemPrompt += buildVoicePromptSuffix();
+  }
+
   logger.debug("System Prompt:", systemPrompt);
 
   // ストリーミングレスポンスを生成（LLMがnext_stageを直接出力）
@@ -161,6 +169,7 @@ export async function handleInterviewChatRequest({
     messages,
     sessionId: session.id,
     isSummaryPhase,
+    voice,
     chatModel: deps?.chatModel,
     summaryModel: deps?.summaryModel,
     configChatModel: interviewConfig.chat_model,
@@ -179,11 +188,19 @@ export async function handleInterviewChatRequest({
  * LLMの出力スキーマにnext_stageが含まれるため、
  * 後からストリームに注入する必要はない。
  */
+// 音声チャット用スキーマ（quick_repliesなし）
+const voiceChatTextSchema = z.object({
+  text: z.string(),
+  question_id: z.string().nullable(),
+  topic_title: z.string().nullable(),
+});
+
 async function generateStreamingResponse({
   systemPrompt,
   messages,
   sessionId,
   isSummaryPhase,
+  voice = false,
   chatModel,
   summaryModel,
   configChatModel,
@@ -193,6 +210,7 @@ async function generateStreamingResponse({
   messages: { role: string; content: string }[];
   sessionId: string;
   isSummaryPhase: boolean;
+  voice?: boolean;
   chatModel?: LanguageModel;
   summaryModel?: LanguageModel;
   configChatModel?: string | null;
@@ -251,10 +269,82 @@ async function generateStreamingResponse({
             sessionId: telemetry.sessionId,
             billId: telemetry.billId,
             stage: telemetry.stage,
+            voice: voice ? "true" : "false",
           },
         }
       : undefined,
   } as const;
+
+  // 音声モードはストリーミング不要（TTS に全文が必要）→ generateText を使用
+  if (voice) {
+    const voiceTelemetry = telemetry
+      ? {
+          isEnabled: true as const,
+          functionId,
+          metadata: {
+            langfuseTraceId: telemetry.traceId,
+            sessionId: telemetry.sessionId,
+            billId: telemetry.billId,
+            stage: telemetry.stage,
+            voice: "true",
+          },
+        }
+      : undefined;
+
+    const modelMessages = await convertToModelMessages(uiMessages);
+
+    const buildVoiceResponse = (output: Record<string, unknown>) => {
+      const responseBody = {
+        ...output,
+        session_id: sessionId,
+      };
+      return new Response(JSON.stringify(responseBody), {
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const saveVoiceMessage = (text: string) =>
+      saveInterviewMessage({
+        sessionId,
+        role: "assistant",
+        content: text,
+      }).catch((err) =>
+        console.error("Failed to save interview message:", err)
+      );
+
+    try {
+      if (isSummaryPhase) {
+        const result = await generateText({
+          model,
+          system: systemPrompt,
+          messages: modelMessages,
+          output: Output.object({
+            schema: interviewChatWithReportSchema,
+          }),
+          experimental_telemetry: voiceTelemetry,
+        });
+        if (result.text) await saveVoiceMessage(result.text);
+        return buildVoiceResponse(
+          (result.output ?? {}) as Record<string, unknown>
+        );
+      }
+
+      const result = await generateText({
+        model,
+        system: systemPrompt,
+        messages: modelMessages,
+        output: Output.object({ schema: voiceChatTextSchema }),
+        experimental_telemetry: voiceTelemetry,
+      });
+      if (result.text) await saveVoiceMessage(result.text);
+      return buildVoiceResponse(
+        (result.output ?? {}) as Record<string, unknown>
+      );
+    } catch (error) {
+      handleError(error);
+      throw error;
+    }
+  }
 
   try {
     let textStream: ReadableStream<string>;
@@ -281,4 +371,19 @@ async function generateStreamingResponse({
     handleError(error);
     throw error;
   }
+}
+
+/**
+ * 音声モード用のシステムプロンプト追加指示を構築
+ */
+function buildVoicePromptSuffix(): string {
+  return `
+
+## 音声モード指示
+このインタビューは音声対話モードで実施されています。以下のルールに従ってください:
+- 回答は2〜3文の短い文で簡潔にまとめること（読み上げされるため長すぎると聞き取りづらい）
+- 口語体・話し言葉を使うこと（「ですね」「ですか」など自然な会話調）
+- quick_replies は出力しないこと
+- 箇条書きや記号（「・」「※」「→」など）は使わず、自然な文章で表現すること
+- 数字や専門用語は読み上げやすい表現にすること`;
 }

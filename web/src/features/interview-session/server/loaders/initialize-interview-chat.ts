@@ -24,6 +24,8 @@ type InitializeInterviewChatResult = {
 /**
  * インタビューチャットの初期化処理
  * セッション取得/作成、メッセージ履歴取得、最初の質問生成を行う
+ *
+ * @param prefetched - page.tsx で既に取得済みのデータ。渡すと初期質問生成時のDB重複クエリをスキップ
  */
 export async function initializeInterviewChat(
   billId: string,

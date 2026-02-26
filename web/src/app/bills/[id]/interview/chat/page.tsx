@@ -7,20 +7,27 @@ import { getInterviewConfig } from "@/features/interview-config/server/loaders/g
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
+import { VoiceInterviewClient } from "@/features/voice-interview/client/components/voice-interview-client";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 
 interface InterviewChatPageProps {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{
+    mode?: string;
+  }>;
 }
 
 export default async function InterviewChatPage({
   params,
+  searchParams,
 }: InterviewChatPageProps) {
-  const { id: billId } = await params;
+  const [{ id: billId }, { mode }] = await Promise.all([params, searchParams]);
 
-  // 法案とインタビュー設定を取得
+  const isVoiceMode = mode === "voice";
+
+  // 法案・インタビュー設定を並列取得
   const [bill, interviewConfig] = await Promise.all([
     getBillById(billId),
     getInterviewConfig(billId),
@@ -30,11 +37,8 @@ export default async function InterviewChatPage({
     notFound();
   }
 
-  // ループモードの場合のみ質問数を取得（プログレスバー用）
-  const questions =
-    interviewConfig.mode === "loop"
-      ? await getInterviewQuestions(interviewConfig.id)
-      : [];
+  // 質問を取得（プログレスバー用 + 初期質問生成用）
+  const questions = await getInterviewQuestions(interviewConfig.id);
 
   // インタビューチャットの初期化処理
   try {
@@ -42,6 +46,21 @@ export default async function InterviewChatPage({
       billId,
       interviewConfig.id
     );
+
+    // 音声モードの場合は VoiceInterviewClient を表示
+    if (isVoiceMode && interviewConfig.voice_enabled) {
+      const initialVoiceMessages = messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      }));
+      return (
+        <VoiceInterviewClient
+          key={session.id}
+          billId={billId}
+          initialMessages={initialVoiceMessages}
+        />
+      );
+    }
 
     return (
       <InterviewChatClient

@@ -13,11 +13,13 @@ export async function POST(req: Request) {
     billId,
     currentStage,
     isRetry,
+    voice,
   }: {
     messages: Array<{ role: string; content: string }>;
     billId: string;
     currentStage: "chat" | "summary" | "summary_complete";
     isRetry?: boolean;
+    voice?: boolean;
   } = body;
 
   const {
@@ -49,6 +51,7 @@ export async function POST(req: Request) {
       billId,
       currentStage,
       isRetry,
+      voice,
     });
   } catch (error) {
     console.error("Interview chat request error:", error);

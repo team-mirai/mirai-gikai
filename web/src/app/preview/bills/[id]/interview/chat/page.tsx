@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
+import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
+import { VoiceInterviewClient } from "@/features/voice-interview/client/components/voice-interview-client";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 import { env } from "@/lib/env";
 
@@ -16,6 +18,7 @@ interface InterviewPreviewChatPageProps {
   }>;
   searchParams: Promise<{
     token?: string;
+    mode?: string;
   }>;
 }
 
@@ -48,7 +51,10 @@ export default async function InterviewPreviewChatPage({
   params,
   searchParams,
 }: InterviewPreviewChatPageProps) {
-  const [{ id: billId }, { token }] = await Promise.all([params, searchParams]);
+  const [{ id: billId }, { token, mode }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   // トークン検証
   const isValidToken = await validatePreviewToken(billId, token);
@@ -56,18 +62,20 @@ export default async function InterviewPreviewChatPage({
     notFound();
   }
 
-  // 非公開設定も取得可能にする
-  const interviewConfig = await getInterviewConfigAdmin(billId);
+  // 非公開設定も取得可能にする（bill と config を並列取得）
+  const [interviewConfig, bill] = await Promise.all([
+    getInterviewConfigAdmin(billId),
+    getBillByIdAdmin(billId),
+  ]);
 
   if (!interviewConfig) {
     notFound();
   }
 
-  // ループモードの場合のみ質問数を取得（プログレスバー用）
-  const questions =
-    interviewConfig.mode === "loop"
-      ? await getInterviewQuestions(interviewConfig.id)
-      : [];
+  const isVoiceMode = mode === "voice";
+
+  // 質問を取得（プログレスバー用 + 初期質問生成用）
+  const questions = await getInterviewQuestions(interviewConfig.id);
 
   // インタビューチャットの初期化処理
   try {
@@ -75,6 +83,24 @@ export default async function InterviewPreviewChatPage({
       billId,
       interviewConfig.id
     );
+
+    // 音声モードの場合は VoiceInterviewClient を表示
+    if (isVoiceMode && interviewConfig.voice_enabled) {
+      const initialVoiceMessages = messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      }));
+      return (
+        <>
+          <PreviewBanner />
+          <VoiceInterviewClient
+            key={session.id}
+            billId={billId}
+            initialMessages={initialVoiceMessages}
+          />
+        </>
+      );
+    }
 
     return (
       <>

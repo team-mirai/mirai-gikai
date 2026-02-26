@@ -44,6 +44,18 @@ describe("getInterviewChatLink", () => {
       "/preview/bills/bill-123/interview/chat?token=tok-abc"
     );
   });
+
+  it("returns interview chat path with voice mode", () => {
+    expect(getInterviewChatLink("bill-123", undefined, "voice")).toBe(
+      "/bills/bill-123/interview/chat?mode=voice"
+    );
+  });
+
+  it("returns preview interview chat path with token and voice mode", () => {
+    expect(getInterviewChatLink("bill-123", "tok-abc", "voice")).toBe(
+      "/preview/bills/bill-123/interview/chat?token=tok-abc&mode=voice"
+    );
+  });
 });
 
 describe("getInterviewReportCompleteLink", () => {
