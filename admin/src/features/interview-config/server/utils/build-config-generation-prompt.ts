@@ -4,7 +4,7 @@ import type { ConfigGenerationStage } from "../../shared/schemas";
 
 interface ExistingQuestion {
   question: string;
-  instruction?: string | null;
+  follow_up_guide?: string | null;
   quick_replies?: string[] | null;
 }
 
@@ -83,7 +83,7 @@ ${knowledgeSection}${existingThemesSection}
 
     const existingQuestionsSection =
       existingQuestions && existingQuestions.length > 0
-        ? `\n## 現在設定されている質問\n${existingQuestions.map((q, i) => `${i + 1}. ${q.question}${q.instruction ? `\n   指示: ${q.instruction}` : ""}${q.quick_replies?.length ? `\n   選択肢: ${q.quick_replies.join(", ")}` : ""}`).join("\n")}\n\n管理者は既存の質問のブラッシュアップを希望しています。既存質問を踏まえて改善提案をしてください。`
+        ? `\n## 現在設定されている質問\n${existingQuestions.map((q, i) => `${i + 1}. ${q.question}${q.follow_up_guide ? `\n   フォローアップ指針: ${q.follow_up_guide}` : ""}${q.quick_replies?.length ? `\n   選択肢: ${q.quick_replies.join(", ")}` : ""}`).join("\n")}\n\n管理者は既存の質問のブラッシュアップを希望しています。既存質問を踏まえて改善提案をしてください。`
         : "";
 
     return `${baseRole}
@@ -96,16 +96,28 @@ ${themesSection}${existingQuestionsSection}
 確定したテーマに基づいて、インタビュー質問を提案してください。
 
 ## 質問提案のガイドライン
+
+### ラポール形成・専門知識レベル確認（最初の1〜2問）
+質問リストの最初に、ラポール形成と専門知識レベルの確認を目的とした質問を1〜2問配置してください。
+これらの質問は、インタビュー冒頭で回答者との信頼関係を築き、どの程度の専門知識を持っているかを把握するためのものです。
+以下の観点を含めてください:
+- 法案との関わり（例: 「この法案のテーマについて、どのような関わりがありますか？」）
+- 日々の業務・生活との関係（例: 「普段のお仕事や暮らしの中で、この分野とどの程度関係がありますか？」）
+- 知識レベルの確認（例: 「この分野について、どの程度ご存知ですか？」）
+これらの質問にも適切なクイックリプライを付けてください（例: 「専門的に関わっている」「業務で関係がある」「暮らしに影響がある」「一般市民として関心がある」等）。
+follow_up_guideには「回答内容から専門知識レベルを判断し、以降の質問の深さや用語の使い方を調整してください」といったフォローアップ指針を含めてください。
+
+### 本題の質問（ラポール形成質問の後）
 - 各テーマから少なくとも1つの質問を作成する
-- 合計5〜8個の質問を提案する
+- ラポール形成質問と合わせて合計5〜8個の質問を提案する
 - 自由回答を促す開かれた質問にする
 - 各質問に適切なクイックリプライ（3〜5個）を用意する
-- 必要に応じてAIへの深掘り指示を添える
+- 必要に応じてフォローアップ指針を添える
 - ナレッジソースがある場合は、その情報も踏まえた質問にする
 
 ## 各質問に含めるフィールド
 - question: 質問文（分かりやすく端的に）
-- instruction: AIへの指示（任意、深掘り方法や注意点など）
+- follow_up_guide: フォローアップ指針（任意、回答後の深掘り方法や注意点など）
 - quick_replies: クイックリプライの選択肢（任意、3〜5個）
 
 ## 出力形式

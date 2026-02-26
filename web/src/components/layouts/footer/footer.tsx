@@ -2,9 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { isInterviewSection } from "@/lib/page-layout-utils";
 import { policyLinks, primaryLinks } from "./footer.config";
 
 export function Footer() {
+  const pathname = usePathname();
+
+  if (isInterviewSection(pathname)) {
+    return null;
+  }
+
   return (
     <footer className="bg-mirai-gradient text-slate-900">
       <div className="mx-auto flex w-full max-w-[500px] flex-col items-center px-6 py-14 pb-20 text-center">

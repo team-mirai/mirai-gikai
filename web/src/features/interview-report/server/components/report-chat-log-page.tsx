@@ -30,7 +30,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
   const opinions = parseOpinions(report.opinions);
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0]">
+    <div className="min-h-dvh bg-[#F7F4F0]">
       {/* Header Section */}
       <div className="px-4 pt-24 pb-8">
         <div className="flex flex-col items-center">

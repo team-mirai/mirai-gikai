@@ -177,7 +177,8 @@ export async function findInterviewMessagesBySessionId(
     .from("interview_messages")
     .select("*")
     .eq("interview_session_id", sessionId)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
 
   if (error) {
     throw new Error(`Failed to fetch interview messages: ${error.message}`);
@@ -197,7 +198,8 @@ export async function findInterviewMessagesBySessionIdDesc(
     .from("interview_messages")
     .select("*")
     .eq("interview_session_id", sessionId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
 
   if (error) {
     throw new Error(`Failed to fetch interview messages: ${error.message}`);

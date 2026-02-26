@@ -2,7 +2,7 @@
 
 import type { ChangeEvent } from "react";
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   PromptInput,
   PromptInputBody,
@@ -33,6 +33,12 @@ export function InterviewChatInput({
 }: InterviewChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isDesktop = useIsDesktop();
+
+  useEffect(() => {
+    if (!input && textareaRef.current) {
+      textareaRef.current.style.height = "";
+    }
+  }, [input]);
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     onInputChange(e.target.value);

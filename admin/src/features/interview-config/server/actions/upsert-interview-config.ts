@@ -50,6 +50,8 @@ export async function createInterviewConfig(
       themes: validatedData.themes || null,
       knowledge_source: validatedData.knowledge_source || null,
       voice_enabled: validatedData.voice_enabled ?? false,
+      chat_model: validatedData.chat_model || null,
+      estimated_duration: validatedData.estimated_duration ?? null,
     });
 
     // web側のキャッシュを無効化
@@ -96,6 +98,8 @@ export async function updateInterviewConfig(
       themes: validatedData.themes || null,
       knowledge_source: validatedData.knowledge_source || null,
       voice_enabled: validatedData.voice_enabled ?? false,
+      chat_model: validatedData.chat_model || null,
+      estimated_duration: validatedData.estimated_duration ?? null,
       updated_at: new Date().toISOString(),
     });
 
@@ -148,6 +152,8 @@ export async function duplicateInterviewConfig(
         themes: originalConfig.themes,
         knowledge_source: originalConfig.knowledge_source,
         voice_enabled: originalConfig.voice_enabled,
+        chat_model: originalConfig.chat_model,
+        estimated_duration: originalConfig.estimated_duration,
       });
     } catch (error) {
       return {

@@ -1,5 +1,6 @@
 import type { Database } from "@mirai-gikai/supabase";
 import { z } from "zod";
+import { isValidChatModel } from "../utils/chat-model-options";
 
 // Database types
 export type InterviewConfig =
@@ -27,6 +28,20 @@ export const interviewConfigSchema = z.object({
   themes: z.array(z.string().min(1)).optional(),
   knowledge_source: z.string().optional(),
   voice_enabled: z.boolean().optional(),
+  chat_model: z
+    .string()
+    .nullable()
+    .optional()
+    .refine((val) => !val || isValidChatModel(val), {
+      message: "無効なAIモデルが指定されています",
+    }),
+  estimated_duration: z
+    .number()
+    .int("整数で入力してください")
+    .min(1, "1分以上で設定してください")
+    .max(180, "180分以内で設定してください")
+    .nullable()
+    .optional(),
 });
 
 export const interviewQuestionSchema = z.object({
@@ -34,9 +49,9 @@ export const interviewQuestionSchema = z.object({
     .string()
     .min(1, "質問文は必須です")
     .max(1000, "質問文は1000文字以内で入力してください"),
-  instruction: z
+  follow_up_guide: z
     .string()
-    .max(2000, "指示は2000文字以内で入力してください")
+    .max(2000, "フォローアップ指針は2000文字以内で入力してください")
     .optional(),
   quick_replies: z.array(z.string().min(1)).optional(),
 });

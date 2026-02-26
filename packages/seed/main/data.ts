@@ -238,14 +238,14 @@ export function createInterviewQuestions(
     {
       interview_config_id: interviewConfigId,
       question: "この法案に賛成ですか？反対ですか？",
-      instruction: "ユーザーの立場を明確にしてください。",
+      follow_up_guide: "ユーザーの立場を明確にしてください。",
       quick_replies: ["賛成", "反対", "どちらでもない"],
       question_order: 1,
     },
     {
       interview_config_id: interviewConfigId,
       question: "その理由を教えてください。",
-      instruction: "具体的な理由を引き出してください。",
+      follow_up_guide: "具体的な理由を引き出してください。",
       quick_replies: null,
       question_order: 2,
     },

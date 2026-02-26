@@ -123,6 +123,10 @@ export async function createTestBill(
       | "rejected"
       | "preparing";
     publish_status: "draft" | "published" | "coming_soon";
+    diet_session_id: string;
+    is_featured: boolean;
+    published_at: string;
+    shugiin_url: string;
   }> = {}
 ) {
   const defaults = {
@@ -178,6 +182,116 @@ export async function createTestInterviewData(userId: string) {
     throw new Error(`interview_session 作成失敗: ${sessionError?.message}`);
 
   return { bill, config, session };
+}
+
+/** テスト用 bill_contents を作成 */
+export async function createTestBillContent(
+  billId: string,
+  overrides: Partial<{
+    difficulty_level: "normal" | "hard";
+    title: string;
+    summary: string;
+    content: string;
+  }> = {}
+) {
+  const defaults = {
+    bill_id: billId,
+    difficulty_level: "normal" as const,
+    title: `テスト議案タイトル ${Date.now()}`,
+    summary: `テスト議案サマリー ${Date.now()}`,
+    content: `# テスト議案コンテンツ ${Date.now()}`,
+    ...overrides,
+  };
+  const { data, error } = await adminClient
+    .from("bill_contents")
+    .insert(defaults)
+    .select()
+    .single();
+  if (error) throw new Error(`bill_contents 作成失敗: ${error.message}`);
+  return data;
+}
+
+/** テスト用 tag を作成 */
+export async function createTestTag(
+  overrides: Partial<{
+    label: string;
+    description: string;
+    featured_priority: number;
+  }> = {}
+) {
+  const defaults = {
+    label: `テストタグ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    ...overrides,
+  };
+  const { data, error } = await adminClient
+    .from("tags")
+    .insert(defaults)
+    .select()
+    .single();
+  if (error) throw new Error(`tag 作成失敗: ${error.message}`);
+  return data;
+}
+
+/** テスト用 tag を削除 */
+export async function cleanupTestTag(tagId: string): Promise<void> {
+  await adminClient.from("tags").delete().eq("id", tagId);
+}
+
+/** テスト用 bills_tags を作成 */
+export async function createTestBillTag(billId: string, tagId: string) {
+  const { data, error } = await adminClient
+    .from("bills_tags")
+    .insert({ bill_id: billId, tag_id: tagId })
+    .select()
+    .single();
+  if (error) throw new Error(`bills_tags 作成失敗: ${error.message}`);
+  return data;
+}
+
+/** テスト用 mirai_stances を作成 */
+export async function createTestMiraiStance(
+  billId: string,
+  overrides: Partial<{
+    type: "for" | "against" | "neutral";
+    comment: string;
+  }> = {}
+) {
+  const defaults = {
+    bill_id: billId,
+    type: "for" as const,
+    comment: "テストコメント",
+    ...overrides,
+  };
+  const { data, error } = await adminClient
+    .from("mirai_stances")
+    .insert(defaults)
+    .select()
+    .single();
+  if (error) throw new Error(`mirai_stances 作成失敗: ${error.message}`);
+  return data;
+}
+
+/** テスト用 preview_tokens を作成 */
+export async function createTestPreviewToken(
+  billId: string,
+  overrides: Partial<{
+    token: string;
+    expires_at: string;
+  }> = {}
+) {
+  const defaults = {
+    bill_id: billId,
+    token: `test-token-${Date.now()}`,
+    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    ...overrides,
+  };
+  const { data, error } = await adminClient
+    .from("preview_tokens")
+    .insert(defaults)
+    .select()
+    .single();
+  if (error) throw new Error(`preview_tokens 作成失敗: ${error.message}`);
+  return data;
 }
 
 /** テスト用インタビューメッセージを作成 */

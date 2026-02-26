@@ -15,14 +15,18 @@ import { createInterviewSession } from "@/features/interview-session/server/acti
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
 import { getInterviewSession } from "@/features/interview-session/server/loaders/get-interview-session";
 import {
-  type InterviewStage,
   interviewChatTextSchema,
   interviewChatWithReportSchema,
 } from "@/features/interview-session/shared/schemas";
-import type { InterviewChatRequestParams } from "@/features/interview-session/shared/types";
-import { AI_MODELS } from "@/lib/ai/models";
+import type { BillWithContent } from "@/features/bills/shared/types";
+import type { InterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config-admin";
+import type {
+  InterviewChatRequestParams,
+  InterviewMessage,
+  InterviewSession,
+} from "@/features/interview-session/shared/types";
+import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { logger } from "@/lib/logger";
-import { injectJsonFields } from "@/lib/stream/inject-json-fields";
 import {
   buildInterviewSystemPrompt,
   buildSummarySystemPrompt,
@@ -32,11 +36,6 @@ import { bulkModeLogic } from "../utils/interview-logic/bulk-mode";
 import { loopModeLogic } from "../utils/interview-logic/loop-mode";
 import { saveInterviewMessage } from "./save-interview-message";
 
-// ファシリテーター結果のスキーマ
-const facilitatorResultSchema = z.object({
-  nextStage: z.enum(["chat", "summary", "summary_complete"]),
-});
-
 // モードロジックのマップ
 const modeLogicMap = {
   bulk: bulkModeLogic,
@@ -45,13 +44,23 @@ const modeLogicMap = {
 
 /** テスト時にモック注入するための外部依存 */
 export type InterviewChatDeps = {
-  facilitatorModel?: LanguageModel;
   chatModel?: LanguageModel;
   summaryModel?: LanguageModel;
+  /** テスト時に認証をバイパスするためのセッション取得関数 */
+  getSession?: (configId: string) => Promise<InterviewSession | null>;
+  /** テスト時に認証をバイパスするためのメッセージ取得関数 */
+  getMessages?: (sessionId: string) => Promise<InterviewMessage[]>;
+  /** テスト時にcookies依存をバイパスするための法案取得関数 */
+  getBill?: (billId: string) => Promise<BillWithContent | null>;
+  /** テスト時にnext/cache依存をバイパスするためのインタビュー設定取得関数 */
+  getInterviewConfig?: (billId: string) => Promise<InterviewConfig | null>;
 };
 
 /**
  * インタビューチャットリクエストを処理してストリーミングレスポンスを返す
+ *
+ * チャットLLM自身がnext_stageを出力するため、
+ * 別途ファシリテーターLLMを呼び出す必要はない。
  */
 export async function handleInterviewChatRequest({
   messages,
@@ -64,19 +73,23 @@ export async function handleInterviewChatRequest({
   // リクエスト単位のトレースID（同一リクエスト内のLLM呼び出しをまとめる）
   const traceId = crypto.randomUUID();
 
-  // インタビュー設定と法案情報を取得
+  // インタビュー設定と法案情報を取得（テスト時はdeps経由でNext.js依存をバイパス）
+  const getInterviewConfigFn =
+    deps?.getInterviewConfig ?? getInterviewConfigAdmin;
+  const getBillFn = deps?.getBill ?? getBillByIdAdmin;
   const [interviewConfig, bill] = await Promise.all([
-    getInterviewConfigAdmin(billId),
-    getBillByIdAdmin(billId),
+    getInterviewConfigFn(billId),
+    getBillFn(billId),
   ]);
 
   if (!interviewConfig) {
     throw new Error("Interview config not found");
   }
 
-  // セッション取得または作成
+  // セッション取得または作成（テスト時はdeps経由で認証をバイパス）
+  const getSessionFn = deps?.getSession ?? getInterviewSession;
   const session =
-    (await getInterviewSession(interviewConfig.id)) ??
+    (await getSessionFn(interviewConfig.id)) ??
     (await createInterviewSession({ interviewConfigId: interviewConfig.id }));
 
   // 最新のメッセージを取得
@@ -103,23 +116,15 @@ export async function handleInterviewChatRequest({
   const mode = interviewConfig.mode;
   const logic = modeLogicMap[mode] ?? bulkModeLogic;
 
-  // DBから最新を含む全メッセージを取得
-  const dbMessages = await getInterviewMessages(session.id);
+  // DBから最新を含む全メッセージを取得（テスト時はdeps経由で認証をバイパス）
+  const getMessagesFn = deps?.getMessages ?? getInterviewMessages;
+  const dbMessages = await getMessagesFn(session.id);
 
-  // ファシリテーション判定を実行（バックエンドでnext_stageを決定）
-  const nextStage = await determinNextStage({
-    messages,
-    currentStage,
-    questions,
-    dbMessages,
-    logic,
-    facilitatorModel: deps?.facilitatorModel,
-    telemetry: { sessionId: session.id, billId, traceId },
-  });
+  // 既に聞いた質問IDを収集
+  const askedQuestionIds = collectAskedQuestionIds(dbMessages);
 
-  // 実際に使用するステージ（ファシリテーション結果を反映）
-  const effectiveStage = nextStage;
-  const isSummaryPhase = effectiveStage === "summary";
+  // クライアントから受け取ったステージで判定
+  const isSummaryPhase = currentStage === "summary";
 
   // 次に聞くべき質問を特定（モードに応じてロジックが異なる）
   const effectiveNextQuestionId = logic.calculateNextQuestionId({
@@ -127,7 +132,18 @@ export async function handleInterviewChatRequest({
     questions,
   });
 
-  // システムプロンプトを構築
+  // 残り目安時間を計算（estimated_durationが設定されている場合のみ）
+  const remainingMinutes = interviewConfig.estimated_duration
+    ? Math.max(
+        0,
+        Math.ceil(
+          interviewConfig.estimated_duration -
+            (Date.now() - new Date(session.started_at).getTime()) / 60000
+        )
+      )
+    : null;
+
+  // システムプロンプトを構築（ステージ遷移ガイダンスを含む）
   let systemPrompt = isSummaryPhase
     ? buildSummarySystemPrompt({ bill, interviewConfig, messages })
     : buildInterviewSystemPrompt({
@@ -135,6 +151,9 @@ export async function handleInterviewChatRequest({
         interviewConfig,
         questions,
         nextQuestionId: effectiveNextQuestionId,
+        currentStage,
+        askedQuestionIds,
+        remainingMinutes,
       });
 
   // 音声モードの場合、システムプロンプトに追加指示を付与
@@ -144,119 +163,30 @@ export async function handleInterviewChatRequest({
 
   logger.debug("System Prompt:", systemPrompt);
 
-  // ストリーミングレスポンスを生成（next_stageを注入）
+  // ストリーミングレスポンスを生成（LLMがnext_stageを直接出力）
   return generateStreamingResponse({
     systemPrompt,
     messages,
     sessionId: session.id,
     isSummaryPhase,
-    nextStage,
     voice,
     chatModel: deps?.chatModel,
     summaryModel: deps?.summaryModel,
+    configChatModel: interviewConfig.chat_model,
     telemetry: {
       sessionId: session.id,
       billId,
       traceId,
-      stage: effectiveStage,
+      stage: currentStage,
     },
   });
 }
 
 /**
- * ファシリテーション判定を実行してnext_stageを決定
- */
-async function determinNextStage({
-  messages,
-  currentStage,
-  questions,
-  dbMessages,
-  logic,
-  facilitatorModel,
-  telemetry,
-}: {
-  messages: Array<{ role: string; content: string }>;
-  currentStage: InterviewStage;
-  questions: Awaited<ReturnType<typeof getInterviewQuestions>>;
-  dbMessages: Array<{ role: string; content: string }>;
-  logic: (typeof modeLogicMap)[keyof typeof modeLogicMap];
-  facilitatorModel?: LanguageModel;
-  telemetry?: { sessionId: string; billId: string; traceId: string };
-}): Promise<InterviewStage> {
-  // ファシリテーション不要な場合は現在のステージを維持
-  if (!logic.shouldFacilitate({ currentStage })) {
-    return currentStage;
-  }
-
-  // 既に聞いた質問IDを収集
-  const askedQuestionIds = collectAskedQuestionIds(dbMessages);
-
-  // 質問の進捗状況を計算
-  const totalQuestions = questions.length;
-  const completedQuestions = askedQuestionIds.size;
-  const remainingQuestions = totalQuestions - completedQuestions;
-
-  // SimpleMessage形式に変換
-  const simpleMessages = messages.map((m) => ({
-    role: m.role as "assistant" | "user",
-    content: m.content,
-  }));
-
-  // ファシリテーターパラメータを構築
-  const facilitatorParams = {
-    messages: simpleMessages,
-    currentStage,
-    questions,
-    askedQuestionIds,
-    dbMessages: dbMessages.map((m) => ({
-      id: "",
-      interview_session_id: "",
-      role: m.role as "assistant" | "user",
-      content: m.content,
-      created_at: "",
-    })),
-    totalQuestions,
-    completedQuestions,
-    remainingQuestions,
-  };
-
-  // モード固有のアルゴリズム判定を試みる
-  const algorithmResult = logic.checkProgress(facilitatorParams);
-  if (algorithmResult) {
-    return algorithmResult.nextStage;
-  }
-
-  // アルゴリズム判定できなかった場合はLLMで判定
-  const facilitatorPrompt = logic.buildFacilitatorPrompt(facilitatorParams);
-
-  const conversationText = simpleMessages
-    .map((m) => `${m.role === "assistant" ? "AI" : "User"}: ${m.content}`)
-    .join("\n");
-
-  logger.debug("Facilitator Prompt:", facilitatorPrompt);
-  const model = facilitatorModel ?? AI_MODELS.gpt4o_mini;
-  const result = await generateText({
-    model,
-    prompt: `${facilitatorPrompt}\n\n# 会話履歴\n${conversationText}`,
-    output: Output.object({ schema: facilitatorResultSchema }),
-    experimental_telemetry: telemetry
-      ? {
-          isEnabled: true,
-          functionId: "interview-facilitator",
-          metadata: {
-            langfuseTraceId: telemetry.traceId,
-            sessionId: telemetry.sessionId,
-            billId: telemetry.billId,
-          },
-        }
-      : undefined,
-  });
-
-  return result.output.nextStage;
-}
-
-/**
- * ストリーミングレスポンスを生成（next_stageを注入）
+ * ストリーミングレスポンスを生成
+ *
+ * LLMの出力スキーマにnext_stageが含まれるため、
+ * 後からストリームに注入する必要はない。
  */
 // 音声チャット用スキーマ（quick_repliesなし）
 const voiceChatTextSchema = z.object({
@@ -270,20 +200,20 @@ async function generateStreamingResponse({
   messages,
   sessionId,
   isSummaryPhase,
-  nextStage,
   voice = false,
   chatModel,
   summaryModel,
+  configChatModel,
   telemetry,
 }: {
   systemPrompt: string;
   messages: { role: string; content: string }[];
   sessionId: string;
   isSummaryPhase: boolean;
-  nextStage: InterviewStage;
   voice?: boolean;
   chatModel?: LanguageModel;
   summaryModel?: LanguageModel;
+  configChatModel?: string | null;
   telemetry?: {
     sessionId: string;
     billId: string;
@@ -291,10 +221,10 @@ async function generateStreamingResponse({
     stage: string;
   };
 }) {
-  // summaryフェーズはGemini、chatフェーズはGPT-4o-mini
+  // summaryフェーズはGemini固定、chatフェーズは設定のモデルを優先
   const model = isSummaryPhase
     ? (summaryModel ?? AI_MODELS.gemini3_flash)
-    : (chatModel ?? AI_MODELS.gpt4o_mini);
+    : (chatModel ?? configChatModel ?? DEFAULT_INTERVIEW_CHAT_MODEL);
 
   const handleError = (error: unknown) => {
     console.error("LLM generation error:", error);
@@ -306,7 +236,6 @@ async function generateStreamingResponse({
   const handleFinish = async (event: { text?: string }) => {
     try {
       if (event.text) {
-        // event.textは既にJSON文字列（summaryフェーズ）またはプレーンテキスト
         await saveInterviewMessage({
           sessionId,
           role: "assistant",
@@ -367,7 +296,6 @@ async function generateStreamingResponse({
     const buildVoiceResponse = (output: Record<string, unknown>) => {
       const responseBody = {
         ...output,
-        next_stage: nextStage,
         session_id: sessionId,
       };
       return new Response(JSON.stringify(responseBody), {
@@ -435,12 +363,8 @@ async function generateStreamingResponse({
       textStream = result.textStream;
     }
 
-    // ストリームにnext_stageを注入
-    const transformedStream = injectJsonFields(textStream, {
-      next_stage: nextStage,
-    });
-
-    return new Response(transformedStream, {
+    // LLMがnext_stageを直接出力するため、ストリームをそのまま返す
+    return new Response(textStream.pipeThrough(new TextEncoderStream()), {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (error) {

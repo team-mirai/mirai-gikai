@@ -18,11 +18,6 @@ interface UseVoiceInterviewOptions {
   billId: string;
   speechRate?: string;
   initialMessages?: VoiceInterviewMessage[];
-  /**
-   * デバッグ用: 音声認識・TTSをスキップして自動応答する。
-   * 指定された文字列を順番に送信し、使い切ったら最後の応答を繰り返す。
-   */
-  autoResponses?: string[];
 }
 
 /**
@@ -76,20 +71,8 @@ function normalizeMessages(
   }));
 }
 
-/** デバッグ自動応答のデフォルト */
-export const DEFAULT_AUTO_RESPONSES = [
-  "はい、賛成です",
-  "暫定税率が50年以上続いているのは異常だと思うので、一度廃止した上で議論すべきだと考えています",
-  "廃止後にどれだけ財源が必要かをクリアにして、その上で適切な税率を議論すべきだと思います",
-  "特に車をよく使う地方部の方は助かると思いますし、物流コストの削減は物価全体に良い影響があると思います",
-  "特にありません",
-  "はい、問題ありません",
-  "はい、大丈夫です",
-];
-
 export function useVoiceInterview(options: UseVoiceInterviewOptions) {
-  const { billId, speechRate, initialMessages = [], autoResponses } = options;
-  const isAutoMode = !!autoResponses;
+  const { billId, speechRate, initialMessages = [] } = options;
   const normalized = normalizeMessages(initialMessages);
 
   const [state, setState] = useState<VoiceState>("idle");
@@ -107,7 +90,6 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
   const currentStageRef = useRef<InterviewStage>("chat");
   const currentTranscriptRef = useRef("");
   const autoStartedRef = useRef(false);
-  const autoResponseIndexRef = useRef(0);
   const retryAttemptedRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -174,32 +156,11 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
   }, [dispatch]);
 
   /**
-   * 自動応答モード: 次の応答テキストを取得して送信する。
-   */
-  const sendAutoResponse = useCallback(() => {
-    if (!autoResponses) return;
-    const idx = autoResponseIndexRef.current;
-    const text = autoResponses[Math.min(idx, autoResponses.length - 1)];
-    autoResponseIndexRef.current = idx + 1;
-    // 少し待ってから送信（UIで進行が見えるように）
-    setTimeout(() => {
-      dispatch({ type: "SPEECH_END" });
-      sendToLlmRef.current?.(text);
-    }, 500);
-  }, [autoResponses, dispatch]);
-
-  /**
    * TTS終了後に自動で音声認識を開始する。
    * ボタンを押さなくても連続対話できる。
-   * auto モードでは音声認識の代わりに自動応答を送信する。
    */
   const autoListen = useCallback(() => {
     if (stateRef.current !== "idle") return;
-
-    if (isAutoMode) {
-      sendAutoResponse();
-      return;
-    }
 
     const newState = dispatch({ type: "TAP_MIC" });
     if (newState !== "listening") return;
@@ -207,21 +168,14 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     if (!beginRecognition()) {
       dispatch({ type: "RESET" });
     }
-  }, [dispatch, beginRecognition, isAutoMode, sendAutoResponse]);
+  }, [dispatch, beginRecognition]);
 
   /**
    * テキストを TTS で再生し、終了後に自動で聞き取りを開始する。
    * 2文以上の場合は句点分割→並列TTS→順次再生で体感速度を改善。
-   * auto モードでは TTS をスキップする。
    */
   const speakAndAutoListen = useCallback(
     async (text: string) => {
-      if (isAutoMode) {
-        // TTS スキップ → 即座に次の自動応答
-        autoListen();
-        return;
-      }
-
       const ttsOptions = {
         rate: speechRate,
         onStart: () => {
@@ -252,18 +206,15 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
       // TTS完了後、自動で聞き取りモードに移行
       autoListen();
     },
-    [dispatch, speechRate, autoListen, isAutoMode]
+    [dispatch, speechRate, autoListen]
   );
 
   /**
    * TTS のみ再生する（自動リスニングなし）。
    * サマリーフェーズ等、対話を続行しない場合に使用。
-   * auto モードでは TTS をスキップする。
    */
   const speakOnly = useCallback(
     async (text: string) => {
-      if (isAutoMode) return;
-
       const ttsOptions = {
         rate: speechRate,
         onStart: () => {
@@ -289,7 +240,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         dispatch({ type: "TTS_END" });
       }
     },
-    [dispatch, speechRate, isAutoMode]
+    [dispatch, speechRate]
   );
 
   const sendToLlm = useCallback(

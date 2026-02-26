@@ -1,12 +1,13 @@
 import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
-import { DEFAULT_AUTO_RESPONSES } from "@/features/voice-interview/client/hooks/use-voice-interview";
 import { VoiceInterviewClient } from "@/features/voice-interview/client/components/voice-interview-client";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 import { env } from "@/lib/env";
@@ -18,7 +19,6 @@ interface InterviewPreviewChatPageProps {
   searchParams: Promise<{
     token?: string;
     mode?: string;
-    debug?: string;
   }>;
 }
 
@@ -51,7 +51,7 @@ export default async function InterviewPreviewChatPage({
   params,
   searchParams,
 }: InterviewPreviewChatPageProps) {
-  const [{ id: billId }, { token, mode, debug }] = await Promise.all([
+  const [{ id: billId }, { token, mode }] = await Promise.all([
     params,
     searchParams,
   ]);
@@ -81,14 +81,7 @@ export default async function InterviewPreviewChatPage({
   try {
     const { session, messages } = await initializeInterviewChat(
       billId,
-      interviewConfig.id,
-      {
-        prefetched: {
-          bill,
-          interviewConfig,
-          questions,
-        },
-      }
+      interviewConfig.id
     );
 
     // 音声モードの場合は VoiceInterviewClient を表示
@@ -104,9 +97,6 @@ export default async function InterviewPreviewChatPage({
             key={session.id}
             billId={billId}
             initialMessages={initialVoiceMessages}
-            autoResponses={
-              debug === "auto" ? DEFAULT_AUTO_RESPONSES : undefined
-            }
           />
         </>
       );
@@ -121,6 +111,8 @@ export default async function InterviewPreviewChatPage({
           initialMessages={messages}
           mode={interviewConfig.mode}
           totalQuestions={questions.length}
+          estimatedDuration={interviewConfig.estimated_duration}
+          sessionStartedAt={session.started_at}
         />
       </>
     );

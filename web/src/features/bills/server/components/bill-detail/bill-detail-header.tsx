@@ -1,5 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
+import { UserCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatDateWithDots } from "@/lib/utils/date";
+import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
 import { BillStatusBadge } from "../../../client/components/bill-list/bill-status-badge";
 import { BillTag } from "../../../client/components/bill-list/bill-tag";
@@ -8,9 +12,13 @@ import type { BillWithContent } from "../../../shared/types";
 
 interface BillDetailHeaderProps {
   bill: BillWithContent;
+  hasInterviewConfig?: boolean;
 }
 
-export async function BillDetailHeader({ bill }: BillDetailHeaderProps) {
+export async function BillDetailHeader({
+  bill,
+  hasInterviewConfig,
+}: BillDetailHeaderProps) {
   const displayTitle = bill.bill_content?.title;
   const displaySummary = bill.bill_content?.summary;
 
@@ -64,11 +72,26 @@ export async function BillDetailHeader({ bill }: BillDetailHeaderProps) {
         <p className="text-sm text-muted-foreground font-medium mb-4">
           {bill.name}
         </p>
-        <BillDetailShareButton
-          shareMessage={shareMessage}
-          shareUrl={shareUrl}
-          thumbnailUrl={thumbnailUrl}
-        />
+        <div className="flex items-center gap-2">
+          {hasInterviewConfig && (
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="text-xs gap-1"
+            >
+              <Link href={getInterviewLPLink(bill.id)}>
+                <UserCheck className="h-[18px] w-[18px]" />
+                意見を伝える
+              </Link>
+            </Button>
+          )}
+          <BillDetailShareButton
+            shareMessage={shareMessage}
+            shareUrl={shareUrl}
+            thumbnailUrl={thumbnailUrl}
+          />
+        </div>
       </div>
     </div>
   );

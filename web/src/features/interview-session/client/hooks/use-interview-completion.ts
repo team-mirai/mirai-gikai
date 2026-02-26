@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { getInterviewReportCompleteLink } from "@/features/interview-config/shared/utils/interview-links";
 import { callCompleteApi } from "../utils/interview-api-client";
 
 interface UseInterviewCompletionProps {
   sessionId: string;
-  onComplete: (reportId: string | null) => void;
 }
 
 /**
@@ -13,29 +13,27 @@ interface UseInterviewCompletionProps {
  */
 export function useInterviewCompletion({
   sessionId,
-  onComplete,
 }: UseInterviewCompletionProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
-  const [completedReportId, setCompletedReportId] = useState<string | null>(
-    null
-  );
 
-  const handleAgree = async () => {
+  const handleSubmit = async (isPublic: boolean) => {
     setIsCompleting(true);
     setCompleteError(null);
     try {
       const result = await callCompleteApi({
         sessionId,
+        isPublic,
       });
-      const reportId = result.report?.id || null;
-      setCompletedReportId(reportId);
-      onComplete(reportId);
+      const reportId = result.report?.id;
+      if (reportId) {
+        window.location.href = getInterviewReportCompleteLink(reportId);
+      }
+      // 画面遷移するまで isCompleting を true のままにする
     } catch (err) {
       setCompleteError(
         err instanceof Error ? err.message : "Failed to complete interview"
       );
-    } finally {
       setIsCompleting(false);
     }
   };
@@ -43,7 +41,6 @@ export function useInterviewCompletion({
   return {
     isCompleting,
     completeError,
-    completedReportId,
-    handleAgree,
+    handleSubmit,
   };
 }

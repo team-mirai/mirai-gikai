@@ -1,12 +1,30 @@
+codecov:
+  branch: develop
+
 coverage:
   status:
     project:
       default:
-        target: auto
+        target: 80%
         threshold: 1%
     patch:
       default:
         target: 80%
+
+ignore:
+  - "web/*.config.*"
+  - "web/vitest.*"
+  - "web/src/test-utils/**"
+  - "web/src/components/ui/**"
+  - "web/src/app/**/page.tsx"
+  - "web/src/app/**/layout.tsx"
+  - "web/src/app/**/loading.tsx"
+  - "web/src/app/**/not-found.tsx"
+  - "web/src/app/**/error.tsx"
+  - "web/**/types.ts"
+  - "web/**/types/index.ts"
+  - "web/src/lib/telemetry/**"
+  - "web/src/config/**"
 
 comment:
   layout: "reach,diff,flags,files"

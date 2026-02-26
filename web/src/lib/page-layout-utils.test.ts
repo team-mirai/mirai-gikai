@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   extractBillIdFromPath,
   isInterviewPage,
+  isInterviewSection,
   isMainPage,
 } from "./page-layout-utils";
 
@@ -44,6 +45,28 @@ describe("isInterviewPage", () => {
 
   it("returns false for the top page", () => {
     expect(isInterviewPage("/")).toBe(false);
+  });
+});
+
+describe("isInterviewSection", () => {
+  it("returns true for the interview LP page", () => {
+    expect(isInterviewSection("/bills/abc-123/interview")).toBe(true);
+  });
+
+  it("returns true for the interview chat page", () => {
+    expect(isInterviewSection("/bills/abc-123/interview/chat")).toBe(true);
+  });
+
+  it("returns false for a bill detail page", () => {
+    expect(isInterviewSection("/bills/abc-123")).toBe(false);
+  });
+
+  it("returns false for the top page", () => {
+    expect(isInterviewSection("/")).toBe(false);
+  });
+
+  it("returns false for unrelated paths", () => {
+    expect(isInterviewSection("/about")).toBe(false);
   });
 });
 

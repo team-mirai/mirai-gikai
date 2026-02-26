@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
+
+export const dynamic = "force-dynamic";
+
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
-import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
-import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { InterviewChatClient } from "@/features/interview-session/client/components/interview-chat-client";
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
-import { DEFAULT_AUTO_RESPONSES } from "@/features/voice-interview/client/hooks/use-voice-interview";
 import { VoiceInterviewClient } from "@/features/voice-interview/client/components/voice-interview-client";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 
@@ -16,7 +16,6 @@ interface InterviewChatPageProps {
   }>;
   searchParams: Promise<{
     mode?: string;
-    debug?: string;
   }>;
 }
 
@@ -24,22 +23,15 @@ export default async function InterviewChatPage({
   params,
   searchParams,
 }: InterviewChatPageProps) {
-  const [{ id: billId }, { mode, debug }] = await Promise.all([
-    params,
-    searchParams,
-  ]);
+  const [{ id: billId }, { mode }] = await Promise.all([params, searchParams]);
 
   const isVoiceMode = mode === "voice";
 
-  // 法案・インタビュー設定・質問を並列取得
-  // Admin用も並列取得して初期質問生成時のDB重複クエリを防ぐ
-  const [bill, interviewConfig, billAdmin, interviewConfigAdmin] =
-    await Promise.all([
-      getBillById(billId),
-      getInterviewConfig(billId),
-      getBillByIdAdmin(billId),
-      getInterviewConfigAdmin(billId),
-    ]);
+  // 法案・インタビュー設定を並列取得
+  const [bill, interviewConfig] = await Promise.all([
+    getBillById(billId),
+    getInterviewConfig(billId),
+  ]);
 
   if (!bill || !interviewConfig) {
     notFound();
@@ -52,16 +44,7 @@ export default async function InterviewChatPage({
   try {
     const { session, messages } = await initializeInterviewChat(
       billId,
-      interviewConfig.id,
-      interviewConfigAdmin
-        ? {
-            prefetched: {
-              bill: billAdmin,
-              interviewConfig: interviewConfigAdmin,
-              questions,
-            },
-          }
-        : undefined
+      interviewConfig.id
     );
 
     // 音声モードの場合は VoiceInterviewClient を表示
@@ -75,7 +58,6 @@ export default async function InterviewChatPage({
           key={session.id}
           billId={billId}
           initialMessages={initialVoiceMessages}
-          autoResponses={debug === "auto" ? DEFAULT_AUTO_RESPONSES : undefined}
         />
       );
     }
@@ -87,6 +69,8 @@ export default async function InterviewChatPage({
         initialMessages={messages}
         mode={interviewConfig.mode}
         totalQuestions={questions.length}
+        estimatedDuration={interviewConfig.estimated_duration}
+        sessionStartedAt={session.started_at}
       />
     );
   } catch (error) {

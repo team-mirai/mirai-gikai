@@ -5,7 +5,7 @@ import type { BillWithContent } from "@/features/bills/shared/types";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
-import { AI_MODELS } from "@/lib/ai/models";
+import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { interviewChatTextSchema } from "../../shared/schemas";
 import type { InterviewMessage } from "../../shared/types";
 import { createInterviewMessage } from "../repositories/interview-session-repository";
@@ -66,11 +66,13 @@ export async function generateInitialQuestion({
       throw new Error("Interview config not found");
     }
 
-    // プロンプトを構築
+    // プロンプトを構築（初期質問なので currentStage は chat、askedQuestionIds は空）
     const systemPrompt = buildInterviewSystemPrompt({
       bill,
       interviewConfig,
       questions,
+      currentStage: "chat",
+      askedQuestionIds: new Set(),
     });
 
     // インタビュー開始の指示を追加（最初の質問にはクイックリプライとquestion_idを含める）
@@ -79,7 +81,8 @@ export async function generateInitialQuestion({
     const enhancedSystemPrompt = `${systemPrompt}\n\n## 重要: これはインタビューの開始です。ユーザーからのメッセージはありません。事前定義質問の最初の質問から始めてください。挨拶は温かく丁寧に（2文程度）、「${billTitle}」についてのインタビューであることを明確に伝えた上で、すぐに最初の質問をしてください。最初の質問にクイックリプライが設定されている場合は、必ず quick_replies フィールドに含めてください。${firstQuestionId ? `最初の質問は ID: ${firstQuestionId} であり、レスポンスの question_id にこの値を含めてください。` : ""}`;
 
     // メッセージ履歴なしで最初の質問を生成（構造化出力）
-    const model = deps?.model ?? AI_MODELS.gpt4o_mini;
+    const model =
+      deps?.model ?? interviewConfig.chat_model ?? DEFAULT_INTERVIEW_CHAT_MODEL;
     const result = await generateText({
       model,
       prompt: enhancedSystemPrompt,

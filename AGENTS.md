@@ -22,8 +22,12 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 
 - **目的**: developブランチを常にクリーンに保ち、作業の分離と並列作業を容易にする
 
+### 実装完了後は即PR作成
+実装完了後は「コミットしますか？」等の確認を挟まず、コミット → push → PR作成まで一気に進めること。ユーザーへの確認は不要。
+
 ### Codexレビュー必須
 実装完了後（コミット前）に、必ず `/review-codex` スキルを実行してCodex CLIによるコードレビューを受けること。指摘があれば修正してからコミットする。
+Codexレビューを通過したら、ユーザーに確認せずそのままPR作成まで一気に進めること（push → `gh pr create`）。
 
 ### 並列PR作成
 複数の独立したPRを作成する場合は `/parallel-pr` スキルを使用すること。
@@ -86,6 +90,7 @@ Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-l
 - ファイル名は `bill-contents-data.ts` のようにローワーハイフンで表記し、スタイルは Tailwind ユーティリティを先に検討します。
 - **アイコン**: インラインSVGは禁止です。必ず `lucide-react` からアイコンコンポーネントをインポートして使用してください。
 - **ボタン**: `<button>` タグの使用は禁止です。必ず `@/components/ui/button` の `Button` コンポーネントを使用してください。
+- **色**: 新しい色（Tailwindクラスやカスタムカラーコード）を使う前に、既存コードで同じ色が使用されているかを確認してください。プロジェクト内で未使用の色を勝手に導入しないこと。
 
 ## Testing Guidelines
 - Vitest の単体テストを `*.test.ts` として実装と同階層に配置し、AI コスト計算や Markdown 処理などデータ変換の変更時は必ず回帰テストを追加します。

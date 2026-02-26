@@ -289,7 +289,9 @@ export type Database = {
       interview_configs: {
         Row: {
           bill_id: string
+          chat_model: string | null
           created_at: string
+          estimated_duration: number | null
           id: string
           knowledge_source: string | null
           mode: Database["public"]["Enums"]["interview_mode_enum"]
@@ -301,7 +303,9 @@ export type Database = {
         }
         Insert: {
           bill_id: string
+          chat_model?: string | null
           created_at?: string
+          estimated_duration?: number | null
           id?: string
           knowledge_source?: string | null
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
@@ -313,7 +317,9 @@ export type Database = {
         }
         Update: {
           bill_id?: string
+          chat_model?: string | null
           created_at?: string
+          estimated_duration?: number | null
           id?: string
           knowledge_source?: string | null
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
@@ -368,8 +374,8 @@ export type Database = {
       interview_questions: {
         Row: {
           created_at: string
+          follow_up_guide: string | null
           id: string
-          instruction: string | null
           interview_config_id: string
           question: string
           question_order: number
@@ -378,8 +384,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          follow_up_guide?: string | null
           id?: string
-          instruction?: string | null
           interview_config_id: string
           question: string
           question_order: number
@@ -388,8 +394,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          follow_up_guide?: string | null
           id?: string
-          instruction?: string | null
           interview_config_id?: string
           question?: string
           question_order?: number

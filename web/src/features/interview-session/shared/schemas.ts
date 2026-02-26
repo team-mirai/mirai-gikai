@@ -94,20 +94,31 @@ export const interviewStageSchema = z.enum([
 ]);
 export type InterviewStage = z.infer<typeof interviewStageSchema>;
 
-// 通常チャット用スキーマ（LLM出力用 - next_stageはバックエンドで注入）
+// 通常チャット用スキーマ（LLM出力用 - next_stageを含む）
 export const interviewChatTextSchema = z.object({
   text: z.string(),
   quick_replies: z.array(z.string()).nullable(),
   question_id: z.string().nullable(),
   topic_title: z.string().nullable(),
+  next_stage: interviewStageSchema.describe(
+    "インタビューのステージ遷移判定。chat=インタビュー継続、summary=要約フェーズへ移行"
+  ),
 });
 
 export type InterviewChatText = z.infer<typeof interviewChatTextSchema>;
 
-// summaryフェーズ用スキーマ（LLM出力用 - next_stageはバックエンドで注入）
+// summaryフェーズ用スキーマ（LLM出力用 - next_stageを含む）
+// chat遷移時はreportを省略できるようoptionalにしている
 export const interviewChatWithReportSchema = z.object({
   text: z.string(),
-  report: interviewReportSchema,
+  report: interviewReportSchema
+    .optional()
+    .describe(
+      "インタビュー内容をまとめたレポート。next_stageがchatの場合は省略すること"
+    ),
+  next_stage: interviewStageSchema.describe(
+    "ステージ遷移判定。summary=レポート修正継続、summary_complete=レポート完了、chat=インタビュー再開"
+  ),
 });
 
 export type InterviewChatWithReport = z.infer<

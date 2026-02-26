@@ -15,15 +15,23 @@ export function QuickReplyButtons({
     return null;
   }
 
+  const isHorizontal = replies.length >= 5;
+
   return (
-    <div className="flex flex-col items-end gap-2 mt-2">
+    <div
+      className={
+        isHorizontal
+          ? "flex flex-row flex-wrap justify-end gap-2 mt-2 ml-auto w-1/2"
+          : "flex flex-col items-end gap-2 mt-2"
+      }
+    >
       {replies.map((reply) => (
         <button
           key={reply}
           type="button"
           onClick={() => onSelect(reply)}
           disabled={disabled}
-          className="px-4 py-2 text-sm font-medium text-[#0F8472] border border-[#0F8472] rounded-full hover:bg-[#0F8472]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-sm font-medium text-[#0F8472] border border-[#0F8472] rounded-full hover:bg-[#0F8472]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed animate-fade-in"
         >
           {reply}
         </button>

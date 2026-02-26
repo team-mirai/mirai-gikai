@@ -48,6 +48,8 @@ export function InterviewConfigEditClient({
         mode: string;
         themes: string[];
         voice_enabled: boolean;
+        chat_model: string | null;
+        estimated_duration: number | null;
       })
     | null
   >(null);
@@ -72,6 +74,8 @@ export function InterviewConfigEditClient({
           themes,
           knowledge_source: formValues?.knowledge_source || "",
           voice_enabled: formValues?.voice_enabled ?? false,
+          chat_model: formValues?.chat_model || null,
+          estimated_duration: formValues?.estimated_duration ?? null,
         });
         if (result.success) {
           setConfigId(result.data.id);
@@ -102,6 +106,12 @@ export function InterviewConfigEditClient({
             "",
           voice_enabled:
             formValues?.voice_enabled ?? initialConfig?.voice_enabled ?? false,
+          chat_model:
+            formValues?.chat_model ?? initialConfig?.chat_model ?? null,
+          estimated_duration:
+            formValues?.estimated_duration ??
+            initialConfig?.estimated_duration ??
+            null,
         });
       }
     },
@@ -163,7 +173,7 @@ export function InterviewConfigEditClient({
           existingThemes={initialConfig?.themes ?? undefined}
           existingQuestions={questions.map((q) => ({
             question: q.question,
-            instruction: q.instruction ?? undefined,
+            follow_up_guide: q.follow_up_guide ?? undefined,
             quick_replies: q.quick_replies ?? undefined,
           }))}
           onThemesConfirmed={handleThemesConfirmed}
@@ -208,10 +218,10 @@ function AiQuestionsPreview({
                         {question.question}
                       </div>
                     </div>
-                    {question.instruction && (
+                    {question.follow_up_guide && (
                       <div className="text-sm text-gray-600">
-                        <span className="font-medium">AIへの指示:</span>{" "}
-                        {question.instruction}
+                        <span className="font-medium">フォローアップ指針:</span>{" "}
+                        {question.follow_up_guide}
                       </div>
                     )}
                     {question.quick_replies &&

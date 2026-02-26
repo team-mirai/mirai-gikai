@@ -23,7 +23,9 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -36,6 +38,10 @@ import {
   arrayToText,
   textToArray,
 } from "../../shared/types";
+import {
+  CHAT_MODEL_GROUPS,
+  DEFAULT_MODEL_LABEL,
+} from "../../shared/utils/chat-model-options";
 import { generateDefaultConfigName } from "../../shared/utils/default-config-name";
 import {
   createInterviewConfig,
@@ -56,6 +62,8 @@ interface InterviewConfigFormProps {
         mode: string;
         themes: string[];
         voice_enabled: boolean;
+        chat_model: string | null;
+        estimated_duration: number | null;
       })
     | null
   >;
@@ -81,6 +89,8 @@ export function InterviewConfigForm({
       themes: config?.themes || [],
       knowledge_source: config?.knowledge_source || "",
       voice_enabled: config?.voice_enabled ?? false,
+      chat_model: config?.chat_model || null,
+      estimated_duration: isNew ? 10 : (config?.estimated_duration ?? null),
     },
   });
 
@@ -95,6 +105,8 @@ export function InterviewConfigForm({
           mode: values.mode,
           themes: values.themes || [],
           voice_enabled: values.voice_enabled ?? false,
+          chat_model: values.chat_model || null,
+          estimated_duration: values.estimated_duration ?? null,
         };
       };
     }
@@ -271,6 +283,84 @@ export function InterviewConfigForm({
                     <FormDescription>
                       loop: 質問ごとに深掘り / bulk:
                       事前定義質問を先にすべて消化してから深掘り
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="chat_model"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>AIモデル</FormLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(value === "__default__" ? null : value)
+                      }
+                      value={field.value ?? "__default__"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="モデルを選択" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__default__">
+                          デフォルト（{DEFAULT_MODEL_LABEL}）
+                        </SelectItem>
+                        {CHAT_MODEL_GROUPS.map((group) => (
+                          <SelectGroup key={group.provider}>
+                            <SelectLabel>{group.provider}</SelectLabel>
+                            {group.options.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                                {option.estimatedCost && (
+                                  <span className="ml-2 text-muted-foreground">
+                                    {option.estimatedCost}/回
+                                  </span>
+                                )}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      インタビュー対話に使用するAIモデルを選択します。コストは1インタビューあたりの推定値です。
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="estimated_duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>目安時間（分）</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="例: 15"
+                        min={1}
+                        max={180}
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          field.onChange(
+                            val === "" ? null : Number.parseInt(val, 10)
+                          );
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      設定するとインタビュー中に残り時間が表示されます。未設定の場合は時間制限なしです。
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

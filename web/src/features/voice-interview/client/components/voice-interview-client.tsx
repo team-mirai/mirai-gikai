@@ -19,11 +19,7 @@ import {
 import { useInterviewCompletion } from "@/features/interview-session/client/hooks/use-interview-completion";
 import { InterviewSummary } from "@/features/interview-session/client/components/interview-summary";
 import { InterviewPublicConsentModal } from "@/features/interview-report/client/components/interview-public-consent-modal";
-import { updatePublicSetting } from "@/features/interview-report/server/actions/update-public-setting";
-import {
-  getInterviewChatLink,
-  getInterviewReportCompleteLink,
-} from "@/features/interview-config/shared/utils/interview-links";
+import { getInterviewChatLink } from "@/features/interview-config/shared/utils/interview-links";
 import { useVoiceInterview } from "../hooks/use-voice-interview";
 import { VoiceControls } from "./voice-controls";
 import { VoiceStatusIndicator } from "./voice-status-indicator";
@@ -43,18 +39,13 @@ const SPEED_LABELS: Record<SpeechSpeed, string> = {
 interface VoiceInterviewClientProps {
   billId: string;
   initialMessages?: Array<{ role: "user" | "assistant"; content: string }>;
-  /** デバッグ用自動応答リスト（指定するとTTS・音声認識をスキップして自動進行） */
-  autoResponses?: string[];
 }
 
 export function VoiceInterviewClient({
   billId,
   initialMessages,
-  autoResponses,
 }: VoiceInterviewClientProps) {
-  const [reportId, setReportId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [speechSpeed, setSpeechSpeedState] = useState<SpeechSpeed>("normal");
 
   // SSR hydration 対策: mount後に localStorage から復元
@@ -84,33 +75,11 @@ export function VoiceInterviewClient({
     billId,
     speechRate,
     initialMessages,
-    autoResponses,
   });
 
-  const { isCompleting, completeError, handleAgree } = useInterviewCompletion({
+  const { isCompleting, completeError, handleSubmit } = useInterviewCompletion({
     sessionId: sessionId ?? "",
-    onComplete: (id) => {
-      setReportId(id);
-      if (id) setIsModalOpen(true);
-    },
   });
-
-  const handlePublicSubmit = async (isPublic: boolean) => {
-    if (!sessionId || !reportId) return;
-    setIsSubmitting(true);
-    try {
-      const result = await updatePublicSetting(sessionId, isPublic);
-      if (result.success) {
-        window.location.href = getInterviewReportCompleteLink(reportId);
-      } else {
-        console.error("Failed to update public setting:", result.error);
-        setIsSubmitting(false);
-      }
-    } catch (err) {
-      console.error("Failed to update public setting:", err);
-      setIsSubmitting(false);
-    }
-  };
 
   if (!isSupported) {
     return (
@@ -199,30 +168,20 @@ export function VoiceInterviewClient({
             <CheckCircle className="h-4 w-4" />
             <span>インタビューが完了しました</span>
           </div>
-          {!reportId ? (
-            <>
-              <Button
-                onClick={handleAgree}
-                disabled={isCompleting || !sessionId}
-              >
-                {isCompleting
-                  ? "保存中..."
-                  : "レポート内容に同意して提出に進む"}
-              </Button>
-              {completeError && (
-                <p className="text-sm text-destructive">{completeError}</p>
-              )}
-            </>
-          ) : (
-            <Button onClick={() => setIsModalOpen(true)}>
-              インタビューの提出に進む
-            </Button>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            disabled={isCompleting || !sessionId}
+          >
+            {isCompleting ? "保存中..." : "レポート内容に同意して提出に進む"}
+          </Button>
+          {completeError && (
+            <p className="text-sm text-destructive">{completeError}</p>
           )}
           <InterviewPublicConsentModal
             open={isModalOpen}
             onOpenChange={setIsModalOpen}
-            onSubmit={handlePublicSubmit}
-            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            isSubmitting={isCompleting}
           />
         </div>
       )}

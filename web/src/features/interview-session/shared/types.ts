@@ -30,9 +30,3 @@ export interface InterviewChatRequestParams {
   nextQuestionId?: string;
   voice?: boolean;
 }
-
-/** ファシリテーターAPI用のシンプルなメッセージ型 */
-export type SimpleMessage = {
-  role: "assistant" | "user";
-  content: string;
-};

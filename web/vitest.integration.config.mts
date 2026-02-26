@@ -1,5 +1,6 @@
 import path from "node:path";
 import { defineConfig } from "vitest/config";
+import { coverageExclude } from "./vitest.shared";
 
 export default defineConfig({
   test: {
@@ -18,6 +19,8 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "json-summary"],
       reportsDirectory: "./coverage-integration",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: coverageExclude,
     },
   },
   resolve: {
