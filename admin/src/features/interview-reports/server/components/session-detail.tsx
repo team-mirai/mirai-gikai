@@ -50,7 +50,9 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
               <div className="text-sm text-gray-500">開始時刻</div>
               <div className="flex items-center gap-1 text-sm">
                 <Clock className="h-4 w-4 text-gray-400" />
-                {new Date(session.started_at).toLocaleString("ja-JP")}
+                {new Date(session.started_at).toLocaleString("ja-JP", {
+                  timeZone: "Asia/Tokyo",
+                })}
               </div>
             </div>
             <div>
@@ -171,7 +173,9 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                         {message.content}
                       </TableCell>
                       <TableCell className="text-gray-500 text-sm">
-                        {new Date(message.created_at).toLocaleString("ja-JP")}
+                        {new Date(message.created_at).toLocaleString("ja-JP", {
+                          timeZone: "Asia/Tokyo",
+                        })}
                       </TableCell>
                     </TableRow>
                   ))}
