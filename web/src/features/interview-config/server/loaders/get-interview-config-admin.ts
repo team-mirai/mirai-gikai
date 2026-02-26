@@ -51,6 +51,6 @@ const _getCachedInterviewConfigAdmin = unstable_cache(
   ["interview-config-admin"],
   {
     revalidate: 60, // 非公開設定をプレビューするので短めに
-    tags: [CACHE_TAGS.BILLS],
+    tags: [CACHE_TAGS.INTERVIEW_CONFIGS],
   }
 );

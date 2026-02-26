@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import {
+  WEB_CACHE_TAGS,
+  invalidateWebCache,
+} from "@/lib/utils/cache-invalidation";
 import type { BillPublishStatus } from "../../shared/types";
 import { updateBillPublishStatus } from "../repositories/bill-repository";
 
@@ -39,7 +42,7 @@ async function _updateBillPublishStatus(
     await updateBillPublishStatus(billId, publishStatus);
 
     // web側のキャッシュを無効化
-    await invalidateWebCache();
+    await invalidateWebCache([WEB_CACHE_TAGS.BILLS]);
 
     return { success: true };
   } catch (error) {
