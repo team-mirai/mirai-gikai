@@ -9,8 +9,8 @@ CREATE TABLE expert_registrations (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- インデックス
-CREATE INDEX idx_expert_registrations_session_id ON expert_registrations(interview_session_id);
+-- セッションごとに1件のみ登録可能
+CREATE UNIQUE INDEX idx_expert_registrations_session_id ON expert_registrations(interview_session_id);
 
 -- updated_atトリガー
 CREATE TRIGGER update_expert_registrations_updated_at

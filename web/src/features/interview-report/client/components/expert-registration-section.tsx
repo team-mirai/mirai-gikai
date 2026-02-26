@@ -14,13 +14,13 @@ export function ExpertRegistrationSection({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
 
-  if (isRegistered) {
-    return null;
-  }
-
   return (
     <>
-      <ExpertRegistrationBanner onRegisterClick={() => setIsModalOpen(true)} />
+      {!isRegistered && (
+        <ExpertRegistrationBanner
+          onRegisterClick={() => setIsModalOpen(true)}
+        />
+      )}
       <ExpertRegistrationModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
