@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Conversation,
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { useInterviewChat } from "../hooks/use-interview-chat";
+import { useInterviewRating } from "../hooks/use-interview-rating";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
 import { calcInterviewProgress } from "../utils/calc-interview-progress";
 import { InterviewChatInput } from "./interview-chat-input";
@@ -16,8 +17,6 @@ import { InterviewSummaryInput } from "./interview-summary-input";
 import { InterviewRatingWidget } from "./interview-rating-widget";
 import { QuickReplyButtons } from "./quick-reply-buttons";
 import { TimeUpPrompt } from "./time-up-prompt";
-
-const RATING_WIDGET_THRESHOLD = 70;
 
 interface InterviewChatClientProps {
   billId: string;
@@ -70,46 +69,16 @@ export function InterviewChatClient({
 
   const [timeUpDismissed, setTimeUpDismissed] = useState(false);
 
-  // 評価ウィジェットの状態管理（localStorageで永続化してリロード後も非表示）
-  const ratingStorageKey = `interview-rating-${sessionId}`;
-  const [ratingDismissed, setRatingDismissed] = useState(() => {
-    try {
-      return localStorage.getItem(ratingStorageKey) === "done";
-    } catch {
-      return false;
-    }
-  });
-  const ratingTriggered = useRef(ratingDismissed);
-  const [showRating, setShowRating] = useState(false);
-
   const progress = useMemo(
     () => calcInterviewProgress(totalQuestions, stage, messages),
     [messages, totalQuestions, stage]
   );
 
-  // プログレスが閾値に達したら評価ウィジェットを表示（1回のみ）
-  useEffect(() => {
-    if (
-      !ratingTriggered.current &&
-      !ratingDismissed &&
-      mode === "loop" &&
-      progress &&
-      progress.percentage >= RATING_WIDGET_THRESHOLD
-    ) {
-      ratingTriggered.current = true;
-      setShowRating(true);
-    }
-  }, [progress, ratingDismissed, mode]);
-
-  const handleRatingDismiss = useCallback(() => {
-    setShowRating(false);
-    setRatingDismissed(true);
-    try {
-      localStorage.setItem(ratingStorageKey, "done");
-    } catch {
-      // localStorage unavailable - silently ignore
-    }
-  }, [ratingStorageKey]);
+  const { showRating, handleRatingDismiss } = useInterviewRating({
+    sessionId,
+    mode,
+    progress,
+  });
 
   const showProgressBar = mode === "loop" && progress !== null;
   const timerMinutes =
