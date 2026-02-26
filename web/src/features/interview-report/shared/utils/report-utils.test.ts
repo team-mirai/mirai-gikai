@@ -15,20 +15,21 @@ describe("formatDateTime", () => {
     expect(formatDateTime("")).toBe("-");
   });
 
-  it("formats a date string correctly", () => {
-    // 2025-01-15T14:30:00 in local time
-    const date = new Date(2025, 0, 15, 14, 30, 0);
-    expect(formatDateTime(date.toISOString())).toBe("2025年1月15日  14:30");
+  it("formats a UTC date string in JST", () => {
+    // UTC 05:30 -> JST 14:30
+    expect(formatDateTime("2025-01-15T05:30:00Z")).toBe("2025年1月15日  14:30");
   });
 
   it("pads hours and minutes with leading zeros", () => {
-    const date = new Date(2025, 2, 5, 3, 5, 0);
-    expect(formatDateTime(date.toISOString())).toBe("2025年3月5日  03:05");
+    // UTC 18:05 (前日) -> JST 03:05 (翌日)
+    expect(formatDateTime("2025-03-04T18:05:00Z")).toBe("2025年3月5日  03:05");
   });
 
-  it("handles midnight correctly", () => {
-    const date = new Date(2025, 11, 31, 0, 0, 0);
-    expect(formatDateTime(date.toISOString())).toBe("2025年12月31日  00:00");
+  it("handles midnight JST correctly", () => {
+    // UTC 15:00 -> JST 00:00 (翌日)
+    expect(formatDateTime("2025-12-30T15:00:00Z")).toBe(
+      "2025年12月31日  00:00"
+    );
   });
 });
 
