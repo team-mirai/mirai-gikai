@@ -235,6 +235,30 @@ export async function createInterviewMessage(params: {
 }
 
 // ========================================
+// Interview Session Ratings
+// ========================================
+
+/**
+ * セッション評価（星1〜5）を保存
+ */
+export async function createInterviewSessionRating(params: {
+  sessionId: string;
+  rating: number;
+}): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("interview_session_ratings").insert({
+    interview_session_id: params.sessionId,
+    rating: params.rating,
+  });
+
+  if (error) {
+    throw new Error(
+      `Failed to save interview session rating: ${error.message}`
+    );
+  }
+}
+
+// ========================================
 // Interview Reports
 // ========================================
 

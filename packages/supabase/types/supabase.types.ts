@@ -516,6 +516,35 @@ export type Database = {
           },
         ]
       }
+      interview_session_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          interview_session_id: string
+          rating: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interview_session_id: string
+          rating: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interview_session_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_session_ratings_interview_session_id_fkey"
+            columns: ["interview_session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mirai_stances: {
         Row: {
           bill_id: string

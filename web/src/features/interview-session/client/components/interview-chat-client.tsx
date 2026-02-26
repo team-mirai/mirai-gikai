@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -13,8 +13,11 @@ import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
 import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewSummaryInput } from "./interview-summary-input";
+import { InterviewRatingWidget } from "./interview-rating-widget";
 import { QuickReplyButtons } from "./quick-reply-buttons";
 import { TimeUpPrompt } from "./time-up-prompt";
+
+const RATING_WIDGET_THRESHOLD = 70;
 
 interface InterviewChatClientProps {
   billId: string;
@@ -67,10 +70,34 @@ export function InterviewChatClient({
 
   const [timeUpDismissed, setTimeUpDismissed] = useState(false);
 
+  // 評価ウィジェットの状態管理
+  const [ratingDismissed, setRatingDismissed] = useState(false);
+  const ratingTriggered = useRef(false);
+  const [showRating, setShowRating] = useState(false);
+
   const progress = useMemo(
     () => calcInterviewProgress(totalQuestions, stage, messages),
     [messages, totalQuestions, stage]
   );
+
+  // プログレスが閾値に達したら評価ウィジェットを表示（1回のみ）
+  useEffect(() => {
+    if (
+      !ratingTriggered.current &&
+      !ratingDismissed &&
+      mode === "loop" &&
+      progress &&
+      progress.percentage >= RATING_WIDGET_THRESHOLD
+    ) {
+      ratingTriggered.current = true;
+      setShowRating(true);
+    }
+  }, [progress, ratingDismissed, mode]);
+
+  const handleRatingDismiss = useCallback(() => {
+    setShowRating(false);
+    setRatingDismissed(true);
+  }, []);
 
   const showProgressBar = mode === "loop" && progress !== null;
   const timerMinutes =
@@ -216,6 +243,14 @@ export function InterviewChatClient({
               })()}
           </ConversationContent>
         </Conversation>
+
+        {/* 評価ウィジェット */}
+        {showRating && (
+          <InterviewRatingWidget
+            sessionId={sessionId}
+            onDismiss={handleRatingDismiss}
+          />
+        )}
 
         {/* 時間超過プロンプト */}
         {showTimeUpPrompt && (
