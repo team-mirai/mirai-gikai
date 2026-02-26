@@ -107,10 +107,28 @@ interface ChatMessageProps {
   };
 }
 
+/**
+ * メッセージのcontentからテキスト部分を抽出する。
+ * AIメッセージはJSON形式（{text, quick_replies, ...}）で保存されているため、
+ * textフィールドを取り出す。JSONでない場合はそのまま返す。
+ */
+function getMessageDisplayText(content: string): string {
+  try {
+    const parsed = JSON.parse(content);
+    if (typeof parsed === "object" && parsed !== null && "text" in parsed) {
+      return parsed.text ?? content;
+    }
+  } catch {
+    // JSONでない場合はそのままテキストとして扱う
+  }
+  return content;
+}
+
 function ChatMessage({ message }: ChatMessageProps) {
   const isAssistant = message.role === "assistant";
 
   if (isAssistant) {
+    const displayText = getMessageDisplayText(message.content);
     // AI message: icon on top left with gray background, then plain text below
     return (
       <div className="flex flex-col items-start gap-2">
@@ -118,7 +136,7 @@ function ChatMessage({ message }: ChatMessageProps) {
           <Bot size={24} className="text-gray-600" />
         </div>
         <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap text-gray-800">
-          {message.content}
+          {displayText}
         </p>
       </div>
     );
