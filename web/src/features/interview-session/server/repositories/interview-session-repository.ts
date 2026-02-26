@@ -239,17 +239,20 @@ export async function createInterviewMessage(params: {
 // ========================================
 
 /**
- * セッション評価（星1〜5）を保存
+ * セッション評価（星1〜5）を保存（1セッション1評価、既存があれば無視）
  */
 export async function createInterviewSessionRating(params: {
   sessionId: string;
   rating: number;
 }): Promise<void> {
   const supabase = createAdminClient();
-  const { error } = await supabase.from("interview_session_ratings").insert({
-    interview_session_id: params.sessionId,
-    rating: params.rating,
-  });
+  const { error } = await supabase.from("interview_session_ratings").upsert(
+    {
+      interview_session_id: params.sessionId,
+      rating: params.rating,
+    },
+    { onConflict: "interview_session_id", ignoreDuplicates: true }
+  );
 
   if (error) {
     throw new Error(

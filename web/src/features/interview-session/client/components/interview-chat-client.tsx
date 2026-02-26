@@ -70,9 +70,16 @@ export function InterviewChatClient({
 
   const [timeUpDismissed, setTimeUpDismissed] = useState(false);
 
-  // 評価ウィジェットの状態管理
-  const [ratingDismissed, setRatingDismissed] = useState(false);
-  const ratingTriggered = useRef(false);
+  // 評価ウィジェットの状態管理（localStorageで永続化してリロード後も非表示）
+  const ratingStorageKey = `interview-rating-${sessionId}`;
+  const [ratingDismissed, setRatingDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(ratingStorageKey) === "done";
+    } catch {
+      return false;
+    }
+  });
+  const ratingTriggered = useRef(ratingDismissed);
   const [showRating, setShowRating] = useState(false);
 
   const progress = useMemo(
@@ -97,7 +104,12 @@ export function InterviewChatClient({
   const handleRatingDismiss = useCallback(() => {
     setShowRating(false);
     setRatingDismissed(true);
-  }, []);
+    try {
+      localStorage.setItem(ratingStorageKey, "done");
+    } catch {
+      // localStorage unavailable - silently ignore
+    }
+  }, [ratingStorageKey]);
 
   const showProgressBar = mode === "loop" && progress !== null;
   const timerMinutes =

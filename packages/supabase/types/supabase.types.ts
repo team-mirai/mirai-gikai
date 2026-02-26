@@ -539,7 +539,7 @@ export type Database = {
           {
             foreignKeyName: "interview_session_ratings_interview_session_id_fkey"
             columns: ["interview_session_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "interview_sessions"
             referencedColumns: ["id"]
           },
