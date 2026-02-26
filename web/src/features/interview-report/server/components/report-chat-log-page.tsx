@@ -91,6 +91,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
           {/* Breadcrumb Navigation */}
           <ReportBreadcrumb
             billId={report.bill_id}
+            reportId={reportId}
             additionalItems={[{ label: "すべての会話ログ" }]}
           />
         </div>
