@@ -19,6 +19,10 @@ export class AudioPlayer {
 
   async resume(): Promise<void> {
     this._cancelled = false;
+    // dispose() で close された場合、新しい AudioContext を取得する
+    if (this.audioContext.state === "closed") {
+      this.audioContext = getGlobalAudioContext();
+    }
     if (this.audioContext.state === "suspended") {
       await this.audioContext.resume();
     }
@@ -82,14 +86,14 @@ export class AudioPlayer {
     this.nextStartTime = 0;
     this.pendingCount = 0;
     this._isPlaying = false;
-    // AudioContext を suspend して予約済み音声も即停止
-    if (this.audioContext.state === "running") {
-      this.audioContext.suspend();
-    }
   }
 
   dispose(): void {
     this.cancelAll();
-    // グローバル AudioContext は他で再利用するため close しない
+    // AudioContext を close して再生中の音声を確実に停止する。
+    // 次回使用時は resume() で新しい AudioContext を取得する。
+    if (this.audioContext.state !== "closed") {
+      this.audioContext.close();
+    }
   }
 }
