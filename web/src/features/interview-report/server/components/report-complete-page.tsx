@@ -4,22 +4,25 @@ import { MessageSquareMore } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SpeechBubble } from "@/components/ui/speech-bubble";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
 import { PublicStatusSection } from "@/features/interview-report/client/components/public-status-section";
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
-import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
-import { SpeechBubble } from "@/components/ui/speech-bubble";
+import { ExpertRegistrationSection } from "../../client/components/expert-registration-section";
+import { BackToBillButton } from "../../shared/components/back-to-bill-button";
+import { IntervieweeInfo } from "../../shared/components/interviewee-info";
+import { OpinionsList } from "../../shared/components/opinions-list";
+import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
+import { ReportMetaInfo } from "../../shared/components/report-meta-info";
+import { isExpertRegistrationTargetRole } from "../../shared/utils/expert-registration-validation";
+import { parseOpinions } from "../../shared/utils/format-utils";
 import {
   calculateDuration,
   countCharacters,
 } from "../../shared/utils/report-utils";
-import { parseOpinions } from "../../shared/utils/format-utils";
-import { BackToBillButton } from "../../shared/components/back-to-bill-button";
-import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
-import { IntervieweeInfo } from "../../shared/components/interviewee-info";
-import { OpinionsList } from "../../shared/components/opinions-list";
-import { ReportMetaInfo } from "../../shared/components/report-meta-info";
+import { getExpertRegistrationStatus } from "../loaders/get-expert-registration-status";
 
 interface ReportCompletePageProps {
   reportId: string;
@@ -38,10 +41,15 @@ export async function ReportCompletePage({
 
   const billId = report.bill_id;
 
-  // 法案とメッセージを並列取得
-  const [bill, messages] = await Promise.all([
+  const isExpertRole = isExpertRegistrationTargetRole(report.role);
+
+  // 法案・メッセージ・有識者登録状況を並列取得
+  const [bill, messages, isExpertRegistered] = await Promise.all([
     getBillById(billId),
     getInterviewMessages(report.interview_session_id),
+    isExpertRole
+      ? getExpertRegistrationStatus(report.interview_session_id)
+      : Promise.resolve(false),
   ]);
 
   if (!bill) {
@@ -157,6 +165,13 @@ export async function ReportCompletePage({
                 </Link>
               }
             />
+
+            {/* 有識者リスト登録バナー */}
+            {isExpertRole && !isExpertRegistered && (
+              <ExpertRegistrationSection
+                sessionId={report.interview_session_id}
+              />
+            )}
 
             {/* 法案の記事に戻るボタン */}
             <div className="flex flex-col gap-3">

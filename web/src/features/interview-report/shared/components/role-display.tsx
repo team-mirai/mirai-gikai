@@ -1,5 +1,5 @@
-import { Briefcase, GraduationCap, Home, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Briefcase, GraduationCap, Home, User } from "lucide-react";
 import { type InterviewReportRole, roleLabels } from "../constants";
 
 const roleIcons: Record<InterviewReportRole, LucideIcon> = {
