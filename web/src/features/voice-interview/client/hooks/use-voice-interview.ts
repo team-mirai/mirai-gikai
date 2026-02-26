@@ -79,6 +79,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
   const [messages, setMessages] = useState<VoiceInterviewMessage[]>(normalized);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [interviewStage, setInterviewStage] = useState<InterviewStage>("chat");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [reportData, setReportData] = useState<InterviewReportViewData | null>(
@@ -92,6 +93,11 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
   const autoStartedRef = useRef(false);
   const retryAttemptedRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const infoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** ページ離脱検知用: false になったら全 async 処理を中断する */
+  const mountedRef = useRef(true);
+  /** sendToLlm の fetch を中断するための AbortController */
+  const fetchAbortRef = useRef<AbortController | null>(null);
 
   const speechRecognition = useSpeechRecognition();
   const ttsPlayer = useTtsPlayer();
@@ -122,6 +128,18 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
    * 音声認識を開始する共通ロジック。
    * startListening（手動）と autoListen（TTS後自動）から呼ばれる。
    */
+  /** infoMessage を一定時間後に自動クリアする */
+  const showInfoMessage = useCallback((msg: string, durationMs = 5000) => {
+    if (infoTimerRef.current) {
+      clearTimeout(infoTimerRef.current);
+    }
+    setInfoMessage(msg);
+    infoTimerRef.current = setTimeout(() => {
+      infoTimerRef.current = null;
+      setInfoMessage(null);
+    }, durationMs);
+  }, []);
+
   const beginRecognition = useCallback(() => {
     setCurrentTranscript("");
     currentTranscriptRef.current = "";
@@ -149,17 +167,23 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         }
         setCurrentTranscript("");
         currentTranscriptRef.current = "";
+      },
+      {
+        onMaxDuration: () => {
+          showInfoMessage("回答が長くなったため、ここまでの内容で送信します");
+        },
       }
     );
 
     return started;
-  }, [dispatch]);
+  }, [dispatch, showInfoMessage]);
 
   /**
    * TTS終了後に自動で音声認識を開始する。
    * ボタンを押さなくても連続対話できる。
    */
   const autoListen = useCallback(() => {
+    if (!mountedRef.current) return;
     if (stateRef.current !== "idle") return;
 
     const newState = dispatch({ type: "TAP_MIC" });
@@ -203,8 +227,10 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         dispatch({ type: "TTS_END" });
       }
 
-      // TTS完了後、自動で聞き取りモードに移行
-      autoListen();
+      // TTS完了後、自動で聞き取りモードに移行（ページ離脱済みなら何もしない）
+      if (mountedRef.current) {
+        autoListen();
+      }
     },
     [dispatch, speechRate, autoListen]
   );
@@ -254,6 +280,11 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
       setMessages(updatedMessages);
 
       try {
+        // 前回の fetch が残っていたら中断
+        fetchAbortRef.current?.abort();
+        const abortController = new AbortController();
+        fetchAbortRef.current = abortController;
+
         const response = await fetch("/api/interview/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -266,7 +297,10 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
             currentStage: currentStageRef.current,
             voice: true,
           }),
+          signal: abortController.signal,
         });
+
+        if (!mountedRef.current) return;
 
         if (!response.ok) {
           const errText = await response.text().catch(() => "");
@@ -274,6 +308,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         }
 
         const responseText = await response.text();
+        if (!mountedRef.current) return;
         const {
           text: spokenText,
           nextStage,
@@ -425,15 +460,32 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     void speakAndAutoListen(lastMsg.content).catch(console.error);
   }, [speakAndAutoListen]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount + pagehide（bfcache対策）
   useEffect(() => {
-    return () => {
+    mountedRef.current = true;
+
+    const stopAll = () => {
+      mountedRef.current = false;
+      fetchAbortRef.current?.abort();
+      fetchAbortRef.current = null;
       ttsRef.current.stop();
       srRef.current.stop();
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current);
         retryTimerRef.current = null;
       }
+      if (infoTimerRef.current) {
+        clearTimeout(infoTimerRef.current);
+        infoTimerRef.current = null;
+      }
+    };
+
+    // bfcache（ブラウザバック）やタブ切り替え時にも確実に停止する
+    window.addEventListener("pagehide", stopAll);
+
+    return () => {
+      window.removeEventListener("pagehide", stopAll);
+      stopAll();
     };
   }, []);
 
@@ -445,6 +497,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     stopSpeaking,
     retry,
     errorMessage,
+    infoMessage,
     isSupported: speechRecognition.isSupported,
     interviewStage,
     sessionId,

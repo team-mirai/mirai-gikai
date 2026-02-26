@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -67,6 +67,7 @@ export function VoiceInterviewClient({
     startListening,
     retry,
     errorMessage,
+    infoMessage,
     isSupported,
     interviewStage,
     sessionId,
@@ -189,6 +190,12 @@ export function VoiceInterviewClient({
       {/* 通常フェーズ: 音声コントロール */}
       {!isSummaryPhase && (
         <div className="flex flex-col items-center gap-3 border-t pt-4">
+          {infoMessage && (
+            <div className="flex items-center gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <Info className="h-4 w-4 shrink-0" />
+              <span>{infoMessage}</span>
+            </div>
+          )}
           <VoiceStatusIndicator
             state={state}
             errorMessage={errorMessage}

@@ -31,6 +31,9 @@ function getSpeechRecognition(): SpeechRecognitionConstructor | null {
 /** 最後の音声入力から確定までの無音タイムアウト（ミリ秒） */
 const SILENCE_TIMEOUT_MS = 2500;
 
+/** 1回の発話の最大録音時間（ミリ秒）。長すぎる発話を自動で区切る */
+const MAX_RECORDING_DURATION_MS = 120_000; // 2分
+
 export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -40,7 +43,11 @@ export function useSpeechRecognition() {
   );
   const onErrorRef = useRef<(() => void) | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const maxDurationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const accumulatedTextRef = useRef("");
+  const onMaxDurationRef = useRef<(() => void) | null>(null);
 
   // SSR/CSR 間の hydration mismatch を防ぐため useEffect で判定
   const [isSupported, setIsSupported] = useState(true);
@@ -55,32 +62,46 @@ export function useSpeechRecognition() {
     }
   }, []);
 
+  const clearMaxDurationTimer = useCallback(() => {
+    if (maxDurationTimerRef.current) {
+      clearTimeout(maxDurationTimerRef.current);
+      maxDurationTimerRef.current = null;
+    }
+  }, []);
+
   const stop = useCallback(() => {
     clearSilenceTimer();
+    clearMaxDurationTimer();
     recognitionRef.current?.abort();
     recognitionRef.current = null;
     onResultRef.current = null;
     onErrorRef.current = null;
+    onMaxDurationRef.current = null;
     accumulatedTextRef.current = "";
     setIsListening(false);
     setTranscript("");
-  }, [clearSilenceTimer]);
+  }, [clearSilenceTimer, clearMaxDurationTimer]);
 
   const start = useCallback(
     (
       onResult: (text: string, isFinal: boolean) => void,
-      onError?: () => void
+      onError?: () => void,
+      options?: { onMaxDuration?: () => void }
     ) => {
       const SpeechRecognition = getSpeechRecognition();
       if (!SpeechRecognition) return false;
 
       onResultRef.current = onResult;
       onErrorRef.current = onError ?? null;
+      onMaxDurationRef.current = options?.onMaxDuration ?? null;
       accumulatedTextRef.current = "";
       const recognition = new SpeechRecognition();
       recognition.lang = "ja-JP";
       recognition.continuous = true;
       recognition.interimResults = true;
+
+      /** 現在の認識テキストを保持（タイマーから参照） */
+      let latestTranscript = "";
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         // continuous モードでは複数の結果が累積される
@@ -88,6 +109,7 @@ export function useSpeechRecognition() {
         for (let i = 0; i < event.results.length; i++) {
           fullTranscript += event.results[i][0].transcript;
         }
+        latestTranscript = fullTranscript;
         setTranscript(fullTranscript);
         onResultRef.current?.(fullTranscript, false);
 
@@ -104,6 +126,7 @@ export function useSpeechRecognition() {
 
       recognition.onerror = (event) => {
         clearSilenceTimer();
+        clearMaxDurationTimer();
         if (event.error !== "no-speech" && event.error !== "aborted") {
           console.error("[SpeechRecognition] error:", event.error);
           onErrorRef.current?.();
@@ -113,6 +136,7 @@ export function useSpeechRecognition() {
 
       recognition.onend = () => {
         clearSilenceTimer();
+        clearMaxDurationTimer();
         setIsListening(false);
       };
 
@@ -120,9 +144,23 @@ export function useSpeechRecognition() {
       recognition.start();
       setIsListening(true);
       setTranscript("");
+
+      // 最大録音時間タイマーを開始
+      clearMaxDurationTimer();
+      maxDurationTimerRef.current = setTimeout(() => {
+        maxDurationTimerRef.current = null;
+        clearSilenceTimer();
+        onMaxDurationRef.current?.();
+        // ここまでのテキストを確定して停止
+        if (latestTranscript.trim()) {
+          onResultRef.current?.(latestTranscript, true);
+        }
+        recognition.stop();
+      }, MAX_RECORDING_DURATION_MS);
+
       return true;
     },
-    [clearSilenceTimer]
+    [clearSilenceTimer, clearMaxDurationTimer]
   );
 
   return {
