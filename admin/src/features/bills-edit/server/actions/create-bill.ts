@@ -2,7 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import {
+  WEB_CACHE_TAGS,
+  invalidateWebCache,
+} from "@/lib/utils/cache-invalidation";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { type BillCreateInput, billCreateSchema } from "../../shared/types";
 import { createBillRecord } from "../repositories/bill-edit-repository";
@@ -26,7 +29,7 @@ export async function createBill(input: BillCreateInput) {
     await createBillRecord(insertData);
 
     // web側のキャッシュを無効化
-    await invalidateWebCache();
+    await invalidateWebCache([WEB_CACHE_TAGS.BILLS]);
   } catch (error) {
     console.error("Create bill error:", error);
     throw new Error(

@@ -1,7 +1,10 @@
 "use server";
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import {
+  WEB_CACHE_TAGS,
+  invalidateWebCache,
+} from "@/lib/utils/cache-invalidation";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   type InterviewConfigInput,
@@ -54,7 +57,7 @@ export async function createInterviewConfig(
     });
 
     // web側のキャッシュを無効化
-    await invalidateWebCache();
+    await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);
 
     return { success: true, data: { id: data.id } };
   } catch (error) {
@@ -102,7 +105,7 @@ export async function updateInterviewConfig(
     });
 
     // web側のキャッシュを無効化
-    await invalidateWebCache();
+    await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);
 
     return { success: true, data: { id: data.id } };
   } catch (error) {
@@ -179,7 +182,7 @@ export async function duplicateInterviewConfig(
     }
 
     // web側のキャッシュを無効化
-    await invalidateWebCache();
+    await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);
 
     return { success: true, data: { id: newConfig.id } };
   } catch (error) {
@@ -206,7 +209,7 @@ export async function deleteInterviewConfig(
     await deleteInterviewConfigRecord(configId);
 
     // web側のキャッシュを無効化
-    await invalidateWebCache();
+    await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);
 
     return { success: true, data: { id: configId } };
   } catch (error) {
