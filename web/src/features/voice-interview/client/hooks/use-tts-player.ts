@@ -2,17 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AudioPlayer } from "../utils/audio-player";
-
-function parseRate(rate?: string): number {
-  if (!rate) return 1.0;
-  const trimmed = rate.trim();
-  if (trimmed.endsWith("%")) {
-    const pct = Number.parseFloat(trimmed.slice(0, -1));
-    return Number.isNaN(pct) ? 1.0 : 1.0 + pct / 100;
-  }
-  const num = Number.parseFloat(trimmed);
-  return Number.isNaN(num) ? 1.0 : num;
-}
+import { parseRate } from "../utils/parse-rate";
 
 function webSpeechFallback(
   text: string,

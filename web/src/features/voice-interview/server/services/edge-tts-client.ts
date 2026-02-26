@@ -2,6 +2,7 @@
 
 import { createHash } from "node:crypto";
 import WebSocket from "ws";
+import { escapeXml, sanitizeRate } from "../utils/tts-utils";
 
 const TRUSTED_CLIENT_TOKEN = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
 const CHROMIUM_FULL_VERSION = "143.0.3650.75";
@@ -28,15 +29,6 @@ function generateSecMsGec(): string {
     .toUpperCase();
 }
 
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
 function makeTimestamp(): string {
   return new Date().toISOString();
 }
@@ -61,14 +53,6 @@ function makeSpeechConfig(): string {
       },
     }),
   ].join("\r\n");
-}
-
-const VALID_RATE_PATTERN = /^[+-]?\d{1,3}%$/;
-
-function sanitizeRate(rate?: string): string | undefined {
-  if (!rate) return undefined;
-  if (VALID_RATE_PATTERN.test(rate)) return rate;
-  return undefined;
 }
 
 function makeSsml(text: string, requestId: string, rate?: string): string {
