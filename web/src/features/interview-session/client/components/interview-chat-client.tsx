@@ -6,6 +6,7 @@ import {
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { useInterviewChat } from "../hooks/use-interview-chat";
+import { useInterviewRating } from "../hooks/use-interview-rating";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
 import { calcInterviewProgress } from "../utils/calc-interview-progress";
 import { InterviewChatInput } from "./interview-chat-input";
@@ -13,6 +14,7 @@ import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
 import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewSummaryInput } from "./interview-summary-input";
+import { InterviewRatingWidget } from "./interview-rating-widget";
 import { QuickReplyButtons } from "./quick-reply-buttons";
 import { TimeUpPrompt } from "./time-up-prompt";
 
@@ -29,6 +31,7 @@ interface InterviewChatClientProps {
   totalQuestions?: number;
   estimatedDuration?: number | null;
   sessionStartedAt?: string;
+  hasRated?: boolean;
 }
 
 export function InterviewChatClient({
@@ -39,6 +42,7 @@ export function InterviewChatClient({
   totalQuestions,
   estimatedDuration,
   sessionStartedAt,
+  hasRated,
 }: InterviewChatClientProps) {
   const {
     input,
@@ -71,6 +75,12 @@ export function InterviewChatClient({
     () => calcInterviewProgress(totalQuestions, stage, messages),
     [messages, totalQuestions, stage]
   );
+
+  const { showRating, handleRatingDismiss } = useInterviewRating({
+    mode,
+    progress,
+    hasRated,
+  });
 
   const showProgressBar = mode === "loop" && progress !== null;
   const timerMinutes =
@@ -216,6 +226,14 @@ export function InterviewChatClient({
               })()}
           </ConversationContent>
         </Conversation>
+
+        {/* 評価ウィジェット */}
+        {showRating && (
+          <InterviewRatingWidget
+            sessionId={sessionId}
+            onDismiss={handleRatingDismiss}
+          />
+        )}
 
         {/* 時間超過プロンプト */}
         {showTimeUpPrompt && (
