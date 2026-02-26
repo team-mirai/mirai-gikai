@@ -6,36 +6,27 @@ import type { InterviewProgress } from "../../shared/utils/calc-interview-progre
 const RATING_WIDGET_THRESHOLD = 70;
 
 interface UseInterviewRatingProps {
-  sessionId: string;
   mode?: "loop" | "bulk";
   progress: InterviewProgress | null;
+  hasRated?: boolean;
 }
 
 /**
  * 評価ウィジェットの表示制御を管理するhook
- * - loopモードでプログレスが70%に達したら1回だけ表示
- * - localStorageで永続化しリロード後も再表示しない
+ * loopモードでプログレスが70%に達したら1回だけ表示
+ * 既に評価済み（hasRated=true）の場合は表示しない
  */
 export function useInterviewRating({
-  sessionId,
   mode,
   progress,
+  hasRated,
 }: UseInterviewRatingProps) {
-  const ratingStorageKey = `interview-rating-${sessionId}`;
-  const [ratingDismissed, setRatingDismissed] = useState(() => {
-    try {
-      return localStorage.getItem(ratingStorageKey) === "done";
-    } catch {
-      return false;
-    }
-  });
-  const ratingTriggered = useRef(ratingDismissed);
+  const ratingTriggered = useRef(!!hasRated);
   const [showRating, setShowRating] = useState(false);
 
   useEffect(() => {
     if (
       !ratingTriggered.current &&
-      !ratingDismissed &&
       mode === "loop" &&
       progress &&
       progress.percentage >= RATING_WIDGET_THRESHOLD
@@ -43,17 +34,11 @@ export function useInterviewRating({
       ratingTriggered.current = true;
       setShowRating(true);
     }
-  }, [progress, ratingDismissed, mode]);
+  }, [progress, mode]);
 
   const handleRatingDismiss = useCallback(() => {
     setShowRating(false);
-    setRatingDismissed(true);
-    try {
-      localStorage.setItem(ratingStorageKey, "done");
-    } catch {
-      // localStorage unavailable - silently ignore
-    }
-  }, [ratingStorageKey]);
+  }, []);
 
   return { showRating, handleRatingDismiss };
 }

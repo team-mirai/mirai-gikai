@@ -31,6 +31,7 @@ interface InterviewChatClientProps {
   totalQuestions?: number;
   estimatedDuration?: number | null;
   sessionStartedAt?: string;
+  hasRated?: boolean;
 }
 
 export function InterviewChatClient({
@@ -41,6 +42,7 @@ export function InterviewChatClient({
   totalQuestions,
   estimatedDuration,
   sessionStartedAt,
+  hasRated,
 }: InterviewChatClientProps) {
   const {
     input,
@@ -75,9 +77,9 @@ export function InterviewChatClient({
   );
 
   const { showRating, handleRatingDismiss } = useInterviewRating({
-    sessionId,
     mode,
     progress,
+    hasRated,
   });
 
   const showProgressBar = mode === "loop" && progress !== null;

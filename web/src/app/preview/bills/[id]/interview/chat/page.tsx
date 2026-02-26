@@ -87,6 +87,7 @@ export default async function InterviewPreviewChatPage({
           totalQuestions={questions.length}
           estimatedDuration={interviewConfig.estimated_duration}
           sessionStartedAt={session.started_at}
+          hasRated={session.rating != null}
         />
       </>
     );
