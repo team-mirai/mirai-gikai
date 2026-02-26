@@ -47,3 +47,23 @@ export async function findExpertRegistrationBySessionId(sessionId: string) {
 
   return data;
 }
+
+/**
+ * メールアドレスで有識者登録が存在するか確認
+ */
+export async function findExpertRegistrationByEmail(email: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("expert_registrations")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(
+      `Failed to check expert registration by email: ${error.message}`
+    );
+  }
+
+  return data;
+}

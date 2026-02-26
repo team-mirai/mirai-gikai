@@ -12,6 +12,9 @@ CREATE TABLE expert_registrations (
 -- セッションごとに1件のみ登録可能
 CREATE UNIQUE INDEX idx_expert_registrations_session_id ON expert_registrations(interview_session_id);
 
+-- メールアドレスの一意性を保証
+CREATE UNIQUE INDEX idx_expert_registrations_email ON expert_registrations(email);
+
 -- updated_atトリガー
 CREATE TRIGGER update_expert_registrations_updated_at
   BEFORE UPDATE ON expert_registrations

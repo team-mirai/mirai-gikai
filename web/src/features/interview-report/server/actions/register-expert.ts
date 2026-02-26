@@ -4,6 +4,7 @@ import { verifySessionOwnership } from "@/features/interview-session/server/util
 import { expertRegistrationSchema } from "../../shared/utils/expert-registration-validation";
 import {
   createExpertRegistration,
+  findExpertRegistrationByEmail,
   findExpertRegistrationBySessionId,
 } from "../repositories/expert-registration-repository";
 
@@ -39,9 +40,20 @@ export async function registerExpert(
   }
 
   try {
-    const existing = await findExpertRegistrationBySessionId(sessionId);
-    if (existing) {
+    const existingBySession =
+      await findExpertRegistrationBySessionId(sessionId);
+    if (existingBySession) {
       return { success: false, error: "すでに登録済みです" };
+    }
+
+    const existingByEmail = await findExpertRegistrationByEmail(
+      parsed.data.email
+    );
+    if (existingByEmail) {
+      return {
+        success: false,
+        error: "このメールアドレスはすでに登録されています",
+      };
     }
 
     await createExpertRegistration({
