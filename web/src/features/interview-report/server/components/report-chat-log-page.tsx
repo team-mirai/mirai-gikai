@@ -8,6 +8,7 @@ import { getReportWithMessages } from "../loaders/get-report-with-messages";
 import { countCharacters } from "../../shared/utils/report-utils";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
+import { BackToReportButton } from "../../shared/components/back-to-report-button";
 import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
 import { OpinionsList } from "../../shared/components/opinions-list";
@@ -83,8 +84,9 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
           {/* Opinions Section */}
           <OpinionsList opinions={opinions} />
 
-          {/* Back to Bill Button */}
+          {/* Back to Report / Bill Buttons */}
           <div className="flex flex-col gap-3">
+            <BackToReportButton reportId={reportId} />
             <BackToBillButton billId={report.bill_id} />
           </div>
 
