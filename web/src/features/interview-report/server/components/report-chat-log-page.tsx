@@ -81,7 +81,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
           </div>
 
           {/* Opinions Section */}
-          <OpinionsList opinions={opinions} showBackground={false} />
+          <OpinionsList opinions={opinions} />
 
           {/* Back to Bill Button */}
           <div className="flex flex-col gap-3">
