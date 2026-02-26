@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { submitInterviewRating } from "../../server/actions/submit-interview-rating";
 
 interface InterviewRatingWidgetProps {
   sessionId: string;
@@ -26,11 +27,7 @@ export function InterviewRatingWidget({
       setIsSubmitted(true);
 
       try {
-        await fetch("/api/interview/rating", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, rating }),
-        });
+        await submitInterviewRating(sessionId, rating);
       } catch {
         // 評価の保存失敗はサイレントに無視（UXを妨げない）
       }
