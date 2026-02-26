@@ -4,6 +4,7 @@ export class AudioPlayer {
   private audioContext: AudioContext;
   private nextStartTime = 0;
   private _isPlaying = false;
+  private _cancelled = false;
   private activeSources: AudioBufferSourceNode[] = [];
   private onComplete: (() => void) | null = null;
   private pendingCount = 0;
@@ -17,6 +18,7 @@ export class AudioPlayer {
   }
 
   async resume(): Promise<void> {
+    this._cancelled = false;
     if (this.audioContext.state === "suspended") {
       await this.audioContext.resume();
     }
@@ -32,6 +34,9 @@ export class AudioPlayer {
     ) as ArrayBuffer;
 
     const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+
+    // cancelAll() が decode 中に呼ばれた場合、新しいソースを開始しない
+    if (this._cancelled) return;
 
     const source = this.audioContext.createBufferSource();
     source.buffer = audioBuffer;
@@ -62,8 +67,11 @@ export class AudioPlayer {
   }
 
   cancelAll(): void {
+    this._cancelled = true;
+    this.onComplete = null;
     for (const source of this.activeSources) {
       try {
+        source.onended = null;
         source.stop();
         source.disconnect();
       } catch {
@@ -74,6 +82,10 @@ export class AudioPlayer {
     this.nextStartTime = 0;
     this.pendingCount = 0;
     this._isPlaying = false;
+    // AudioContext を suspend して予約済み音声も即停止
+    if (this.audioContext.state === "running") {
+      this.audioContext.suspend();
+    }
   }
 
   dispose(): void {

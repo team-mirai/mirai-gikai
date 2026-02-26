@@ -74,11 +74,14 @@ export function useTtsPlayer() {
     return playerRef.current;
   }, []);
 
-  // Cleanup AudioContext on unmount
+  // Cleanup on unmount: abort in-flight requests, stop audio, cancel speech
   useEffect(() => {
     return () => {
+      abortRef.current?.abort();
+      abortRef.current = null;
       playerRef.current?.dispose();
       playerRef.current = null;
+      window.speechSynthesis?.cancel();
     };
   }, []);
 
