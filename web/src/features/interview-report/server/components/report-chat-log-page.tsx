@@ -4,14 +4,14 @@ import { Bot, UserRound } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
-import { getReportWithMessages } from "../loaders/get-report-with-messages";
-import { countCharacters } from "../../shared/utils/report-utils";
-import { parseOpinions } from "../../shared/utils/format-utils";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
-import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
 import { OpinionsList } from "../../shared/components/opinions-list";
+import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
 import { ReportMetaInfo } from "../../shared/components/report-meta-info";
+import { parseOpinions } from "../../shared/utils/format-utils";
+import { countCharacters } from "../../shared/utils/report-utils";
+import { getReportWithMessages } from "../loaders/get-report-with-messages";
 
 interface ReportChatLogPageProps {
   reportId: string;
