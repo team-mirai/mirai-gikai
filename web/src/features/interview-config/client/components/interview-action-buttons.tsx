@@ -12,6 +12,7 @@ import {
   getInterviewChatLink,
   getInterviewReportCompleteLink,
 } from "@/features/interview-config/shared/utils/interview-links";
+import { prewarmAudioContext } from "@/features/voice-interview/client/utils/audio-context";
 import { InterviewConsentModal } from "./interview-consent-modal";
 
 interface InterviewActionButtonsProps {
@@ -34,6 +35,9 @@ export function InterviewActionButtons({
   const isCompleted = sessionInfo?.status === "completed";
 
   const handleSelectResumeMode = (mode?: "voice") => {
+    if (mode === "voice") {
+      prewarmAudioContext();
+    }
     router.push(getInterviewChatLink(billId, previewToken, mode));
   };
 

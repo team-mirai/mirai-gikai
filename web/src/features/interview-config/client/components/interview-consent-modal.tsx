@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getInterviewChatLink } from "@/features/interview-config/shared/utils/interview-links";
+import { prewarmAudioContext } from "@/features/voice-interview/client/utils/audio-context";
 
 const TERMS_MARKDOWN = `本サービスは、AIを活用したインタビュー機能を提供しています。ご利用にあたり、以下の事項にご同意いただく必要があります。
 
@@ -113,6 +114,9 @@ export function InterviewConsentModal({
   };
 
   const handleSelectMode = (mode?: "voice") => {
+    if (mode === "voice") {
+      prewarmAudioContext();
+    }
     setIsLoading(true);
     router.push(getInterviewChatLink(billId, previewToken, mode));
   };

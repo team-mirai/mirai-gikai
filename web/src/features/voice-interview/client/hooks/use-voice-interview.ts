@@ -105,7 +105,8 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
   const stateRef = useRef<VoiceState>("idle");
   const messagesRef = useRef<VoiceInterviewMessage[]>(normalized);
   const currentStageRef = useRef<InterviewStage>("chat");
-  const initialPlayedRef = useRef(false);
+  const currentTranscriptRef = useRef("");
+  const autoStartedRef = useRef(false);
   const autoResponseIndexRef = useRef(0);
   const retryAttemptedRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -141,14 +142,17 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
    */
   const beginRecognition = useCallback(() => {
     setCurrentTranscript("");
+    currentTranscriptRef.current = "";
 
     const started = srRef.current.start(
       (text: string, isFinal: boolean) => {
         setCurrentTranscript(text);
+        currentTranscriptRef.current = text;
 
         if (isFinal) {
           srRef.current.stop();
           setCurrentTranscript("");
+          currentTranscriptRef.current = "";
           if (text.trim()) {
             dispatch({ type: "SPEECH_END" });
             sendToLlmRef.current?.(text.trim());
@@ -162,6 +166,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
           dispatch({ type: "RESET" });
         }
         setCurrentTranscript("");
+        currentTranscriptRef.current = "";
       }
     );
 
@@ -389,6 +394,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
 
   /**
    * マイクボタンのタップハンドラ（手動トグル）。
+   * - 初回タップ: 最初のAIメッセージをTTS再生→自動リスニング開始
    * - idle → listening
    * - listening → idle（キャンセル）
    * - speaking → listening（割り込み）
@@ -396,14 +402,33 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
   const startListening = useCallback(() => {
     setErrorMessage(null);
 
-    if (stateRef.current === "speaking") {
-      ttsRef.current.stop();
+    // 初回タップ: AIの最初の質問をTTS再生し、終了後に自動リスニング
+    if (!autoStartedRef.current) {
+      autoStartedRef.current = true;
+      const lastMsg = messagesRef.current[messagesRef.current.length - 1];
+      if (lastMsg?.role === "assistant") {
+        void speakAndAutoListen(lastMsg.content).catch(console.error);
+        return;
+      }
     }
+
+    // 進行中のTTSを停止（フェッチ中でも確実に中断する）
+    ttsRef.current.stop();
+
+    // listening 中にタップ → 認識途中のテキストがあれば送信する
+    const wasListening = stateRef.current === "listening";
+    const interimText = currentTranscriptRef.current.trim();
 
     const newState = dispatch({ type: "TAP_MIC" });
 
     if (newState === "idle") {
       srRef.current.stop();
+      if (wasListening && interimText) {
+        setCurrentTranscript("");
+        currentTranscriptRef.current = "";
+        dispatch({ type: "SPEECH_END" });
+        sendToLlmRef.current?.(interimText);
+      }
       return;
     }
 
@@ -418,7 +443,7 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
         error: "Speech recognition failed to start",
       });
     }
-  }, [dispatch, beginRecognition]);
+  }, [dispatch, beginRecognition, speakAndAutoListen]);
 
   /**
    * エラー状態からの手動回復。
@@ -437,20 +462,16 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     }
   }, [dispatch]);
 
-  /**
-   * ユーザー操作を起点にインタビューを開始する。
-   * ブラウザの自動再生ポリシーにより、ページ遷移直後の自動TTS再生は
-   * ブロックされるため、必ずボタンタップ等のユーザー操作から呼ぶこと。
-   */
-  const startInterview = useCallback(async () => {
-    if (initialPlayedRef.current) return;
-    initialPlayedRef.current = true;
+  // マウント時に最初のassistantメッセージをTTS再生＋自動リスニング開始
+  // 遷移元で prewarmAudioContext() 済みのため AudioContext は running 状態
+  useEffect(() => {
+    if (autoStartedRef.current) return;
+    autoStartedRef.current = true;
 
-    // 最後のメッセージが assistant なら読み上げる
     const lastMsg = messagesRef.current[messagesRef.current.length - 1];
     if (!lastMsg || lastMsg.role !== "assistant") return;
 
-    await speakAndAutoListen(lastMsg.content);
+    void speakAndAutoListen(lastMsg.content).catch(console.error);
   }, [speakAndAutoListen]);
 
   // Cleanup on unmount
@@ -471,7 +492,6 @@ export function useVoiceInterview(options: UseVoiceInterviewOptions) {
     currentTranscript,
     startListening,
     stopSpeaking,
-    startInterview,
     retry,
     errorMessage,
     isSupported: speechRecognition.isSupported,

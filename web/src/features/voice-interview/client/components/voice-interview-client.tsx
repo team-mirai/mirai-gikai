@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { AlertTriangle, CheckCircle, Mic } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -11,15 +11,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  type SpeechSpeed,
+  getSpeechSpeed,
+  setSpeechSpeed,
+} from "../utils/speech-speed-storage";
 import { useInterviewCompletion } from "@/features/interview-session/client/hooks/use-interview-completion";
-import { InterviewSubmitSection } from "@/features/interview-session/client/components/interview-submit-section";
 import { InterviewSummary } from "@/features/interview-session/client/components/interview-summary";
-import { getInterviewChatLink } from "@/features/interview-config/shared/utils/interview-links";
+import { InterviewPublicConsentModal } from "@/features/interview-report/client/components/interview-public-consent-modal";
+import { updatePublicSetting } from "@/features/interview-report/server/actions/update-public-setting";
+import {
+  getInterviewChatLink,
+  getInterviewReportCompleteLink,
+} from "@/features/interview-config/shared/utils/interview-links";
 import { useVoiceInterview } from "../hooks/use-voice-interview";
 import { VoiceControls } from "./voice-controls";
 import { VoiceStatusIndicator } from "./voice-status-indicator";
-
-type SpeechSpeed = "slow" | "normal" | "fast";
 
 const SPEED_RATE_MAP: Record<SpeechSpeed, string | undefined> = {
   slow: "-20%",
@@ -45,9 +52,20 @@ export function VoiceInterviewClient({
   initialMessages,
   autoResponses,
 }: VoiceInterviewClientProps) {
-  const [hasStarted, setHasStarted] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
-  const [speechSpeed, setSpeechSpeed] = useState<SpeechSpeed>("normal");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [speechSpeed, setSpeechSpeedState] = useState<SpeechSpeed>("normal");
+
+  // SSR hydration 対策: mount後に localStorage から復元
+  useEffect(() => {
+    setSpeechSpeedState(getSpeechSpeed());
+  }, []);
+
+  const handleSpeedChange = (speed: SpeechSpeed) => {
+    setSpeechSpeedState(speed);
+    setSpeechSpeed(speed);
+  };
 
   const speechRate = SPEED_RATE_MAP[speechSpeed];
 
@@ -56,8 +74,6 @@ export function VoiceInterviewClient({
     messages,
     currentTranscript,
     startListening,
-    stopSpeaking,
-    startInterview,
     retry,
     errorMessage,
     isSupported,
@@ -73,8 +89,28 @@ export function VoiceInterviewClient({
 
   const { isCompleting, completeError, handleAgree } = useInterviewCompletion({
     sessionId: sessionId ?? "",
-    onComplete: (id) => setReportId(id),
+    onComplete: (id) => {
+      setReportId(id);
+      if (id) setIsModalOpen(true);
+    },
   });
+
+  const handlePublicSubmit = async (isPublic: boolean) => {
+    if (!sessionId || !reportId) return;
+    setIsSubmitting(true);
+    try {
+      const result = await updatePublicSetting(sessionId, isPublic);
+      if (result.success) {
+        window.location.href = getInterviewReportCompleteLink(reportId);
+      } else {
+        console.error("Failed to update public setting:", result.error);
+        setIsSubmitting(false);
+      }
+    } catch (err) {
+      console.error("Failed to update public setting:", err);
+      setIsSubmitting(false);
+    }
+  };
 
   if (!isSupported) {
     return (
@@ -101,7 +137,7 @@ export function VoiceInterviewClient({
       <span className="text-xs text-muted-foreground">話速</span>
       <Select
         value={speechSpeed}
-        onValueChange={(v) => setSpeechSpeed(v as SpeechSpeed)}
+        onValueChange={(v) => handleSpeedChange(v as SpeechSpeed)}
       >
         <SelectTrigger size="sm" className="w-24">
           <SelectValue />
@@ -116,28 +152,6 @@ export function VoiceInterviewClient({
       </Select>
     </div>
   );
-
-  // 開始前: タップして音声インタビューを開始するオーバーレイを表示
-  if (!hasStarted) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6">
-        <div className="text-center text-sm text-muted-foreground">
-          <p>タップして音声インタビューを開始します</p>
-        </div>
-        {speedSelector}
-        <Button
-          size="lg"
-          className="h-20 w-20 rounded-full"
-          onClick={() => {
-            setHasStarted(true);
-            startInterview();
-          }}
-        >
-          <Mic className="h-8 w-8" />
-        </Button>
-      </div>
-    );
-  }
 
   const isSummaryPhase =
     interviewStage === "summary" || interviewStage === "summary_complete";
@@ -181,14 +195,12 @@ export function VoiceInterviewClient({
         <div className="flex flex-col gap-3 border-t pt-4">
           {reportData && <InterviewSummary report={reportData} />}
 
-          {reportId && sessionId ? (
-            <InterviewSubmitSection sessionId={sessionId} reportId={reportId} />
-          ) : (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CheckCircle className="h-4 w-4" />
+            <span>インタビューが完了しました</span>
+          </div>
+          {!reportId ? (
             <>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4" />
-                <span>インタビューが完了しました</span>
-              </div>
               <Button
                 onClick={handleAgree}
                 disabled={isCompleting || !sessionId}
@@ -201,7 +213,17 @@ export function VoiceInterviewClient({
                 <p className="text-sm text-destructive">{completeError}</p>
               )}
             </>
+          ) : (
+            <Button onClick={() => setIsModalOpen(true)}>
+              インタビューの提出に進む
+            </Button>
           )}
+          <InterviewPublicConsentModal
+            open={isModalOpen}
+            onOpenChange={setIsModalOpen}
+            onSubmit={handlePublicSubmit}
+            isSubmitting={isSubmitting}
+          />
         </div>
       )}
 
@@ -213,11 +235,7 @@ export function VoiceInterviewClient({
             errorMessage={errorMessage}
             onRetry={retry}
           />
-          <VoiceControls
-            state={state}
-            onTapMic={startListening}
-            onStopSpeaking={stopSpeaking}
-          />
+          <VoiceControls state={state} onTapMic={startListening} />
         </div>
       )}
     </div>

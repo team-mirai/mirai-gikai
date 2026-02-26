@@ -14,7 +14,7 @@ const STATUS_CONFIG: Record<
     className: "text-muted-foreground",
   },
   listening: {
-    label: "聞いています...",
+    label: "お話しください...",
     icon: <Mic className="h-4 w-4 text-red-500" />,
     className: "text-red-600",
   },
@@ -24,7 +24,7 @@ const STATUS_CONFIG: Record<
     className: "text-yellow-600",
   },
   speaking: {
-    label: "AIが話しています...",
+    label: "AIが話しています（タップで割り込めます）",
     icon: <Volume2 className="h-4 w-4 text-blue-500" />,
     className: "text-blue-600",
   },

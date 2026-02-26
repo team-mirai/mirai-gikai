@@ -1,13 +1,12 @@
 "use client";
 
-import { Mic, MicOff, Square } from "lucide-react";
+import { Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { VoiceState } from "../../shared/types";
 
 interface VoiceControlsProps {
   state: VoiceState;
   onTapMic: () => void;
-  onStopSpeaking: () => void;
 }
 
 const MIC_STYLES: Record<VoiceState, string> = {
@@ -18,47 +17,31 @@ const MIC_STYLES: Record<VoiceState, string> = {
   error: "bg-red-50 hover:bg-red-100 text-red-500",
 };
 
-export function VoiceControls({
-  state,
-  onTapMic,
-  onStopSpeaking,
-}: VoiceControlsProps) {
+export function VoiceControls({ state, onTapMic }: VoiceControlsProps) {
   const isProcessing = state === "processing";
 
   return (
-    <div className="flex items-center gap-3">
-      <Button
-        variant="ghost"
-        size="icon"
-        className={`h-14 w-14 rounded-full ${MIC_STYLES[state]}`}
-        onClick={onTapMic}
-        disabled={isProcessing}
-        aria-label={
-          state === "listening"
-            ? "マイクを停止"
+    <Button
+      variant="ghost"
+      size="icon"
+      className={`h-14 w-14 rounded-full ${MIC_STYLES[state]}`}
+      onClick={onTapMic}
+      disabled={isProcessing}
+      aria-label={
+        state === "listening"
+          ? "マイクを停止"
+          : state === "speaking"
+            ? "AI の発話を停止して話す"
             : state === "error"
               ? "もう一度試す"
               : "マイクを開始"
-        }
-      >
-        {state === "listening" ? (
-          <Mic className="h-6 w-6" />
-        ) : (
-          <MicOff className="h-6 w-6" />
-        )}
-      </Button>
-
-      {state === "speaking" && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600"
-          onClick={onStopSpeaking}
-          aria-label="AI の発話を停止"
-        >
-          <Square className="h-4 w-4" />
-        </Button>
+      }
+    >
+      {state === "listening" ? (
+        <Mic className="h-6 w-6" />
+      ) : (
+        <MicOff className="h-6 w-6" />
       )}
-    </div>
+    </Button>
   );
 }

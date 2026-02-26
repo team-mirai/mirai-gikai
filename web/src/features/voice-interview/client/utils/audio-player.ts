@@ -1,3 +1,5 @@
+import { getGlobalAudioContext } from "./audio-context";
+
 export class AudioPlayer {
   private audioContext: AudioContext;
   private nextStartTime = 0;
@@ -7,11 +9,7 @@ export class AudioPlayer {
   private pendingCount = 0;
 
   constructor() {
-    const AudioContextClass =
-      window.AudioContext ??
-      (window as unknown as { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext;
-    this.audioContext = new AudioContextClass();
+    this.audioContext = getGlobalAudioContext();
   }
 
   get isPlaying(): boolean {
@@ -21,6 +19,9 @@ export class AudioPlayer {
   async resume(): Promise<void> {
     if (this.audioContext.state === "suspended") {
       await this.audioContext.resume();
+    }
+    if (this.audioContext.state === "suspended") {
+      throw new Error("AudioContext is suspended (user gesture required)");
     }
   }
 
@@ -77,6 +78,6 @@ export class AudioPlayer {
 
   dispose(): void {
     this.cancelAll();
-    this.audioContext.close();
+    // グローバル AudioContext は他で再利用するため close しない
   }
 }

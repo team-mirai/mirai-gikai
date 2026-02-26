@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getInterviewChatLink } from "@/features/interview-config/shared/utils/interview-links";
+import { prewarmAudioContext } from "@/features/voice-interview/client/utils/audio-context";
 import { archiveInterviewSession } from "../../server/actions/archive-interview-session";
 
 interface RestartInterviewButtonProps {
@@ -55,6 +56,9 @@ export function RestartInterviewButton({
   };
 
   const handleSelectMode = (mode?: "voice") => {
+    if (mode === "voice") {
+      prewarmAudioContext();
+    }
     setIsLoading(true);
     router.push(getInterviewChatLink(billId, previewToken, mode));
   };
