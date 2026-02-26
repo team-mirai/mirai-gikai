@@ -5,7 +5,7 @@ const roleLabels: Record<string, string> = {
   subject_expert: "専門的な有識者",
   work_related: "業務に関係",
   daily_life_affected: "暮らしに影響",
-  general_citizen: "一市民として関心",
+  general_citizen: "一般的な関心",
 };
 
 describe("formatRoleLabel", () => {
@@ -41,7 +41,7 @@ describe("formatRoleLabel", () => {
 
   it("roleTitleがundefinedの場合", () => {
     expect(formatRoleLabel("general_citizen", undefined, roleLabels)).toBe(
-      "一市民として関心"
+      "一般的な関心"
     );
   });
 });
