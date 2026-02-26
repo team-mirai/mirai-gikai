@@ -51,7 +51,7 @@ export function InterviewSummary({ report }: Props) {
         {opinions.length > 0 && (
           <div className="space-y-1">
             <p className="font-bold text-primary-accent">💬主な意見</p>
-            <ul className="space-y-2">
+            <ul className="space-y-4">
               {opinions.map((op, index) => (
                 <li
                   key={`${op.title}-${op.content}`}
