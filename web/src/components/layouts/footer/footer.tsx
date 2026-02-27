@@ -47,7 +47,6 @@ function FooterPrimaryLinks() {
       <ul
         className="
       flex flex-col items-center gap-3 text-[14px] font-semibold text-slate-800
-      md:flex-row md:justify-center md:gap-5
       "
       >
         {primaryLinks.map((link) => (
