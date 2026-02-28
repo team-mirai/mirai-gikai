@@ -17,7 +17,7 @@ export function SystemMessage({ message, isStreaming }: SystemMessageProps) {
     <Message from="assistant" className="justify-start py-0">
       <MessageContent
         variant="flat"
-        className="text-sm font-medium leading-[1.8] text-[#1F2937]"
+        className="text-sm font-medium leading-[1.8] text-mirai-text"
       >
         {message.parts.map((part, i: number) => {
           switch (part.type) {

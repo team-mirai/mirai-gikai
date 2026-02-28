@@ -11,9 +11,9 @@ export function ExpertRegistrationBanner({
   onRegisterClick,
 }: ExpertRegistrationBannerProps) {
   return (
-    <div className="bg-mirai-light-gradient rounded-2xl border border-[#2AA693] p-6 flex flex-col gap-6">
+    <div className="bg-mirai-light-gradient rounded-2xl border border-primary p-6 flex flex-col gap-6">
       <div className="flex flex-col gap-4">
-        <span className="inline-flex items-center justify-center rounded-2xl bg-[#2AA693] text-white px-4 py-2 text-[15px] font-medium w-fit">
+        <span className="inline-flex items-center justify-center rounded-2xl bg-primary text-white px-4 py-2 text-[15px] font-medium w-fit">
           法案の有識者の方へ
         </span>
         <div className="flex flex-col gap-2.5">

@@ -36,7 +36,7 @@ export default async function DietSessionBillsPage({ params }: Props) {
   const bills = await getBillsByDietSession(session.id);
 
   return (
-    <div className="bg-[#E5E5EA]">
+    <div className="bg-mirai-surface-muted">
       {/* ヒーロー画像 */}
       <div className="relative w-full h-[285px]">
         <Image

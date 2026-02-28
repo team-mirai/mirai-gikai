@@ -191,7 +191,7 @@ export function ExpertRegistrationModal({
               id="expert-privacy"
               checked={privacyAgreed}
               onChange={(e) => setPrivacyAgreed(e.target.checked)}
-              className="size-5 rounded-full accent-[#0f8472]"
+              className="size-5 rounded-full accent-primary-accent"
             />
             <label htmlFor="expert-privacy" className="text-xs text-gray-800">
               <Link

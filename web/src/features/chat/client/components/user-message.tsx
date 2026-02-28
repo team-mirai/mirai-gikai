@@ -10,7 +10,7 @@ export function UserMessage({ message }: UserMessageProps) {
     <Message from="user" className="justify-end py-0">
       <MessageContent
         variant="flat"
-        className="max-w-fit text-sm font-medium leading-[2] text-[#000000] bg-mirai-gradient rounded-2xl px-4 !py-2"
+        className="max-w-fit text-sm font-medium leading-[2] text-black bg-mirai-gradient rounded-2xl px-4 !py-2"
       >
         {message.parts.map((part, i: number) => {
           if (part.type === "text") {

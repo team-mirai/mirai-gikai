@@ -48,7 +48,7 @@ export function InterviewRatingWidget({
   return (
     <div className="relative mx-4 rounded-xl bg-gray-100 px-6 py-4">
       <div className="flex flex-col gap-2.5">
-        <p className="text-[13px] font-medium leading-none text-[#1F2937] text-center">
+        <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
           {isSubmitted
             ? "回答ありがとうございました！"
             : "AIはあなたの考えを十分に引き出せていますか"}
@@ -62,8 +62,8 @@ export function InterviewRatingWidget({
                 onClick={() => handleRate(star)}
                 className={
                   selectedRating !== null && star <= selectedRating
-                    ? "fill-[#FF9500] text-[#FF9500]"
-                    : "fill-white text-[#8E9092] stroke-[0.5]"
+                    ? "fill-mirai-star text-mirai-star"
+                    : "fill-white text-mirai-text-muted stroke-[0.5]"
                 }
               />
             ))}
@@ -74,7 +74,7 @@ export function InterviewRatingWidget({
         variant="ghost"
         size="icon"
         onClick={onDismiss}
-        className="absolute right-2 top-2 h-[22px] w-[22px] p-0 text-[#9F9B9B] hover:bg-transparent hover:text-[#6B7280]"
+        className="absolute right-2 top-2 h-[22px] w-[22px] p-0 text-mirai-text-close hover:bg-transparent hover:text-gray-500"
         aria-label="閉じる"
       >
         <X size={11} strokeWidth={2} />

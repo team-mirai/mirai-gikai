@@ -64,7 +64,7 @@ export async function ReportCompletePage({
   const characterCount = countCharacters(messages);
 
   return (
-    <div className="min-h-dvh bg-[#F7F4F0]">
+    <div className="min-h-dvh bg-mirai-surface">
       {/* 法案サムネイル画像 */}
       {bill.thumbnail_url && (
         <div className="relative w-full h-[320px]">
@@ -96,7 +96,7 @@ export async function ReportCompletePage({
           </h1>
 
           {/* 法案名 */}
-          <div className="bg-[#F2F2F7] rounded-xl px-4 py-2">
+          <div className="bg-mirai-surface-grouped rounded-xl px-4 py-2">
             <p className="text-sm text-gray-800">
               {bill.bill_content?.title || bill.name}
             </p>
