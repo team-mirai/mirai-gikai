@@ -55,15 +55,6 @@ export default async function Home() {
             <ComingSoonSection bills={comingSoonBills} />
           </main>
         </div>
-
-        {/* みらい議会とは セクション */}
-        <About />
-
-        {/* チームみらいについて セクション */}
-        <TeamMirai />
-
-        {/* 免責事項 */}
-        <BillDisclaimer />
       </Container>
 
       {/* 前回の国会セクション（Archive） */}
@@ -78,6 +69,17 @@ export default async function Home() {
           </Container>
         </div>
       )}
+
+      <Container>
+        {/* みらい議会とは セクション */}
+        <About />
+
+        {/* チームみらいについて セクション */}
+        <TeamMirai />
+
+        {/* 免責事項 */}
+        <BillDisclaimer />
+      </Container>
 
       {/* チャット機能 */}
       <HomeChatClient
