@@ -146,14 +146,15 @@ export function InterviewConfigList({
                         {getModeLabel(config.mode)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="max-w-[200px]">
+                    <TableCell className="max-w-[400px]">
                       {config.themes && config.themes.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-col gap-1">
                           {config.themes.map((theme) => (
                             <Badge
                               key={theme}
                               variant="secondary"
-                              className="text-xs"
+                              className="text-xs max-w-full truncate"
+                              title={theme}
                             >
                               {theme}
                             </Badge>
