@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
 import { updateSessionPublicSetting } from "../repositories/interview-report-repository";
 
@@ -23,6 +25,7 @@ export async function updatePublicSetting(
 
   try {
     await updateSessionPublicSetting(sessionId, isPublic);
+    revalidateTag(CACHE_TAGS.PUBLIC_INTERVIEW_REPORTS);
     return { success: true };
   } catch {
     return { success: false, error: "公開設定の更新に失敗しました" };

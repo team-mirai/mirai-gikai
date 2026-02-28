@@ -77,6 +77,59 @@ export async function findBillWithContentById(billId: string) {
 }
 
 /**
+ * 議案IDから公開インタビューレポートを取得（total_score降順、件数制限あり）
+ * 公開条件: is_public_by_admin = true AND is_public_by_user = true
+ */
+export async function findPublicReportsByBillId(
+  billId: string,
+  limit: number = 3
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_report")
+    .select(
+      "id, stance, role, role_title, summary, total_score, created_at, interview_sessions!inner(is_public_by_user, completed_at, interview_configs!inner(bill_id))"
+    )
+    .eq("is_public_by_admin", true)
+    .eq("interview_sessions.is_public_by_user", true)
+    .eq("interview_sessions.interview_configs.bill_id", billId)
+    .order("total_score", { ascending: false, nullsFirst: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch public interview reports: ${error.message}`
+    );
+  }
+
+  return data;
+}
+
+/**
+ * 議案IDの公開インタビューレポート件数を取得
+ */
+export async function countPublicReportsByBillId(billId: string) {
+  const supabase = createAdminClient();
+  const { count, error } = await supabase
+    .from("interview_report")
+    .select(
+      "id, interview_sessions!inner(is_public_by_user, interview_configs!inner(bill_id))",
+      { count: "exact", head: true }
+    )
+    .eq("is_public_by_admin", true)
+    .eq("interview_sessions.is_public_by_user", true)
+    .eq("interview_sessions.interview_configs.bill_id", billId);
+
+  if (error) {
+    throw new Error(
+      `Failed to count public interview reports: ${error.message}`
+    );
+  }
+
+  return count ?? 0;
+}
+
+/**
  * セッションの公開設定を更新
  */
 export async function updateSessionPublicSetting(
