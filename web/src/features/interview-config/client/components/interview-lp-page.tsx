@@ -7,7 +7,10 @@ import type { BillWithContent } from "@/features/bills/shared/types";
 import { InterviewStatusBadge } from "@/features/interview-session/client/components/interview-status-badge";
 import type { LatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import type { InterviewConfig } from "../../server/loaders/get-interview-config";
-import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
+import {
+  getBillDetailLink,
+  getInterviewDisclosureLink,
+} from "@/features/interview-config/shared/utils/interview-links";
 import { InterviewActionButtons } from "./interview-action-buttons";
 
 interface InterviewLPPageProps {
@@ -223,6 +226,27 @@ function _InterviewNoticeSection() {
   );
 }
 
+function _InterviewDisclosureLink({
+  billId,
+  previewToken,
+}: {
+  billId: string;
+  previewToken?: string;
+}) {
+  const disclosureLink = getInterviewDisclosureLink(billId, previewToken);
+
+  return (
+    <div className="w-full max-w-[370px] mx-auto">
+      <Link
+        href={disclosureLink}
+        className="text-xs text-black leading-[1.83] underline underline-offset-2 hover:opacity-70 transition-opacity"
+      >
+        AIインタビューに関する情報開示
+      </Link>
+    </div>
+  );
+}
+
 function _InterviewFooterActions({
   billId,
   sessionInfo,
@@ -275,6 +299,10 @@ export function InterviewLPPage({
         <_InterviewDurationSection />
         <_InterviewThemesSection themes={interviewConfig.themes} />
         <_InterviewNoticeSection />
+        <_InterviewDisclosureLink
+          billId={bill.id}
+          previewToken={previewToken}
+        />
         <_InterviewFooterActions
           billId={bill.id}
           sessionInfo={sessionInfo}

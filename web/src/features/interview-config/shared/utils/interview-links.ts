@@ -25,6 +25,19 @@ export function getInterviewLPLink(
 }
 
 /**
+ * インタビュー情報開示ページへのリンクを取得
+ */
+export function getInterviewDisclosureLink(
+  billId: string,
+  previewToken?: string
+): string {
+  if (previewToken) {
+    return `/preview/bills/${billId}/interview/disclosure?token=${previewToken}`;
+  }
+  return `/bills/${billId}/interview/disclosure`;
+}
+
+/**
  * インタビューチャットページへのリンクを取得
  */
 export function getInterviewChatLink(
