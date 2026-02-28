@@ -29,6 +29,11 @@ export const previewRegistry: PreviewGroup[] = [
         description: "法案カードコンポーネント",
       },
       {
+        path: "/dev/features/bills/stance-badge",
+        label: "StanceBadge",
+        description: "賛否バッジ全バリアント",
+      },
+      {
         path: "/dev/features/bills/bill-status-badge",
         label: "BillStatusBadge",
         description: "法案ステータスバッジ全バリアント",
