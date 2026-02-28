@@ -35,6 +35,7 @@ const baseBill: BillWithContent = {
   publish_status: "published",
   shugiin_url: null,
   status_note: null,
+  status_order: 3,
   diet_session_id: "mock-session",
   created_at: "2026-02-15T00:00:00Z",
   updated_at: "2026-02-15T00:00:00Z",
