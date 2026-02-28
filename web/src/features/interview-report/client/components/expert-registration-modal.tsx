@@ -126,11 +126,11 @@ export function ExpertRegistrationModal({
           政策検討のために、有識者としてチームみらいから連絡をする可能性があります。登録情報は公開されません。
         </p>
 
-        <div className="flex flex-col gap-4 mt-6">
-          <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-3 mt-6">
+          <div className="flex flex-col gap-2">
             <label
               htmlFor="expert-name"
-              className="text-sm font-bold text-gray-800"
+              className="text-sm font-medium text-gray-800"
             >
               お名前
             </label>
@@ -138,7 +138,7 @@ export function ExpertRegistrationModal({
               id="expert-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="bg-gray-100 h-12"
+              className="bg-gray-100 h-[42px]"
               aria-invalid={!!errors.name}
             />
             {errors.name && (
@@ -146,10 +146,10 @@ export function ExpertRegistrationModal({
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             <label
               htmlFor="expert-affiliation"
-              className="text-sm font-bold text-gray-800"
+              className="text-sm font-medium text-gray-800"
             >
               ご所属・肩書
             </label>
@@ -157,7 +157,7 @@ export function ExpertRegistrationModal({
               id="expert-affiliation"
               value={affiliation}
               onChange={(e) => setAffiliation(e.target.value)}
-              className="bg-gray-100 h-12"
+              className="bg-gray-100 h-[42px]"
               aria-invalid={!!errors.affiliation}
             />
             {errors.affiliation && (
@@ -165,10 +165,10 @@ export function ExpertRegistrationModal({
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             <label
               htmlFor="expert-email"
-              className="text-sm font-bold text-gray-800"
+              className="text-sm font-medium text-gray-800"
             >
               メールアドレス
             </label>
@@ -177,7 +177,7 @@ export function ExpertRegistrationModal({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-gray-100 h-12"
+              className="bg-gray-100 h-[42px]"
               aria-invalid={!!errors.email}
             />
             {errors.email && (
@@ -185,15 +185,15 @@ export function ExpertRegistrationModal({
             )}
           </div>
 
-          <div className="flex items-start gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2">
             <input
               type="checkbox"
               id="expert-privacy"
               checked={privacyAgreed}
               onChange={(e) => setPrivacyAgreed(e.target.checked)}
-              className="mt-0.5 size-5 rounded-full accent-[#0f8472]"
+              className="size-5 rounded-full accent-[#0f8472]"
             />
-            <label htmlFor="expert-privacy" className="text-sm text-gray-800">
+            <label htmlFor="expert-privacy" className="text-xs text-gray-800">
               <Link
                 href="/privacy"
                 target="_blank"
