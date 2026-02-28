@@ -19,6 +19,7 @@ const baseBill: Bill = {
   shugiin_url: null,
   status: "introduced",
   status_note: null,
+  status_order: 4,
   thumbnail_url: null,
 };
 

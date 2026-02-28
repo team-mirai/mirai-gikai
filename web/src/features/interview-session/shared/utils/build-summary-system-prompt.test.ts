@@ -16,6 +16,7 @@ const makeBill = (
   share_thumbnail_url: null,
   status: "introduced",
   status_note: null,
+  status_order: 4,
   thumbnail_url: null,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),

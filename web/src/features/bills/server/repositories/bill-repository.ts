@@ -201,7 +201,7 @@ export async function findPublishedBillsByDietSession(
     .eq("diet_session_id", dietSessionId)
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
-    .order("status", { ascending: true })
+    .order("status_order", { ascending: true })
     .order("published_at", { ascending: false });
 
   if (error) {
@@ -213,74 +213,43 @@ export async function findPublishedBillsByDietSession(
 
 /**
  * 前回の国会会期の公開済み議案を取得（成立法案を優先、件数制限あり）
- *
- * enacted を先に取得し、残り枠を他のステータスで埋める。
  */
 export async function findPreviousSessionBills(
   dietSessionId: string,
   difficultyLevel: DifficultyLevelEnum,
   limit: number
 ) {
-  if (limit <= 0) {
-    return [];
-  }
-
   const supabase = createAdminClient();
-
-  const selectClause = `
-    *,
-    bill_contents!inner (
-      id,
-      bill_id,
-      title,
-      summary,
-      content,
-      difficulty_level,
-      created_at,
-      updated_at
-    )
-  `;
-
-  // 1. 成立法案を優先的に取得
-  const { data: enacted, error: enactedError } = await supabase
+  const { data, error } = await supabase
     .from("bills")
-    .select(selectClause)
+    .select(
+      `
+      *,
+      bill_contents!inner (
+        id,
+        bill_id,
+        title,
+        summary,
+        content,
+        difficulty_level,
+        created_at,
+        updated_at
+      )
+    `
+    )
     .eq("diet_session_id", dietSessionId)
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
-    .eq("status", "enacted")
+    .order("status_order", { ascending: true })
     .order("published_at", { ascending: false })
     .limit(limit);
 
-  if (enactedError) {
-    console.error("Failed to fetch enacted bills:", enactedError);
+  if (error) {
+    console.error("Failed to fetch previous session bills:", error);
     return [];
   }
 
-  const enactedBills = enacted ?? [];
-  const remaining = limit - enactedBills.length;
-
-  if (remaining <= 0) {
-    return enactedBills;
-  }
-
-  // 2. 残り枠を他のステータスで埋める
-  const { data: others, error: othersError } = await supabase
-    .from("bills")
-    .select(selectClause)
-    .eq("diet_session_id", dietSessionId)
-    .eq("publish_status", "published")
-    .eq("bill_contents.difficulty_level", difficultyLevel)
-    .neq("status", "enacted")
-    .order("published_at", { ascending: false })
-    .limit(remaining);
-
-  if (othersError) {
-    console.error("Failed to fetch other bills:", othersError);
-    return enactedBills;
-  }
-
-  return [...enactedBills, ...(others ?? [])];
+  return data ?? [];
 }
 
 /**

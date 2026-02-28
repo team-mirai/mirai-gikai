@@ -9,6 +9,7 @@ export function prepareBillForDuplication(originalBill: Bill): BillInsert {
     id: _,
     created_at: __,
     updated_at: ___,
+    status_order: ____,
     ...billWithoutId
   } = originalBill;
 
