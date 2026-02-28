@@ -221,6 +221,10 @@ export async function findPreviousSessionBills(
   difficultyLevel: DifficultyLevelEnum,
   limit: number
 ) {
+  if (limit <= 0) {
+    return [];
+  }
+
   const supabase = createAdminClient();
 
   const selectClause = `
