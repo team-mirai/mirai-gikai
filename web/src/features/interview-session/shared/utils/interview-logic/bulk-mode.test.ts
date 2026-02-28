@@ -169,7 +169,7 @@ describe("buildBulkModeSystemPrompt", () => {
       );
       expect(result).toContain("深掘りや他の話題への逸脱は一切禁止");
       // 特別プロンプトでは法案詳細やテーマは含まれない
-      expect(result).not.toContain("法案詳細");
+      expect(result).not.toContain("<bill_detail>");
     });
 
     it("該当する質問が見つからない場合は通常のプロンプトを返す", () => {
@@ -180,7 +180,7 @@ describe("buildBulkModeSystemPrompt", () => {
 
       // 通常プロンプトのフォールバック
       expect(result).toContain("半構造化デプスインタビュー");
-      expect(result).toContain("法案詳細");
+      expect(result).toContain("<bill_detail>");
     });
 
     it("nextQuestionIdが通常プロンプト内のモード指示にも反映される", () => {
