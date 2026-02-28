@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { BillWithContent } from "@/features/bills/shared/types";
+import {
+  BILL_STATUS_ORDER,
+  type BillWithContent,
+} from "@/features/bills/shared/types";
 import {
   buildBulkModeSystemPrompt,
   calculateBulkModeNextQuestionId,
@@ -20,7 +23,7 @@ const makeBill = (
   share_thumbnail_url: null,
   status: "introduced",
   status_note: null,
-  status_order: 4,
+  status_order: BILL_STATUS_ORDER.introduced,
   thumbnail_url: null,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
