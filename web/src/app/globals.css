@@ -218,7 +218,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-medium;
+    @apply bg-background text-foreground;
   }
 }
 
