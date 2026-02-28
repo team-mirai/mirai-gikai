@@ -175,7 +175,7 @@ function _InterviewDurationSection() {
       <h2 className="text-[22px] font-bold text-black leading-[1.64]">
         予定時間
       </h2>
-      <p className="text-[22px] font-bold text-[#0F8472] leading-[1.64]">
+      <p className="text-[22px] font-bold text-primary-accent leading-[1.64]">
         約5分〜
       </p>
     </div>

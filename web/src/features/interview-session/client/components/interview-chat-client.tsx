@@ -139,7 +139,7 @@ export function InterviewChatClient({
   const showStreamingMessage = object && !isStreamingMessageCommitted;
 
   return (
-    <div className="h-dvh md:h-[calc(100dvh-96px)] bg-[#EEEEEE]">
+    <div className="h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light">
       <div className="flex flex-col h-full pt-24 md:pt-4 bg-white md:rounded-t-[36px] md:px-12">
         {showProgressBar && progress && (
           <div className="px-4 pb-1">
@@ -158,7 +158,7 @@ export function InterviewChatClient({
             {/* 初期表示メッセージ */}
             {messages.length === 0 && !object && (
               <div className="flex flex-col gap-4">
-                <p className="text-sm font-bold leading-[1.8] text-[#1F2937]">
+                <p className="text-sm font-bold leading-[1.8] text-mirai-text">
                   法案についてのAIインタビューを開始します。
                 </p>
                 <p className="text-sm text-gray-600">

@@ -59,7 +59,7 @@ export default async function Home() {
 
       {/* 前回の国会セクション（Archive） */}
       {previousSessionData && (
-        <div className="bg-[#E5E5EA] py-9">
+        <div className="bg-mirai-surface-muted py-9">
           <Container>
             <PreviousSessionSection
               session={previousSessionData.session}

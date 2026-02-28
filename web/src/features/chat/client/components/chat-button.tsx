@@ -110,7 +110,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
       <>
         <div className="fixed max-w-[460px] mx-auto left-6 right-6 bottom-4 z-50 md:bottom-8 flex justify-center pc:hidden">
           <div
-            className="relative rounded-[50px] bg-gradient-to-tr from-[#64D8C6] to-[#BCECD3] p-[2px] shadow-[2px_2px_2px_0px_rgba(0,0,0,0.25)] origin-center flex transition-[flex-basis] ease-in-out"
+            className="relative rounded-[50px] bg-gradient-to-tr from-mirai-gradient-start to-mirai-gradient-end p-[2px] shadow-[2px_2px_2px_0px_rgba(0,0,0,0.25)] origin-center flex transition-[flex-basis] ease-in-out"
             style={{
               flexBasis: isCompact ? "120px" : "100%",
               transitionDuration: `${ANIMATION_DURATION.SIZE_TRANSITION}ms`,
@@ -130,7 +130,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
               aria-label="議案について質問する"
             >
               <span
-                className={`text-[#AEAEB2] text-sm font-medium leading-[1.5em] tracking-[0.01em] ${
+                className={`text-mirai-text-placeholder text-sm font-medium leading-[1.5em] tracking-[0.01em] ${
                   isCompact ? "text-center" : "flex-1 text-left"
                 } ${
                   showText

@@ -25,8 +25,8 @@ export function StanceDisplay({ stance, size = "md" }: StanceDisplayProps) {
           textSize,
           "font-bold",
           stance === "for" && "text-primary-accent",
-          stance === "against" && "text-[#D23C3F]",
-          stance === "neutral" && "text-[#805F34]"
+          stance === "against" && "text-stance-against-light",
+          stance === "neutral" && "text-stance-neutral"
         )}
       >
         {stanceLabels[stance] || stance}

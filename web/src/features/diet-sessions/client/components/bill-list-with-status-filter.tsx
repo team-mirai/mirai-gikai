@@ -62,7 +62,7 @@ export function BillListWithStatusFilter({ bills }: Props) {
             className={`h-[29px] px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
               activeFilter === filter.key
                 ? "bg-mirai-gradient text-black hover:bg-mirai-gradient"
-                : "bg-[#F2F2F7] text-[#8E8E93] hover:bg-[#E5E5EA]"
+                : "bg-mirai-surface-grouped text-mirai-text-muted hover:bg-mirai-surface-muted"
             }`}
           >
             {filter.label} {filter.count}

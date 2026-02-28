@@ -31,7 +31,7 @@ export function OpinionsList({
           >
             <div className="flex flex-col gap-1">
               <div className="inline-flex">
-                <span className="bg-[#2AA693] text-white text-xs font-bold px-1.5 py-0.5 rounded">
+                <span className="bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded">
                   意見{index + 1}
                 </span>
               </div>

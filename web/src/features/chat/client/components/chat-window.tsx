@@ -81,11 +81,11 @@ function ChatMessages({
       <div className="flex flex-col gap-4">
         {/* 初期メッセージ */}
         <div className="flex flex-col gap-1">
-          <p className="text-sm font-bold leading-[1.8] text-[#1F2937]">
+          <p className="text-sm font-bold leading-[1.8] text-mirai-text">
             国会や法案について、気になることをAIに質問してください。
           </p>
           {billContext && (
-            <p className="text-sm font-bold leading-[1.8] text-[#1F2937]">
+            <p className="text-sm font-bold leading-[1.8] text-mirai-text">
               本文中のテキストを選択すると簡単にAIに質問できます
             </p>
           )}
@@ -106,7 +106,7 @@ function ChatMessages({
                 key={question}
                 type="button"
                 disabled={isResponding}
-                className="px-3 py-1 text-xs leading-[2] text-[#0F8472] border border-[#2AA693] rounded-2xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 text-xs leading-[2] text-primary-accent border border-primary rounded-2xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
                   sendMessage({
                     text: question,
@@ -265,13 +265,7 @@ export function ChatWindow({
         <div className="px-6 pb-4 pt-2">
           <PromptInput
             onSubmit={handleSubmit}
-            className="flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-2 border-transparent bg-clip-padding divide-y-0"
-            style={{
-              backgroundImage:
-                "linear-gradient(white, white), linear-gradient(-45deg, rgba(188, 236, 211, 1) 0%, rgba(100, 216, 198, 1) 100%)",
-              backgroundOrigin: "border-box",
-              backgroundClip: "padding-box, border-box",
-            }}
+            className="flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
           >
             <PromptInputBody className="flex-1">
               <PromptInputTextarea
@@ -282,7 +276,7 @@ export function ChatWindow({
                 rows={1}
                 submitOnEnter={isDesktop}
                 // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
-                className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-[#AEAEB2] placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
+                className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
               />
             </PromptInputBody>
             <button

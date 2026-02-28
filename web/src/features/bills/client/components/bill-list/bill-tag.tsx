@@ -6,7 +6,7 @@ interface BillTagProps {
 
 export function BillTag({ tag }: BillTagProps) {
   return (
-    <span className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-black bg-[#E8E8E8] rounded-full">
+    <span className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-black bg-mirai-surface-tag rounded-full">
       {tag.label}
     </span>
   );

@@ -16,7 +16,7 @@ const CHECK_POINTS = [
 function _InterviewBadge() {
   return (
     <div className="flex">
-      <div className="inline-flex items-center justify-center gap-2 px-3 py-1 bg-[#E8E8E8] rounded-2xl">
+      <div className="inline-flex items-center justify-center gap-2 px-3 py-1 bg-mirai-surface-tag rounded-2xl">
         <span className="text-[11px] font-medium text-black leading-[1.09]">
           法案の当事者の方へ
         </span>

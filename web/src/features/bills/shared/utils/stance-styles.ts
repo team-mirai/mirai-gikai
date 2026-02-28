@@ -18,8 +18,8 @@ export function getStanceStyles(
   if (isPreparing) {
     return {
       bg: "bg-white",
-      border: "border-[#8E8E93]",
-      textColor: "text-[#8E8E93]",
+      border: "border-mirai-text-muted",
+      textColor: "text-mirai-text-muted",
       label: "法案提出前",
     };
   }
@@ -28,20 +28,20 @@ export function getStanceStyles(
     case "for":
     case "conditional_for":
       return {
-        bg: "bg-[#ECFCF1]",
-        textColor: "text-[#0F8472]",
+        bg: "bg-stance-for-bg",
+        textColor: "text-primary-accent",
         label: STANCE_LABELS[stance.type],
       };
     case "against":
     case "conditional_against":
       return {
-        bg: "bg-[#FFF1F1]",
-        textColor: "text-[#C9272A]",
+        bg: "bg-stance-against-bg",
+        textColor: "text-stance-against",
         label: STANCE_LABELS[stance.type],
       };
     default:
       return {
-        bg: "bg-[#E5E5EA]",
+        bg: "bg-mirai-surface-muted",
         textColor: "text-black",
         label: stance != null ? STANCE_LABELS[stance.type] : "中立",
       };
