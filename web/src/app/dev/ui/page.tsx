@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,10 @@ import {
 import { SpeechBubble } from "@/components/ui/speech-bubble";
 import { ComponentShowcase } from "../_components/component-showcase";
 import { PreviewSection } from "../_components/preview-section";
+
+export const metadata: Metadata = {
+  title: "UI Primitives",
+};
 
 export default function UIPreviewPage() {
   return (

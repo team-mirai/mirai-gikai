@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import { BillStatusBadge } from "@/features/bills/client/components/bill-list/bill-status-badge";
 import { ComponentShowcase } from "../../../_components/component-showcase";
 import { PreviewSection } from "../../../_components/preview-section";
 import { allBillStatuses } from "../../../_lib/mock-data";
+
+export const metadata: Metadata = {
+  title: "BillStatusBadge",
+};
 
 export default function BillStatusBadgePreview() {
   return (

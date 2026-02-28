@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import { StanceBadge } from "@/features/bills/client/components/bill-list/stance-badge";
 import { ComponentShowcase } from "../../../_components/component-showcase";
 import { PreviewSection } from "../../../_components/preview-section";
 import { allStanceTypes } from "../../../_lib/mock-data";
+
+export const metadata: Metadata = {
+  title: "StanceBadge",
+};
 
 export default function StanceBadgePreview() {
   return (
