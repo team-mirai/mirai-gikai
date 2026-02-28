@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { BILL_STATUS_ORDER } from "../types";
 import type { Bill } from "../types";
 import {
   prepareBillForDuplication,
@@ -19,6 +20,7 @@ const baseBill: Bill = {
   shugiin_url: null,
   status: "introduced",
   status_note: null,
+  status_order: BILL_STATUS_ORDER.introduced,
   thumbnail_url: null,
 };
 

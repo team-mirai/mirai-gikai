@@ -89,6 +89,7 @@ export type Database = {
           shugiin_url: string | null
           status: Database["public"]["Enums"]["bill_status_enum"]
           status_note: string | null
+          status_order: number | null
           thumbnail_url: string | null
           updated_at: string
         }
@@ -105,6 +106,7 @@ export type Database = {
           shugiin_url?: string | null
           status: Database["public"]["Enums"]["bill_status_enum"]
           status_note?: string | null
+          status_order?: number | null
           thumbnail_url?: string | null
           updated_at?: string
         }
@@ -121,6 +123,7 @@ export type Database = {
           shugiin_url?: string | null
           status?: Database["public"]["Enums"]["bill_status_enum"]
           status_note?: string | null
+          status_order?: number | null
           thumbnail_url?: string | null
           updated_at?: string
         }

@@ -17,6 +17,16 @@ export type BillWithDietSession = Bill & {
   diet_sessions: { name: string } | null;
 };
 
+// ステータスのソート順（DBのstatus_order generated columnと一致させる）
+export const BILL_STATUS_ORDER: Record<BillStatus, number> = {
+  enacted: 0,
+  rejected: 1,
+  in_receiving_house: 2,
+  in_originating_house: 3,
+  introduced: 4,
+  preparing: 5,
+};
+
 // House display mapping
 export const HOUSE_LABELS: Record<OriginatingHouse, string> = {
   HR: "衆議院",

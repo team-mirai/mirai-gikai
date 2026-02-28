@@ -201,7 +201,7 @@ export async function findPublishedBillsByDietSession(
     .eq("diet_session_id", dietSessionId)
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
-    .order("status", { ascending: true })
+    .order("status_order", { ascending: true })
     .order("published_at", { ascending: false });
 
   if (error) {
@@ -212,7 +212,7 @@ export async function findPublishedBillsByDietSession(
 }
 
 /**
- * 前回の国会会期の公開済み議案を取得（件数制限あり）
+ * 前回の国会会期の公開済み議案を取得（成立法案を優先、件数制限あり）
  */
 export async function findPreviousSessionBills(
   dietSessionId: string,
@@ -240,6 +240,7 @@ export async function findPreviousSessionBills(
     .eq("diet_session_id", dietSessionId)
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
+    .order("status_order", { ascending: true })
     .order("published_at", { ascending: false })
     .limit(limit);
 
