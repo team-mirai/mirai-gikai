@@ -22,13 +22,13 @@ export function InterviewProgressBar({
   remainingMinutes,
 }: InterviewProgressBarProps) {
   return (
-    <div className="rounded-[18px] bg-white pt-[10px] pb-3">
+    <div className="rounded-[18px] bg-white py-[10px]">
       {(currentTopic || showSkip || remainingMinutes != null) && (
-        <div className="mb-2 flex items-center gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             {currentTopic && (
               <div className="inline-flex max-w-full rounded-lg bg-gradient-to-br from-[#E2F6F3] to-[#EEF6E2] px-4 py-0.5">
-                <p className="truncate text-sm font-bold leading-normal text-[#1F2937]">
+                <p className="min-w-0 truncate text-sm font-bold leading-[1.8] text-[#1F2937]">
                   {currentTopic}
                 </p>
               </div>
@@ -38,7 +38,7 @@ export function InterviewProgressBar({
                 variant="link"
                 onClick={onSkip}
                 disabled={disabled}
-                className="h-auto shrink-0 p-0 text-sm font-bold text-[#0F8472] no-underline hover:underline"
+                className="ml-2 h-auto shrink-0 p-0 text-sm font-bold text-[#0F8472] no-underline hover:underline"
               >
                 スキップする
               </Button>
