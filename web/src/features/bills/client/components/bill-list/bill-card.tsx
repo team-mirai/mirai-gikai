@@ -15,7 +15,7 @@ export function BillCard({ bill }: BillCardProps) {
   const summary = bill.bill_content?.summary;
 
   return (
-    <Card className="border border-black hover:bg-muted/50 transition-colors relative overflow-hidden">
+    <Card className="border border-black hover:bg-muted/50 transition-colors relative overflow-hidden max-w-[634px]">
       <div className="flex flex-col">
         {/* 注目バッジエリア */}
         {bill.is_featured && (
@@ -30,7 +30,7 @@ export function BillCard({ bill }: BillCardProps) {
 
         {/* サムネイル画像 */}
         {bill.thumbnail_url && (
-          <div className="relative w-full h-65">
+          <div className="relative w-full h-52 md:h-65">
             <Image
               src={bill.thumbnail_url}
               alt={bill.name}
