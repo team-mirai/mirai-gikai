@@ -73,10 +73,12 @@ export function buildLoopModeSystemPrompt(
 - 法案タイトル: ${billTitle}
 - 法案要約: ${billSummary}
 
+法案詳細:
 <bill_detail>
 ${billContent}
 </bill_detail>
 
+知識ソース:
 <knowledge_source>
 ${knowledgeSource || "（知識ソース未設定）"}
 </knowledge_source>
