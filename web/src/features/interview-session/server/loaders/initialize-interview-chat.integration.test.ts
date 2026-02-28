@@ -20,11 +20,19 @@ function createGetUser(userId: string): GetUserFn {
 }
 
 // interviewChatTextSchema に準拠したモックレスポンス
-const validChatResponse = JSON.stringify({
+// LLMのレスポンスはtopic_title: nullだが、overrideInitialTopicTitleにより「はじめに」に上書きされる
+const llmResponse = JSON.stringify({
   text: "こんにちは！テストインタビューを始めましょう。最初の質問です。",
   quick_replies: ["はい", "いいえ"],
   question_id: null,
   topic_title: null,
+  next_stage: "chat",
+});
+const expectedResponse = JSON.stringify({
+  text: "こんにちは！テストインタビューを始めましょう。最初の質問です。",
+  quick_replies: ["はい", "いいえ"],
+  question_id: null,
+  topic_title: "はじめに",
   next_stage: "chat",
 });
 
@@ -62,7 +70,7 @@ describe("initializeInterviewChat 統合テスト", () => {
   });
 
   it("セッションが存在しない場合は新しいセッションを作成する", async () => {
-    const mockModel = createGenerateMock(validChatResponse);
+    const mockModel = createGenerateMock(llmResponse);
 
     // 既存セッションをアーカイブして「セッションなし」の状態にする
     await adminClient
@@ -82,6 +90,6 @@ describe("initializeInterviewChat 統合テスト", () => {
     // MockModelが生成した初期質問メッセージが含まれること
     expect(result.messages).toHaveLength(1);
     expect(result.messages[0].role).toBe("assistant");
-    expect(result.messages[0].content).toBe(validChatResponse);
+    expect(result.messages[0].content).toBe(expectedResponse);
   });
 });
