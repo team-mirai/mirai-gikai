@@ -7,6 +7,7 @@ import { getInterviewQuestions } from "@/features/interview-config/server/loader
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { interviewChatTextSchema } from "../../shared/schemas";
 import type { InterviewMessage } from "../../shared/types";
+import { overrideInitialTopicTitle } from "../../shared/utils/override-initial-topic-title";
 import { createInterviewMessage } from "../repositories/interview-session-repository";
 import { buildInterviewSystemPrompt } from "../utils/build-interview-system-prompt";
 
@@ -82,11 +83,14 @@ export async function generateInitialQuestion({
       return null;
     }
 
+    // 初回メッセージのtopic_titleを「はじめに」に強制上書き
+    const content = overrideInitialTopicTitle(generatedText);
+
     // 生成した質問を保存
     return await createInterviewMessage({
       sessionId,
       role: "assistant",
-      content: generatedText,
+      content,
     });
   } catch (error) {
     console.error("Failed to generate initial question:", error);
