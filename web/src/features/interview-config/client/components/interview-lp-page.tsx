@@ -1,5 +1,4 @@
-import { ArrowRight, Ear, Landmark, MessagesSquare, Undo2 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowRight, Undo2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -20,17 +19,24 @@ interface InterviewLPPageProps {
   previewToken?: string;
 }
 
-const FEATURES: { icon: LucideIcon; text: string }[] = [
+const FEATURES: {
+  iconSrc: string;
+  iconSize: { w: number; h: number };
+  text: string;
+}[] = [
   {
-    icon: Ear,
+    iconSrc: "/icons/interview-ear.svg",
+    iconSize: { w: 21, h: 29 },
     text: "AIがあなたの課題感や\nご経験をお聞きします",
   },
   {
-    icon: MessagesSquare,
+    iconSrc: "/icons/interview-messages.svg",
+    iconSize: { w: 33, h: 26 },
     text: "ご意見はチームみらいの\n政策検討に活かします",
   },
   {
-    icon: Landmark,
+    iconSrc: "/icons/interview-landmark.svg",
+    iconSize: { w: 30, h: 29 },
     text: "あなたの声がチームみらいを通じて国会に届けられる可能性があります",
   },
 ];
@@ -92,7 +98,12 @@ function _InterviewLPHero({
         {FEATURES.map((feature) => (
           <div key={feature.text} className="flex items-center gap-4">
             <div className="flex-shrink-0 w-[54px] h-[54px] bg-white rounded-[30px] flex items-center justify-center">
-              <feature.icon className="size-7 text-[#2AA693]" />
+              <Image
+                src={feature.iconSrc}
+                alt=""
+                width={feature.iconSize.w}
+                height={feature.iconSize.h}
+              />
             </div>
             <span className="text-[15px] font-medium text-black leading-[1.73] whitespace-pre-line">
               {feature.text}
