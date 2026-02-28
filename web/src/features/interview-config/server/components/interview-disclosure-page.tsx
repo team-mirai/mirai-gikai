@@ -146,7 +146,7 @@ function DynamicDisclosureSection({
 export function InterviewDisclosurePage(props: InterviewDisclosurePageProps) {
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
-      <div className="flex flex-col gap-8 px-4 pt-8 max-w-[370px] mx-auto w-full">
+      <div className="flex flex-col gap-8 px-4 pt-24 md:pt-12 max-w-[370px] mx-auto w-full">
         <StaticDisclosureSection />
         <DynamicDisclosureSection {...props} />
       </div>
