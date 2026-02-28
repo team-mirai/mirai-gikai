@@ -6,13 +6,6 @@ import { env } from "@/lib/env";
 
 const FALLBACK_LABEL = "production";
 
-function isPromptNotFoundError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    error.message.toLowerCase().includes("prompt not found")
-  );
-}
-
 export class LangfusePromptProvider implements PromptProvider {
   constructor(private client: Langfuse) {}
 
@@ -20,28 +13,28 @@ export class LangfusePromptProvider implements PromptProvider {
     name: string,
     variables?: PromptVariables
   ): Promise<CompiledPrompt> {
+    const fetchedPrompt = await this.fetchPromptWithFallback(name);
+    return compilePrompt(fetchedPrompt, variables);
+  }
+
+  private async fetchPromptWithFallback(name: string) {
     const primaryLabel = env.langfuse.promptLabel;
 
     try {
-      const fetchedPrompt = await this.client.getPrompt(name, undefined, {
+      return await this.client.getPrompt(name, undefined, {
         label: primaryLabel,
       });
-
-      return compilePrompt(fetchedPrompt, variables);
     } catch (error) {
-      if (primaryLabel !== FALLBACK_LABEL && isPromptNotFoundError(error)) {
-        console.warn(
-          `[Langfuse] Prompt "${name}" not found with label "${primaryLabel}", falling back to "${FALLBACK_LABEL}"`
-        );
-        const fallbackPrompt = await this.client.getPrompt(name, undefined, {
-          label: FALLBACK_LABEL,
-        });
-        return compilePrompt(fallbackPrompt, variables);
+      if (primaryLabel === FALLBACK_LABEL) {
+        throw error;
       }
 
-      throw new Error(
-        `Failed to fetch prompt "${name}" from Langfuse: ${error instanceof Error ? error.message : String(error)}`
+      console.warn(
+        `[Langfuse] Prompt "${name}" not found with label "${primaryLabel}", falling back to "${FALLBACK_LABEL}": ${error instanceof Error ? error.message : String(error)}`
       );
+      return await this.client.getPrompt(name, undefined, {
+        label: FALLBACK_LABEL,
+      });
     }
   }
 }
