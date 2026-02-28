@@ -1,13 +1,13 @@
 import "server-only";
 
-import { findExpertRegistrationBySessionId } from "../repositories/expert-registration-repository";
+import { findExpertRegistrationByUserId } from "../repositories/expert-registration-repository";
 
 /**
- * セッションIDに対する有識者登録の有無を確認
+ * ユーザーIDに対する有識者登録の有無を確認
  */
 export async function getExpertRegistrationStatus(
-  sessionId: string
+  userId: string
 ): Promise<boolean> {
-  const registration = await findExpertRegistrationBySessionId(sessionId);
+  const registration = await findExpertRegistrationByUserId(userId);
   return registration !== null;
 }

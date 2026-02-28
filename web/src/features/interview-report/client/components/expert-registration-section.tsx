@@ -4,13 +4,7 @@ import { useState } from "react";
 import { ExpertRegistrationBanner } from "./expert-registration-banner";
 import { ExpertRegistrationModal } from "./expert-registration-modal";
 
-interface ExpertRegistrationSectionProps {
-  sessionId: string;
-}
-
-export function ExpertRegistrationSection({
-  sessionId,
-}: ExpertRegistrationSectionProps) {
+export function ExpertRegistrationSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
 
@@ -24,7 +18,6 @@ export function ExpertRegistrationSection({
       <ExpertRegistrationModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        sessionId={sessionId}
         onRegistered={() => setIsRegistered(true)}
       />
     </>

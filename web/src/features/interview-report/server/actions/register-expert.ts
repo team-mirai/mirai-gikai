@@ -1,11 +1,11 @@
 "use server";
 
-import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
+import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
 import { expertRegistrationSchema } from "../../shared/utils/expert-registration-validation";
 import {
   createExpertRegistration,
   findExpertRegistrationByEmail,
-  findExpertRegistrationBySessionId,
+  findExpertRegistrationByUserId,
 } from "../repositories/expert-registration-repository";
 
 interface RegisterExpertResult {
@@ -16,19 +16,16 @@ interface RegisterExpertResult {
 /**
  * 有識者リストに登録する
  */
-export async function registerExpert(
-  sessionId: string,
-  formData: {
-    name: string;
-    affiliation: string;
-    email: string;
-    privacyAgreed: boolean;
-  }
-): Promise<RegisterExpertResult> {
-  const ownershipResult = await verifySessionOwnership(sessionId);
+export async function registerExpert(formData: {
+  name: string;
+  affiliation: string;
+  email: string;
+  privacyAgreed: boolean;
+}): Promise<RegisterExpertResult> {
+  const authResult = await getAuthenticatedUser();
 
-  if (!ownershipResult.authorized) {
-    return { success: false, error: ownershipResult.error };
+  if (!authResult.authenticated) {
+    return { success: false, error: authResult.error };
   }
 
   const parsed = expertRegistrationSchema.safeParse(formData);
@@ -40,9 +37,10 @@ export async function registerExpert(
   }
 
   try {
-    const existingBySession =
-      await findExpertRegistrationBySessionId(sessionId);
-    if (existingBySession) {
+    const existingByUser = await findExpertRegistrationByUserId(
+      authResult.userId
+    );
+    if (existingByUser) {
       return { success: false, error: "すでに登録済みです" };
     }
 
@@ -57,7 +55,7 @@ export async function registerExpert(
     }
 
     await createExpertRegistration({
-      interviewSessionId: sessionId,
+      userId: authResult.userId,
       name: parsed.data.name,
       affiliation: parsed.data.affiliation,
       email: parsed.data.email,
