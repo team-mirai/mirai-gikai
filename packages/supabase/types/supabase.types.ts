@@ -292,37 +292,29 @@ export type Database = {
           created_at: string
           email: string
           id: string
-          interview_session_id: string
           name: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           affiliation: string
           created_at?: string
           email: string
           id?: string
-          interview_session_id: string
           name: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           affiliation?: string
           created_at?: string
           email?: string
           id?: string
-          interview_session_id?: string
           name?: string
           updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "expert_registrations_interview_session_id_fkey"
-            columns: ["interview_session_id"]
-            isOneToOne: false
-            referencedRelation: "interview_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       interview_configs: {
         Row: {

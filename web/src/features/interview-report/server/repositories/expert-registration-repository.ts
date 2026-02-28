@@ -6,7 +6,7 @@ import { createAdminClient } from "@mirai-gikai/supabase";
  * 有識者登録を作成
  */
 export async function createExpertRegistration(params: {
-  interviewSessionId: string;
+  userId: string;
   name: string;
   affiliation: string;
   email: string;
@@ -15,7 +15,7 @@ export async function createExpertRegistration(params: {
   const { data, error } = await supabase
     .from("expert_registrations")
     .insert({
-      interview_session_id: params.interviewSessionId,
+      user_id: params.userId,
       name: params.name,
       affiliation: params.affiliation,
       email: params.email,
@@ -31,14 +31,14 @@ export async function createExpertRegistration(params: {
 }
 
 /**
- * セッションIDで有識者登録が存在するか確認
+ * ユーザーIDで有識者登録が存在するか確認
  */
-export async function findExpertRegistrationBySessionId(sessionId: string) {
+export async function findExpertRegistrationByUserId(userId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("expert_registrations")
     .select("id")
-    .eq("interview_session_id", sessionId)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (error) {

@@ -9,6 +9,7 @@ import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
 import { PublicStatusSection } from "@/features/interview-report/client/components/public-status-section";
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
+import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
 import { ExpertRegistrationSection } from "../../client/components/expert-registration-section";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
@@ -42,13 +43,14 @@ export async function ReportCompletePage({
   const billId = report.bill_id;
 
   const isExpertRole = isExpertRegistrationTargetRole(report.role);
+  const authResult = await getAuthenticatedUser();
 
   // 法案・メッセージ・有識者登録状況を並列取得
   const [bill, messages, isExpertRegistered] = await Promise.all([
     getBillById(billId),
     getInterviewMessages(report.interview_session_id),
-    isExpertRole
-      ? getExpertRegistrationStatus(report.interview_session_id)
+    isExpertRole && authResult.authenticated
+      ? getExpertRegistrationStatus(authResult.userId)
       : Promise.resolve(false),
   ]);
 
@@ -168,9 +170,7 @@ export async function ReportCompletePage({
 
             {/* 有識者リスト登録バナー */}
             {isExpertRole && !isExpertRegistered && (
-              <ExpertRegistrationSection
-                sessionId={report.interview_session_id}
-              />
+              <ExpertRegistrationSection />
             )}
 
             {/* 法案の記事に戻るボタン */}

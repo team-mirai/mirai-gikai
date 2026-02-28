@@ -17,14 +17,12 @@ import { expertRegistrationSchema } from "../../shared/utils/expert-registration
 interface ExpertRegistrationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sessionId: string;
   onRegistered: () => void;
 }
 
 export function ExpertRegistrationModal({
   open,
   onOpenChange,
-  sessionId,
   onRegistered,
 }: ExpertRegistrationModalProps) {
   const [isSuccess, setIsSuccess] = useState(false);
@@ -59,7 +57,7 @@ export function ExpertRegistrationModal({
     setIsSubmitting(true);
 
     try {
-      const response = await registerExpert(sessionId, {
+      const response = await registerExpert({
         name,
         affiliation,
         email,
