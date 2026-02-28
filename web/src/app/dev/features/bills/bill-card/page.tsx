@@ -1,12 +1,7 @@
-import type { Metadata } from "next";
 import { BillCard } from "@/features/bills/client/components/bill-list/bill-card";
 import { ComponentShowcase } from "../../../_components/component-showcase";
 import { PreviewSection } from "../../../_components/preview-section";
 import { createMockBill } from "../../../_lib/mock-data";
-
-export const metadata: Metadata = {
-  title: "BillCard",
-};
 
 export default function BillCardPreview() {
   const defaultBill = createMockBill();
