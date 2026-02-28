@@ -265,7 +265,7 @@ export function createInterviewSessions(
   for (let i = 0; i < 20; i++) {
     const baseOffset = i * 86400000 * 3; // 3日ずつずらす
 
-    // パターン1: 完了 + レポートあり（賛成）- 最初の5件は公開
+    // パターン1: 完了 + レポートあり（賛成）
     sessions.push({
       interview_config_id: interviewConfigId,
       user_id: `00000000-0000-0000-0000-${String(i * 5 + 1).padStart(12, "0")}`,
@@ -273,10 +273,9 @@ export function createInterviewSessions(
       completed_at: new Date(
         now.getTime() - baseOffset - 3000000
       ).toISOString(),
-      is_public_by_user: i < 5, // 最初の5件は公開
     });
 
-    // パターン2: 完了 + レポートあり（反対）- 最初の5件は公開
+    // パターン2: 完了 + レポートあり（反対）
     sessions.push({
       interview_config_id: interviewConfigId,
       user_id: `00000000-0000-0000-0000-${String(i * 5 + 2).padStart(12, "0")}`,
@@ -284,10 +283,9 @@ export function createInterviewSessions(
       completed_at: new Date(
         now.getTime() - baseOffset - 6600000
       ).toISOString(),
-      is_public_by_user: i < 5, // 最初の5件は公開
     });
 
-    // パターン3: 完了 + レポートあり（中立）- 最初の5件は公開
+    // パターン3: 完了 + レポートあり（中立）
     sessions.push({
       interview_config_id: interviewConfigId,
       user_id: `00000000-0000-0000-0000-${String(i * 5 + 3).padStart(12, "0")}`,
@@ -295,7 +293,6 @@ export function createInterviewSessions(
       completed_at: new Date(
         now.getTime() - baseOffset - 10200000
       ).toISOString(),
-      is_public_by_user: i < 5, // 最初の5件は公開
     });
 
     // パターン4: 完了したけどレポート未作成
@@ -306,7 +303,6 @@ export function createInterviewSessions(
       completed_at: new Date(
         now.getTime() - baseOffset - 13800000
       ).toISOString(),
-      is_public_by_user: false,
     });
 
     // パターン5: 進行中（未完了、レポートなし）
@@ -315,7 +311,6 @@ export function createInterviewSessions(
       user_id: `00000000-0000-0000-0000-${String(i * 5 + 5).padStart(12, "0")}`,
       started_at: new Date(now.getTime() - baseOffset - 1800000).toISOString(),
       completed_at: null,
-      is_public_by_user: false,
     });
   }
 
@@ -423,9 +418,11 @@ export function createInterviewReports(
   sessionIds.forEach((sessionId, index) => {
     const patternIndex = index % 5;
     if (patternIndex < 3) {
+      const loopIndex = Math.floor(index / 5);
       reports.push({
         interview_session_id: sessionId,
         ...reportTemplates[patternIndex],
+        is_public_by_user: loopIndex < 5, // 最初の5件は公開
       });
     }
   });
@@ -456,7 +453,6 @@ export function createDemoSession(
     user_id: "00000000-0000-0000-0000-000000000000",
     started_at: new Date(now.getTime() - 3600000).toISOString(),
     completed_at: new Date(now.getTime() - 3000000).toISOString(),
-    is_public_by_user: true,
   };
 }
 
@@ -514,6 +510,7 @@ export function createDemoReport(): InterviewReportInsert {
           "省庁のレスポンスの速さや、官僚の長時間労働が削減され、よりよい人材が官僚になっていく事を期待している。",
       },
     ],
+    is_public_by_user: true,
   };
 }
 
@@ -529,7 +526,6 @@ export function createAdditionalDemoSessions(
       user_id: "00000000-0000-0000-0000-000000000010",
       started_at: new Date(now.getTime() - 7200000).toISOString(),
       completed_at: new Date(now.getTime() - 6600000).toISOString(),
-      is_public_by_user: true,
     },
     {
       id: DEMO_SESSION_ID_DAILY,
@@ -537,15 +533,13 @@ export function createAdditionalDemoSessions(
       user_id: "00000000-0000-0000-0000-000000000011",
       started_at: new Date(now.getTime() - 10800000).toISOString(),
       completed_at: new Date(now.getTime() - 10200000).toISOString(),
-      is_public_by_user: true,
     },
     {
       id: DEMO_SESSION_ID_CITIZEN,
       interview_config_id: interviewConfigId,
       user_id: "00000000-0000-0000-0000-000000000012",
       started_at: new Date(now.getTime() - 14400000).toISOString(),
-      completed_at: new Date(now.getTime() - 13800000).toISOString(),
-      is_public_by_user: true,
+      completed_at: new Date(now.getTime() - 10200000).toISOString(),
     },
   ];
 }
@@ -655,6 +649,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
             "運送会社を経営しているが、燃料費が経営を圧迫している。暫定税率廃止で少しでも負担が減れば助かる。",
         },
       ],
+      is_public_by_user: true,
     },
     {
       id: DEMO_REPORT_ID_DAILY,
@@ -671,6 +666,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
             "通勤や買い物、子供の送り迎えなど毎日車を使っている。公共交通機関がほとんどない地域なのでガソリン代が下がると助かる。",
         },
       ],
+      is_public_by_user: true,
     },
     {
       id: DEMO_REPORT_ID_CITIZEN,
@@ -686,6 +682,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
             "ガソリン車から電気自動車への移行も進めつつ、当面の生活支援として減税があってもいいと考える。",
         },
       ],
+      is_public_by_user: true,
     },
   ];
 }
