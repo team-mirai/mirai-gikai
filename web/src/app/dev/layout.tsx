@@ -15,7 +15,7 @@ export default function DevLayout({
   return (
     <div className="flex min-h-dvh">
       <DevSidebar />
-      <div className="flex-1 p-8 overflow-y-auto">{children}</div>
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto">{children}</div>
     </div>
   );
 }
