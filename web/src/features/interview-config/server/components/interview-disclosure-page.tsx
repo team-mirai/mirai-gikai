@@ -1,13 +1,16 @@
 import "server-only";
 
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import { DisclosureBreadcrumb } from "../../shared/components/disclosure-breadcrumb";
 import type { InterviewConfig } from "../loaders/get-interview-config";
 
 interface InterviewDisclosurePageProps {
+  billId: string;
   billName: string;
   interviewConfig: InterviewConfig;
   systemPrompt: string;
   summaryPrompt: string;
+  previewToken?: string;
 }
 
 function StaticDisclosureSection() {
@@ -92,7 +95,7 @@ function DynamicDisclosureSection({
   interviewConfig,
   systemPrompt,
   summaryPrompt,
-}: InterviewDisclosurePageProps) {
+}: Omit<InterviewDisclosurePageProps, "billId">) {
   const chatModel = interviewConfig?.chat_model ?? DEFAULT_INTERVIEW_CHAT_MODEL;
 
   return (
@@ -143,12 +146,18 @@ function DynamicDisclosureSection({
   );
 }
 
-export function InterviewDisclosurePage(props: InterviewDisclosurePageProps) {
+export function InterviewDisclosurePage({
+  billId,
+  previewToken,
+  ...props
+}: InterviewDisclosurePageProps) {
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
       <div className="flex flex-col gap-8 px-4 pt-24 md:pt-12 max-w-[600px] mx-auto w-full">
+        <DisclosureBreadcrumb billId={billId} previewToken={previewToken} />
         <StaticDisclosureSection />
         <DynamicDisclosureSection {...props} />
+        <DisclosureBreadcrumb billId={billId} previewToken={previewToken} />
       </div>
     </div>
   );

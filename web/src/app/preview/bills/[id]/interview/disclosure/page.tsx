@@ -66,7 +66,7 @@ export default async function DisclosurePreviewPage({
   return (
     <>
       <PreviewBanner />
-      <InterviewDisclosurePage {...disclosureData} />
+      <InterviewDisclosurePage {...disclosureData} previewToken={token} />
     </>
   );
 }
