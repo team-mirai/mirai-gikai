@@ -1,7 +1,10 @@
 "use server";
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import {
+  WEB_CACHE_TAGS,
+  invalidateWebCache,
+} from "@/lib/utils/cache-invalidation";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { trimOrNull } from "@/lib/utils/normalize-string";
 import type { UpdateDietSessionInput } from "../../shared/types";
@@ -44,7 +47,7 @@ export async function updateDietSession(input: UpdateDietSessionInput) {
       end_date: input.end_date,
     });
 
-    await invalidateWebCache();
+    await invalidateWebCache([WEB_CACHE_TAGS.DIET_SESSIONS]);
     return { data };
   } catch (error) {
     console.error("Update diet session error:", error);

@@ -7,7 +7,7 @@ describe("formatRoleLabel", () => {
     expect(formatRoleLabel("subject_expert")).toBe("専門的な有識者");
     expect(formatRoleLabel("work_related")).toBe("業務に関係");
     expect(formatRoleLabel("daily_life_affected")).toBe("暮らしに影響");
-    expect(formatRoleLabel("general_citizen")).toBe("一市民として関心");
+    expect(formatRoleLabel("general_citizen")).toBe("一般的な関心");
   });
 
   it("returns role string as-is when role is not in roleLabels", () => {

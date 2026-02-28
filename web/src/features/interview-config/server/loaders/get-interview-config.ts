@@ -30,6 +30,6 @@ const _getCachedInterviewConfig = unstable_cache(
   ["interview-config"],
   {
     revalidate: 600, // 10分（600秒）
-    tags: [CACHE_TAGS.BILLS],
+    tags: [CACHE_TAGS.INTERVIEW_CONFIGS],
   }
 );

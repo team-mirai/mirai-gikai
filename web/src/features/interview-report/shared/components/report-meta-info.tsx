@@ -1,6 +1,6 @@
 import { formatDateTime } from "../utils/report-utils";
-import { StanceDisplay } from "./stance-display";
 import { RoleDisplay } from "./role-display";
+import { StanceDisplay } from "./stance-display";
 
 interface ReportMetaInfoProps {
   stance?: string | null;

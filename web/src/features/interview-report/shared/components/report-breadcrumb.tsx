@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   getBillDetailLink,
   getInterviewLPLink,
+  getInterviewReportCompleteLink,
 } from "@/features/interview-config/shared/utils/interview-links";
 
 interface BreadcrumbItem {
@@ -12,18 +13,23 @@ interface BreadcrumbItem {
 
 interface ReportBreadcrumbProps {
   billId: string;
+  reportId?: string;
   additionalItems?: BreadcrumbItem[];
 }
 
 export function ReportBreadcrumb({
   billId,
+  reportId,
   additionalItems = [],
 }: ReportBreadcrumbProps) {
   const baseItems: BreadcrumbItem[] = [
     { label: "TOP", href: "/" },
     { label: "法案詳細", href: getBillDetailLink(billId) },
     { label: "AIインタビュー", href: getInterviewLPLink(billId) },
-    { label: "レポート" },
+    {
+      label: "レポート",
+      href: reportId ? getInterviewReportCompleteLink(reportId) : undefined,
+    },
   ];
 
   const allItems = [...baseItems, ...additionalItems];

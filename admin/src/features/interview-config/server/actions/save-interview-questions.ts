@@ -1,7 +1,10 @@
 "use server";
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { invalidateWebCache } from "@/lib/utils/cache-invalidation";
+import {
+  WEB_CACHE_TAGS,
+  invalidateWebCache,
+} from "@/lib/utils/cache-invalidation";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   type InterviewQuestionsInput,
@@ -32,7 +35,7 @@ export async function saveInterviewQuestions(
 
     // 質問が空の場合はここで終了
     if (validatedQuestions.length === 0) {
-      await invalidateWebCache();
+      await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);
       return { success: true };
     }
 
@@ -45,7 +48,7 @@ export async function saveInterviewQuestions(
     await createInterviewQuestions(questionsToInsert);
 
     // web側のキャッシュを無効化
-    await invalidateWebCache();
+    await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);
 
     return { success: true };
   } catch (error) {

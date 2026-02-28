@@ -38,7 +38,7 @@ export function InterviewProgressBar({
                 variant="link"
                 onClick={onSkip}
                 disabled={disabled}
-                className="h-auto shrink-0 p-0 text-sm font-bold text-[#0F8472] hover:no-underline"
+                className="h-auto shrink-0 p-0 text-sm font-bold text-[#0F8472] no-underline hover:underline"
               >
                 スキップする
               </Button>

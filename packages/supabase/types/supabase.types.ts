@@ -286,6 +286,44 @@ export type Database = {
         }
         Relationships: []
       }
+      expert_registrations: {
+        Row: {
+          affiliation: string
+          created_at: string
+          email: string
+          id: string
+          interview_session_id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          affiliation: string
+          created_at?: string
+          email: string
+          id?: string
+          interview_session_id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          affiliation?: string
+          created_at?: string
+          email?: string
+          id?: string
+          interview_session_id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expert_registrations_interview_session_id_fkey"
+            columns: ["interview_session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_configs: {
         Row: {
           bill_id: string
@@ -478,6 +516,7 @@ export type Database = {
           interview_config_id: string
           is_public_by_user: boolean
           langfuse_session_id: string | null
+          rating: number | null
           started_at: string
           updated_at: string
           user_id: string
@@ -490,6 +529,7 @@ export type Database = {
           interview_config_id: string
           is_public_by_user?: boolean
           langfuse_session_id?: string | null
+          rating?: number | null
           started_at?: string
           updated_at?: string
           user_id: string
@@ -502,6 +542,7 @@ export type Database = {
           interview_config_id?: string
           is_public_by_user?: boolean
           langfuse_session_id?: string | null
+          rating?: number | null
           started_at?: string
           updated_at?: string
           user_id?: string

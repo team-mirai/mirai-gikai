@@ -52,6 +52,7 @@ export default async function InterviewChatPage({
         totalQuestions={questions.length}
         estimatedDuration={interviewConfig.estimated_duration}
         sessionStartedAt={session.started_at}
+        hasRated={session.rating != null}
       />
     );
   } catch (error) {
