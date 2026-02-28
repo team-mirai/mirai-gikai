@@ -11,7 +11,6 @@ export type InterviewReportWithSessionInfo = InterviewReport & {
   bill_id: string;
   session_started_at: string;
   session_completed_at: string | null;
-  is_public_by_user: boolean;
 };
 
 /**
@@ -44,7 +43,6 @@ export async function getInterviewReportById(
     user_id: string;
     started_at: string;
     completed_at: string | null;
-    is_public_by_user: boolean;
     interview_configs: { bill_id: string } | null;
   } | null;
 
@@ -57,7 +55,7 @@ export async function getInterviewReportById(
   const isOwner = isSessionOwner(session.user_id, userId);
   const isAllowed = options?.onlyOwner
     ? isOwner
-    : session.is_public_by_user || isOwner;
+    : report.is_public_by_user || isOwner;
 
   if (!isAllowed) {
     console.error("Unauthorized access to interview report");
@@ -77,6 +75,5 @@ export async function getInterviewReportById(
     bill_id: session.interview_configs.bill_id,
     session_started_at: session.started_at,
     session_completed_at: session.completed_at,
-    is_public_by_user: session.is_public_by_user,
   };
 }

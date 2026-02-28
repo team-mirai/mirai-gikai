@@ -1,7 +1,10 @@
 "use server";
 
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
-import { updateSessionPublicSetting } from "../repositories/interview-report-repository";
+import {
+  findReportBySessionId,
+  updateReportPublicSetting,
+} from "../repositories/interview-report-repository";
 
 interface UpdatePublicSettingResult {
   success: boolean;
@@ -9,7 +12,7 @@ interface UpdatePublicSettingResult {
 }
 
 /**
- * インタビューセッションの公開設定を更新する
+ * インタビューレポートの公開設定を更新する
  */
 export async function updatePublicSetting(
   sessionId: string,
@@ -22,7 +25,8 @@ export async function updatePublicSetting(
   }
 
   try {
-    await updateSessionPublicSetting(sessionId, isPublic);
+    const report = await findReportBySessionId(sessionId);
+    await updateReportPublicSetting(report.id, isPublic);
     return { success: true };
   } catch {
     return { success: false, error: "公開設定の更新に失敗しました" };

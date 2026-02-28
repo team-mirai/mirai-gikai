@@ -10,7 +10,7 @@ export async function findReportWithSessionById(reportId: string) {
   const { data, error } = await supabase
     .from("interview_report")
     .select(
-      "*, interview_sessions(user_id, started_at, completed_at, is_public_by_user, interview_configs(bill_id))"
+      "*, interview_sessions(user_id, started_at, completed_at, interview_configs(bill_id))"
     )
     .eq("id", reportId)
     .single();
@@ -77,17 +77,17 @@ export async function findBillWithContentById(billId: string) {
 }
 
 /**
- * セッションの公開設定を更新
+ * レポートの公開設定を更新
  */
-export async function updateSessionPublicSetting(
-  sessionId: string,
+export async function updateReportPublicSetting(
+  reportId: string,
   isPublic: boolean
 ) {
   const supabase = createAdminClient();
   const { error } = await supabase
-    .from("interview_sessions")
+    .from("interview_report")
     .update({ is_public_by_user: isPublic })
-    .eq("id", sessionId);
+    .eq("id", reportId);
 
   if (error) {
     throw new Error(`Failed to update public setting: ${error.message}`);
