@@ -122,11 +122,11 @@ export function ExpertRegistrationModal({
           </DialogTitle>
         </DialogHeader>
 
-        <p className="text-sm text-gray-800 mt-2">
+        <p className="text-sm text-gray-800 mt-2 font-medium">
           政策検討のために、有識者としてチームみらいから連絡をする可能性があります。登録情報は公開されません。
         </p>
 
-        <div className="flex flex-col gap-3 mt-6">
+        <div className="flex flex-col gap-3 mt-2">
           <div className="flex flex-col gap-2">
             <label
               htmlFor="expert-name"
@@ -191,14 +191,10 @@ export function ExpertRegistrationModal({
               id="expert-privacy"
               checked={privacyAgreed}
               onChange={(e) => setPrivacyAgreed(e.target.checked)}
-              className="size-5 rounded-full accent-[#0f8472]"
+              className="size-5 rounded-full accent-primary"
             />
             <label htmlFor="expert-privacy" className="text-xs text-gray-800">
-              <Link
-                href="/privacy"
-                target="_blank"
-                className="text-primary-accent underline"
-              >
+              <Link href="/privacy" target="_blank" className="underline">
                 プライバシーポリシー
               </Link>
               に同意する
