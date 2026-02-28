@@ -14,7 +14,7 @@ const TEAM_MIRAI_SNS_ORDER = [
 
 export function TeamMirai() {
   return (
-    <div className="py-8">
+    <div className="py-10">
       <div className="flex flex-col gap-6">
         {/* ヘッダー */}
         <div className="flex flex-col gap-4">
