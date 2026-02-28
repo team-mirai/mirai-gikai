@@ -100,7 +100,7 @@ export function ExpertRegistrationModal({
               登録ありがとうございました。
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm font-medium text-gray-800 mt-4">
+          <p className="text-sm font-medium text-gray-800">
             政策検討のために、有識者としてチームみらいから連絡をする可能性があります。登録情報は公開されません。
           </p>
           <div className="mt-6">
