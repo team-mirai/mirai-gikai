@@ -3,11 +3,8 @@ import { notFound } from "next/navigation";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
-import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
+import { loadDisclosureData } from "@/features/interview-config/server/loaders/load-disclosure-data";
 import { InterviewDisclosurePage } from "@/features/interview-config/server/components/interview-disclosure-page";
-import { buildBulkModeSystemPrompt } from "@/features/interview-session/shared/utils/interview-logic/bulk-mode";
-import { buildLoopModeSystemPrompt } from "@/features/interview-session/shared/utils/interview-logic/loop-mode";
-import { buildSummarySystemPrompt } from "@/features/interview-session/shared/utils/build-summary-system-prompt";
 import { env } from "@/lib/env";
 
 interface DisclosurePreviewPageProps {
@@ -64,38 +61,12 @@ export default async function DisclosurePreviewPage({
     notFound();
   }
 
-  const questions = await getInterviewQuestions(interviewConfig.id);
-
-  const mode = interviewConfig.mode ?? "loop";
-  const buildSystemPrompt =
-    mode === "bulk" ? buildBulkModeSystemPrompt : buildLoopModeSystemPrompt;
-
-  const systemPrompt = buildSystemPrompt({
-    bill,
-    interviewConfig,
-    questions,
-    currentStage: "chat",
-    askedQuestionIds: new Set(),
-    remainingMinutes: null,
-  });
-
-  const summaryPrompt = buildSummarySystemPrompt({
-    bill,
-    interviewConfig,
-    messages: [],
-  });
+  const disclosureData = await loadDisclosureData(bill, interviewConfig);
 
   return (
     <>
       <PreviewBanner />
-      <InterviewDisclosurePage
-        billName={bill.name}
-        billTitle={bill.bill_content?.title ?? bill.name}
-        interviewConfig={interviewConfig}
-        questions={questions}
-        systemPrompt={systemPrompt}
-        summaryPrompt={summaryPrompt}
-      />
+      <InterviewDisclosurePage {...disclosureData} />
     </>
   );
 }
