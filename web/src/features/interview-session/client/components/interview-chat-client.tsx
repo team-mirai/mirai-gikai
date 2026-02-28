@@ -32,6 +32,7 @@ interface InterviewChatClientProps {
   estimatedDuration?: number | null;
   sessionStartedAt?: string;
   hasRated?: boolean;
+  previewToken?: string;
 }
 
 export function InterviewChatClient({
@@ -43,6 +44,7 @@ export function InterviewChatClient({
   estimatedDuration,
   sessionStartedAt,
   hasRated,
+  previewToken,
 }: InterviewChatClientProps) {
   const {
     input,
@@ -137,6 +139,9 @@ export function InterviewChatClient({
 
   // ストリーミング中のメッセージを表示するかどうか
   const showStreamingMessage = object && !isStreamingMessageCommitted;
+
+  // メッセージ内にレポートが存在するかどうか
+  const hasReport = messages.some((m) => m.report != null);
 
   return (
     <div className="h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light">
@@ -251,6 +256,9 @@ export function InterviewChatClient({
           {(stage === "summary" || stage === "summary_complete") && (
             <InterviewSummaryInput
               sessionId={sessionId}
+              billId={billId}
+              hasReport={hasReport}
+              previewToken={previewToken}
               input={input}
               onInputChange={setInput}
               onSubmit={handleSubmit}

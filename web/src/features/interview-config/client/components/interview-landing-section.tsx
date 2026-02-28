@@ -2,16 +2,21 @@ import { ArrowRight, Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { formatEstimatedDuration } from "@/features/interview-config/shared/utils/format-estimated-duration";
 
 interface InterviewLandingSectionProps {
   billId: string;
+  estimatedDuration: number | null;
 }
 
-const CHECK_POINTS = [
-  "所要時間は約5分〜",
-  "AIがあなたのご意見を深掘り",
-  "チームみらいの政策検討に活用",
-] as const;
+function getCheckPoints(estimatedDuration: number | null): string[] {
+  const durationText = formatEstimatedDuration(estimatedDuration);
+  return [
+    durationText ? `所要時間は${durationText}` : null,
+    "AIがあなたのご意見を深掘り",
+    "チームみらいの政策検討に活用",
+  ].filter((text): text is string => text !== null);
+}
 
 function _InterviewBadge() {
   return (
@@ -34,10 +39,15 @@ function _CheckPoint({ text }: { text: string }) {
   );
 }
 
-function _CheckPointsList() {
+function _CheckPointsList({
+  estimatedDuration,
+}: {
+  estimatedDuration: number | null;
+}) {
+  const checkPoints = getCheckPoints(estimatedDuration);
   return (
     <div className="flex flex-col gap-2">
-      {CHECK_POINTS.map((text) => (
+      {checkPoints.map((text) => (
         <_CheckPoint key={text} text={text} />
       ))}
     </div>
@@ -71,6 +81,7 @@ function _InterviewIllustration() {
 
 export function InterviewLandingSection({
   billId,
+  estimatedDuration,
 }: InterviewLandingSectionProps) {
   return (
     <div className="relative overflow-hidden rounded-xl bg-white p-6 mx-auto">
@@ -86,7 +97,7 @@ export function InterviewLandingSection({
             お聞かせください
           </h2>
 
-          <_CheckPointsList />
+          <_CheckPointsList estimatedDuration={estimatedDuration} />
 
           <div className="pt-2">
             <_InterviewCTAButton billId={billId} />

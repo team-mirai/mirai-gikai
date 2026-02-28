@@ -8,6 +8,7 @@ import type { InterviewConfig } from "./get-interview-config";
 import { getInterviewQuestions } from "./get-interview-questions";
 
 export interface DisclosureData {
+  billId: string;
   billName: string;
   interviewConfig: InterviewConfig;
   systemPrompt: string;
@@ -40,6 +41,7 @@ export async function loadDisclosureData(
   });
 
   return {
+    billId: bill.id,
     billName: bill.name,
     interviewConfig,
     systemPrompt,
