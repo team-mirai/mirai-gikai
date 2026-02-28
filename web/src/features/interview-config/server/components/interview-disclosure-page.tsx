@@ -16,14 +16,14 @@ interface InterviewDisclosurePageProps {
 function StaticDisclosureSection() {
   return (
     <div className="flex flex-col gap-3">
-      <h1 className="text-2xl font-bold text-black leading-[1.5]">
+      <h1 className="text-2xl font-bold text-black leading-[1.5] my-4">
         AIインタビューに関する情報開示
       </h1>
       <div className="bg-white rounded-2xl p-6 space-y-4">
         <h2 className="text-[22px] font-bold text-black leading-[1.64]">
           AIインタビューの透明性および技術仕様に関する開示事項
         </h2>
-        <div className="text-xs leading-[1.83] text-black space-y-4">
+        <div className="text-sm leading-[1.83] text-black space-y-4">
           <div>
             <p className="font-bold">
               AIインタビューの透明性と技術仕様について
@@ -110,20 +110,20 @@ function DynamicDisclosureSection({
         </p>
 
         <div className="space-y-2">
-          <p className="text-xs font-bold text-black">使用モデル</p>
-          <p className="text-xs leading-[1.83] text-black">
+          <p className="text-sm font-bold text-black">使用モデル</p>
+          <p className="text-sm leading-[1.83] text-black">
             対話エンジンには以下のモデルを採用しています。
           </p>
-          <p className="text-xs leading-[1.83] text-black">
+          <p className="text-sm leading-[1.83] text-black">
             モデル名称： {chatModel}
           </p>
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs font-bold text-black">
+          <p className="text-sm font-bold text-black">
             インタビュー用プロンプト（指示書）
           </p>
-          <pre className="text-xs leading-[1.83] text-black whitespace-pre-wrap break-words">
+          <pre className="text-sm leading-[1.83] text-black whitespace-pre-wrap break-words">
             {systemPrompt}
           </pre>
         </div>
@@ -131,13 +131,13 @@ function DynamicDisclosureSection({
 
       <div className="bg-white rounded-2xl p-6 space-y-4">
         <div className="space-y-2">
-          <p className="text-xs font-bold text-black">
+          <p className="text-sm font-bold text-black">
             要約・レポート生成用プロンプト（指示書）
           </p>
-          <p className="text-xs leading-[1.83] text-black">
+          <p className="text-sm leading-[1.83] text-black">
             インタビュー終了後、回答内容をレポートにまとめる際にAIに与えられるプロンプトです。
           </p>
-          <pre className="text-xs leading-[1.83] text-black whitespace-pre-wrap break-words">
+          <pre className="text-sm leading-[1.83] text-black whitespace-pre-wrap break-words">
             {summaryPrompt}
           </pre>
         </div>
@@ -153,7 +153,7 @@ export function InterviewDisclosurePage({
 }: InterviewDisclosurePageProps) {
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
-      <div className="flex flex-col gap-8 px-4 pt-24 md:pt-12 max-w-[370px] mx-auto w-full">
+      <div className="flex flex-col gap-8 px-4 pt-24 md:pt-12 max-w-[600px] mx-auto w-full">
         <DisclosureBreadcrumb billId={billId} previewToken={previewToken} />
         <StaticDisclosureSection />
         <DynamicDisclosureSection {...props} />

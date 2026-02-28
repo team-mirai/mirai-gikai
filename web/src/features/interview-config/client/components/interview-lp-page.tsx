@@ -10,6 +10,7 @@ import {
   getBillDetailLink,
   getInterviewDisclosureLink,
 } from "@/features/interview-config/shared/utils/interview-links";
+import { formatEstimatedDuration } from "@/features/interview-config/shared/utils/format-estimated-duration";
 import { InterviewActionButtons } from "./interview-action-buttons";
 
 interface InterviewLPPageProps {
@@ -169,14 +170,24 @@ function _InterviewOverviewSection({
   );
 }
 
-function _InterviewDurationSection() {
+function _InterviewDurationSection({
+  estimatedDuration,
+}: {
+  estimatedDuration: number | null;
+}) {
+  const durationText = formatEstimatedDuration(estimatedDuration);
+
+  if (!durationText) {
+    return null;
+  }
+
   return (
     <div className="w-full max-w-[370px] mx-auto bg-white rounded-2xl p-6 space-y-2">
       <h2 className="text-[22px] font-bold text-black leading-[1.64]">
         予定時間
       </h2>
       <p className="text-[22px] font-bold text-primary-accent leading-[1.64]">
-        約5分〜
+        {durationText}
       </p>
     </div>
   );
@@ -307,7 +318,9 @@ export function InterviewLPPage({
           billName={bill.bill_content?.title ?? bill.name}
           previewToken={previewToken}
         />
-        <_InterviewDurationSection />
+        <_InterviewDurationSection
+          estimatedDuration={interviewConfig.estimated_duration}
+        />
         <_InterviewThemesSection themes={interviewConfig.themes} />
         <_InterviewNoticeSection />
         <_InterviewDisclosureLink

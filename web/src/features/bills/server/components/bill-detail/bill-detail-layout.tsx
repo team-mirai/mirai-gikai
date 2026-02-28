@@ -53,7 +53,10 @@ export async function BillDetailLayout({
       <Container>
         {interviewConfig != null && (
           <div className="my-8">
-            <InterviewLandingSection billId={bill.id} />
+            <InterviewLandingSection
+              billId={bill.id}
+              estimatedDuration={interviewConfig.estimated_duration}
+            />
           </div>
         )}
         {showMiraiStance && (

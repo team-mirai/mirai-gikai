@@ -77,7 +77,7 @@ export async function BillDetailHeader({
               variant="default"
               size="sm"
               asChild
-              className="bg-mirai-light-gradient text-[13px] font-medium text-gray-800 gap-1.5 py-1 px-3"
+              className="bg-mirai-light-gradient text-[13px] font-bold text-gray-800 gap-1.5 py-1 px-3"
             >
               <Link href={getInterviewLPLink(bill.id)}>
                 <Image
