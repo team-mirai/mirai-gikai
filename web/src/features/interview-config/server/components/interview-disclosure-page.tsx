@@ -2,12 +2,10 @@ import "server-only";
 
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import type { InterviewConfig } from "../loaders/get-interview-config";
-import type { InterviewQuestion } from "@/features/interview-session/shared/types";
 
 interface InterviewDisclosurePageProps {
   billName: string;
   interviewConfig: InterviewConfig;
-  questions: InterviewQuestion[];
   systemPrompt: string;
   summaryPrompt: string;
 }
@@ -92,7 +90,6 @@ function StaticDisclosureSection() {
 function DynamicDisclosureSection({
   billName,
   interviewConfig,
-  questions,
   systemPrompt,
   summaryPrompt,
 }: InterviewDisclosurePageProps) {
@@ -125,25 +122,6 @@ function DynamicDisclosureSection({
           </p>
           <pre className="text-xs leading-[1.83] text-black whitespace-pre-wrap break-words">
             {systemPrompt}
-          </pre>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-xs font-bold text-black">質問リスト</p>
-          <pre className="text-xs leading-[1.83] text-black whitespace-pre-wrap break-words">
-            {JSON.stringify(
-              questions.map((q) => ({
-                id: q.id,
-                question: q.question,
-                question_order: q.question_order,
-                ...(q.follow_up_guide
-                  ? { follow_up_guide: q.follow_up_guide }
-                  : {}),
-                ...(q.quick_replies ? { quick_replies: q.quick_replies } : {}),
-              })),
-              null,
-              2
-            )}
           </pre>
         </div>
       </div>

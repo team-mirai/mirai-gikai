@@ -4,14 +4,12 @@ import type { BillWithContent } from "@/features/bills/shared/types";
 import { buildBulkModeSystemPrompt } from "@/features/interview-session/shared/utils/interview-logic/bulk-mode";
 import { buildLoopModeSystemPrompt } from "@/features/interview-session/shared/utils/interview-logic/loop-mode";
 import { buildSummarySystemPrompt } from "@/features/interview-session/shared/utils/build-summary-system-prompt";
-import type { InterviewQuestion } from "@/features/interview-session/shared/types";
 import type { InterviewConfig } from "./get-interview-config";
 import { getInterviewQuestions } from "./get-interview-questions";
 
 export interface DisclosureData {
   billName: string;
   interviewConfig: InterviewConfig;
-  questions: InterviewQuestion[];
   systemPrompt: string;
   summaryPrompt: string;
 }
@@ -44,7 +42,6 @@ export async function loadDisclosureData(
   return {
     billName: bill.name,
     interviewConfig,
-    questions,
     systemPrompt,
     summaryPrompt,
   };
