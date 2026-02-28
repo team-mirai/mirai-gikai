@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { Star, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { submitInterviewRating } from "../../server/actions/submit-interview-rating";
 
@@ -46,36 +46,29 @@ export function InterviewRatingWidget({
   }, [isSubmitted, onDismiss]);
 
   return (
-    <div className="relative mx-4 rounded-xl bg-[#EDEDED] px-6 py-4">
+    <div className="relative mx-4 rounded-xl bg-gray-100 px-6 py-4">
       <div className="flex flex-col gap-2.5">
-        <p className="text-[13px] font-medium leading-none text-[#1F2937]">
+        <p className="text-[13px] font-medium leading-none text-[#1F2937] text-center">
           {isSubmitted
             ? "回答ありがとうございました！"
             : "AIはあなたの考えを十分に引き出せていますか"}
         </p>
-        {!isSubmitted && (
+        {
           <div className="flex justify-center gap-[15px]">
             {[1, 2, 3, 4, 5].map((star) => (
-              <Button
+              <Star
                 key={star}
-                variant="ghost"
-                size="icon"
+                size={24}
                 onClick={() => handleRate(star)}
-                className="h-auto w-auto p-0 hover:bg-transparent"
-                aria-label={`${star}星`}
-              >
-                <Star
-                  size={25}
-                  className={
-                    selectedRating !== null && star <= selectedRating
-                      ? "fill-[#FF9500] text-[#FF9500]"
-                      : "fill-white text-[#8E9092] stroke-[0.5]"
-                  }
-                />
-              </Button>
+                className={
+                  selectedRating !== null && star <= selectedRating
+                    ? "fill-[#FF9500] text-[#FF9500]"
+                    : "fill-white text-[#8E9092] stroke-[0.5]"
+                }
+              />
             ))}
           </div>
-        )}
+        }
       </div>
       <Button
         variant="ghost"
