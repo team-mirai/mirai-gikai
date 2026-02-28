@@ -1,2 +1,3 @@
 id,name,start_date,end_date,created_at,updated_at,slug,shugiin_url
 590f4bea-1aad-4509-b7ef-908873675097,第219回臨時国会,2025-10-21,2025-12-17,2025-10-21 00:23:01.822259+00,2025-10-21 00:23:01.822259+00,,
+afb58baa-9cca-404a-a9cd-8efb603f6b3e,第221回国会,2026-02-18,2026-07-18,2026-02-18 00:00:00.000000+00,2026-02-18 00:00:00.000000+00,221-tokubetsu,https://www.shugiin.go.jp/internet/itdb_gian.nsf/html/gian/kaiji221.htm
