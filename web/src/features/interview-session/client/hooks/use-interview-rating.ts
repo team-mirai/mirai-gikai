@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { InterviewProgress } from "../../shared/utils/calc-interview-progress";
 
-const RATING_WIDGET_THRESHOLD = 70;
+const RATING_WIDGET_THRESHOLD = 65;
 
 interface UseInterviewRatingProps {
   mode?: "loop" | "bulk";

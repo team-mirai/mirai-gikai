@@ -13,8 +13,8 @@ import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
 import { InterviewProgressBar } from "./interview-progress-bar";
-import { InterviewSummaryInput } from "./interview-summary-input";
 import { InterviewRatingWidget } from "./interview-rating-widget";
+import { InterviewSummaryInput } from "./interview-summary-input";
 import { QuickReplyButtons } from "./quick-reply-buttons";
 import { TimeUpPrompt } from "./time-up-prompt";
 
