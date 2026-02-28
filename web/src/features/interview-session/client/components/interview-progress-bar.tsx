@@ -27,7 +27,7 @@ export function InterviewProgressBar({
         <div className="mb-3 flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {currentTopic && (
-              <div className="inline-flex max-w-full rounded-lg bg-gradient-to-br from-[#E2F6F3] to-[#EEF6E2] px-4 py-0.5">
+              <div className="inline-flex max-w-full rounded-lg bg-mirai-light-gradient px-4 py-0.5">
                 <p className="min-w-0 truncate text-sm font-bold leading-[1.8] text-[#1F2937]">
                   {currentTopic}
                 </p>
