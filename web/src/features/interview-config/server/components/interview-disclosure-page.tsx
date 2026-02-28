@@ -6,7 +6,6 @@ import type { InterviewQuestion } from "@/features/interview-session/shared/type
 
 interface InterviewDisclosurePageProps {
   billName: string;
-  billTitle: string;
   interviewConfig: InterviewConfig;
   questions: InterviewQuestion[];
   systemPrompt: string;
@@ -16,11 +15,11 @@ interface InterviewDisclosurePageProps {
 function StaticDisclosureSection() {
   return (
     <div className="flex flex-col gap-3">
-      <h1 className="text-xl font-bold text-black">
+      <h1 className="text-2xl font-bold text-black leading-[1.5]">
         AIインタビューに関する情報開示
       </h1>
-      <div className="bg-white rounded-2xl p-5 space-y-4">
-        <h2 className="text-base font-bold text-black leading-relaxed">
+      <div className="bg-white rounded-2xl p-6 space-y-4">
+        <h2 className="text-[22px] font-bold text-black leading-[1.64]">
           AIインタビューの透明性および技術仕様に関する開示事項
         </h2>
         <div className="text-xs leading-[1.83] text-black space-y-4">
@@ -92,7 +91,6 @@ function StaticDisclosureSection() {
 
 function DynamicDisclosureSection({
   billName,
-  billTitle,
   interviewConfig,
   questions,
   systemPrompt,
@@ -102,17 +100,14 @@ function DynamicDisclosureSection({
 
   return (
     <div className="flex flex-col gap-3">
-      <h1 className="text-xl font-bold text-black">
+      <h1 className="text-2xl font-bold text-black leading-[1.5]">
         AIに与えられているプロンプト
       </h1>
 
-      <div className="bg-white rounded-2xl p-5 space-y-5">
-        <div className="space-y-1">
-          <p className="text-sm font-normal text-black leading-relaxed">
-            {billName}に関するAIインタビューにおけるプロンプト
-          </p>
-          <p className="text-xs text-gray-500 leading-relaxed">{billTitle}</p>
-        </div>
+      <div className="bg-white rounded-2xl p-6 space-y-4">
+        <p className="text-[15px] font-normal text-black leading-[1.87]">
+          {billName}に関するAIインタビューにおけるプロンプト
+        </p>
 
         <div className="space-y-2">
           <p className="text-xs font-bold text-black">使用モデル</p>
@@ -135,9 +130,6 @@ function DynamicDisclosureSection({
 
         <div className="space-y-2">
           <p className="text-xs font-bold text-black">質問リスト</p>
-          <p className="text-xs leading-[1.83] text-black">
-            実際にシステムへ渡している質問データをそのまま表示しています。
-          </p>
           <pre className="text-xs leading-[1.83] text-black whitespace-pre-wrap break-words">
             {JSON.stringify(
               questions.map((q) => ({
@@ -156,7 +148,7 @@ function DynamicDisclosureSection({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-5 space-y-5">
+      <div className="bg-white rounded-2xl p-6 space-y-4">
         <div className="space-y-2">
           <p className="text-xs font-bold text-black">
             要約・レポート生成用プロンプト（指示書）
@@ -176,7 +168,7 @@ function DynamicDisclosureSection({
 export function InterviewDisclosurePage(props: InterviewDisclosurePageProps) {
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
-      <div className="flex flex-col gap-8 px-4 pt-8 max-w-[402px] mx-auto w-full">
+      <div className="flex flex-col gap-8 px-4 pt-8 max-w-[370px] mx-auto w-full">
         <StaticDisclosureSection />
         <DynamicDisclosureSection {...props} />
       </div>

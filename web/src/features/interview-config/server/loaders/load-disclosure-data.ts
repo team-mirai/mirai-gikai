@@ -10,7 +10,6 @@ import { getInterviewQuestions } from "./get-interview-questions";
 
 export interface DisclosureData {
   billName: string;
-  billTitle: string;
   interviewConfig: InterviewConfig;
   questions: InterviewQuestion[];
   systemPrompt: string;
@@ -44,7 +43,6 @@ export async function loadDisclosureData(
 
   return {
     billName: bill.name,
-    billTitle: bill.bill_content?.title ?? bill.name,
     interviewConfig,
     questions,
     systemPrompt,
