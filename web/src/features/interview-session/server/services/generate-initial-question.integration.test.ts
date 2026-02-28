@@ -11,11 +11,19 @@ import { createGenerateMock } from "@/test-utils/mock-language-model";
 import { generateInitialQuestion } from "./generate-initial-question";
 
 // interviewChatTextSchema に準拠したモックレスポンス
-const validChatResponse = JSON.stringify({
+// LLMのレスポンスはtopic_title: nullだが、overrideInitialTopicTitleにより「はじめに」に上書きされる
+const llmResponse = JSON.stringify({
   text: "こんにちは！テストインタビューを始めましょう。最初の質問です。",
   quick_replies: ["はい", "いいえ"],
   question_id: null,
   topic_title: null,
+  next_stage: "chat",
+});
+const expectedResponse = JSON.stringify({
+  text: "こんにちは！テストインタビューを始めましょう。最初の質問です。",
+  quick_replies: ["はい", "いいえ"],
+  question_id: null,
+  topic_title: "はじめに",
   next_stage: "chat",
 });
 
@@ -39,7 +47,7 @@ describe("generateInitialQuestion 統合テスト", () => {
   });
 
   it("LLMが生成したテキストがassistantメッセージとしてDBに保存される", async () => {
-    const mockModel = createGenerateMock(validChatResponse);
+    const mockModel = createGenerateMock(llmResponse);
 
     const result = await generateInitialQuestion({
       sessionId,
@@ -51,7 +59,7 @@ describe("generateInitialQuestion 統合テスト", () => {
     // 戻り値を検証
     expect(result).not.toBeNull();
     expect(result?.role).toBe("assistant");
-    expect(result?.content).toBe(validChatResponse);
+    expect(result?.content).toBe(expectedResponse);
 
     // DB 状態を検証: assistantメッセージが保存されていること
     const { data: messages } = await adminClient
@@ -62,7 +70,7 @@ describe("generateInitialQuestion 統合テスト", () => {
 
     expect(messages).toHaveLength(1);
     expect(messages?.[0].role).toBe("assistant");
-    expect(messages?.[0].content).toBe(validChatResponse);
+    expect(messages?.[0].content).toBe(expectedResponse);
     expect(messages?.[0].interview_session_id).toBe(sessionId);
   });
 
@@ -91,7 +99,7 @@ describe("generateInitialQuestion 統合テスト", () => {
   it("interview_configが存在しないbillIdの場合はnullを返す", async () => {
     // 存在しないbillId
     const nonExistentBillId = "00000000-0000-0000-0000-000000000000";
-    const mockModel = createGenerateMock(validChatResponse);
+    const mockModel = createGenerateMock(llmResponse);
 
     const result = await generateInitialQuestion({
       sessionId,
