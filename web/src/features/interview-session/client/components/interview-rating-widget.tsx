@@ -46,44 +46,45 @@ export function InterviewRatingWidget({
   }, [isSubmitted, onDismiss]);
 
   return (
-    <div className="mx-4 flex items-center gap-3 rounded-[18px] bg-[#F3F4F6] px-5 py-4">
-      <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
-        <p className="text-sm font-bold text-[#1F2937]">
+    <div className="relative mx-4 rounded-xl bg-[#EDEDED] px-6 py-4">
+      <div className="flex flex-col gap-2.5">
+        <p className="text-[13px] font-medium leading-none text-[#1F2937]">
           {isSubmitted
             ? "回答ありがとうございました！"
             : "AIはあなたの考えを十分に引き出せていますか"}
         </p>
-        <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Button
-              key={star}
-              variant="ghost"
-              size="icon"
-              onClick={() => !isSubmitted && handleRate(star)}
-              disabled={isSubmitted}
-              className="h-auto w-auto p-0 hover:bg-transparent disabled:cursor-default disabled:opacity-100"
-              aria-label={`${star}星`}
-            >
-              <Star
-                size={32}
-                className={
-                  selectedRating !== null && star <= selectedRating
-                    ? "fill-[#F59E0B] text-[#F59E0B]"
-                    : "fill-none text-[#D1D5DB] stroke-[1.5]"
-                }
-              />
-            </Button>
-          ))}
-        </div>
+        {!isSubmitted && (
+          <div className="flex justify-center gap-[15px]">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Button
+                key={star}
+                variant="ghost"
+                size="icon"
+                onClick={() => handleRate(star)}
+                className="h-auto w-auto p-0 hover:bg-transparent"
+                aria-label={`${star}星`}
+              >
+                <Star
+                  size={25}
+                  className={
+                    selectedRating !== null && star <= selectedRating
+                      ? "fill-[#FF9500] text-[#FF9500]"
+                      : "fill-white text-[#8E9092] stroke-[0.5]"
+                  }
+                />
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
       <Button
         variant="ghost"
         size="icon"
         onClick={onDismiss}
-        className="shrink-0 text-[#9CA3AF] hover:bg-transparent hover:text-[#6B7280]"
+        className="absolute right-2 top-2 h-[22px] w-[22px] p-0 text-[#9F9B9B] hover:bg-transparent hover:text-[#6B7280]"
         aria-label="閉じる"
       >
-        <X size={24} />
+        <X size={11} strokeWidth={2} />
       </Button>
     </div>
   );

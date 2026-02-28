@@ -153,7 +153,7 @@ export function InterviewChatClient({
             />
           </div>
         )}
-        <Conversation className="flex-1 overflow-y-auto">
+        <Conversation className="min-h-0 flex-1 overflow-y-auto">
           <ConversationContent className="flex flex-col gap-4">
             {/* 初期表示メッセージ */}
             {messages.length === 0 && !object && (
@@ -229,10 +229,12 @@ export function InterviewChatClient({
 
         {/* 評価ウィジェット */}
         {showRating && (
-          <InterviewRatingWidget
-            sessionId={sessionId}
-            onDismiss={handleRatingDismiss}
-          />
+          <div className="shrink-0 py-2">
+            <InterviewRatingWidget
+              sessionId={sessionId}
+              onDismiss={handleRatingDismiss}
+            />
+          </div>
         )}
 
         {/* 時間超過プロンプト */}
