@@ -1,7 +1,6 @@
 import type {
   BillStatusEnum,
   BillWithContent,
-  StanceTypeEnum,
 } from "@/features/bills/shared/types";
 
 export const allBillStatuses: BillStatusEnum[] = [
@@ -11,16 +10,6 @@ export const allBillStatuses: BillStatusEnum[] = [
   "in_receiving_house",
   "enacted",
   "rejected",
-];
-
-export const allStanceTypes: StanceTypeEnum[] = [
-  "for",
-  "against",
-  "neutral",
-  "conditional_for",
-  "conditional_against",
-  "considering",
-  "continued_deliberation",
 ];
 
 const baseBill: BillWithContent = {
@@ -35,6 +24,7 @@ const baseBill: BillWithContent = {
   publish_status: "published",
   shugiin_url: null,
   status_note: null,
+  status_order: 3,
   diet_session_id: "mock-session",
   created_at: "2026-02-15T00:00:00Z",
   updated_at: "2026-02-15T00:00:00Z",
