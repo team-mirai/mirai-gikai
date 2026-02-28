@@ -3,13 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { isInterviewSection } from "@/lib/page-layout-utils";
+import { isInterviewPage } from "@/lib/page-layout-utils";
 import { policyLinks, primaryLinks } from "./footer.config";
 
 export function Footer() {
   const pathname = usePathname();
 
-  if (isInterviewSection(pathname)) {
+  if (isInterviewPage(pathname)) {
     return null;
   }
 
