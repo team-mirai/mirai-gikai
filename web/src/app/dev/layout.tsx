@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { DevSidebar } from "./_components/dev-sidebar";
+
+export const metadata: Metadata = {
+  title: "Component Gallery | Dev Preview",
+  robots: { index: false, follow: false },
+};
 
 export default function DevLayout({
   children,
