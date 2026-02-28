@@ -11,8 +11,8 @@ import { PreviousSessionSection } from "@/features/bills/server/components/previ
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
-import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
+import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { getJapanTime } from "@/lib/utils/date";
 
 export default async function Home() {
@@ -42,8 +42,8 @@ export default async function Home() {
       <CurrentDietSession session={currentSession} />
 
       {/* 議案一覧セクション */}
-      <Container className="pb-20">
-        <div className="py-8">
+      <Container className="">
+        <div className="py-10">
           <main className="flex flex-col gap-16">
             {/* 注目の法案セクション */}
             <FeaturedBillSection bills={featuredBills} />
@@ -59,7 +59,7 @@ export default async function Home() {
 
       {/* 前回の国会セクション（Archive） */}
       {previousSessionData && (
-        <div className="bg-mirai-surface-muted py-9">
+        <div className="bg-mirai-surface-muted py-10">
           <Container>
             <PreviousSessionSection
               session={previousSessionData.session}

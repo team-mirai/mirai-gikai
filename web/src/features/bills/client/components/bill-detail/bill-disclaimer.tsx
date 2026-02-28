@@ -4,7 +4,7 @@ import { ManualRuby } from "@/lib/rubyful/manual-ruby";
 
 export function BillDisclaimer() {
   return (
-    <div className="space-y-6 pt-4">
+    <div className="space-y-6 pt-4 pb-10">
       {/* データの出典について */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-black">掲載コンテンツについて</h3>
