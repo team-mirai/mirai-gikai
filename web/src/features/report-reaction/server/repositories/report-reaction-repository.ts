@@ -5,13 +5,13 @@ import type { ReactionCounts, ReactionType } from "../../shared/types";
 
 /**
  * レポートが公開されているか確認する
- * リアクションは公開レポートにのみ許可
+ * ユーザー公開設定(is_public_by_user)と管理者公開設定(is_public_by_admin)の両方がtrueの場合のみ公開
  */
 export async function isReportPublic(reportId: string): Promise<boolean> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("interview_report")
-    .select("interview_sessions!inner(is_public_by_user)")
+    .select("is_public_by_admin, interview_sessions!inner(is_public_by_user)")
     .eq("id", reportId)
     .single();
 
@@ -22,7 +22,7 @@ export async function isReportPublic(reportId: string): Promise<boolean> {
   const session = data.interview_sessions as unknown as {
     is_public_by_user: boolean;
   };
-  return session.is_public_by_user;
+  return data.is_public_by_admin && session.is_public_by_user;
 }
 
 /**
