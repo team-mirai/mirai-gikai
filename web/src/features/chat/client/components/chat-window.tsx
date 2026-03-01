@@ -19,14 +19,15 @@ import {
   type PromptInputMessage,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
-import type { Bill } from "@/features/bills/shared/types";
+import type { BillWithContent } from "@/features/bills/shared/types";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useViewportHeight } from "@/hooks/use-viewport-height";
 import { SystemMessage } from "./system-message";
 import { UserMessage } from "./user-message";
 
 interface ChatWindowProps {
-  billContext?: Bill;
+  billContext?: BillWithContent;
+  hasInterviewConfig?: boolean;
   difficultyLevel: string;
   chatState: ReturnType<typeof import("@ai-sdk/react").useChat>;
   isOpen: boolean;
@@ -50,6 +51,7 @@ interface ChatWindowProps {
  */
 function ChatMessages({
   billContext,
+  hasInterviewConfig,
   difficultyLevel,
   messages,
   sendMessage,
@@ -57,7 +59,8 @@ function ChatMessages({
   pageContext,
   sessionId,
 }: {
-  billContext?: Bill;
+  billContext?: BillWithContent;
+  hasInterviewConfig?: boolean;
   difficultyLevel: string;
   messages: ChatWindowProps["chatState"]["messages"];
   sendMessage: ChatWindowProps["chatState"]["sendMessage"];
@@ -112,6 +115,7 @@ function ChatMessages({
                     text: question,
                     metadata: {
                       billContext,
+                      hasInterviewConfig,
                       difficultyLevel,
                       pageContext,
                       sessionId,
@@ -136,6 +140,8 @@ function ChatMessages({
             key={message.id}
             message={message}
             isStreaming={isStreaming}
+            billId={billContext?.id}
+            billName={billContext?.bill_content?.title ?? billContext?.name}
           />
         );
       })}
@@ -148,6 +154,7 @@ function ChatMessages({
 
 export function ChatWindow({
   billContext,
+  hasInterviewConfig,
   difficultyLevel,
   chatState,
   isOpen,
@@ -199,6 +206,7 @@ export function ChatWindow({
       text: message.text ?? "",
       metadata: {
         billContext,
+        hasInterviewConfig,
         difficultyLevel,
         pageContext,
         sessionId,
@@ -250,6 +258,7 @@ export function ChatWindow({
           <ConversationContent className="p-0 flex flex-col gap-3 pc:pt-6 pb-2 px-6">
             <ChatMessages
               billContext={billContext}
+              hasInterviewConfig={hasInterviewConfig}
               difficultyLevel={difficultyLevel}
               messages={messages}
               sendMessage={sendMessage}
