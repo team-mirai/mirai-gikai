@@ -66,11 +66,6 @@ ALTER TABLE topic_analysis_versions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE topic_analysis_topics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE topic_analysis_classifications ENABLE ROW LEVEL SECURITY;
 
--- service_role のみアクセス可能（admin app は service_role key を使用）
-CREATE POLICY "Service role full access" ON topic_analysis_versions FOR ALL USING (true);
-CREATE POLICY "Service role full access" ON topic_analysis_topics FOR ALL USING (true);
-CREATE POLICY "Service role full access" ON topic_analysis_classifications FOR ALL USING (true);
-
 -- updated_at 自動更新トリガー
 CREATE TRIGGER set_topic_analysis_versions_updated_at
   BEFORE UPDATE ON topic_analysis_versions

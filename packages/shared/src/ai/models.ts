@@ -19,7 +19,7 @@ export const AI_MODELS = {
   gpt5_2: "openai/gpt-5.2",
   // --- Google ---
   gemini3_flash: "google/gemini-3-flash",
-  gemini3_flash_preview: "google/gemini-3-flash-preview",
+  gemini2_5_flash: "google/gemini-2.5-flash",
   gemini3_1_pro_preview: "google/gemini-3.1-pro-preview",
   // --- Anthropic ---
   claude_haiku_4_5: "anthropic/claude-haiku-4.5",
