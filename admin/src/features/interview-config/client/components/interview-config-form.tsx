@@ -13,11 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,11 +30,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { generateInterviewPreviewUrl } from "../../server/actions/generate-interview-preview-url";
 import {
+  createInterviewConfig,
+  updateInterviewConfig,
+} from "../../server/actions/upsert-interview-config";
+import {
+  arrayToText,
   type InterviewConfig,
   type InterviewConfigInput,
   interviewConfigSchema,
-  arrayToText,
   textToArray,
 } from "../../shared/types";
 import {
@@ -42,11 +47,6 @@ import {
   DEFAULT_MODEL_LABEL,
 } from "../../shared/utils/chat-model-options";
 import { generateDefaultConfigName } from "../../shared/utils/default-config-name";
-import {
-  createInterviewConfig,
-  updateInterviewConfig,
-} from "../../server/actions/upsert-interview-config";
-import { generateInterviewPreviewUrl } from "../../server/actions/generate-interview-preview-url";
 
 interface InterviewConfigFormProps {
   billId: string;

@@ -19,8 +19,8 @@ export type InterviewSessionDetail = InterviewSession & {
   interview_messages: InterviewMessage[];
 };
 
-export {
-  type SessionStatus,
-  getSessionStatus,
-} from "../utils/get-session-status";
 export { formatDuration } from "../utils/format-duration";
+export {
+  getSessionStatus,
+  type SessionStatus,
+} from "../utils/get-session-status";

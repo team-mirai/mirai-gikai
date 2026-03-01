@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  CHAT_MODEL_OPTIONS,
   CHAT_MODEL_GROUPS,
+  CHAT_MODEL_OPTIONS,
   isValidChatModel,
 } from "./chat-model-options";
 

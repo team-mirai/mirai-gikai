@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { BILL_STATUS_ORDER } from "../types";
 import type { Bill } from "../types";
+import { BILL_STATUS_ORDER } from "../types";
 import {
-  prepareBillForDuplication,
   prepareBillContentsForDuplication,
+  prepareBillForDuplication,
 } from "./prepare-bill-for-duplication";
 
 const baseBill: Bill = {

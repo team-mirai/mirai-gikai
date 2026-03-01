@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { textToArray, arrayToText } from "./array-text-conversion";
+import { arrayToText, textToArray } from "./array-text-conversion";
 
 describe("textToArray", () => {
   it("改行区切りテキストを配列に変換する", () => {
