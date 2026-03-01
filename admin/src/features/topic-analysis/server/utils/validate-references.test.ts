@@ -142,4 +142,75 @@ describe("validateAndReplaceReferences", () => {
     expect(result.cleanedMd).toBe("See .");
     expect(result.validReferences).toHaveLength(0);
   });
+
+  it("handles comma-separated refs in a single bracket [ref:1, ref:2]", () => {
+    const md =
+      "効率化が可能です [ref:1, ref:2]。また改善も見込まれます [ref:3]。";
+    const references = [
+      { ref_id: 1, session_id: "session-1" },
+      { ref_id: 2, session_id: "session-2" },
+      { ref_id: 3, session_id: "session-3" },
+    ];
+
+    const result = validateAndReplaceReferences(
+      md,
+      references,
+      validSessionIds
+    );
+
+    expect(result.cleanedMd).toBe(
+      "効率化が可能です [インタビュー#1](/reports/session-1), [インタビュー#2](/reports/session-2)。また改善も見込まれます [インタビュー#3](/reports/session-3)。"
+    );
+  });
+
+  it("handles comma-separated refs with some invalid", () => {
+    const md = "参照 [ref:1, ref:99, ref:2]。";
+    const references = [
+      { ref_id: 1, session_id: "session-1" },
+      { ref_id: 2, session_id: "session-2" },
+    ];
+
+    const result = validateAndReplaceReferences(
+      md,
+      references,
+      validSessionIds
+    );
+
+    expect(result.cleanedMd).toBe(
+      "参照 [インタビュー#1](/reports/session-1), [インタビュー#2](/reports/session-2)。"
+    );
+  });
+
+  it("handles comma-separated refs where all are invalid", () => {
+    const md = "参照 [ref:98, ref:99]。";
+    const references: Array<{ ref_id: number; session_id: string }> = [];
+
+    const result = validateAndReplaceReferences(
+      md,
+      references,
+      validSessionIds
+    );
+
+    expect(result.cleanedMd).toBe("参照 。");
+  });
+
+  it("handles mixed single and comma-separated refs", () => {
+    const md =
+      "最初の参照 [ref:1]、複数参照 [ref:2, ref:3]、最後 [ref:1, ref:3]。";
+    const references = [
+      { ref_id: 1, session_id: "session-1" },
+      { ref_id: 2, session_id: "session-2" },
+      { ref_id: 3, session_id: "session-3" },
+    ];
+
+    const result = validateAndReplaceReferences(
+      md,
+      references,
+      validSessionIds
+    );
+
+    expect(result.cleanedMd).toBe(
+      "最初の参照 [インタビュー#1](/reports/session-1)、複数参照 [インタビュー#2](/reports/session-2), [インタビュー#3](/reports/session-3)、最後 [インタビュー#1](/reports/session-1), [インタビュー#3](/reports/session-3)。"
+    );
+  });
 });

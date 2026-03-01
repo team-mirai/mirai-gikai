@@ -20,19 +20,23 @@ export function validateAndReplaceReferences(
   );
   const validRefIds = new Set(validRefs.map((ref) => ref.ref_id));
 
-  // 2. Replace [ref:N] markers in markdown
+  // 2. Replace [ref:N] and [ref:N, ref:M, ...] markers in markdown
   const cleanedMd = descriptionMd.replace(
-    /\[ref:(\d+)\]/g,
-    (_match, numStr) => {
-      const refId = Number.parseInt(numStr, 10);
-      if (!validRefIds.has(refId)) {
-        return ""; // Remove invalid reference markers
-      }
-      const ref = validRefs.find((r) => r.ref_id === refId);
-      if (!ref) {
-        return "";
-      }
-      return `[インタビュー#${refId}](/reports/${ref.session_id})`;
+    /\[ref:\d+(?:,\s*ref:\d+)*\]/g,
+    (match) => {
+      const refIds = [...match.matchAll(/ref:(\d+)/g)].map((m) =>
+        Number.parseInt(m[1], 10)
+      );
+      const replaced = refIds
+        .map((refId) => {
+          const ref = validRefs.find((r) => r.ref_id === refId);
+          if (!ref) {
+            return null;
+          }
+          return `[インタビュー#${refId}](/reports/${ref.session_id})`;
+        })
+        .filter(Boolean);
+      return replaced.join(", ");
     }
   );
 
