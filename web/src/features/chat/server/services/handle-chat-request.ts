@@ -3,9 +3,11 @@ import type { Database } from "@mirai-gikai/supabase";
 import {
   convertToModelMessages,
   streamText,
+  tool,
   type LanguageModel,
   type UIMessage,
 } from "ai";
+import { z } from "zod";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
@@ -20,6 +22,7 @@ import { getUsageCostUsd, recordChatUsage } from "./cost-tracker";
 
 export type ChatMessageMetadata = {
   billContext?: BillWithContent;
+  hasInterviewConfig?: boolean;
   pageContext?: {
     type: "home" | "bill";
     bills?: Array<{ id: string; name: string; summary?: string }>;
@@ -80,16 +83,22 @@ export async function handleChatRequest({
   const modelName =
     typeof model === "string" ? model : (model.modelId ?? "unknown");
 
+  // Build system prompt with interview suggestion instructions
+  const systemPrompt = buildSystemPromptWithInterviewInstructions(
+    promptResult.content,
+    context
+  );
+
+  // Build tools configuration
+  const tools = buildTools(context, messages);
+
   // Generate streaming response
   try {
     const result = streamText({
       model,
-      system: promptResult.content,
+      system: systemPrompt,
       messages: await convertToModelMessages(messages),
-      tools: {
-        // biome-ignore lint/suspicious/noExplicitAny: OpenAI web_search tool type incompatibility
-        web_search: openai.tools.webSearch() as any,
-      },
+      tools,
       onFinish: async (event) => {
         try {
           const providerCost = extractGatewayCost(event);
@@ -133,6 +142,7 @@ function extractChatContext(
 
   return {
     billContext: metadata?.billContext,
+    hasInterviewConfig: metadata?.hasInterviewConfig,
     pageContext: metadata?.pageContext,
     difficultyLevel: (metadata?.difficultyLevel ||
       "normal") as DifficultyLevelEnum,
@@ -277,4 +287,78 @@ function extractGatewayCost(event: {
   const numericCost = Number(gatewayCost);
 
   return Number.isFinite(numericCost) ? numericCost : undefined;
+}
+
+const INTERVIEW_SUGGESTION_PROMPT = `
+
+## AIインタビュー提案について
+この法案にはAIインタビュー機能があります。以下の条件に該当する場合、通常のテキスト応答と併せて suggest_interview ツールを呼び出してください。
+ただし、1つの会話の中で suggest_interview ツールを呼び出すのは1回のみとしてください。
+
+### suggest_interview を呼び出す条件:
+- ユーザーがこの法案の当事者や関係者であることがわかった場合
+- ユーザーがこの法案について専門的な知識を持っていると判断できる場合
+- ユーザーがこの法案に対して具体的な提言や意見を述べた場合
+- ユーザーがインタビューや意見提出について質問した場合
+- ユーザーが自分の意見を共有したい、政策に反映してほしいと表明した場合
+
+### 重要:
+- suggest_interview ツールの呼び出しは、通常のテキスト応答と同時に行ってください。ツールだけを呼び出してテキスト応答を省略しないでください。
+- ツールの呼び出しは会話全体で最大1回です。既に呼び出し済みの場合は再度呼び出さないでください。
+`;
+
+/**
+ * インタビュー提案の指示をシステムプロンプトに追加
+ */
+function buildSystemPromptWithInterviewInstructions(
+  basePrompt: string,
+  context: ChatMessageMetadata
+): string {
+  if (context.billContext && context.hasInterviewConfig) {
+    return basePrompt + INTERVIEW_SUGGESTION_PROMPT;
+  }
+  return basePrompt;
+}
+
+/**
+ * 会話履歴にsuggest_interviewツール呼び出しが既に存在するか判定
+ */
+function hasExistingSuggestInterview(
+  messages: UIMessage<ChatMessageMetadata>[]
+): boolean {
+  return messages.some(
+    (msg) =>
+      msg.role === "assistant" &&
+      msg.parts.some(
+        (part) => "toolCallId" in part && part.type === "tool-suggest_interview"
+      )
+  );
+}
+
+/**
+ * チャットで使用するツール一覧を構築
+ */
+function buildTools(
+  context: ChatMessageMetadata,
+  messages: UIMessage<ChatMessageMetadata>[]
+) {
+  // biome-ignore lint/suspicious/noExplicitAny: OpenAI web_search tool type incompatibility
+  const tools: Record<string, any> = {
+    web_search: openai.tools.webSearch(),
+  };
+
+  if (
+    context.billContext &&
+    context.hasInterviewConfig &&
+    !hasExistingSuggestInterview(messages)
+  ) {
+    tools.suggest_interview = tool({
+      description:
+        "ユーザーが法案の当事者・有識者であると判断された場合、またはインタビューについて聞かれた場合に呼び出す。通常のテキスト応答と同時に呼び出すこと。",
+      inputSchema: z.object({}),
+      execute: async () => ({ suggested: true }),
+    });
+  }
+
+  return tools;
 }

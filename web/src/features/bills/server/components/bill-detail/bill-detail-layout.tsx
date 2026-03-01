@@ -31,7 +31,11 @@ export async function BillDetailLayout({
         - BillDetailClientでクライアントサイド機能（テキスト選択、チャット連携）を提供
         - このパターンによりSSRを保持しつつインタラクティブ機能を実装
       */}
-      <BillDetailClient bill={bill} currentDifficulty={currentDifficulty}>
+      <BillDetailClient
+        bill={bill}
+        currentDifficulty={currentDifficulty}
+        hasInterviewConfig={interviewConfig != null}
+      >
         <BillDetailHeader
           bill={bill}
           hasInterviewConfig={interviewConfig != null}
