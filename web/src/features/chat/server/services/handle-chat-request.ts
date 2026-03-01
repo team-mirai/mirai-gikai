@@ -10,7 +10,13 @@ import {
 import { z } from "zod";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import {
+  SUGGEST_INTERVIEW_TOOL_NAME,
+  SUGGEST_INTERVIEW_TOOL_TYPE,
+} from "@/features/chat/shared/constants";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
+import { findLatestNonArchivedSession } from "@/features/interview-session/server/repositories/interview-session-repository";
 import { env } from "@/lib/env";
 import {
   type CompiledPrompt,
@@ -83,14 +89,21 @@ export async function handleChatRequest({
   const modelName =
     typeof model === "string" ? model : (model.modelId ?? "unknown");
 
+  // Determine if interview suggestion should be enabled
+  const shouldSuggestInterview = await determineShouldSuggestInterview(
+    context,
+    messages,
+    userId
+  );
+
   // Build system prompt with interview suggestion instructions
   const systemPrompt = buildSystemPromptWithInterviewInstructions(
     promptResult.content,
-    context
+    shouldSuggestInterview
   );
 
   // Build tools configuration
-  const tools = buildTools(context, messages);
+  const tools = buildTools(shouldSuggestInterview);
 
   // Generate streaming response
   try {
@@ -308,16 +321,31 @@ const INTERVIEW_SUGGESTION_PROMPT = `
 `;
 
 /**
- * インタビュー提案の指示をシステムプロンプトに追加
+ * インタビュー提案を有効にすべきか判定
+ *
+ * 以下のすべてを満たす場合にtrueを返す:
+ * - 法案ページでインタビュー設定がある
+ * - 会話中にまだsuggest_interviewツールが呼び出されていない
+ * - ユーザーがこの法案のインタビューを受けたことがない
  */
-function buildSystemPromptWithInterviewInstructions(
-  basePrompt: string,
-  context: ChatMessageMetadata
-): string {
-  if (context.billContext && context.hasInterviewConfig) {
-    return basePrompt + INTERVIEW_SUGGESTION_PROMPT;
+async function determineShouldSuggestInterview(
+  context: ChatMessageMetadata,
+  messages: UIMessage<ChatMessageMetadata>[],
+  userId: string
+): Promise<boolean> {
+  if (!context.billContext || !context.hasInterviewConfig) {
+    return false;
   }
-  return basePrompt;
+
+  if (hasExistingSuggestInterview(messages)) {
+    return false;
+  }
+
+  const hasSession = await hasExistingInterviewSession(
+    context.billContext.id,
+    userId
+  );
+  return !hasSession;
 }
 
 /**
@@ -330,29 +358,55 @@ function hasExistingSuggestInterview(
     (msg) =>
       msg.role === "assistant" &&
       msg.parts.some(
-        (part) => "toolCallId" in part && part.type === "tool-suggest_interview"
+        (part) =>
+          "toolCallId" in part && part.type === SUGGEST_INTERVIEW_TOOL_TYPE
       )
   );
 }
 
 /**
+ * ユーザーがこの法案のインタビューセッションを持っているか判定
+ */
+async function hasExistingInterviewSession(
+  billId: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    const { data: config } = await findPublicInterviewConfigByBillId(billId);
+    if (!config) return false;
+
+    const session = await findLatestNonArchivedSession(config.id, userId);
+    return session !== null;
+  } catch (error) {
+    console.error("Failed to check existing interview session:", error);
+    return false;
+  }
+}
+
+/**
+ * インタビュー提案の指示をシステムプロンプトに追加
+ */
+function buildSystemPromptWithInterviewInstructions(
+  basePrompt: string,
+  shouldSuggestInterview: boolean
+): string {
+  if (shouldSuggestInterview) {
+    return basePrompt + INTERVIEW_SUGGESTION_PROMPT;
+  }
+  return basePrompt;
+}
+
+/**
  * チャットで使用するツール一覧を構築
  */
-function buildTools(
-  context: ChatMessageMetadata,
-  messages: UIMessage<ChatMessageMetadata>[]
-) {
+function buildTools(shouldSuggestInterview: boolean) {
   // biome-ignore lint/suspicious/noExplicitAny: OpenAI web_search tool type incompatibility
   const tools: Record<string, any> = {
     web_search: openai.tools.webSearch(),
   };
 
-  if (
-    context.billContext &&
-    context.hasInterviewConfig &&
-    !hasExistingSuggestInterview(messages)
-  ) {
-    tools.suggest_interview = tool({
+  if (shouldSuggestInterview) {
+    tools[SUGGEST_INTERVIEW_TOOL_NAME] = tool({
       description:
         "ユーザーが法案の当事者・有識者であると判断された場合、またはインタビューについて聞かれた場合に呼び出す。通常のテキスト応答と同時に呼び出すこと。",
       inputSchema: z.object({}),

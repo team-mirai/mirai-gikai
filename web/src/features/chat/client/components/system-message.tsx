@@ -6,6 +6,7 @@ import {
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
 import { Response } from "@/components/ai-elements/response";
+import { SUGGEST_INTERVIEW_TOOL_TYPE } from "@/features/chat/shared/constants";
 import { InterviewSuggestionBanner } from "./interview-suggestion-banner";
 
 interface SystemMessageProps {
@@ -14,8 +15,6 @@ interface SystemMessageProps {
   billId?: string;
   billName?: string;
 }
-
-const SUGGEST_INTERVIEW_TOOL_TYPE = "tool-suggest_interview";
 
 export function SystemMessage({
   message,
