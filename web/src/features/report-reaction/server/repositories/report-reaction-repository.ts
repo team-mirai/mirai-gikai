@@ -122,7 +122,8 @@ export async function deleteReaction(
 }
 
 /**
- * 複数レポートのリアクション数を一括取得
+ * 複数レポートのリアクション数をDB側で集約して一括取得
+ * RPC関数でGROUP BY集計を行い、転送量を最小化する
  */
 export async function findReactionCountsByReportIds(
   reportIds: string[]
@@ -131,10 +132,9 @@ export async function findReactionCountsByReportIds(
   if (reportIds.length === 0) return countsMap;
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("report_reactions")
-    .select("interview_report_id, reaction_type")
-    .in("interview_report_id", reportIds);
+  const { data, error } = await supabase.rpc("count_reactions_by_report_ids", {
+    report_ids: reportIds,
+  });
 
   if (error) {
     throw new Error(`Failed to fetch reaction counts: ${error.message}`);
@@ -145,7 +145,7 @@ export async function findReactionCountsByReportIds(
       helpful: 0,
       hmm: 0,
     };
-    counts[row.reaction_type as ReactionType]++;
+    counts[row.reaction_type as ReactionType] = Number(row.cnt);
     countsMap.set(row.interview_report_id, counts);
   }
 

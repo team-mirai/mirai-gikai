@@ -686,6 +686,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_reactions_by_report_ids: {
+        Args: { report_ids: string[] }
+        Returns: {
+          cnt: number
+          interview_report_id: string
+          reaction_type: string
+        }[]
+      }
       get_admin_users: {
         Args: never
         Returns: {
