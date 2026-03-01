@@ -10,4 +10,4 @@ export const TOPIC_ANALYSIS_MAX_CONCURRENCY = 5;
 export const TOPIC_ANALYSIS_MAX_REPRESENTATIVES = 5;
 
 /** トピック解析で使用するモデル */
-export const TOPIC_ANALYSIS_MODEL = AI_MODELS.gemini2_5_flash;
+export const TOPIC_ANALYSIS_MODEL = AI_MODELS.gemini3_flash_preview;

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { AnalysisReport } from "@/features/topic-analysis/server/components/analysis-report";
+import { AnalysisReport } from "@/features/topic-analysis/client/components/analysis-report";
 import { TopicAnalysisHeader } from "@/features/topic-analysis/server/components/topic-analysis-header";
 import { getTopicAnalysisDetail } from "@/features/topic-analysis/server/loaders/get-topic-analysis-detail";
 

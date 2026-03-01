@@ -75,9 +75,9 @@ export const modelPricing: Record<string, ModelPricing> = {
     inputTokensPerMillionUsd: 0.5,
     outputTokensPerMillionUsd: 3,
   },
-  [AI_MODELS.gemini2_5_flash]: {
-    inputTokensPerMillionUsd: 0.15,
-    outputTokensPerMillionUsd: 0.6,
+  [AI_MODELS.gemini3_flash_preview]: {
+    inputTokensPerMillionUsd: 0.5,
+    outputTokensPerMillionUsd: 3,
   },
   [AI_MODELS.gemini3_1_pro_preview]: {
     inputTokensPerMillionUsd: 2,
