@@ -86,6 +86,10 @@
   --color-stance-against-bg: #fff1f1;
   --color-stance-neutral: #805f34;
 
+  /* Reaction */
+  --color-mirai-reaction-active: #dd425f;
+  --color-mirai-reaction-inactive: #9f9f9f;
+
   /* Accent */
   --color-mirai-star: #ff9500;
   --color-mirai-highlight: #f4ff5f;
