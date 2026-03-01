@@ -1,47 +1,29 @@
 import "server-only";
 
-import type { LucideIcon } from "lucide-react";
-import { Briefcase, GraduationCap, Home, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   type InterviewReportRole,
   formatRoleLabel,
+  roleIcons,
+  stanceLabels,
+  stanceTextColors,
 } from "../../shared/constants";
 import { formatRelativeTime } from "../../shared/utils/format-relative-time";
 import type { PublicInterviewReport } from "../loaders/get-public-reports-by-bill-id";
-
-const STANCE_LABELS: Record<string, string> = {
-  for: "期待している",
-  against: "懸念している",
-  neutral: "期待と懸念両方がある",
-};
-
-const STANCE_TEXT_COLORS: Record<string, string> = {
-  for: "text-primary-accent",
-  against: "text-stance-against-light",
-  neutral: "text-stance-neutral",
-};
-
-const ROLE_ICONS: Record<InterviewReportRole, LucideIcon> = {
-  subject_expert: GraduationCap,
-  work_related: Briefcase,
-  daily_life_affected: Home,
-  general_citizen: User,
-};
 
 const SUMMARY_MAX_LENGTH = 80;
 
 function _ReportCard({ report }: { report: PublicInterviewReport }) {
   const stanceLabel = report.stance
-    ? STANCE_LABELS[report.stance] || report.stance
+    ? stanceLabels[report.stance] || report.stance
     : null;
   const stanceTextColor = report.stance
-    ? STANCE_TEXT_COLORS[report.stance] || ""
+    ? stanceTextColors[report.stance] || ""
     : "";
   const RoleIcon = report.role
-    ? ROLE_ICONS[report.role as InterviewReportRole]
+    ? roleIcons[report.role as InterviewReportRole]
     : null;
   const roleLabel = formatRoleLabel(report.role, report.role_title);
   const relativeTime = formatRelativeTime(report.created_at);

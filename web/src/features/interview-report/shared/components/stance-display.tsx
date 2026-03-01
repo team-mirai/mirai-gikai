@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { stanceLabels } from "../constants";
+import { stanceLabels, stanceTextColors } from "../constants";
 
 interface StanceDisplayProps {
   stance: string;
@@ -20,15 +20,7 @@ export function StanceDisplay({ stance, size = "md" }: StanceDisplayProps) {
         height={iconSize}
         className="rounded-full"
       />
-      <p
-        className={cn(
-          textSize,
-          "font-bold",
-          stance === "for" && "text-primary-accent",
-          stance === "against" && "text-stance-against-light",
-          stance === "neutral" && "text-stance-neutral"
-        )}
-      >
+      <p className={cn(textSize, "font-bold", stanceTextColors[stance])}>
         {stanceLabels[stance] || stance}
       </p>
     </div>

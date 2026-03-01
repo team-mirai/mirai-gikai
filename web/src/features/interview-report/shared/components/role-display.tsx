@@ -1,13 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-import { Briefcase, GraduationCap, Home, User } from "lucide-react";
-import { type InterviewReportRole, roleLabels } from "../constants";
-
-const roleIcons: Record<InterviewReportRole, LucideIcon> = {
-  subject_expert: GraduationCap,
-  work_related: Briefcase,
-  daily_life_affected: Home,
-  general_citizen: User,
-};
+import { type InterviewReportRole, roleIcons, roleLabels } from "../constants";
 
 interface RoleDisplayProps {
   role: string;
