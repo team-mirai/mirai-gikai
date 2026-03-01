@@ -6,8 +6,8 @@ import { getErrorMessage } from "@/lib/utils/get-error-message";
 import type { CreateAdminInput } from "../../shared/types";
 import { validateEmail } from "../../shared/utils/validate-email";
 import {
-  findAdminUsers,
   createAuthUser,
+  findAdminUsers,
 } from "../repositories/admin-repository";
 
 export async function createAdmin(input: CreateAdminInput) {

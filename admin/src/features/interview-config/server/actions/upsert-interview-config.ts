@@ -2,14 +2,15 @@
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import {
-  WEB_CACHE_TAGS,
   invalidateWebCache,
+  WEB_CACHE_TAGS,
 } from "@/lib/utils/cache-invalidation";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   type InterviewConfigInput,
   interviewConfigSchema,
 } from "../../shared/types";
+import { prepareQuestionsForDuplication } from "../../shared/utils/prepare-questions-for-duplication";
 import {
   closeOtherPublicConfigs,
   createInterviewConfigRecord,
@@ -20,7 +21,6 @@ import {
   findInterviewQuestionsByConfigId,
   updateInterviewConfigRecord,
 } from "../repositories/interview-config-repository";
-import { prepareQuestionsForDuplication } from "../../shared/utils/prepare-questions-for-duplication";
 
 export type InterviewConfigResult =
   | { success: true; data: { id: string } }

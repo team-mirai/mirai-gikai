@@ -21,10 +21,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
 import type { InterviewSessionWithDetails } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
 import { generatePageNumbers } from "../../shared/utils/pagination-utils";
+import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 import { VisibilityBadge } from "./visibility-badge";

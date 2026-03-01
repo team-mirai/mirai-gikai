@@ -5,8 +5,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Admin } from "../../shared/types";
 import { AdminItem } from "../../client/components/admin-item";
+import type { Admin } from "../../shared/types";
 
 type AdminListProps = {
   admins: Admin[];

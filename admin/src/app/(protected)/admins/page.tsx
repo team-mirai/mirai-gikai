@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
-import { AdminList } from "@/features/admins/server/components/admin-list";
 import { InviteAdminForm } from "@/features/admins/client/components/invite-admin-form";
+import { AdminList } from "@/features/admins/server/components/admin-list";
 import { loadAdmins } from "@/features/admins/server/loaders/load-admins";
+import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
 
 export default async function AdminsPage() {
   const currentAdmin = await getCurrentAdmin();

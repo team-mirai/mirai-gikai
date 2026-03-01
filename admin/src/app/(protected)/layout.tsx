@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { Home, User } from "lucide-react";
+import type { ReactNode } from "react";
 import { LogoutButton } from "@/features/auth/client/components/logout-button";
 import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
 import { NavigationLinks } from "./layout/navigation-links";

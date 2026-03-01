@@ -7,11 +7,11 @@ import { AI_MODELS } from "@/lib/ai/models";
 import { injectJsonFields } from "@/lib/stream/inject-json-fields";
 import {
   type ConfigGenerationStage,
-  themeProposalSchema,
   questionProposalSchema,
+  themeProposalSchema,
 } from "../../shared/schemas";
-import { buildConfigGenerationPrompt } from "../utils/build-config-generation-prompt";
 import { getInterviewConfigById } from "../loaders/get-interview-config";
+import { buildConfigGenerationPrompt } from "../utils/build-config-generation-prompt";
 
 interface ExistingQuestion {
   question: string;

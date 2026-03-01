@@ -1,4 +1,3 @@
-import type { ElementType } from "react";
 import {
   AlertCircle,
   CheckCircle,
@@ -7,6 +6,7 @@ import {
   Settings,
   XCircle,
 } from "lucide-react";
+import type { ElementType } from "react";
 
 import type { BillStatus } from "../types";
 

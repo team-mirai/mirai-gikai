@@ -1,11 +1,10 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -14,9 +13,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
-import { loginSchema, type LoginFormData } from "../../shared/types";
+import { type LoginFormData, loginSchema } from "../../shared/types";
 import { useLogin } from "../hooks/use-login";
 
 export function LoginForm() {
