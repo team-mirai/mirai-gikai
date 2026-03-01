@@ -26,29 +26,38 @@ export async function isReportPublic(reportId: string): Promise<boolean> {
 }
 
 /**
- * レポートIDからリアクション数を集計して返す
+ * レポートIDからリアクション数をSQL COUNTで集計して返す
  */
 export async function findReactionCountsByReportId(
   reportId: string
 ): Promise<ReactionCounts> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("report_reactions")
-    .select("reaction_type")
-    .eq("interview_report_id", reportId);
+  const [helpfulResult, hmmResult] = await Promise.all([
+    supabase
+      .from("report_reactions")
+      .select("*", { count: "exact", head: true })
+      .eq("interview_report_id", reportId)
+      .eq("reaction_type", "helpful"),
+    supabase
+      .from("report_reactions")
+      .select("*", { count: "exact", head: true })
+      .eq("interview_report_id", reportId)
+      .eq("reaction_type", "hmm"),
+  ]);
 
-  if (error) {
-    throw new Error(`Failed to fetch reaction counts: ${error.message}`);
+  if (helpfulResult.error) {
+    throw new Error(
+      `Failed to fetch helpful count: ${helpfulResult.error.message}`
+    );
+  }
+  if (hmmResult.error) {
+    throw new Error(`Failed to fetch hmm count: ${hmmResult.error.message}`);
   }
 
-  const counts: ReactionCounts = { helpful: 0, hmm: 0 };
-  for (const row of data) {
-    const type = row.reaction_type as ReactionType;
-    if (type in counts) {
-      counts[type]++;
-    }
-  }
-  return counts;
+  return {
+    helpful: helpfulResult.count ?? 0,
+    hmm: hmmResult.count ?? 0,
+  };
 }
 
 /**
