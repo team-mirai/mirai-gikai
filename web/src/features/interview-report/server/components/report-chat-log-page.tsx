@@ -4,6 +4,8 @@ import { Bot, UserRound } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
+import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
+import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
 import { BackToReportButton } from "../../shared/components/back-to-report-button";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
@@ -29,6 +31,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
   const billName = bill.bill_content?.title || bill.name;
   const characterCount = countCharacters(messages);
   const opinions = parseOpinions(report.opinions);
+  const reactionData = await getReportReactions(reportId);
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -98,6 +101,9 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
           />
         </div>
       </div>
+
+      {/* Reaction Buttons - Fixed at bottom */}
+      <ReactionButtons reportId={reportId} initialData={reactionData} />
     </div>
   );
 }
