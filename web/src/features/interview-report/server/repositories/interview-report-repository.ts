@@ -130,6 +130,31 @@ export async function countPublicReportsByBillId(billId: string) {
 }
 
 /**
+ * 公開レポートをIDから取得（認証不要）
+ * 公開条件: is_public_by_admin = true AND is_public_by_user = true
+ */
+export async function findPublicReportWithSessionById(reportId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_report")
+    .select(
+      "*, interview_sessions(started_at, completed_at, interview_configs(bill_id))"
+    )
+    .eq("id", reportId)
+    .eq("is_public_by_admin", true)
+    .eq("is_public_by_user", true)
+    .single();
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch public interview report: ${error.message}`
+    );
+  }
+
+  return data;
+}
+
+/**
  * レポートの公開設定を更新
  */
 export async function updateReportPublicSetting(

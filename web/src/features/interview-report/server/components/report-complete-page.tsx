@@ -1,22 +1,14 @@
 import "server-only";
 
-import { MessageSquareMore } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SpeechBubble } from "@/components/ui/speech-bubble";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
-import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
 import { PublicStatusSection } from "@/features/interview-report/client/components/public-status-section";
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
 import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
 import { ExpertRegistrationSection } from "../../client/components/expert-registration-section";
-import { BackToBillButton } from "../../shared/components/back-to-bill-button";
-import { IntervieweeInfo } from "../../shared/components/interviewee-info";
-import { OpinionsList } from "../../shared/components/opinions-list";
-import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
-import { ReportMetaInfo } from "../../shared/components/report-meta-info";
+import { ReportContent } from "../../shared/components/report-content";
 import { isExpertRegistrationTargetRole } from "../../shared/utils/expert-registration-validation";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import {
@@ -125,62 +117,24 @@ export async function ReportCompletePage({
             />
           </div>
 
-          {/* レポートカード */}
-          <div className="flex flex-col gap-9">
-            {/* 要約カード */}
-            <div className="flex flex-col items-center gap-9">
-              <SpeechBubble>
-                <p className="text-lg font-bold text-gray-800 leading-relaxed relative z-10 text-center">
-                  {report.summary}
-                </p>
-              </SpeechBubble>
-
-              {/* スタンスと日時情報 */}
-              <ReportMetaInfo
-                stance={report.stance}
-                role={report.role}
-                sessionStartedAt={report.session_started_at}
-                duration={duration}
-                characterCount={characterCount}
-              />
-            </div>
-
-            {/* インタビューを受けた人 */}
-            <IntervieweeInfo
-              roleDescription={report.role_description}
-              headingLevel="h3"
-            />
-
-            {/* 主な意見 */}
-            <OpinionsList
-              opinions={opinions}
-              title="💬主な意見"
-              footer={
-                <Link
-                  href={getInterviewChatLogLink(reportId)}
-                  className="flex items-center justify-center gap-2.5 px-6 py-3 border border-gray-800 rounded-full"
-                >
-                  <MessageSquareMore className="w-6 h-6 text-gray-800" />
-                  <span className="text-base font-bold text-gray-800">
-                    すべての会話ログを読む
-                  </span>
-                </Link>
-              }
-            />
-
+          {/* レポート本体（共通コンポーネント） */}
+          <ReportContent
+            reportId={reportId}
+            billId={billId}
+            summary={report.summary}
+            stance={report.stance}
+            role={report.role}
+            sessionStartedAt={report.session_started_at}
+            duration={duration}
+            characterCount={characterCount}
+            roleDescription={report.role_description}
+            opinions={opinions}
+          >
             {/* 有識者リスト登録バナー */}
             {isExpertRole && !isExpertRegistered && (
               <ExpertRegistrationSection />
             )}
-
-            {/* 法案の記事に戻るボタン */}
-            <div className="flex flex-col gap-3">
-              <BackToBillButton billId={billId} />
-            </div>
-
-            {/* パンくずリスト */}
-            <ReportBreadcrumb billId={billId} />
-          </div>
+          </ReportContent>
         </div>
       </div>
     </div>

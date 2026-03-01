@@ -58,6 +58,13 @@ export function getInterviewReportCompleteLink(reportId: string): string {
 }
 
 /**
+ * 公開レポートページへのリンクを取得
+ */
+export function getPublicReportLink(reportId: string): string {
+  return `/report/${reportId}`;
+}
+
+/**
  * インタビュー会話ログページへのリンクを取得
  */
 export function getInterviewChatLogLink(reportId: string): string {

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { getPublicReportLink } from "@/features/interview-config/shared/utils/interview-links";
 import {
   type InterviewReportRole,
   formatRoleLabel,
@@ -45,7 +46,7 @@ export function ReportCard({ report, summaryMaxLength = 80 }: ReportCardProps) {
 
   return (
     <Link
-      href={`/report/${report.id}/chat-log`}
+      href={getPublicReportLink(report.id)}
       className="block bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors"
     >
       <div className="flex items-center gap-2">
