@@ -3,6 +3,8 @@ import "server-only";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ReportCardWithReactions } from "@/features/report-reaction/client/components/report-card-with-reactions";
+import { getReportReactionsBatch } from "@/features/report-reaction/server/loaders/get-report-reactions";
 import { ReportCard } from "../../shared/components/report-card";
 import type { PublicInterviewReport } from "../loaders/get-public-reports-by-bill-id";
 
@@ -12,7 +14,7 @@ interface BillInterviewOpinionsSectionProps {
   totalCount: number;
 }
 
-export function BillInterviewOpinionsSection({
+export async function BillInterviewOpinionsSection({
   billId,
   reports,
   totalCount,
@@ -20,6 +22,17 @@ export function BillInterviewOpinionsSection({
   if (reports.length === 0) {
     return null;
   }
+
+  const reportIds = reports.map((r) => r.id);
+  const reactionsMap = await getReportReactionsBatch(reportIds);
+
+  const cards = reports.map((report) => ({
+    reportId: report.id,
+    reactionData: reactionsMap.get(report.id) ?? {
+      counts: { helpful: 0, hmm: 0 },
+      userReaction: null,
+    },
+  }));
 
   return (
     <div className="flex flex-col gap-4">
@@ -33,12 +46,12 @@ export function BillInterviewOpinionsSection({
         </span>
       </div>
 
-      {/* レポートカード一覧 */}
-      <div className="flex flex-col gap-4">
+      {/* レポートカード一覧（リアクション付き） */}
+      <ReportCardWithReactions billId={billId} cards={cards}>
         {reports.map((report) => (
           <ReportCard key={report.id} report={report} />
         ))}
-      </div>
+      </ReportCardWithReactions>
 
       {/* もっと読むリンク */}
       {totalCount > reports.length && (

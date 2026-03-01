@@ -12,11 +12,13 @@ import { computeOptimisticState } from "../../shared/utils/compute-optimistic-st
 interface ReactionButtonsProps {
   reportId: string;
   initialData: ReportReactionData;
+  billId?: string;
 }
 
 export function ReactionButtons({
   reportId,
   initialData,
+  billId,
 }: ReactionButtonsProps) {
   useAnonymousSupabaseUser();
   const router = useRouter();
@@ -29,7 +31,7 @@ export function ReactionButtons({
   const handleClick = (reactionType: ReactionType) => {
     startTransition(async () => {
       setOptimistic(reactionType);
-      const result = await toggleReaction(reportId, reactionType);
+      const result = await toggleReaction(reportId, reactionType, billId);
       if (!result.success) {
         // 失敗時はサーバーデータで再描画して不整合を解消
         router.refresh();

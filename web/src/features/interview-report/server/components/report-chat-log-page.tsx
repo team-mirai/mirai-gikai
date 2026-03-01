@@ -103,7 +103,11 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
       </div>
 
       {/* Reaction Buttons - Fixed at bottom */}
-      <ReactionButtons reportId={reportId} initialData={reactionData} />
+      <ReactionButtons
+        reportId={reportId}
+        initialData={reactionData}
+        billId={report.bill_id}
+      />
     </div>
   );
 }

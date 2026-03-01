@@ -11,7 +11,7 @@ export async function isReportPublic(reportId: string): Promise<boolean> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("interview_report")
-    .select("is_public_by_admin, interview_sessions!inner(is_public_by_user)")
+    .select("is_public_by_admin, is_public_by_user")
     .eq("id", reportId)
     .single();
 
@@ -19,10 +19,7 @@ export async function isReportPublic(reportId: string): Promise<boolean> {
     return false;
   }
 
-  const session = data.interview_sessions as unknown as {
-    is_public_by_user: boolean;
-  };
-  return data.is_public_by_admin && session.is_public_by_user;
+  return data.is_public_by_admin && data.is_public_by_user;
 }
 
 /**
@@ -122,4 +119,66 @@ export async function deleteReaction(
   if (error) {
     throw new Error(`Failed to delete reaction: ${error.message}`);
   }
+}
+
+/**
+ * 複数レポートのリアクション数を一括取得
+ */
+export async function findReactionCountsByReportIds(
+  reportIds: string[]
+): Promise<Map<string, ReactionCounts>> {
+  const countsMap = new Map<string, ReactionCounts>();
+  if (reportIds.length === 0) return countsMap;
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("report_reactions")
+    .select("interview_report_id, reaction_type")
+    .in("interview_report_id", reportIds);
+
+  if (error) {
+    throw new Error(`Failed to fetch reaction counts: ${error.message}`);
+  }
+
+  for (const row of data) {
+    const counts = countsMap.get(row.interview_report_id) ?? {
+      helpful: 0,
+      hmm: 0,
+    };
+    counts[row.reaction_type as ReactionType]++;
+    countsMap.set(row.interview_report_id, counts);
+  }
+
+  return countsMap;
+}
+
+/**
+ * 複数レポートに対するユーザーのリアクションを一括取得
+ */
+export async function findUserReactionsByReportIds(
+  reportIds: string[],
+  userId: string
+): Promise<Map<string, ReactionType>> {
+  const reactionsMap = new Map<string, ReactionType>();
+  if (reportIds.length === 0) return reactionsMap;
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("report_reactions")
+    .select("interview_report_id, reaction_type")
+    .in("interview_report_id", reportIds)
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(`Failed to fetch user reactions: ${error.message}`);
+  }
+
+  for (const row of data) {
+    reactionsMap.set(
+      row.interview_report_id,
+      row.reaction_type as ReactionType
+    );
+  }
+
+  return reactionsMap;
 }

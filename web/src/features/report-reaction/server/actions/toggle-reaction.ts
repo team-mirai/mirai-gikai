@@ -25,7 +25,8 @@ interface ToggleReactionResult {
  */
 export async function toggleReaction(
   reportId: string,
-  reactionType: ReactionType
+  reactionType: ReactionType,
+  billId?: string
 ): Promise<ToggleReactionResult> {
   const authResult = await getAuthenticatedUser();
   if (!authResult.authenticated) {
@@ -55,12 +56,20 @@ export async function toggleReaction(
       // 同じリアクション → 解除
       await deleteReaction(reportId, userId);
       revalidatePath(`/report/${reportId}/chat-log`);
+      if (billId) {
+        revalidatePath(`/bills/${billId}`);
+        revalidatePath(`/bills/${billId}/opinions`);
+      }
       return { success: true, newReaction: null };
     }
 
     // 新規 or 切り替え → upsert
     await upsertReaction(reportId, userId, reactionType);
     revalidatePath(`/report/${reportId}/chat-log`);
+    if (billId) {
+      revalidatePath(`/bills/${billId}`);
+      revalidatePath(`/bills/${billId}/opinions`);
+    }
     return { success: true, newReaction: reactionType };
   } catch {
     return {
