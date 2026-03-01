@@ -87,6 +87,8 @@ function InlineReactionButton({
       variant="ghost"
       onClick={onClick}
       disabled={disabled}
+      aria-pressed={isActive}
+      aria-label={`${label} ${count}`}
       className="flex items-center gap-1 h-auto px-0 py-0 hover:bg-transparent"
     >
       <Icon size={16} className={`transition-colors ${colorClass}`} />
