@@ -6,7 +6,7 @@ import type { ReactionType } from "../../shared/types";
 import {
   deleteReaction,
   findUserReaction,
-  isReportPublic,
+  getReportPublicStatus,
   upsertReaction,
 } from "../repositories/report-reaction-repository";
 
@@ -25,8 +25,7 @@ interface ToggleReactionResult {
  */
 export async function toggleReaction(
   reportId: string,
-  reactionType: ReactionType,
-  billId?: string
+  reactionType: ReactionType
 ): Promise<ToggleReactionResult> {
   const authResult = await getAuthenticatedUser();
   if (!authResult.authenticated) {
@@ -40,8 +39,8 @@ export async function toggleReaction(
   const userId = authResult.userId;
 
   try {
-    // レポートが公開されているか確認
-    const isPublic = await isReportPublic(reportId);
+    // レポートが公開されているか確認し、紐づくbillIdもサーバー側で取得
+    const { isPublic, billId } = await getReportPublicStatus(reportId);
     if (!isPublic) {
       return {
         success: false,

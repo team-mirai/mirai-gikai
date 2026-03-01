@@ -10,13 +10,11 @@ import { computeOptimisticState } from "../../shared/utils/compute-optimistic-st
 
 interface ReactionButtonsInlineProps {
   reportId: string;
-  billId: string;
   initialData: ReportReactionData;
 }
 
 export function ReactionButtonsInline({
   reportId,
-  billId,
   initialData,
 }: ReactionButtonsInlineProps) {
   const router = useRouter();
@@ -32,7 +30,7 @@ export function ReactionButtonsInline({
     startTransition(async () => {
       setOptimistic(reactionType);
       try {
-        const result = await toggleReaction(reportId, reactionType, billId);
+        const result = await toggleReaction(reportId, reactionType);
         if (!result.success) {
           router.refresh();
         }

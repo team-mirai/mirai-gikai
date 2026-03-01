@@ -70,7 +70,6 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
         {/* 意見一覧（フィルター付き） */}
         <PublicOpinionsList
           reports={reports}
-          billId={billId}
           reactionsRecord={reactionsRecord}
         />
 

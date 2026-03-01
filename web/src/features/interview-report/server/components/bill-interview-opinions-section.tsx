@@ -53,7 +53,6 @@ export async function BillInterviewOpinionsSection({
               <div className="bg-white rounded-b-lg px-4 pb-3 -mt-1">
                 <ReactionButtonsInline
                   reportId={report.id}
-                  billId={billId}
                   initialData={
                     reactionsMap.get(report.id) ?? defaultReactionData
                   }

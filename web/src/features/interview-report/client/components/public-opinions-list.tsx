@@ -45,7 +45,6 @@ function _FilterChip({
 
 interface PublicOpinionsListProps {
   reports: PublicInterviewReport[];
-  billId: string;
   reactionsRecord: Record<
     string,
     { counts: { helpful: number; hmm: number }; userReaction: string | null }
@@ -54,7 +53,6 @@ interface PublicOpinionsListProps {
 
 export function PublicOpinionsList({
   reports,
-  billId,
   reactionsRecord,
 }: PublicOpinionsListProps) {
   useAnonymousSupabaseUser();
@@ -110,7 +108,6 @@ export function PublicOpinionsList({
               <div className="bg-white rounded-b-lg px-4 pb-3 -mt-1">
                 <ReactionButtonsInline
                   reportId={report.id}
-                  billId={billId}
                   initialData={reactionData}
                 />
               </div>
