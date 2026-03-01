@@ -67,6 +67,7 @@ export async function BillDetailLayout({
         {publicReportsResult.totalCount > 0 && (
           <div className="my-8">
             <BillInterviewOpinionsSection
+              billId={bill.id}
               reports={publicReportsResult.reports}
               totalCount={publicReportsResult.totalCount}
             />
