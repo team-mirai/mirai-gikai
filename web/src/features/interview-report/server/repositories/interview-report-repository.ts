@@ -10,7 +10,7 @@ export async function findReportWithSessionById(reportId: string) {
   const { data, error } = await supabase
     .from("interview_report")
     .select(
-      "*, interview_sessions(user_id, started_at, completed_at, is_public_by_user, interview_configs(bill_id))"
+      "*, interview_sessions(user_id, started_at, completed_at, interview_configs(bill_id))"
     )
     .eq("id", reportId)
     .single();
@@ -88,10 +88,10 @@ export async function findPublicReportsByBillId(
   const { data, error } = await supabase
     .from("interview_report")
     .select(
-      "id, stance, role, role_title, summary, total_score, created_at, interview_sessions!inner(is_public_by_user, completed_at, interview_configs!inner(bill_id))"
+      "id, stance, role, role_title, summary, total_score, created_at, interview_sessions!inner(interview_configs!inner(bill_id))"
     )
     .eq("is_public_by_admin", true)
-    .eq("interview_sessions.is_public_by_user", true)
+    .eq("is_public_by_user", true)
     .eq("interview_sessions.interview_configs.bill_id", billId)
     .order("total_score", { ascending: false, nullsFirst: false })
     .limit(limit);
@@ -112,12 +112,12 @@ export async function countPublicReportsByBillId(billId: string) {
   const supabase = createAdminClient();
   const { count, error } = await supabase
     .from("interview_report")
-    .select(
-      "id, interview_sessions!inner(is_public_by_user, interview_configs!inner(bill_id))",
-      { count: "exact", head: true }
-    )
+    .select("id, interview_sessions!inner(interview_configs!inner(bill_id))", {
+      count: "exact",
+      head: true,
+    })
     .eq("is_public_by_admin", true)
-    .eq("interview_sessions.is_public_by_user", true)
+    .eq("is_public_by_user", true)
     .eq("interview_sessions.interview_configs.bill_id", billId);
 
   if (error) {
@@ -130,17 +130,17 @@ export async function countPublicReportsByBillId(billId: string) {
 }
 
 /**
- * セッションの公開設定を更新
+ * レポートの公開設定を更新
  */
-export async function updateSessionPublicSetting(
-  sessionId: string,
+export async function updateReportPublicSetting(
+  reportId: string,
   isPublic: boolean
 ) {
   const supabase = createAdminClient();
   const { error } = await supabase
-    .from("interview_sessions")
+    .from("interview_report")
     .update({ is_public_by_user: isPublic })
-    .eq("id", sessionId);
+    .eq("id", reportId);
 
   if (error) {
     throw new Error(`Failed to update public setting: ${error.message}`);

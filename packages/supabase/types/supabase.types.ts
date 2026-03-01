@@ -448,6 +448,7 @@ export type Database = {
           id: string
           interview_session_id: string
           is_public_by_admin: boolean
+          is_public_by_user: boolean
           opinions: Json | null
           role: Database["public"]["Enums"]["interview_report_role_enum"] | null
           role_description: string | null
@@ -463,6 +464,7 @@ export type Database = {
           id?: string
           interview_session_id: string
           is_public_by_admin?: boolean
+          is_public_by_user?: boolean
           opinions?: Json | null
           role?:
             | Database["public"]["Enums"]["interview_report_role_enum"]
@@ -480,6 +482,7 @@ export type Database = {
           id?: string
           interview_session_id?: string
           is_public_by_admin?: boolean
+          is_public_by_user?: boolean
           opinions?: Json | null
           role?:
             | Database["public"]["Enums"]["interview_report_role_enum"]
@@ -509,7 +512,6 @@ export type Database = {
           created_at: string
           id: string
           interview_config_id: string
-          is_public_by_user: boolean
           langfuse_session_id: string | null
           rating: number | null
           started_at: string
@@ -522,7 +524,6 @@ export type Database = {
           created_at?: string
           id?: string
           interview_config_id: string
-          is_public_by_user?: boolean
           langfuse_session_id?: string | null
           rating?: number | null
           started_at?: string
@@ -535,7 +536,6 @@ export type Database = {
           created_at?: string
           id?: string
           interview_config_id?: string
-          is_public_by_user?: boolean
           langfuse_session_id?: string | null
           rating?: number | null
           started_at?: string
