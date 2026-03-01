@@ -31,8 +31,12 @@ export function ReactionButtonsInline({
     e.stopPropagation();
     startTransition(async () => {
       setOptimistic(reactionType);
-      const result = await toggleReaction(reportId, reactionType, billId);
-      if (!result.success) {
+      try {
+        const result = await toggleReaction(reportId, reactionType, billId);
+        if (!result.success) {
+          router.refresh();
+        }
+      } catch {
         router.refresh();
       }
     });

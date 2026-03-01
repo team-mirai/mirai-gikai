@@ -31,9 +31,13 @@ export function ReactionButtons({
   const handleClick = (reactionType: ReactionType) => {
     startTransition(async () => {
       setOptimistic(reactionType);
-      const result = await toggleReaction(reportId, reactionType, billId);
-      if (!result.success) {
-        // 失敗時はサーバーデータで再描画して不整合を解消
+      try {
+        const result = await toggleReaction(reportId, reactionType, billId);
+        if (!result.success) {
+          // 失敗時はサーバーデータで再描画して不整合を解消
+          router.refresh();
+        }
+      } catch {
         router.refresh();
       }
     });
