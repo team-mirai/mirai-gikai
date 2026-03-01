@@ -4,12 +4,13 @@
  * 1. references内の全session_idが既知セッションIDセットに含まれるか検証
  * 2. 無効な参照を除去
  * 3. description_md内の無効な[ref:N]マーカーを除去
- * 4. 有効な[ref:N]を「[インタビュー#N](/reports/SESSION_ID)」形式に変換
+ * 4. 有効な[ref:N]を「[インタビュー#N](/bills/BILL_ID/reports/SESSION_ID)」形式に変換
  */
 export function validateAndReplaceReferences(
   descriptionMd: string,
   references: Array<{ ref_id: number; session_id: string }>,
-  validSessionIds: Set<string>
+  validSessionIds: Set<string>,
+  billId: string
 ): {
   cleanedMd: string;
   validReferences: Array<{ ref_id: number; session_id: string }>;
@@ -33,7 +34,7 @@ export function validateAndReplaceReferences(
           if (!ref) {
             return null;
           }
-          return `[インタビュー#${refId}](/reports/${ref.session_id})`;
+          return `[インタビュー#${refId}](/bills/${billId}/reports/${ref.session_id})`;
         })
         .filter(Boolean);
       return replaced.join(", ");

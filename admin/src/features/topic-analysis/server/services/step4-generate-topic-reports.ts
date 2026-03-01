@@ -29,12 +29,14 @@ type TopicReportOutput = {
 export async function generateTopicReports(
   topics: TopicReportInput[],
   billTitle: string,
-  validSessionIds: Set<string>
+  validSessionIds: Set<string>,
+  billId: string
 ): Promise<TopicReportOutput[]> {
   const results = await runWithConcurrency(
     topics,
     TOPIC_ANALYSIS_MAX_CONCURRENCY,
-    (topic) => generateSingleTopicReport(topic, billTitle, validSessionIds)
+    (topic) =>
+      generateSingleTopicReport(topic, billTitle, validSessionIds, billId)
   );
 
   return results;
@@ -43,7 +45,8 @@ export async function generateTopicReports(
 async function generateSingleTopicReport(
   input: TopicReportInput,
   billTitle: string,
-  validSessionIds: Set<string>
+  validSessionIds: Set<string>,
+  billId: string
 ): Promise<TopicReportOutput> {
   const opinionsText = input.opinions
     .map((o) => `[session:${o.session_id}] ${o.title}\n${o.content}`)
@@ -94,7 +97,8 @@ ${opinionsText}`,
   const { cleanedMd } = validateAndReplaceReferences(
     report.description,
     report.references,
-    validSessionIds
+    validSessionIds,
+    billId
   );
 
   // representative_opinions から無効な session_id を除去

@@ -127,7 +127,8 @@ export async function runTopicAnalysis(billId: string) {
     const topicReports = await generateTopicReports(
       topicInputs,
       billData.billTitle,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     // Step 5: 全体サマリ生成

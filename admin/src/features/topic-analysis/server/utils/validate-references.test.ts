@@ -3,6 +3,7 @@ import { validateAndReplaceReferences } from "./validate-references";
 
 describe("validateAndReplaceReferences", () => {
   const validSessionIds = new Set(["session-1", "session-2", "session-3"]);
+  const billId = "bill-abc";
 
   it("replaces valid [ref:N] markers with links", () => {
     const md = "This is mentioned in [ref:1] and [ref:2].";
@@ -14,11 +15,12 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe(
-      "This is mentioned in [インタビュー#1](/reports/session-1) and [インタビュー#2](/reports/session-2)."
+      "This is mentioned in [インタビュー#1](/bills/bill-abc/reports/session-1) and [インタビュー#2](/bills/bill-abc/reports/session-2)."
     );
     expect(result.validReferences).toHaveLength(2);
   });
@@ -33,11 +35,12 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe(
-      "See [インタビュー#1](/reports/session-1) and ."
+      "See [インタビュー#1](/bills/bill-abc/reports/session-1) and ."
     );
     expect(result.validReferences).toHaveLength(1);
     expect(result.validReferences[0].session_id).toBe("session-1");
@@ -50,11 +53,12 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe(
-      "Mentioned in [インタビュー#1](/reports/session-1) and ."
+      "Mentioned in [インタビュー#1](/bills/bill-abc/reports/session-1) and ."
     );
   });
 
@@ -65,7 +69,8 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe("No references here.");
@@ -79,7 +84,8 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe("");
@@ -93,7 +99,8 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe("This text has no reference markers at all.");
@@ -107,11 +114,12 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe(
-      "First mention [インタビュー#1](/reports/session-1), second mention [インタビュー#1](/reports/session-1)."
+      "First mention [インタビュー#1](/bills/bill-abc/reports/session-1), second mention [インタビュー#1](/bills/bill-abc/reports/session-1)."
     );
   });
 
@@ -125,7 +133,8 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe("See  and .");
@@ -137,7 +146,12 @@ describe("validateAndReplaceReferences", () => {
     const references = [{ ref_id: 1, session_id: "session-1" }];
     const emptySet = new Set<string>();
 
-    const result = validateAndReplaceReferences(md, references, emptySet);
+    const result = validateAndReplaceReferences(
+      md,
+      references,
+      emptySet,
+      billId
+    );
 
     expect(result.cleanedMd).toBe("See .");
     expect(result.validReferences).toHaveLength(0);
@@ -155,11 +169,12 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe(
-      "効率化が可能です [インタビュー#1](/reports/session-1), [インタビュー#2](/reports/session-2)。また改善も見込まれます [インタビュー#3](/reports/session-3)。"
+      "効率化が可能です [インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#2](/bills/bill-abc/reports/session-2)。また改善も見込まれます [インタビュー#3](/bills/bill-abc/reports/session-3)。"
     );
   });
 
@@ -173,11 +188,12 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe(
-      "参照 [インタビュー#1](/reports/session-1), [インタビュー#2](/reports/session-2)。"
+      "参照 [インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#2](/bills/bill-abc/reports/session-2)。"
     );
   });
 
@@ -188,7 +204,8 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe("参照 。");
@@ -206,11 +223,12 @@ describe("validateAndReplaceReferences", () => {
     const result = validateAndReplaceReferences(
       md,
       references,
-      validSessionIds
+      validSessionIds,
+      billId
     );
 
     expect(result.cleanedMd).toBe(
-      "最初の参照 [インタビュー#1](/reports/session-1)、複数参照 [インタビュー#2](/reports/session-2), [インタビュー#3](/reports/session-3)、最後 [インタビュー#1](/reports/session-1), [インタビュー#3](/reports/session-3)。"
+      "最初の参照 [インタビュー#1](/bills/bill-abc/reports/session-1)、複数参照 [インタビュー#2](/bills/bill-abc/reports/session-2), [インタビュー#3](/bills/bill-abc/reports/session-3)、最後 [インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#3](/bills/bill-abc/reports/session-3)。"
     );
   });
 });
