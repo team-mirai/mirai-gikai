@@ -2,6 +2,8 @@ import { Container } from "@/components/layouts/container";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { InterviewLandingSection } from "@/features/interview-config/client/components/interview-landing-section";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
+import { BillInterviewOpinionsSection } from "@/features/interview-report/server/components/bill-interview-opinions-section";
+import { getPublicReportsByBillId } from "@/features/interview-report/server/loaders/get-public-reports-by-bill-id";
 import { BillDetailClient } from "../../../client/components/bill-detail/bill-detail-client";
 import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disclaimer";
 import { BillStatusProgress } from "../../../client/components/bill-detail/bill-status-progress";
@@ -21,7 +23,10 @@ export async function BillDetailLayout({
   currentDifficulty,
 }: BillDetailLayoutProps) {
   const showMiraiStance = bill.status === "preparing" || bill.mirai_stance;
-  const interviewConfig = await getInterviewConfig(bill.id);
+  const [interviewConfig, publicReportsResult] = await Promise.all([
+    getInterviewConfig(bill.id),
+    getPublicReportsByBillId(bill.id),
+  ]);
 
   return (
     <div className="container mx-auto pb-8 max-w-4xl">
@@ -56,6 +61,14 @@ export async function BillDetailLayout({
             <InterviewLandingSection
               billId={bill.id}
               estimatedDuration={interviewConfig.estimated_duration}
+            />
+          </div>
+        )}
+        {publicReportsResult.totalCount > 0 && (
+          <div className="my-8">
+            <BillInterviewOpinionsSection
+              reports={publicReportsResult.reports}
+              totalCount={publicReportsResult.totalCount}
             />
           </div>
         )}

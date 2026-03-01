@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { updateReportVisibility } from "../repositories/interview-report-repository";
 
@@ -36,6 +36,7 @@ export async function updateReportVisibilityAction(
     // Revalidate the detail page and list page
     revalidatePath(`/bills/${billId}/reports/${sessionId}`);
     revalidatePath(`/bills/${billId}/reports`);
+    revalidateTag("public-interview-reports");
 
     return { success: true };
   } catch (error) {
