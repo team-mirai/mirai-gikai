@@ -324,7 +324,8 @@ const INTERVIEW_SUGGESTION_PROMPT = `
  * インタビュー提案を有効にすべきか判定
  *
  * 以下のすべてを満たす場合にtrueを返す:
- * - 法案ページでインタビュー設定がある
+ * - 法案ページである
+ * - サーバー側でインタビュー設定が公開状態であることを確認
  * - 会話中にまだsuggest_interviewツールが呼び出されていない
  * - ユーザーがこの法案のインタビューを受けたことがない
  */
@@ -333,7 +334,7 @@ async function determineShouldSuggestInterview(
   messages: UIMessage<ChatMessageMetadata>[],
   userId: string
 ): Promise<boolean> {
-  if (!context.billContext || !context.hasInterviewConfig) {
+  if (!context.billContext) {
     return false;
   }
 
@@ -341,8 +342,16 @@ async function determineShouldSuggestInterview(
     return false;
   }
 
+  // サーバー側でインタビュー設定の存在を検証（クライアント側のメタデータを信頼しない）
+  const { data: interviewConfig } = await findPublicInterviewConfigByBillId(
+    context.billContext.id
+  );
+  if (!interviewConfig) {
+    return false;
+  }
+
   const hasSession = await hasExistingInterviewSession(
-    context.billContext.id,
+    interviewConfig.id,
     userId
   );
   return !hasSession;
@@ -365,21 +374,22 @@ function hasExistingSuggestInterview(
 }
 
 /**
- * ユーザーがこの法案のインタビューセッションを持っているか判定
+ * ユーザーがこのインタビュー設定に対するセッションを持っているか判定
+ * fail-closed: エラー時はtrue（セッションあり）を返し、誤ったバナー表示を防ぐ
  */
 async function hasExistingInterviewSession(
-  billId: string,
+  interviewConfigId: string,
   userId: string
 ): Promise<boolean> {
   try {
-    const { data: config } = await findPublicInterviewConfigByBillId(billId);
-    if (!config) return false;
-
-    const session = await findLatestNonArchivedSession(config.id, userId);
+    const session = await findLatestNonArchivedSession(
+      interviewConfigId,
+      userId
+    );
     return session !== null;
   } catch (error) {
     console.error("Failed to check existing interview session:", error);
-    return false;
+    return true;
   }
 }
 
