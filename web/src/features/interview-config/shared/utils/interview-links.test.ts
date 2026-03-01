@@ -6,6 +6,7 @@ import {
   getInterviewChatLogLink,
   getInterviewLPLink,
   getInterviewReportCompleteLink,
+  getPublicReportLink,
 } from "./interview-links";
 
 describe("getBillDetailLink", () => {
@@ -51,6 +52,12 @@ describe("getInterviewReportCompleteLink", () => {
     expect(getInterviewReportCompleteLink("report-456")).toBe(
       "/report/report-456/complete"
     );
+  });
+});
+
+describe("getPublicReportLink", () => {
+  it("returns public report path", () => {
+    expect(getPublicReportLink("report-456")).toBe("/report/report-456");
   });
 });
 
