@@ -65,7 +65,11 @@ function buildReportMarkdown(
       if (representatives.length > 0) {
         topicSection += "\n\n### 代表的な意見\n";
         for (const op of representatives) {
-          topicSection += `\n> **${op.opinion_title}**\n>\n> ${op.opinion_content}\n`;
+          if (op.source_message_content) {
+            topicSection += `\n> **${op.opinion_title}**\n>\n> ${op.source_message_content}\n`;
+          } else {
+            topicSection += `\n> **${op.opinion_title}**\n>\n> ${op.opinion_content}\n`;
+          }
         }
       }
 

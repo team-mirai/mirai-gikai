@@ -68,6 +68,9 @@ async function runPhase1Steps(
         opinion_index: i,
         title: report.opinions[i].title,
         content: report.opinions[i].content,
+        source_message_id: report.opinions[i].source_message_id ?? null,
+        source_message_content:
+          report.opinions[i].source_message_content ?? null,
       });
     }
   }

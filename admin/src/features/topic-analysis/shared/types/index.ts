@@ -19,6 +19,7 @@ export type RepresentativeOpinion = {
   session_id: string;
   opinion_title: string;
   opinion_content: string;
+  source_message_content?: string | null;
 };
 
 // intermediate_results JSONB structure
@@ -41,6 +42,8 @@ export type FlatOpinion = {
   opinion_index: number;
   title: string;
   content: string;
+  source_message_id?: string | null;
+  source_message_content?: string | null;
 };
 
 // フェーズ間データ受け渡し用

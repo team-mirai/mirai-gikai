@@ -106,10 +106,21 @@ ${opinionsText}`,
     validSessionIds.has(op.session_id)
   );
 
+  // ソースメッセージ内容をenrich
+  const enrichedRepresentatives = validRepresentatives.map((rep) => {
+    const source = input.opinions.find(
+      (o) => o.session_id === rep.session_id && o.title === rep.opinion_title
+    );
+    return {
+      ...rep,
+      source_message_content: source?.source_message_content ?? null,
+    };
+  });
+
   return {
     name: input.topicName,
     description_md: cleanedMd,
-    representative_opinions: validRepresentatives,
+    representative_opinions: enrichedRepresentatives,
   };
 }
 

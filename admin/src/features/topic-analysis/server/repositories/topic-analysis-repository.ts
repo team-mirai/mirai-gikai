@@ -211,6 +211,7 @@ export async function createTopics(
       session_id: string;
       opinion_title: string;
       opinion_content: string;
+      source_message_content?: string | null;
     }>;
     sort_order: number;
   }>
@@ -384,7 +385,12 @@ export async function fetchCompletedInterviewReports(billId: string) {
   const reports: Array<{
     session_id: string;
     report_id: string;
-    opinions: Array<{ title: string; content: string }>;
+    opinions: Array<{
+      title: string;
+      content: string;
+      source_message_id?: string | null;
+      source_message_content?: string | null;
+    }>;
   }> = [];
 
   for (const session of sessions) {
@@ -394,7 +400,12 @@ export async function fetchCompletedInterviewReports(billId: string) {
 
     if (report?.opinions) {
       const opinions = Array.isArray(report.opinions)
-        ? (report.opinions as Array<{ title: string; content: string }>)
+        ? (report.opinions as Array<{
+            title: string;
+            content: string;
+            source_message_id?: string | null;
+            source_message_content?: string | null;
+          }>)
         : [];
 
       if (opinions.length > 0) {

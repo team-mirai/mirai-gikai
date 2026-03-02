@@ -25,7 +25,7 @@ describe("convertPartialReport", () => {
       role: "general_citizen",
       role_description: "一般市民",
       role_title: "市民",
-      opinions: [{ title: "意見1", content: "内容1" }],
+      opinions: [{ title: "意見1", content: "内容1", source_message_id: null }],
     });
   });
 
@@ -52,8 +52,8 @@ describe("convertPartialReport", () => {
       ],
     });
     expect(result?.opinions).toEqual([
-      { title: "意見1", content: "内容1" },
-      { title: "意見2", content: "内容2" },
+      { title: "意見1", content: "内容1", source_message_id: null },
+      { title: "意見2", content: "内容2", source_message_id: null },
     ]);
   });
 
@@ -71,7 +71,9 @@ describe("convertPartialReport", () => {
       summary: "要約",
       opinions: [{ title: "タイトルのみ", content: undefined }],
     });
-    expect(result?.opinions).toEqual([{ title: "タイトルのみ", content: "" }]);
+    expect(result?.opinions).toEqual([
+      { title: "タイトルのみ", content: "", source_message_id: null },
+    ]);
   });
 
   it("opinionsがnullなら空配列になる", () => {
