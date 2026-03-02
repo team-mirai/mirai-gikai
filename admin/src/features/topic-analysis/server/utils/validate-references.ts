@@ -4,7 +4,9 @@
  * 1. references内の全session_idが既知セッションIDセットに含まれるか検証
  * 2. 無効な参照を除去
  * 3. description_md内の無効な[ref:N]マーカーを除去
- * 4. 有効な[ref:N]を「[インタビュー#N](/bills/BILL_ID/reports/SESSION_ID)」形式に変換
+ * 4. 有効な[ref:N]を「(インタビュー#N)」形式（markdownリンク付き、丸括弧で囲む）に変換
+ *    - 単独ref: `(インタビュー#1)`
+ *    - 複数ref（カンマ区切りまたは連続）: `(インタビュー#1, インタビュー#4)`
  */
 export function validateAndReplaceReferences(
   descriptionMd: string,
@@ -19,11 +21,11 @@ export function validateAndReplaceReferences(
   const validRefs = references.filter((ref) =>
     validSessionIds.has(ref.session_id)
   );
-  const validRefIds = new Set(validRefs.map((ref) => ref.ref_id));
 
-  // 2. Replace [ref:N] and [ref:N, ref:M, ...] markers in markdown
+  // 2. Replace ref markers in markdown
+  // Match: [ref:N], [ref:N, ref:M, ...], and consecutive [ref:N][ref:M]...
   const cleanedMd = descriptionMd.replace(
-    /\[ref:\d+(?:,\s*ref:\d+)*\]/g,
+    /\[ref:\d+(?:,\s*ref:\d+)*\](?:\[ref:\d+(?:,\s*ref:\d+)*\])*/g,
     (match) => {
       const refIds = [...match.matchAll(/ref:(\d+)/g)].map((m) =>
         Number.parseInt(m[1], 10)
@@ -37,7 +39,10 @@ export function validateAndReplaceReferences(
           return `[インタビュー#${refId}](/bills/${billId}/reports/${ref.session_id})`;
         })
         .filter(Boolean);
-      return replaced.join(", ");
+      if (replaced.length === 0) {
+        return "";
+      }
+      return `(${replaced.join(", ")})`;
     }
   );
 

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
+import { ANALYSIS_STEPS } from "../../shared/constants";
 import type { FlatOpinion, IntermediateResults } from "../../shared/types";
 import {
   createClassifications,
@@ -10,6 +11,7 @@ import {
   fetchCompletedInterviewReports,
   updateVersionResult,
   updateVersionStatus,
+  updateVersionStep,
 } from "../repositories/topic-analysis-repository";
 import { extractTopics } from "./step1-extract-topics";
 import { mergeTopics } from "./step2-merge-topics";
@@ -18,28 +20,40 @@ import { generateTopicReports } from "./step4-generate-topic-reports";
 import { generateOverallSummary } from "./step5-generate-summary";
 
 /**
- * トピック解析パイプラインのオーケストレーター
+ * トピック解析パイプラインのオーケストレーター（互換ラッパー）
  *
- * 5ステップを順次実行し、結果をDBに保存する:
- * 1. トピック抽出
- * 2. トピックマージ
- * 3. 意見分類
- * 4. トピック説明生成
- * 5. 全体サマリ生成
+ * バージョンを作成し、パイプラインを実行する
  */
 export async function runTopicAnalysis(billId: string) {
-  // Langfuse telemetry を初期化
   await registerNodeTelemetry();
 
-  // バージョンを作成
   const version = await createVersion(billId);
-  const versionId = version.id;
+  await executeAnalysisPipeline(version.id, billId);
+  return { versionId: version.id };
+}
 
+/**
+ * トピック解析パイプラインを実行する
+ *
+ * 7ステップを順次実行し、結果をDBに保存する:
+ * 1. データ取得
+ * 2. トピック抽出
+ * 3. トピック統合
+ * 4. 意見分類
+ * 5. トピックレポート生成
+ * 6. 全体サマリ生成
+ * 7. 結果保存
+ */
+export async function executeAnalysisPipeline(
+  versionId: string,
+  billId: string
+) {
   try {
-    // ステータスを running に更新
     await updateVersionStatus(versionId, "running");
 
-    // 入力データ取得
+    // Step 1: データ取得
+    await updateVersionStep(versionId, ANALYSIS_STEPS.FETCH_DATA.label);
+    console.log("[TopicAnalysis] Step 1: Fetching data...");
     const [billData, reports] = await Promise.all([
       fetchBillWithContents(billId),
       fetchCompletedInterviewReports(billId),
@@ -49,7 +63,6 @@ export async function runTopicAnalysis(billId: string) {
       throw new Error("解析対象のインタビューレポートがありません");
     }
 
-    // opinions を flat なリストに変換
     const flatOpinions: FlatOpinion[] = [];
     for (const report of reports) {
       for (let i = 0; i < report.opinions.length; i++) {
@@ -65,9 +78,10 @@ export async function runTopicAnalysis(billId: string) {
 
     const validSessionIds = new Set(reports.map((r) => r.session_id));
 
-    // Step 1: トピック抽出
+    // Step 2: トピック抽出
+    await updateVersionStep(versionId, ANALYSIS_STEPS.EXTRACT_TOPICS.label);
     console.log(
-      `[TopicAnalysis] Step 1: Extracting topics from ${flatOpinions.length} opinions...`
+      `[TopicAnalysis] Step 2: Extracting topics from ${flatOpinions.length} opinions...`
     );
     const rawTopics = await extractTopics(
       flatOpinions,
@@ -75,15 +89,17 @@ export async function runTopicAnalysis(billId: string) {
       billData.billSummary
     );
 
-    // Step 2: トピックマージ
+    // Step 3: トピック統合
+    await updateVersionStep(versionId, ANALYSIS_STEPS.MERGE_TOPICS.label);
     console.log(
-      `[TopicAnalysis] Step 2: Merging ${rawTopics.length} raw topics...`
+      `[TopicAnalysis] Step 3: Merging ${rawTopics.length} raw topics...`
     );
     const mergedTopicNames = await mergeTopics(rawTopics, billData.billTitle);
 
-    // Step 3: 意見分類
+    // Step 4: 意見分類
+    await updateVersionStep(versionId, ANALYSIS_STEPS.CLASSIFY_OPINIONS.label);
     console.log(
-      `[TopicAnalysis] Step 3: Classifying ${flatOpinions.length} opinions into ${mergedTopicNames.length} topics...`
+      `[TopicAnalysis] Step 4: Classifying ${flatOpinions.length} opinions into ${mergedTopicNames.length} topics...`
     );
     const classifications = await classifyOpinions(
       flatOpinions,
@@ -117,8 +133,9 @@ export async function runTopicAnalysis(billId: string) {
       (name) => (topicOpinionsMap.get(name)?.length ?? 0) > 0
     );
 
-    // Step 4: トピック説明生成
-    console.log(`[TopicAnalysis] Step 4: Generating topic reports...`);
+    // Step 5: トピックレポート生成
+    await updateVersionStep(versionId, ANALYSIS_STEPS.GENERATE_REPORTS.label);
+    console.log("[TopicAnalysis] Step 5: Generating topic reports...");
     const topicInputs = activeTopics.map((name) => ({
       topicName: name,
       opinions: topicOpinionsMap.get(name) ?? [],
@@ -131,8 +148,9 @@ export async function runTopicAnalysis(billId: string) {
       billId
     );
 
-    // Step 5: 全体サマリ生成
-    console.log(`[TopicAnalysis] Step 5: Generating summary...`);
+    // Step 6: 全体サマリ生成
+    await updateVersionStep(versionId, ANALYSIS_STEPS.GENERATE_SUMMARY.label);
+    console.log("[TopicAnalysis] Step 6: Generating summary...");
     const summaryMd = await generateOverallSummary(
       topicReports.map((r) => ({
         name: r.name,
@@ -144,10 +162,10 @@ export async function runTopicAnalysis(billId: string) {
       reports.length
     );
 
-    // DB に結果を保存
-    console.log(`[TopicAnalysis] Saving results to DB...`);
+    // Step 7: 結果保存
+    await updateVersionStep(versionId, ANALYSIS_STEPS.SAVE_RESULTS.label);
+    console.log("[TopicAnalysis] Step 7: Saving results to DB...");
 
-    // トピックを作成
     const createdTopics = await createTopics(
       versionId,
       topicReports.map((r, i) => ({
@@ -158,13 +176,11 @@ export async function runTopicAnalysis(billId: string) {
       }))
     );
 
-    // トピック名 → ID のマップを作成
     const topicNameToId = new Map<string, string>();
     for (const topic of createdTopics) {
       topicNameToId.set(topic.name, topic.id);
     }
 
-    // 分類を作成
     const classificationRows: Array<{
       interview_report_id: string;
       topic_id: string;
@@ -188,7 +204,6 @@ export async function runTopicAnalysis(billId: string) {
       await createClassifications(versionId, classificationRows);
     }
 
-    // 中間結果を構築
     const intermediateResults: IntermediateResults = {
       step1_raw_topics: rawTopics,
       step2_merged_topics: mergedTopicNames,
@@ -197,16 +212,13 @@ export async function runTopicAnalysis(billId: string) {
       sessions_count: reports.length,
     };
 
-    // バージョンを完了に更新
     await updateVersionResult(versionId, summaryMd, intermediateResults);
 
     console.log(
       `[TopicAnalysis] Completed successfully. Version: ${versionId}`
     );
-
-    return { versionId };
   } catch (error) {
-    console.error(`[TopicAnalysis] Failed:`, error);
+    console.error("[TopicAnalysis] Failed:", error);
     const errorMessage =
       error instanceof Error ? error.message : "不明なエラー";
     await updateVersionStatus(versionId, "failed", errorMessage);

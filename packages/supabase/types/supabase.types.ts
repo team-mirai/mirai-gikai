@@ -736,10 +736,13 @@ export type Database = {
       topic_analysis_versions: {
         Row: {
           bill_id: string
+          completed_at: string | null
           created_at: string
+          current_step: string | null
           error_message: string | null
           id: string
           intermediate_results: Json | null
+          started_at: string | null
           status: string
           summary_md: string | null
           updated_at: string
@@ -747,10 +750,13 @@ export type Database = {
         }
         Insert: {
           bill_id: string
+          completed_at?: string | null
           created_at?: string
+          current_step?: string | null
           error_message?: string | null
           id?: string
           intermediate_results?: Json | null
+          started_at?: string | null
           status?: string
           summary_md?: string | null
           updated_at?: string
@@ -758,10 +764,13 @@ export type Database = {
         }
         Update: {
           bill_id?: string
+          completed_at?: string | null
           created_at?: string
+          current_step?: string | null
           error_message?: string | null
           id?: string
           intermediate_results?: Json | null
+          started_at?: string | null
           status?: string
           summary_md?: string | null
           updated_at?: string

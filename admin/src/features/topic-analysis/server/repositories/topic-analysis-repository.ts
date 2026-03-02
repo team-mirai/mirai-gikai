@@ -49,16 +49,45 @@ export async function updateVersionStatus(
 ) {
   const supabase = createAdminClient();
 
+  const updateData: Record<string, unknown> = {
+    status,
+    error_message: errorMessage ?? null,
+  };
+
+  if (status === "running") {
+    updateData.started_at = new Date().toISOString();
+  }
+  if (status === "completed" || status === "failed") {
+    updateData.completed_at = new Date().toISOString();
+    updateData.current_step = null;
+  }
+
   const { error } = await supabase
     .from("topic_analysis_versions")
-    .update({
-      status,
-      error_message: errorMessage ?? null,
-    })
+    .update(updateData)
     .eq("id", versionId);
 
   if (error) {
     throw new Error(`Failed to update version status: ${error.message}`);
+  }
+}
+
+/**
+ * バージョンの現在のステップを更新する
+ */
+export async function updateVersionStep(
+  versionId: string,
+  currentStep: string
+) {
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from("topic_analysis_versions")
+    .update({ current_step: currentStep })
+    .eq("id", versionId);
+
+  if (error) {
+    throw new Error(`Failed to update version step: ${error.message}`);
   }
 }
 
@@ -78,6 +107,8 @@ export async function updateVersionResult(
       summary_md: summaryMd,
       intermediate_results: intermediateResults as never,
       status: "completed",
+      completed_at: new Date().toISOString(),
+      current_step: null,
     })
     .eq("id", versionId);
 

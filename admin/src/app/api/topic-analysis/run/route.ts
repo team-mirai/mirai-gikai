@@ -1,5 +1,8 @@
+import { after } from "next/server";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { runTopicAnalysis } from "@/features/topic-analysis/server/services/topic-analysis-orchestrator";
+import { createVersion } from "@/features/topic-analysis/server/repositories/topic-analysis-repository";
+import { executeAnalysisPipeline } from "@/features/topic-analysis/server/services/topic-analysis-orchestrator";
+import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
 export const maxDuration = 120;
 
@@ -21,10 +24,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await runTopicAnalysis(billId);
+    await registerNodeTelemetry();
+    const version = await createVersion(billId);
+
+    after(async () => {
+      try {
+        await executeAnalysisPipeline(version.id, billId);
+      } catch (error) {
+        console.error("Topic analysis pipeline failed:", error);
+      }
+    });
 
     return new Response(
-      JSON.stringify({ success: true, versionId: result.versionId }),
+      JSON.stringify({ success: true, versionId: version.id }),
       { headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {

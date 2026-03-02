@@ -2,6 +2,7 @@ import { FileText } from "lucide-react";
 import Link from "next/link";
 
 import type { TopicAnalysisVersion } from "../../shared/types";
+import { formatAnalysisDuration } from "../../shared/utils/format-analysis-duration";
 
 interface VersionListProps {
   versions: TopicAnalysisVersion[];
@@ -48,6 +49,9 @@ export function VersionList({ versions, billId }: VersionListProps) {
               ステータス
             </th>
             <th className="text-left px-4 py-3 text-sm font-medium">
+              所要時間
+            </th>
+            <th className="text-left px-4 py-3 text-sm font-medium">
               作成日時
             </th>
             <th className="text-right px-4 py-3 text-sm font-medium">操作</th>
@@ -65,6 +69,14 @@ export function VersionList({ versions, billId }: VersionListProps) {
                   >
                     {status.label}
                   </span>
+                </td>
+                <td className="px-4 py-3 text-sm text-muted-foreground">
+                  {version.status === "completed"
+                    ? formatAnalysisDuration(
+                        version.started_at,
+                        version.completed_at
+                      )
+                    : "-"}
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">
                   {new Date(version.created_at).toLocaleString("ja-JP")}

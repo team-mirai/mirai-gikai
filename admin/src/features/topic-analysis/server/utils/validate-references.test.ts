@@ -5,7 +5,7 @@ describe("validateAndReplaceReferences", () => {
   const validSessionIds = new Set(["session-1", "session-2", "session-3"]);
   const billId = "bill-abc";
 
-  it("replaces valid [ref:N] markers with links", () => {
+  it("replaces valid [ref:N] markers with parenthesized links", () => {
     const md = "This is mentioned in [ref:1] and [ref:2].";
     const references = [
       { ref_id: 1, session_id: "session-1" },
@@ -20,7 +20,7 @@ describe("validateAndReplaceReferences", () => {
     );
 
     expect(result.cleanedMd).toBe(
-      "This is mentioned in [インタビュー#1](/bills/bill-abc/reports/session-1) and [インタビュー#2](/bills/bill-abc/reports/session-2)."
+      "This is mentioned in ([インタビュー#1](/bills/bill-abc/reports/session-1)) and ([インタビュー#2](/bills/bill-abc/reports/session-2))."
     );
     expect(result.validReferences).toHaveLength(2);
   });
@@ -40,7 +40,7 @@ describe("validateAndReplaceReferences", () => {
     );
 
     expect(result.cleanedMd).toBe(
-      "See [インタビュー#1](/bills/bill-abc/reports/session-1) and ."
+      "See ([インタビュー#1](/bills/bill-abc/reports/session-1)) and ."
     );
     expect(result.validReferences).toHaveLength(1);
     expect(result.validReferences[0].session_id).toBe("session-1");
@@ -58,7 +58,7 @@ describe("validateAndReplaceReferences", () => {
     );
 
     expect(result.cleanedMd).toBe(
-      "Mentioned in [インタビュー#1](/bills/bill-abc/reports/session-1) and ."
+      "Mentioned in ([インタビュー#1](/bills/bill-abc/reports/session-1)) and ."
     );
   });
 
@@ -119,7 +119,7 @@ describe("validateAndReplaceReferences", () => {
     );
 
     expect(result.cleanedMd).toBe(
-      "First mention [インタビュー#1](/bills/bill-abc/reports/session-1), second mention [インタビュー#1](/bills/bill-abc/reports/session-1)."
+      "First mention ([インタビュー#1](/bills/bill-abc/reports/session-1)), second mention ([インタビュー#1](/bills/bill-abc/reports/session-1))."
     );
   });
 
@@ -174,7 +174,7 @@ describe("validateAndReplaceReferences", () => {
     );
 
     expect(result.cleanedMd).toBe(
-      "効率化が可能です [インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#2](/bills/bill-abc/reports/session-2)。また改善も見込まれます [インタビュー#3](/bills/bill-abc/reports/session-3)。"
+      "効率化が可能です ([インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#2](/bills/bill-abc/reports/session-2))。また改善も見込まれます ([インタビュー#3](/bills/bill-abc/reports/session-3))。"
     );
   });
 
@@ -193,7 +193,7 @@ describe("validateAndReplaceReferences", () => {
     );
 
     expect(result.cleanedMd).toBe(
-      "参照 [インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#2](/bills/bill-abc/reports/session-2)。"
+      "参照 ([インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#2](/bills/bill-abc/reports/session-2))。"
     );
   });
 
@@ -228,7 +228,46 @@ describe("validateAndReplaceReferences", () => {
     );
 
     expect(result.cleanedMd).toBe(
-      "最初の参照 [インタビュー#1](/bills/bill-abc/reports/session-1)、複数参照 [インタビュー#2](/bills/bill-abc/reports/session-2), [インタビュー#3](/bills/bill-abc/reports/session-3)、最後 [インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#3](/bills/bill-abc/reports/session-3)。"
+      "最初の参照 ([インタビュー#1](/bills/bill-abc/reports/session-1))、複数参照 ([インタビュー#2](/bills/bill-abc/reports/session-2), [インタビュー#3](/bills/bill-abc/reports/session-3))、最後 ([インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#3](/bills/bill-abc/reports/session-3))。"
+    );
+  });
+
+  it("handles consecutive [ref:N][ref:M] as a single group", () => {
+    const md = "意見が出ています[ref:1][ref:4]。";
+    const references = [
+      { ref_id: 1, session_id: "session-1" },
+      { ref_id: 4, session_id: "session-2" },
+    ];
+    const sessionIds = new Set(["session-1", "session-2", "session-3"]);
+
+    const result = validateAndReplaceReferences(
+      md,
+      references,
+      sessionIds,
+      billId
+    );
+
+    expect(result.cleanedMd).toBe(
+      "意見が出ています([インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#4](/bills/bill-abc/reports/session-2))。"
+    );
+  });
+
+  it("handles consecutive refs with some invalid", () => {
+    const md = "参照[ref:1][ref:99][ref:2]。";
+    const references = [
+      { ref_id: 1, session_id: "session-1" },
+      { ref_id: 2, session_id: "session-2" },
+    ];
+
+    const result = validateAndReplaceReferences(
+      md,
+      references,
+      validSessionIds,
+      billId
+    );
+
+    expect(result.cleanedMd).toBe(
+      "参照([インタビュー#1](/bills/bill-abc/reports/session-1), [インタビュー#2](/bills/bill-abc/reports/session-2))。"
     );
   });
 });
