@@ -64,7 +64,7 @@ export async function BillList({ sortConfig }: { sortConfig: BillSortConfig }) {
               <TableHead>議案名</TableHead>
               <TableHead>国会会期</TableHead>
               <SortableTableHead
-                field="publish_status"
+                field="publish_status_order"
                 currentField={sortConfig.field}
                 currentOrder={sortConfig.order}
               >

@@ -21,6 +21,7 @@ const baseBill: Bill = {
   status: "introduced",
   status_note: null,
   status_order: BILL_STATUS_ORDER.introduced,
+  publish_status_order: 2,
   thumbnail_url: null,
 };
 

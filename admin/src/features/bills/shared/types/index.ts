@@ -22,7 +22,7 @@ export type BillSortField =
   | "created_at"
   | "published_at"
   | "status_order"
-  | "publish_status";
+  | "publish_status_order";
 
 export type SortOrder = "asc" | "desc";
 

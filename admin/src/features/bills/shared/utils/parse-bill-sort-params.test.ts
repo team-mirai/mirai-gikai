@@ -12,9 +12,9 @@ describe("parseBillSortParams", () => {
     expect(result).toEqual({ field: "status_order", order: "asc" });
   });
 
-  it("publish_statusフィールドを受け付ける", () => {
-    const result = parseBillSortParams("publish_status", "desc");
-    expect(result).toEqual({ field: "publish_status", order: "desc" });
+  it("publish_status_orderフィールドを受け付ける", () => {
+    const result = parseBillSortParams("publish_status_order", "desc");
+    expect(result).toEqual({ field: "publish_status_order", order: "desc" });
   });
 
   it("published_atフィールドを受け付ける", () => {

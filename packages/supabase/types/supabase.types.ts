@@ -84,6 +84,7 @@ export type Database = {
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
+          publish_status_order: number | null
           published_at: string | null
           share_thumbnail_url: string | null
           shugiin_url: string | null
@@ -101,6 +102,7 @@ export type Database = {
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
+          publish_status_order?: number | null
           published_at?: string | null
           share_thumbnail_url?: string | null
           shugiin_url?: string | null
@@ -118,6 +120,7 @@ export type Database = {
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
+          publish_status_order?: number | null
           published_at?: string | null
           share_thumbnail_url?: string | null
           shugiin_url?: string | null
