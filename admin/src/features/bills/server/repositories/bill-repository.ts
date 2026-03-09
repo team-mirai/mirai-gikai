@@ -1,17 +1,32 @@
 import "server-only";
 import type { Database } from "@mirai-gikai/supabase";
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { BillInsert, BillPublishStatus } from "../../shared/types";
+import type {
+  BillInsert,
+  BillPublishStatus,
+  BillSortConfig,
+} from "../../shared/types";
 
 type BillContentInsert =
   Database["public"]["Tables"]["bill_contents"]["Insert"];
 
-export async function findBillsWithDietSessions() {
+export async function findBillsWithDietSessions(sortConfig?: BillSortConfig) {
   const supabase = createAdminClient();
+  const field = sortConfig?.field ?? "created_at";
+  const ascending = (sortConfig?.order ?? "desc") === "asc";
+
+  const orderOptions: { ascending: boolean; nullsFirst?: boolean } = {
+    ascending,
+  };
+
+  if (field === "published_at") {
+    orderOptions.nullsFirst = false;
+  }
+
   const { data, error } = await supabase
     .from("bills")
     .select("*, diet_sessions(name)")
-    .order("created_at", { ascending: false });
+    .order(field, orderOptions);
 
   if (error) {
     throw new Error(`Failed to fetch bills: ${error.message}`);

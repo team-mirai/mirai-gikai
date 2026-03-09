@@ -1,6 +1,17 @@
 import { BillList } from "@/features/bills/server/components/bill-list/bill-list";
+import { parseBillSortParams } from "@/features/bills/shared/utils/parse-bill-sort-params";
 
-export default function BillsPage() {
+interface BillsPageProps {
+  searchParams: Promise<{
+    sort?: string;
+    order?: string;
+  }>;
+}
+
+export default async function BillsPage({ searchParams }: BillsPageProps) {
+  const { sort, order } = await searchParams;
+  const sortConfig = parseBillSortParams(sort, order);
+
   return (
     <div>
       <div className="mb-6">
@@ -8,7 +19,7 @@ export default function BillsPage() {
         <p className="text-gray-600 mt-1">議案の一覧を確認・管理できます</p>
       </div>
 
-      <BillList />
+      <BillList sortConfig={sortConfig} />
     </div>
   );
 }
