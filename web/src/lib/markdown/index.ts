@@ -36,8 +36,10 @@ const sanitizeSchema = {
  * @returns React Element（部分水和対応）
  */
 export async function parseMarkdown(markdown: string): Promise<ReactElement> {
-  // Markdown → mdast
-  const mdast = unified().use(remarkParse).use(remarkBreaks).parse(markdown);
+  // Markdown → mdast（remarkBreaksでソフト改行をbreak nodeに変換）
+  const remarkProcessor = unified().use(remarkParse).use(remarkBreaks);
+  const parsed = remarkProcessor.parse(markdown);
+  const mdast = (await remarkProcessor.run(parsed)) as typeof parsed;
 
   // mdast → hast（rehypeプラグイン適用）
   const hast = await unified()

@@ -32,16 +32,17 @@ export function RestartInterviewButton({
       const result = await archiveInterviewSession(sessionId);
       if (result.success) {
         // アーカイブ成功後、チャットページに遷移（新しいセッションが作成される）
+        // 遷移完了までローディングを維持するため、成功時は setIsLoading(false) を呼ばない
         const chatLink = getInterviewChatLink(billId, previewToken);
         router.push(chatLink);
       } else {
         console.error("Failed to archive session:", result.error);
         alert(result.error || "やり直しに失敗しました");
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Failed to archive session:", error);
       alert("やり直しに失敗しました");
-    } finally {
       setIsLoading(false);
     }
   };

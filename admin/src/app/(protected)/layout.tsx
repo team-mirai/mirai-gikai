@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
 import { Home, User } from "lucide-react";
-import { LogoutButton } from "@/features/auth/components/logout-button";
-import { getCurrentAdmin } from "@/features/auth/lib/auth-server";
+import type { ReactNode } from "react";
+import { LogoutButton } from "@/features/auth/client/components/logout-button";
+import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
 import { NavigationLinks } from "./layout/navigation-links";
 
 export default async function MainLayout({
@@ -11,7 +11,7 @@ export default async function MainLayout({
 }) {
   const admin = await getCurrentAdmin();
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

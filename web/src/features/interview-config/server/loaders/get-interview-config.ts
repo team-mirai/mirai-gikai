@@ -1,7 +1,7 @@
 import type { Database } from "@mirai-gikai/supabase";
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import { findPublicInterviewConfigByBillId } from "../repositories/interview-config-repository";
 
 export type InterviewConfig =
   Database["public"]["Tables"]["interview_configs"]["Row"];
@@ -14,14 +14,7 @@ export async function getInterviewConfig(
 
 const _getCachedInterviewConfig = unstable_cache(
   async (billId: string): Promise<InterviewConfig | null> => {
-    const supabase = createAdminClient();
-
-    const { data, error } = await supabase
-      .from("interview_configs")
-      .select("*")
-      .eq("bill_id", billId)
-      .eq("status", "public") // 公開ステータスのみ
-      .single();
+    const { data, error } = await findPublicInterviewConfigByBillId(billId);
 
     if (error) {
       // レコードが存在しない場合はnullを返す（エラーではない）
@@ -37,6 +30,6 @@ const _getCachedInterviewConfig = unstable_cache(
   ["interview-config"],
   {
     revalidate: 600, // 10分（600秒）
-    tags: [CACHE_TAGS.BILLS],
+    tags: [CACHE_TAGS.INTERVIEW_CONFIGS],
   }
 );

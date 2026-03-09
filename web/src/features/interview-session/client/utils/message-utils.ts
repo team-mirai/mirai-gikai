@@ -1,9 +1,9 @@
 import type { InterviewReportViewData } from "../../shared/schemas";
-import type { SimpleMessage } from "../../shared/types";
 import { isValidReport, parseMessageContent } from "../../shared/message-utils";
 
 // Re-export from shared for backwards compatibility
 export { isValidReport, parseMessageContent };
+export { buildMessagesForApi } from "../../shared/utils/message-builders";
 
 /**
  * 会話メッセージの型定義
@@ -35,7 +35,12 @@ export function convertPartialReport(
         role_description?: string | null;
         role_title?: string | null;
         opinions?: Array<
-          { title?: string; content?: string } | undefined
+          | {
+              title?: string;
+              content?: string;
+              source_message_id?: string | null;
+            }
+          | undefined
         > | null;
       }
     | null
@@ -49,6 +54,7 @@ export function convertPartialReport(
         .map((op) => ({
           title: op.title ?? "",
           content: op.content ?? "",
+          source_message_id: op.source_message_id ?? null,
         }))
         .filter((op) => op.title || op.content)
     : [];
@@ -63,42 +69,4 @@ export function convertPartialReport(
   };
 
   return isValidReport(converted) ? converted : null;
-}
-
-/**
- * メッセージ配列をAPI送信用の形式に変換
- */
-export function buildMessagesForApi(
-  initialMessages: Array<{ role: "assistant" | "user"; content: string }>,
-  conversationMessages: Array<{ role: "assistant" | "user"; content: string }>,
-  newUserMessage?: string
-): Array<{ role: "assistant" | "user"; content: string }> {
-  const messages = [
-    ...initialMessages.map((m) => ({ role: m.role, content: m.content })),
-    ...conversationMessages.map((m) => ({ role: m.role, content: m.content })),
-  ];
-
-  if (newUserMessage) {
-    messages.push({ role: "user" as const, content: newUserMessage });
-  }
-
-  return messages;
-}
-
-// Re-export from shared for backwards compatibility
-export type { SimpleMessage };
-
-/**
- * メッセージ配列をファシリテーターAPI用の形式に変換
- */
-export function buildMessagesForFacilitator(
-  initialMessages: Array<{ role: "assistant" | "user"; content: string }>,
-  conversationMessages: Array<{ role: "assistant" | "user"; content: string }>,
-  newUserMessage: { content: string }
-): SimpleMessage[] {
-  return [
-    ...initialMessages.map((m) => ({ role: m.role, content: m.content })),
-    ...conversationMessages.map((m) => ({ role: m.role, content: m.content })),
-    { role: "user" as const, content: newUserMessage.content },
-  ];
 }

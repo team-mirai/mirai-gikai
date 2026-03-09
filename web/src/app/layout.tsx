@@ -1,16 +1,9 @@
 import "./globals.css";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Lexend_Giga, Noto_Sans_JP } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import type { ReactNode } from "react";
-import { Header } from "@/components/header";
-import { AuthGate } from "@/components/layouts/auth-gate";
-import { Footer } from "@/components/layouts/footer/footer";
-import { MainLayout } from "@/components/layouts/main-layout";
 import { env } from "@/lib/env";
-import { RubyfulInitializer } from "@/lib/rubyful";
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
@@ -88,19 +81,10 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${notoSansJP.variable} ${lexendGiga.variable} font-sans antialiased bg-[#EEEEEE]`}
+        className={`${notoSansJP.variable} ${lexendGiga.variable} font-sans antialiased bg-mirai-surface-light`}
       >
         <NextTopLoader showSpinner={false} color="#2aa693" />
-        <SpeedInsights />
-        <GoogleAnalytics gaId={env.analytics.gaTrackingId ?? ""} />
-        <RubyfulInitializer />
-        <AuthGate />
-
-        <MainLayout>
-          <Header />
-          <main className="min-h-screen bg-[#F7F4F0]">{children}</main>
-          <Footer />
-        </MainLayout>
+        {children}
       </body>
     </html>
   );

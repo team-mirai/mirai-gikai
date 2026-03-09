@@ -4,7 +4,7 @@ import { LinkButton } from "./link-button";
 
 export function About() {
   return (
-    <div className="py-8">
+    <div className="py-10">
       <div className="flex flex-col gap-4">
         {/* ヘッダー */}
         <div className="flex flex-col gap-4">

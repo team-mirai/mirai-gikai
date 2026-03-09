@@ -1,15 +1,21 @@
 /**
- * 日時フォーマット
+ * 日時フォーマット（日本時間）
  */
 export function formatDateTime(dateString: string | null): string {
   if (!dateString) return "-";
   const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${year}年${month}月${day}日  ${hours}:${minutes}`;
+  const formatter = new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Tokyo",
+  });
+  const parts = formatter.formatToParts(date);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}年${get("month")}月${get("day")}日  ${get("hour")}:${get("minute")}`;
 }
 
 /**

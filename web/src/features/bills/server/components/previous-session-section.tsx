@@ -62,7 +62,7 @@ export function PreviousSessionSection({
             <ChevronRight className="h-6 w-6 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
           </h3>
         </Link>
-        <p className="text-xs font-medium text-[#1F2937]">
+        <p className="text-xs font-medium text-mirai-text">
           {sessionDescription}
         </p>
       </div>
@@ -77,13 +77,13 @@ export function PreviousSessionSection({
 
         {/* もっと読むリンク（グラデーションオーバーレイ付き） */}
         {showMoreButton && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[118px] bg-[linear-gradient(180deg,rgba(255,255,255,0.3)_0%,rgb(255,255,255)_62%)] rounded-b-2xl">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[118px] bg-mirai-white-fade rounded-b-2xl">
             <div className="absolute inset-x-0 bottom-6 flex justify-center pointer-events-auto">
               <Button
                 variant="outline"
                 size="lg"
                 asChild
-                className="w-[214px] h-12 text-base font-bold border-[#1F2937] rounded-full hover:bg-gray-50 bg-white"
+                className="w-[214px] h-12 text-base font-bold border-mirai-text rounded-full hover:bg-gray-50 bg-white"
               >
                 <Link href={sessionBillsUrl}>もっと読む</Link>
               </Button>

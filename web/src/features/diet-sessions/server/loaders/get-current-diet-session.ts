@@ -1,7 +1,7 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { DietSession } from "../../shared/types";
+import { findCurrentDietSession } from "../repositories/diet-session-repository";
 
 /**
  * 指定日時点で開催中の国会会期を取得
@@ -21,23 +21,7 @@ export async function getCurrentDietSession(
 
 const _getCachedCurrentDietSession = unstable_cache(
   async (targetDate: string): Promise<DietSession | null> => {
-    const supabase = createAdminClient();
-
-    const { data, error } = await supabase
-      .from("diet_sessions")
-      .select("*")
-      .lte("start_date", targetDate)
-      .gte("end_date", targetDate)
-      .order("start_date", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Failed to fetch current diet session:", error);
-      return null;
-    }
-
-    return data;
+    return findCurrentDietSession(targetDate);
   },
   ["current-diet-session"],
   {

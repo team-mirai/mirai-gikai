@@ -14,7 +14,7 @@ const TEAM_MIRAI_SNS_ORDER = [
 
 export function TeamMirai() {
   return (
-    <div className="py-8">
+    <div className="py-10">
       <div className="flex flex-col gap-6">
         {/* ヘッダー */}
         <div className="flex flex-col gap-4">
@@ -88,7 +88,7 @@ export function TeamMirai() {
                     height={48}
                     className={
                       sns.hasBorder
-                        ? "rounded-full border border-[#B1B1B1]"
+                        ? "rounded-full border border-mirai-border-light"
                         : ""
                     }
                   />

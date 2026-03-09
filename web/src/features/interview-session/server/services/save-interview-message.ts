@@ -1,7 +1,7 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { logger } from "@/lib/logger";
+import { createInterviewMessage } from "../repositories/interview-session-repository";
 
 interface SaveInterviewMessageParams {
   sessionId: string;
@@ -25,16 +25,5 @@ export async function saveInterviewMessage({
     return;
   }
 
-  const supabase = createAdminClient();
-
-  const { error } = await supabase.from("interview_messages").insert({
-    interview_session_id: sessionId,
-    role,
-    content,
-  });
-
-  if (error) {
-    console.error("Failed to save interview message:", error);
-    throw new Error(`Failed to save interview message: ${error.message}`);
-  }
+  await createInterviewMessage({ sessionId, role, content });
 }

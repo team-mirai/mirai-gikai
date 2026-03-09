@@ -1,12 +1,13 @@
 import "server-only";
 
+import {
+  buildLoopModeSystemPrompt,
+  calculateLoopModeNextQuestionId,
+} from "@/features/interview-session/shared/utils/interview-logic/loop-mode";
 import type {
-  FacilitatorParams,
-  FacilitatorResult,
   InterviewModeLogic,
   InterviewPromptParams,
   NextQuestionParams,
-  ShouldFacilitateParams,
 } from "./types";
 
 /**
@@ -14,202 +15,22 @@ import type {
  *
  * このファイルを見れば、Loop Modeに関する以下を把握できる：
  * - システムプロンプトの構築方法
- * - ファシリテーションのロジック
+ * - ステージ遷移判定の指針
  * - モード固有の判定条件
  *
  * ## モードの特徴
  * - 1つのテーマについて多角的に掘り下げる
  * - ユーザーの回答に共感し、追加の質問を重ねる
- * - instruction を質問リストに含める
+ * - follow_up_guide を質問リストに含める
+ *
+ * 実ロジックは shared/utils/interview-logic/loop-mode.ts に純粋関数として切り出し済み
  */
 export const loopModeLogic: InterviewModeLogic = {
   buildSystemPrompt(params: InterviewPromptParams): string {
-    const { bill, interviewConfig, questions } = params;
-
-    const billName = bill?.name || "";
-    const billTitle = bill?.bill_content?.title || "";
-    const billSummary = bill?.bill_content?.summary || "";
-    const billContent = bill?.bill_content?.content || "";
-    const themes = interviewConfig?.themes || [];
-    const knowledgeSource = interviewConfig?.knowledge_source || "";
-
-    // Loop Mode: instruction を含める
-    const questionsText = questions
-      .map(
-        (q, index) =>
-          `${index + 1}. [ID: ${q.id}] ${q.question}${q.instruction ? `\n   指示: ${q.instruction}` : ""}${q.quick_replies ? `\n   クイックリプライ: ${q.quick_replies.join(", ")}` : ""}`
-      )
-      .join("\n");
-
-    const modeInstructions = `
-## インタビューモード: **都度深掘りモード** (Loop Mode)
-現在は、1つのテーマについて多角的に掘り下げていくフェーズです。
-
-1. **基本方針**: 事前定義された質問をトリガーにして、ユーザーの回答から背景、理由、具体的なエピソードを徹底的に引き出してください。
-2. **リアクション**: ユーザーの回答に共感し、その文脈に沿った追加の質問（なぜそう思うのか、具体的にどう困るのか等）を2〜3問重ねてください。
-3. **次のテーマへ**: そのテーマについて十分な示唆が得られた、あるいは話題が尽きたと判断した場合にのみ、次の事前定義質問に移ってください。`;
-
-    return `あなたは半構造化デプスインタビューを実施する熟練のインタビュアーです。
-  あなたの目標は、インタビュイーから深い洞察を引き出すことです。
-
-## あなたの責任
-- インタビュイーが自由に話せるようにしながら会話をリードする
-- 興味深い点を深く掘り下げるためにフォローアップの質問をする
-- 会話から専門知識のレベルを推測し、それに応じてインタビュー内容を調整する
-
-## 専門知識レベルの検出
-インタビュイーの専門知識レベルを継続的に評価します。
-
-- 初心者：簡単な言葉を使い、概念を説明し、サポートする
-- 中級：専門用語を少し使用し、中程度の深さ
-- 専門家: ドメイン固有の用語を使用し、深い技術的議論に参加する
-
-## 法案情報
-- 法案名: ${billName}
-- 法案タイトル: ${billTitle}
-- 法案要約: ${billSummary}
-- 法案詳細: ${billContent}
-
-## インタビューテーマ
-${themes.length > 0 ? themes.map((t: string) => `- ${t}`).join("\n") : "（テーマ未設定）"}
-
-## 知識ソース
-${knowledgeSource || "（知識ソース未設定）"}
-
-## 事前定義質問
-以下の質問を会話の流れに応じて適切なタイミングで使用してください。質問は順番通りに使う必要はなく、会話の流れに応じて選んでください。
-
-${questionsText || "（賛成か、反対か）"}
-
-## インタビューの進め方
-${modeInstructions}
-
-1. **事前定義質問の活用**: 会話全体の中で、リストにある質問を網羅することを目指してください。
-  ただし、会話の流れで不自然な場合や、すでに回答が得られている場合は、事前定義質問を避けること。
-
-2. **深掘りのタイミング**: 上記のモード別指示を厳守してください。
-  - 都度深掘りモード：回答の都度、深く掘り下げる
-3. **インタビューの終了判定**:
-  - 全ての事前定義質問を終え、かつ十分な深掘りが完了した時
-  - ユーザーから終了の意思表示があった時
-4. **完了時の案内**: 最後に「これまでの内容をまとめ、レポートを作成します」と伝え、要約フェーズへ進むことを案内してください。
-
-## クイックリプライについて
-- 事前定義質問そのものをこれから行う場合は、その質問のIDをレスポンスの \`question_id\` フィールドに含めてください
-- 事前定義質問にクイックリプライが設定されている場合、その質問をする際はレスポンスの \`quick_replies\` フィールドにその選択肢を含めてください
-- クイックリプライは事前定義質問に設定されているもののみを使用してください
-- 深掘り質問など、事前定義質問以外の質問をする場合は \`question_id\` を含めず、\`quick_replies\` も含めないでください
-
-## トピックタイトルについて
-- 事前定義質問をこれから行う場合は、\`topic_title\` フィールドにその質問のテーマを短く（20文字以内）で記載してください
-- 例: 「業務への影響」「家計への影響」「医療制度の変化」
-- 深掘り質問など、事前定義質問以外の質問をする場合は \`topic_title\` を含めないでください
-
-## 注意事項
-- 丁寧で親しみやすい口調で話してください
-- ユーザーの回答を尊重し、押し付けがましくならないようにしてください
-- **1つのメッセージにつき1つの質問のみをしてください。** 一度に複数の質問をしないでください。
-- 回答が抽象的な場合は具体的な例を求めてください
-- 法案に関する質問のみに集中してください
-`;
+    return buildLoopModeSystemPrompt(params);
   },
 
-  calculateNextQuestionId(_params: NextQuestionParams): string | undefined {
-    // Loop Mode: 次の質問を強制しない（LLMに任せる）
-    return undefined;
-  },
-
-  checkProgress(_params: FacilitatorParams): FacilitatorResult | null {
-    // Loop Mode: アルゴリズム判定なし、常にLLMで判定
-    return null;
-  },
-
-  buildFacilitatorPrompt(params: FacilitatorParams): string {
-    const {
-      currentStage,
-      questions,
-      askedQuestionIds,
-      totalQuestions,
-      completedQuestions,
-      remainingQuestions,
-    } = params;
-
-    // 完了した質問と未回答の質問をリスト化
-    const completedQuestionsList = questions
-      .filter((q) => askedQuestionIds.has(q.id))
-      .map((q) => `- [ID: ${q.id}] ${q.question}`)
-      .join("\n");
-
-    const remainingQuestionsList = questions
-      .filter((q) => !askedQuestionIds.has(q.id))
-      .map((q) => `- [ID: ${q.id}] ${q.question}`)
-      .join("\n");
-
-    // 現在のステージに応じてプロンプトを調整
-    let stageGuidance = "";
-    if (currentStage === "chat") {
-      stageGuidance = `現在のステージ: chat（インタビュー中）
-- インタビューを継続する場合は nextStage を "chat" にしてください。
-- 要約フェーズに移行すべきと判断した場合は nextStage を "summary" にしてください。
-- 必ず chat → summary の順に進むようにしてください。`;
-    } else if (currentStage === "summary") {
-      stageGuidance = `現在のステージ: summary（要約フェーズ）
-- ユーザーがレポート内容に同意し、完了すべきと判断した場合は nextStage を "summary_complete" にしてください。
-- まだ修正や追加の要約が必要な場合は nextStage を "summary" にしてください。
-- ユーザーが明確にインタビューの再開や追加の質問への回答を希望した場合は nextStage を "chat" にしてください。`;
-    } else {
-      stageGuidance = `現在のステージ: summary_complete（完了済み）
-- このステージでは判定は不要です。nextStage を "summary_complete" にしてください。`;
-    }
-
-    return `
-  あなたは熟練の半構造化デプスインタビューのファシリテーターです。
-  あなたの目標は、以下を達成することです。
-  - インタビューを進行させ、
-  - 十分に深堀りを行い、
-  - 深い考察を行い、
-  - ユーザー独自の知見を抽出したうえで
-  - 最終的に要約を生成すること
-
-## あなたの役割（ファシリテーター）
-- 以下の会話履歴を読み、インタビューの進行状況を判断してください。
-${stageGuidance}
-
-## 事前定義質問の進捗状況
-- **全体**: ${totalQuestions}問中${completedQuestions}問完了（残り${remainingQuestions}問）
-
-${
-  completedQuestionsList
-    ? `### 完了した事前定義質問
-${completedQuestionsList}
-`
-    : ""
-}
-${
-  remainingQuestionsList
-    ? `### 未回答の事前定義質問
-${remainingQuestionsList}
-`
-    : ""
-}
-
-## 終了判定の目安（chatステージの場合）
-- 事前定義質問を概ね終えた、または十分な知見を得た
-- これ以上の深掘りが難しい
-- ユーザーが終了を希望した
-
-## 完了判定の目安（summaryステージの場合）
-- ユーザーがレポート内容に同意した
-- レポートの修正要望がなく、完了を希望している
-
-## 注意
-- JSON以外のテキストを出力しないでください。
-- 基本的なステージ遷移は chat → summary → summary_complete の順ですが、summaryフェーズでユーザーがインタビュー再開を希望した場合は chat に戻ることができます。
-`;
-  },
-
-  shouldFacilitate(params: ShouldFacilitateParams): boolean {
-    // summary_complete の場合はファシリテーション不要
-    return params.currentStage !== "summary_complete";
+  calculateNextQuestionId(params: NextQuestionParams): string | undefined {
+    return calculateLoopModeNextQuestionId(params);
   },
 };

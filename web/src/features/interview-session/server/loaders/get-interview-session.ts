@@ -1,40 +1,30 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import type { InterviewSession } from "../../shared/types";
+import { findActiveInterviewSession } from "../repositories/interview-session-repository";
+import type { LoaderDeps } from "../utils/verify-session-ownership";
 
 export async function getInterviewSession(
-  interviewConfigId: string
+  interviewConfigId: string,
+  deps?: LoaderDeps
 ): Promise<InterviewSession | null> {
   // 認可処理: バックエンド側でuserIdを取得
+  const getUser = deps?.getUser ?? getChatSupabaseUser;
   const {
     data: { user },
     error: getUserError,
-  } = await getChatSupabaseUser();
+  } = await getUser();
 
   if (getUserError || !user) {
     console.error("Failed to get user:", getUserError);
     return null;
   }
 
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("interview_sessions")
-    .select("*")
-    .eq("interview_config_id", interviewConfigId)
-    .eq("user_id", user.id)
-    .is("completed_at", null) // 未完了のセッションのみ
-    .is("archived_at", null) // アーカイブされていないセッションのみ
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
+  try {
+    return await findActiveInterviewSession(interviewConfigId, user.id);
+  } catch (error) {
     console.error("Failed to fetch interview session:", error);
     return null;
   }
-
-  return data;
 }

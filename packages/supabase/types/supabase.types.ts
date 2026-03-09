@@ -84,11 +84,13 @@ export type Database = {
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
+          publish_status_order: number | null
           published_at: string | null
           share_thumbnail_url: string | null
           shugiin_url: string | null
           status: Database["public"]["Enums"]["bill_status_enum"]
           status_note: string | null
+          status_order: number | null
           thumbnail_url: string | null
           updated_at: string
         }
@@ -100,11 +102,13 @@ export type Database = {
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
+          publish_status_order?: number | null
           published_at?: string | null
           share_thumbnail_url?: string | null
           shugiin_url?: string | null
           status: Database["public"]["Enums"]["bill_status_enum"]
           status_note?: string | null
+          status_order?: number | null
           thumbnail_url?: string | null
           updated_at?: string
         }
@@ -116,11 +120,13 @@ export type Database = {
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
+          publish_status_order?: number | null
           published_at?: string | null
           share_thumbnail_url?: string | null
           shugiin_url?: string | null
           status?: Database["public"]["Enums"]["bill_status_enum"]
           status_note?: string | null
+          status_order?: number | null
           thumbnail_url?: string | null
           updated_at?: string
         }
@@ -286,10 +292,42 @@ export type Database = {
         }
         Relationships: []
       }
+      expert_registrations: {
+        Row: {
+          affiliation: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affiliation: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affiliation?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       interview_configs: {
         Row: {
           bill_id: string
+          chat_model: string | null
           created_at: string
+          estimated_duration: number | null
           id: string
           knowledge_source: string | null
           mode: Database["public"]["Enums"]["interview_mode_enum"]
@@ -300,7 +338,9 @@ export type Database = {
         }
         Insert: {
           bill_id: string
+          chat_model?: string | null
           created_at?: string
+          estimated_duration?: number | null
           id?: string
           knowledge_source?: string | null
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
@@ -311,7 +351,9 @@ export type Database = {
         }
         Update: {
           bill_id?: string
+          chat_model?: string | null
           created_at?: string
+          estimated_duration?: number | null
           id?: string
           knowledge_source?: string | null
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
@@ -365,8 +407,8 @@ export type Database = {
       interview_questions: {
         Row: {
           created_at: string
+          follow_up_guide: string | null
           id: string
-          instruction: string | null
           interview_config_id: string
           question: string
           question_order: number
@@ -375,8 +417,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          follow_up_guide?: string | null
           id?: string
-          instruction?: string | null
           interview_config_id: string
           question: string
           question_order: number
@@ -385,8 +427,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          follow_up_guide?: string | null
           id?: string
-          instruction?: string | null
           interview_config_id?: string
           question?: string
           question_order?: number
@@ -409,6 +451,7 @@ export type Database = {
           id: string
           interview_session_id: string
           is_public_by_admin: boolean
+          is_public_by_user: boolean
           opinions: Json | null
           role: Database["public"]["Enums"]["interview_report_role_enum"] | null
           role_description: string | null
@@ -424,6 +467,7 @@ export type Database = {
           id?: string
           interview_session_id: string
           is_public_by_admin?: boolean
+          is_public_by_user?: boolean
           opinions?: Json | null
           role?:
             | Database["public"]["Enums"]["interview_report_role_enum"]
@@ -441,6 +485,7 @@ export type Database = {
           id?: string
           interview_session_id?: string
           is_public_by_admin?: boolean
+          is_public_by_user?: boolean
           opinions?: Json | null
           role?:
             | Database["public"]["Enums"]["interview_report_role_enum"]
@@ -470,8 +515,8 @@ export type Database = {
           created_at: string
           id: string
           interview_config_id: string
-          is_public_by_user: boolean
           langfuse_session_id: string | null
+          rating: number | null
           started_at: string
           updated_at: string
           user_id: string
@@ -482,8 +527,8 @@ export type Database = {
           created_at?: string
           id?: string
           interview_config_id: string
-          is_public_by_user?: boolean
           langfuse_session_id?: string | null
+          rating?: number | null
           started_at?: string
           updated_at?: string
           user_id: string
@@ -494,8 +539,8 @@ export type Database = {
           created_at?: string
           id?: string
           interview_config_id?: string
-          is_public_by_user?: boolean
           langfuse_session_id?: string | null
+          rating?: number | null
           started_at?: string
           updated_at?: string
           user_id?: string
@@ -580,6 +625,38 @@ export type Database = {
           },
         ]
       }
+      report_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          interview_report_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interview_report_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interview_report_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_reactions_interview_report_id_fkey"
+            columns: ["interview_report_id"]
+            isOneToOne: false
+            referencedRelation: "interview_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tags: {
         Row: {
           created_at: string
@@ -607,18 +684,166 @@ export type Database = {
         }
         Relationships: []
       }
+      topic_analysis_classifications: {
+        Row: {
+          id: string
+          interview_report_id: string
+          opinion_index: number
+          topic_id: string
+          version_id: string
+        }
+        Insert: {
+          id?: string
+          interview_report_id: string
+          opinion_index: number
+          topic_id: string
+          version_id: string
+        }
+        Update: {
+          id?: string
+          interview_report_id?: string
+          opinion_index?: number
+          topic_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_analysis_classifications_interview_report_id_fkey"
+            columns: ["interview_report_id"]
+            isOneToOne: false
+            referencedRelation: "interview_report"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topic_analysis_classifications_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topic_analysis_topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topic_analysis_classifications_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "topic_analysis_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topic_analysis_topics: {
+        Row: {
+          created_at: string
+          description_md: string
+          id: string
+          name: string
+          representative_opinions: Json
+          sort_order: number
+          version_id: string
+        }
+        Insert: {
+          created_at?: string
+          description_md: string
+          id?: string
+          name: string
+          representative_opinions?: Json
+          sort_order?: number
+          version_id: string
+        }
+        Update: {
+          created_at?: string
+          description_md?: string
+          id?: string
+          name?: string
+          representative_opinions?: Json
+          sort_order?: number
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_analysis_topics_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "topic_analysis_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topic_analysis_versions: {
+        Row: {
+          bill_id: string
+          completed_at: string | null
+          created_at: string
+          current_step: string | null
+          error_message: string | null
+          id: string
+          intermediate_results: Json | null
+          phase_data: Json | null
+          started_at: string | null
+          status: string
+          summary_md: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          bill_id: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          error_message?: string | null
+          id?: string
+          intermediate_results?: Json | null
+          phase_data?: Json | null
+          started_at?: string | null
+          status?: string
+          summary_md?: string | null
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          bill_id?: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          error_message?: string | null
+          id?: string
+          intermediate_results?: Json | null
+          phase_data?: Json | null
+          started_at?: string | null
+          status?: string
+          summary_md?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_analysis_versions_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_admin_users: {
-        Args: Record<PropertyKey, never>
+      count_reactions_by_report_ids: {
+        Args: { report_ids: string[] }
         Returns: {
-          id: string
-          email: string
+          cnt: number
+          interview_report_id: string
+          reaction_type: string
+        }[]
+      }
+      get_admin_users: {
+        Args: never
+        Returns: {
           created_at: string
-          last_sign_in_at: string | null
+          email: string
+          id: string
+          last_sign_in_at: string
         }[]
       }
       get_interview_message_counts: {

@@ -1,10 +1,10 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { ComingSoonBill } from "../../shared/types";
+import { findComingSoonBills } from "../repositories/bill-repository";
 
 /**
  * Coming Soon議案を取得する
@@ -24,39 +24,9 @@ const _getCachedComingSoonBills = unstable_cache(
     difficultyLevel: DifficultyLevelEnum,
     dietSessionId: string | null
   ): Promise<ComingSoonBill[]> => {
-    const supabase = createAdminClient();
+    const data = await findComingSoonBills(dietSessionId);
 
-    // bill_contentsからタイトルも取得（指定された難易度レベルを使用）
-    let query = supabase
-      .from("bills")
-      .select(
-        `
-        id,
-        name,
-        originating_house,
-        shugiin_url,
-        bill_contents (
-          title,
-          difficulty_level
-        )
-      `
-      )
-      .eq("publish_status", "coming_soon")
-      .order("created_at", { ascending: false });
-
-    // アクティブな国会会期がある場合のみフィルタリング
-    if (dietSessionId) {
-      query = query.eq("diet_session_id", dietSessionId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Failed to fetch coming soon bills:", error);
-      return [];
-    }
-
-    if (!data || data.length === 0) {
+    if (data.length === 0) {
       return [];
     }
 

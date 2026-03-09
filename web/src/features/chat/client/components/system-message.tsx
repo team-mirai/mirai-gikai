@@ -6,38 +6,56 @@ import {
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
 import { Response } from "@/components/ai-elements/response";
+import { SUGGEST_INTERVIEW_TOOL_TYPE } from "@/features/chat/shared/constants";
+import { InterviewSuggestionBanner } from "./interview-suggestion-banner";
 
 interface SystemMessageProps {
   message: UIMessage;
   isStreaming: boolean;
+  billId?: string;
+  billName?: string;
 }
 
-export function SystemMessage({ message, isStreaming }: SystemMessageProps) {
+export function SystemMessage({
+  message,
+  isStreaming,
+  billId,
+  billName,
+}: SystemMessageProps) {
   return (
     <Message from="assistant" className="justify-start py-0">
       <MessageContent
         variant="flat"
-        className="text-sm font-medium leading-[1.8] text-[#1F2937]"
+        className="text-sm font-medium leading-[1.8] text-mirai-text"
       >
         {message.parts.map((part, i: number) => {
-          switch (part.type) {
-            case "text":
-              return (
-                <Response key={`${message.id}-${i}`} className="break-words">
-                  {part.text}
-                </Response>
-              );
-            case "reasoning":
-              return (
-                <Reasoning
-                  key={`${message.id}-${i}`}
-                  className="w-full"
-                  isStreaming={isStreaming && i === message.parts.length - 1}
-                >
-                  <ReasoningTrigger />
-                  <ReasoningContent>{part.text}</ReasoningContent>
-                </Reasoning>
-              );
+          if (part.type === "text") {
+            return (
+              <Response key={`${message.id}-${i}`} className="break-words">
+                {part.text}
+              </Response>
+            );
+          }
+          if (part.type === "reasoning") {
+            return (
+              <Reasoning
+                key={`${message.id}-${i}`}
+                className="w-full"
+                isStreaming={isStreaming && i === message.parts.length - 1}
+              >
+                <ReasoningTrigger />
+                <ReasoningContent>{part.text}</ReasoningContent>
+              </Reasoning>
+            );
+          }
+          if (part.type === SUGGEST_INTERVIEW_TOOL_TYPE && billId && billName) {
+            return (
+              <InterviewSuggestionBanner
+                key={`${message.id}-${i}`}
+                billId={billId}
+                billName={billName}
+              />
+            );
           }
           return null;
         })}

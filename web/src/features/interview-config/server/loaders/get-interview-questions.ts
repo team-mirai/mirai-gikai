@@ -1,21 +1,14 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { InterviewQuestion } from "@/features/interview-session/shared/types";
+import { findInterviewQuestionsByConfigId } from "../repositories/interview-config-repository";
 
 export async function getInterviewQuestions(
   interviewConfigId: string
 ): Promise<InterviewQuestion[]> {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("interview_questions")
-    .select("*")
-    .eq("interview_config_id", interviewConfigId)
-    .order("question_order", { ascending: true });
-
-  if (error) {
+  try {
+    const data = await findInterviewQuestionsByConfigId(interviewConfigId);
+    return data || [];
+  } catch (error) {
     console.error("Failed to fetch interview questions:", error);
     return [];
   }
-
-  return data || [];
 }

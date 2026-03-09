@@ -1,5 +1,6 @@
 interface CompleteInterviewParams {
   sessionId: string;
+  isPublic: boolean;
 }
 
 interface CompleteInterviewResult {

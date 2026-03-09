@@ -2,6 +2,8 @@ import { Container } from "@/components/layouts/container";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { InterviewLandingSection } from "@/features/interview-config/client/components/interview-landing-section";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
+import { BillInterviewOpinionsSection } from "@/features/interview-report/server/components/bill-interview-opinions-section";
+import { getPublicReportsByBillId } from "@/features/interview-report/server/loaders/get-public-reports-by-bill-id";
 import { BillDetailClient } from "../../../client/components/bill-detail/bill-detail-client";
 import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disclaimer";
 import { BillStatusProgress } from "../../../client/components/bill-detail/bill-status-progress";
@@ -21,7 +23,10 @@ export async function BillDetailLayout({
   currentDifficulty,
 }: BillDetailLayoutProps) {
   const showMiraiStance = bill.status === "preparing" || bill.mirai_stance;
-  const interviewConfig = await getInterviewConfig(bill.id);
+  const [interviewConfig, publicReportsResult] = await Promise.all([
+    getInterviewConfig(bill.id),
+    getPublicReportsByBillId(bill.id),
+  ]);
 
   return (
     <div className="container mx-auto pb-8 max-w-4xl">
@@ -31,8 +36,15 @@ export async function BillDetailLayout({
         - BillDetailClientでクライアントサイド機能（テキスト選択、チャット連携）を提供
         - このパターンによりSSRを保持しつつインタラクティブ機能を実装
       */}
-      <BillDetailClient bill={bill} currentDifficulty={currentDifficulty}>
-        <BillDetailHeader bill={bill} />
+      <BillDetailClient
+        bill={bill}
+        currentDifficulty={currentDifficulty}
+        hasInterviewConfig={interviewConfig != null}
+      >
+        <BillDetailHeader
+          bill={bill}
+          hasInterviewConfig={interviewConfig != null}
+        />
         <Container>
           {/* 議案ステータス進捗 */}
           <div className="my-8">
@@ -50,7 +62,19 @@ export async function BillDetailLayout({
       <Container>
         {interviewConfig != null && (
           <div className="my-8">
-            <InterviewLandingSection billId={bill.id} />
+            <InterviewLandingSection
+              billId={bill.id}
+              estimatedDuration={interviewConfig.estimated_duration}
+            />
+          </div>
+        )}
+        {publicReportsResult.totalCount > 0 && (
+          <div className="my-8">
+            <BillInterviewOpinionsSection
+              billId={bill.id}
+              reports={publicReportsResult.reports}
+              totalCount={publicReportsResult.totalCount}
+            />
           </div>
         )}
         {showMiraiStance && (

@@ -30,28 +30,28 @@ export function parseBasicAuth(
   }
 }
 
-export function isPageSpeedInsights(request: NextRequest): boolean {
-  const userAgent = request.headers.get("user-agent") || "";
-
-  // PageSpeed Insights の User-Agent パターンをチェック
+export function isPageSpeedInsightsUA(ua: string): boolean {
   return (
-    userAgent.includes("Chrome-Lighthouse") ||
-    userAgent.includes("PageSpeed Insights") ||
-    userAgent.includes("Google Page Speed Insights")
+    ua.includes("Chrome-Lighthouse") ||
+    ua.includes("PageSpeed Insights") ||
+    ua.includes("Google Page Speed Insights")
   );
 }
 
-export function validateBasicAuth(
-  request: NextRequest,
+export function isPageSpeedInsights(request: NextRequest): boolean {
+  const userAgent = request.headers.get("user-agent") || "";
+  return isPageSpeedInsightsUA(userAgent);
+}
+
+export function validateBasicAuthHeader(
+  header: string | null,
   config: BasicAuthConfig
 ): boolean {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader?.startsWith("Basic ")) {
+  if (!header?.startsWith("Basic ")) {
     return false;
   }
 
-  const credentials = parseBasicAuth(authHeader);
+  const credentials = parseBasicAuth(header);
   if (!credentials) {
     return false;
   }
@@ -60,6 +60,14 @@ export function validateBasicAuth(
     credentials.username === config.username &&
     credentials.password === config.password
   );
+}
+
+export function validateBasicAuth(
+  request: NextRequest,
+  config: BasicAuthConfig
+): boolean {
+  const authHeader = request.headers.get("authorization");
+  return validateBasicAuthHeader(authHeader, config);
 }
 
 export function createUnauthorizedResponse(): Response {

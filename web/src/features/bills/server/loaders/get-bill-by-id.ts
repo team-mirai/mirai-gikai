@@ -1,9 +1,13 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { BillWithContent } from "../../shared/types";
+import {
+  findPublishedBillById,
+  findMiraiStanceByBillId,
+  findTagsByBillId,
+} from "../repositories/bill-repository";
 import { getBillContentWithDifficulty } from "./helpers/get-bill-content";
 
 export async function getBillById(id: string): Promise<BillWithContent | null> {
@@ -17,31 +21,19 @@ const _getCachedBillById = unstable_cache(
     id: string,
     difficultyLevel: DifficultyLevelEnum
   ): Promise<BillWithContent | null> => {
-    const supabase = createAdminClient();
-
     // 基本的なbill情報、見解、コンテンツ、タグを並列取得
     // 公開ステータスの議案のみを取得
-    const [billResult, miraiStanceResult, billContent, tagsResult] =
-      await Promise.all([
-        supabase
-          .from("bills")
-          .select("*")
-          .eq("id", id)
-          .eq("publish_status", "published") // 公開済み議案のみ
-          .single(),
-        supabase.from("mirai_stances").select("*").eq("bill_id", id).single(),
-        getBillContentWithDifficulty(id, difficultyLevel),
-        supabase.from("bills_tags").select("tags(id, label)").eq("bill_id", id),
-      ]);
+    const [bill, miraiStance, billContent, billTags] = await Promise.all([
+      findPublishedBillById(id),
+      findMiraiStanceByBillId(id),
+      getBillContentWithDifficulty(id, difficultyLevel),
+      findTagsByBillId(id),
+    ]);
 
-    const { data: bill, error: billError } = billResult;
-    if (billError || !bill) {
-      console.error("Failed to fetch bill:", billError);
+    if (!bill) {
+      console.error("Failed to fetch bill");
       return null;
     }
-
-    const { data: miraiStance } = miraiStanceResult;
-    const { data: billTags } = tagsResult;
 
     // タグデータを整形
     const tags =

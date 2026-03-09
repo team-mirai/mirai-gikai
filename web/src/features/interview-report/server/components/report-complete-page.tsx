@@ -1,24 +1,21 @@
 import "server-only";
 
-import { MessageSquareMore } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { PublicStatusSection } from "@/features/interview-report/client/components/public-status-section";
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
-import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
+import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
-import { SpeechBubble } from "@/components/ui/speech-bubble";
+import { ExpertRegistrationSection } from "../../client/components/expert-registration-section";
+import { ReportContent } from "../../shared/components/report-content";
+import { isExpertRegistrationTargetRole } from "../../shared/utils/expert-registration-validation";
+import { parseOpinions } from "../../shared/utils/format-utils";
 import {
   calculateDuration,
   countCharacters,
 } from "../../shared/utils/report-utils";
-import { BackToBillButton } from "../../shared/components/back-to-bill-button";
-import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
-import { IntervieweeInfo } from "../../shared/components/interviewee-info";
-import { OpinionsList } from "../../shared/components/opinions-list";
-import { ReportMetaInfo } from "../../shared/components/report-meta-info";
+import { getExpertRegistrationStatus } from "../loaders/get-expert-registration-status";
 
 interface ReportCompletePageProps {
   reportId: string;
@@ -37,19 +34,23 @@ export async function ReportCompletePage({
 
   const billId = report.bill_id;
 
-  // 法案とメッセージを並列取得
-  const [bill, messages] = await Promise.all([
+  const isExpertRole = isExpertRegistrationTargetRole(report.role);
+  const authResult = await getAuthenticatedUser();
+
+  // 法案・メッセージ・有識者登録状況を並列取得
+  const [bill, messages, isExpertRegistered] = await Promise.all([
     getBillById(billId),
     getInterviewMessages(report.interview_session_id),
+    isExpertRole && authResult.authenticated
+      ? getExpertRegistrationStatus(authResult.userId)
+      : Promise.resolve(false),
   ]);
 
   if (!bill) {
     notFound();
   }
 
-  const opinions = Array.isArray(report.opinions)
-    ? (report.opinions as Array<{ title: string; content: string }>)
-    : [];
+  const opinions = parseOpinions(report.opinions);
   const duration = calculateDuration(
     report.session_started_at,
     report.session_completed_at
@@ -57,7 +58,7 @@ export async function ReportCompletePage({
   const characterCount = countCharacters(messages);
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0]">
+    <div className="min-h-dvh bg-mirai-surface">
       {/* 法案サムネイル画像 */}
       {bill.thumbnail_url && (
         <div className="relative w-full h-[320px]">
@@ -89,7 +90,7 @@ export async function ReportCompletePage({
           </h1>
 
           {/* 法案名 */}
-          <div className="bg-[#F2F2F7] rounded-xl px-4 py-2">
+          <div className="bg-mirai-surface-grouped rounded-xl px-4 py-2">
             <p className="text-sm text-gray-800">
               {bill.bill_content?.title || bill.name}
             </p>
@@ -116,58 +117,24 @@ export async function ReportCompletePage({
             />
           </div>
 
-          {/* レポートカード */}
-          <div className="flex flex-col gap-9">
-            {/* 要約カード */}
-            <div className="flex flex-col items-center gap-9">
-              <SpeechBubble>
-                <p className="text-lg font-bold text-gray-800 leading-relaxed relative z-10 text-center">
-                  {report.summary}
-                </p>
-              </SpeechBubble>
-
-              {/* スタンスと日時情報 */}
-              <ReportMetaInfo
-                stance={report.stance}
-                role={report.role}
-                sessionStartedAt={report.session_started_at}
-                duration={duration}
-                characterCount={characterCount}
-              />
-            </div>
-
-            {/* インタビューを受けた人 */}
-            <IntervieweeInfo
-              roleDescription={report.role_description}
-              headingLevel="h3"
-            />
-
-            {/* 主な意見 */}
-            <OpinionsList
-              opinions={opinions}
-              title="💬主な意見"
-              showBackground={true}
-              footer={
-                <Link
-                  href={getInterviewChatLogLink(reportId)}
-                  className="flex items-center justify-center gap-2.5 px-6 py-3 border border-gray-800 rounded-full"
-                >
-                  <MessageSquareMore className="w-6 h-6 text-gray-800" />
-                  <span className="text-base font-bold text-gray-800">
-                    すべての会話ログを読む
-                  </span>
-                </Link>
-              }
-            />
-
-            {/* 法案の記事に戻るボタン */}
-            <div className="flex flex-col gap-3">
-              <BackToBillButton billId={billId} />
-            </div>
-
-            {/* パンくずリスト */}
-            <ReportBreadcrumb billId={billId} />
-          </div>
+          {/* レポート本体（共通コンポーネント） */}
+          <ReportContent
+            reportId={reportId}
+            billId={billId}
+            summary={report.summary}
+            stance={report.stance}
+            role={report.role}
+            sessionStartedAt={report.session_started_at}
+            duration={duration}
+            characterCount={characterCount}
+            roleDescription={report.role_description}
+            opinions={opinions}
+          >
+            {/* 有識者リスト登録バナー */}
+            {isExpertRole && !isExpertRegistered && (
+              <ExpertRegistrationSection />
+            )}
+          </ReportContent>
         </div>
       </div>
     </div>

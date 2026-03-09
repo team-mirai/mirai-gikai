@@ -4,13 +4,17 @@ import { Bot, UserRound } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
-import { getReportWithMessages } from "../loaders/get-report-with-messages";
-import { countCharacters } from "../../shared/utils/report-utils";
+import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
+import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
-import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
+import { BackToReportButton } from "../../shared/components/back-to-report-button";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
 import { OpinionsList } from "../../shared/components/opinions-list";
+import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
 import { ReportMetaInfo } from "../../shared/components/report-meta-info";
+import { parseOpinions } from "../../shared/utils/format-utils";
+import { countCharacters } from "../../shared/utils/report-utils";
+import { getReportWithMessages } from "../loaders/get-report-with-messages";
 
 interface ReportChatLogPageProps {
   reportId: string;
@@ -26,12 +30,11 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
   const { report, messages, bill } = data;
   const billName = bill.bill_content?.title || bill.name;
   const characterCount = countCharacters(messages);
-  const opinions = Array.isArray(report.opinions)
-    ? (report.opinions as Array<{ title: string; content: string }>)
-    : [];
+  const opinions = parseOpinions(report.opinions);
+  const reactionData = await getReportReactions(reportId);
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0]">
+    <div className="min-h-dvh bg-mirai-surface">
       {/* Header Section */}
       <div className="px-4 pt-24 pb-8">
         <div className="flex flex-col items-center">
@@ -82,20 +85,25 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
           </div>
 
           {/* Opinions Section */}
-          <OpinionsList opinions={opinions} showBackground={false} />
+          <OpinionsList opinions={opinions} />
 
-          {/* Back to Bill Button */}
+          {/* Back to Report / Bill Buttons */}
           <div className="flex flex-col gap-3">
+            <BackToReportButton reportId={reportId} />
             <BackToBillButton billId={report.bill_id} />
           </div>
 
           {/* Breadcrumb Navigation */}
           <ReportBreadcrumb
             billId={report.bill_id}
+            reportId={reportId}
             additionalItems={[{ label: "すべての会話ログ" }]}
           />
         </div>
       </div>
+
+      {/* Reaction Buttons - Fixed at bottom */}
+      <ReactionButtons reportId={reportId} initialData={reactionData} />
     </div>
   );
 }
@@ -108,10 +116,28 @@ interface ChatMessageProps {
   };
 }
 
+/**
+ * メッセージのcontentからテキスト部分を抽出する。
+ * AIメッセージはJSON形式（{text, quick_replies, ...}）で保存されているため、
+ * textフィールドを取り出す。JSONでない場合はそのまま返す。
+ */
+function getMessageDisplayText(content: string): string {
+  try {
+    const parsed = JSON.parse(content);
+    if (typeof parsed === "object" && parsed !== null && "text" in parsed) {
+      return parsed.text ?? content;
+    }
+  } catch {
+    // JSONでない場合はそのままテキストとして扱う
+  }
+  return content;
+}
+
 function ChatMessage({ message }: ChatMessageProps) {
   const isAssistant = message.role === "assistant";
 
   if (isAssistant) {
+    const displayText = getMessageDisplayText(message.content);
     // AI message: icon on top left with gray background, then plain text below
     return (
       <div className="flex flex-col items-start gap-2">
@@ -119,7 +145,7 @@ function ChatMessage({ message }: ChatMessageProps) {
           <Bot size={24} className="text-gray-600" />
         </div>
         <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap text-gray-800">
-          {message.content}
+          {displayText}
         </p>
       </div>
     );

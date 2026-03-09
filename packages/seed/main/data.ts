@@ -107,6 +107,15 @@ export const bills: BillInsert[] = [
     is_featured: false,
   })),
   {
+    name: "船荷証券の電子化に関する法律案",
+    originating_house: "HR",
+    status: "in_originating_house",
+    status_note: "衆議院で審議中",
+    published_at: "2025-09-15T09:00:00+09:00",
+    publish_status: "published",
+    is_featured: false,
+  },
+  {
     name: "中学生・高校生向けプログラミング教育必修化法案",
     originating_house: "HR",
     status: "rejected",
@@ -136,6 +145,7 @@ export function createBillsTags(
         ["子育て・教育"],
       ])
     ),
+    "船荷証券の電子化に関する法律案": ["エネルギー・環境"],
     "中学生・高校生向けプログラミング教育必修化法案": ["子育て・教育"],
   };
 
@@ -188,6 +198,15 @@ const miraiStancesData: Omit<MiraiStanceInsert, "bill_id">[] = [
 
 全ての子どもが質の高い食事を平等に受けられることは、健康格差の解消にもつながります。地産地消の推進により地域経済の活性化も期待できます。`,
   },
+  {
+    // 船荷証券の電子化に関する法律案に対する見解
+    type: "conditional_for",
+    comment: `国際海運のデジタル化は避けられない潮流であり、電子船荷証券の法整備は重要です。
+
+ただし、中小フォワーダーや地方港湾事業者への技術支援・移行期間の確保が不十分であれば、実務上の混乱を招く恐れがあります。
+
+国際条約（MLETR）との整合性を保ちつつ、段階的な導入と十分なサポート体制の構築を条件に賛成します。`,
+  },
   // 第218回国会用の追加法案（デザイン確認用）- 同じ見解を4件追加
   ...Array.from({ length: 4 }, () => ({
     type: "for" as const,
@@ -237,14 +256,14 @@ export function createInterviewQuestions(
     {
       interview_config_id: interviewConfigId,
       question: "この法案に賛成ですか？反対ですか？",
-      instruction: "ユーザーの立場を明確にしてください。",
+      follow_up_guide: "ユーザーの立場を明確にしてください。",
       quick_replies: ["賛成", "反対", "どちらでもない"],
       question_order: 1,
     },
     {
       interview_config_id: interviewConfigId,
       question: "その理由を教えてください。",
-      instruction: "具体的な理由を引き出してください。",
+      follow_up_guide: "具体的な理由を引き出してください。",
       quick_replies: null,
       question_order: 2,
     },
@@ -265,7 +284,7 @@ export function createInterviewSessions(
   for (let i = 0; i < 20; i++) {
     const baseOffset = i * 86400000 * 3; // 3日ずつずらす
 
-    // パターン1: 完了 + レポートあり（賛成）- 最初の5件は公開
+    // パターン1: 完了 + レポートあり（賛成）
     sessions.push({
       interview_config_id: interviewConfigId,
       user_id: `00000000-0000-0000-0000-${String(i * 5 + 1).padStart(12, "0")}`,
@@ -273,10 +292,9 @@ export function createInterviewSessions(
       completed_at: new Date(
         now.getTime() - baseOffset - 3000000
       ).toISOString(),
-      is_public_by_user: i < 5, // 最初の5件は公開
     });
 
-    // パターン2: 完了 + レポートあり（反対）- 最初の5件は公開
+    // パターン2: 完了 + レポートあり（反対）
     sessions.push({
       interview_config_id: interviewConfigId,
       user_id: `00000000-0000-0000-0000-${String(i * 5 + 2).padStart(12, "0")}`,
@@ -284,10 +302,9 @@ export function createInterviewSessions(
       completed_at: new Date(
         now.getTime() - baseOffset - 6600000
       ).toISOString(),
-      is_public_by_user: i < 5, // 最初の5件は公開
     });
 
-    // パターン3: 完了 + レポートあり（中立）- 最初の5件は公開
+    // パターン3: 完了 + レポートあり（中立）
     sessions.push({
       interview_config_id: interviewConfigId,
       user_id: `00000000-0000-0000-0000-${String(i * 5 + 3).padStart(12, "0")}`,
@@ -295,7 +312,6 @@ export function createInterviewSessions(
       completed_at: new Date(
         now.getTime() - baseOffset - 10200000
       ).toISOString(),
-      is_public_by_user: i < 5, // 最初の5件は公開
     });
 
     // パターン4: 完了したけどレポート未作成
@@ -306,7 +322,6 @@ export function createInterviewSessions(
       completed_at: new Date(
         now.getTime() - baseOffset - 13800000
       ).toISOString(),
-      is_public_by_user: false,
     });
 
     // パターン5: 進行中（未完了、レポートなし）
@@ -315,7 +330,6 @@ export function createInterviewSessions(
       user_id: `00000000-0000-0000-0000-${String(i * 5 + 5).padStart(12, "0")}`,
       started_at: new Date(now.getTime() - baseOffset - 1800000).toISOString(),
       completed_at: null,
-      is_public_by_user: false,
     });
   }
 
@@ -423,9 +437,11 @@ export function createInterviewReports(
   sessionIds.forEach((sessionId, index) => {
     const patternIndex = index % 5;
     if (patternIndex < 3) {
+      const loopIndex = Math.floor(index / 5);
       reports.push({
         interview_session_id: sessionId,
         ...reportTemplates[patternIndex],
+        is_public_by_user: loopIndex < 5, // 最初の5件は公開
       });
     }
   });
@@ -456,7 +472,6 @@ export function createDemoSession(
     user_id: "00000000-0000-0000-0000-000000000000",
     started_at: new Date(now.getTime() - 3600000).toISOString(),
     completed_at: new Date(now.getTime() - 3000000).toISOString(),
-    is_public_by_user: true,
   };
 }
 
@@ -514,6 +529,7 @@ export function createDemoReport(): InterviewReportInsert {
           "省庁のレスポンスの速さや、官僚の長時間労働が削減され、よりよい人材が官僚になっていく事を期待している。",
       },
     ],
+    is_public_by_user: true,
   };
 }
 
@@ -529,7 +545,6 @@ export function createAdditionalDemoSessions(
       user_id: "00000000-0000-0000-0000-000000000010",
       started_at: new Date(now.getTime() - 7200000).toISOString(),
       completed_at: new Date(now.getTime() - 6600000).toISOString(),
-      is_public_by_user: true,
     },
     {
       id: DEMO_SESSION_ID_DAILY,
@@ -537,15 +552,13 @@ export function createAdditionalDemoSessions(
       user_id: "00000000-0000-0000-0000-000000000011",
       started_at: new Date(now.getTime() - 10800000).toISOString(),
       completed_at: new Date(now.getTime() - 10200000).toISOString(),
-      is_public_by_user: true,
     },
     {
       id: DEMO_SESSION_ID_CITIZEN,
       interview_config_id: interviewConfigId,
       user_id: "00000000-0000-0000-0000-000000000012",
       started_at: new Date(now.getTime() - 14400000).toISOString(),
-      completed_at: new Date(now.getTime() - 13800000).toISOString(),
-      is_public_by_user: true,
+      completed_at: new Date(now.getTime() - 10200000).toISOString(),
     },
   ];
 }
@@ -655,6 +668,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
             "運送会社を経営しているが、燃料費が経営を圧迫している。暫定税率廃止で少しでも負担が減れば助かる。",
         },
       ],
+      is_public_by_user: true,
     },
     {
       id: DEMO_REPORT_ID_DAILY,
@@ -671,6 +685,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
             "通勤や買い物、子供の送り迎えなど毎日車を使っている。公共交通機関がほとんどない地域なのでガソリン代が下がると助かる。",
         },
       ],
+      is_public_by_user: true,
     },
     {
       id: DEMO_REPORT_ID_CITIZEN,
@@ -686,6 +701,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
             "ガソリン車から電気自動車への移行も進めつつ、当面の生活支援として減税があってもいいと考える。",
         },
       ],
+      is_public_by_user: true,
     },
   ];
 }

@@ -1,7 +1,8 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+import { findLatestNonArchivedSession } from "../repositories/interview-session-repository";
+import type { LoaderDeps } from "../utils/verify-session-ownership";
 
 export type InterviewSessionStatus = "active" | "completed" | "none";
 
@@ -18,31 +19,23 @@ export interface LatestInterviewSession {
  * - なし（none）: セッションがない、またはすべてアーカイブ済み
  */
 export async function getLatestInterviewSession(
-  interviewConfigId: string
+  interviewConfigId: string,
+  deps?: LoaderDeps
 ): Promise<LatestInterviewSession | null> {
+  const getUser = deps?.getUser ?? getChatSupabaseUser;
   const {
     data: { user },
     error: getUserError,
-  } = await getChatSupabaseUser();
+  } = await getUser();
 
   if (getUserError || !user) {
     return null;
   }
 
-  const supabase = createAdminClient();
-
-  // アーカイブされていない最新のセッションを取得（完了済みも含む）
-  const { data: session, error } = await supabase
-    .from("interview_sessions")
-    .select("id, completed_at, interview_report(id)")
-    .eq("interview_config_id", interviewConfigId)
-    .eq("user_id", user.id)
-    .is("archived_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
+  let session: Awaited<ReturnType<typeof findLatestNonArchivedSession>>;
+  try {
+    session = await findLatestNonArchivedSession(interviewConfigId, user.id);
+  } catch (error) {
     console.error("Failed to fetch latest interview session:", error);
     return null;
   }

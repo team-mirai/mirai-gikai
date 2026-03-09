@@ -38,7 +38,7 @@ export function DietSessionBillList({ session, bills }: Props) {
           {startDate.getFullYear()}年 {session.name}の提出法案
           <span>{bills.length}件</span>
         </h2>
-        <p className="text-xs font-medium text-[#1F2937]">
+        <p className="text-xs font-medium text-mirai-text">
           {sessionDescription}
         </p>
       </div>
@@ -54,7 +54,7 @@ export function DietSessionBillList({ session, bills }: Props) {
 
       {/* 衆議院リンク */}
       {session.shugiin_url && (
-        <div className="flex items-center gap-1 text-[13px] font-medium text-[#1F2937]">
+        <div className="flex items-center gap-1 text-[13px] font-medium text-mirai-text">
           {startDate.getFullYear()}年{session.name}に提出された全ての法案は
           <a
             href={session.shugiin_url}

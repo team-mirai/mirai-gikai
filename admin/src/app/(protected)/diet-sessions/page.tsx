@@ -1,6 +1,6 @@
-import { DietSessionForm } from "@/features/diet-sessions/components/diet-session-form";
-import { DietSessionList } from "@/features/diet-sessions/components/diet-session-list";
-import { loadDietSessions } from "@/features/diet-sessions/loaders/load-diet-sessions";
+import { DietSessionForm } from "@/features/diet-sessions/client/components/diet-session-form";
+import { DietSessionList } from "@/features/diet-sessions/server/components/diet-session-list";
+import { loadDietSessions } from "@/features/diet-sessions/server/loaders/load-diet-sessions";
 
 export default async function DietSessionsPage() {
   const sessions = await loadDietSessions();

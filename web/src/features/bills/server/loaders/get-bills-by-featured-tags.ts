@@ -1,10 +1,13 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { BillsByTag } from "../../shared/types";
+import {
+  findFeaturedTags,
+  findPublishedBillsByTag,
+} from "../repositories/bill-repository";
 
 /**
  * Featured表示用の議案をタグごとにグループ化して取得
@@ -27,68 +30,20 @@ const _getCachedBillsByFeaturedTags = unstable_cache(
     difficultyLevel: DifficultyLevelEnum,
     dietSessionId: string | null
   ): Promise<BillsByTag[]> => {
-    const supabase = createAdminClient();
+    const featuredTags = await findFeaturedTags();
 
-    // featured_priorityが設定されているタグを取得
-    const { data: featuredTags, error: tagsError } = await supabase
-      .from("tags")
-      .select("id, label, description, featured_priority")
-      .not("featured_priority", "is", null)
-      .order("featured_priority", { ascending: true });
-
-    if (tagsError) {
-      console.error("Failed to fetch featured tags:", tagsError);
-      return [];
-    }
-
-    if (!featuredTags || featuredTags.length === 0) {
+    if (featuredTags.length === 0) {
       return [];
     }
 
     // 各タグの議案を並列で取得
     const results = await Promise.all(
       featuredTags.map(async (tag) => {
-        let query = supabase
-          .from("bills_tags")
-          .select(
-            `
-            bill_id,
-            bills!inner (
-              *,
-              bill_contents!inner (
-                id,
-                bill_id,
-                title,
-                summary,
-                content,
-                difficulty_level,
-                created_at,
-                updated_at
-              ),
-              bills_tags!inner (
-                tags (
-                  id,
-                  label
-                )
-              )
-            )
-            `
-          )
-          .eq("tag_id", tag.id)
-          .eq("bills.publish_status", "published")
-          .eq("bills.bill_contents.difficulty_level", difficultyLevel);
-
-        // アクティブな国会会期がある場合のみフィルタリング
-        if (dietSessionId) {
-          query = query.eq("bills.diet_session_id", dietSessionId);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-          console.error(`Failed to fetch bills for tag ${tag.label}:`, error);
-          return null;
-        }
+        const data = await findPublishedBillsByTag(
+          tag.id,
+          difficultyLevel,
+          dietSessionId
+        );
 
         if (!data || data.length === 0) {
           return null;

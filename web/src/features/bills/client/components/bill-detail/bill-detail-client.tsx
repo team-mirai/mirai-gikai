@@ -13,6 +13,7 @@ import type { BillWithContent } from "../../../shared/types";
 interface BillDetailClientProps {
   bill: BillWithContent;
   currentDifficulty: DifficultyLevelEnum;
+  hasInterviewConfig: boolean;
   children: ReactNode;
 }
 
@@ -27,6 +28,7 @@ interface BillDetailClientProps {
 export function BillDetailClient({
   bill,
   currentDifficulty,
+  hasInterviewConfig,
   children,
 }: BillDetailClientProps) {
   const chatButtonRef = useRef<ChatButtonRef>(null);
@@ -45,6 +47,7 @@ export function BillDetailClient({
       <ChatButton
         ref={chatButtonRef}
         billContext={bill}
+        hasInterviewConfig={hasInterviewConfig}
         difficultyLevel={currentDifficulty}
       />
     </>

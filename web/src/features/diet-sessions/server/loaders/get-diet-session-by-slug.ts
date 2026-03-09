@@ -1,7 +1,7 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { DietSession } from "../../shared/types";
+import { findDietSessionBySlug } from "../repositories/diet-session-repository";
 
 /**
  * slugで国会会期を取得
@@ -14,20 +14,7 @@ export async function getDietSessionBySlug(
 
 const _getCachedDietSessionBySlug = unstable_cache(
   async (slug: string): Promise<DietSession | null> => {
-    const supabase = createAdminClient();
-
-    const { data, error } = await supabase
-      .from("diet_sessions")
-      .select("*")
-      .eq("slug", slug)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Failed to fetch diet session by slug:", error);
-      return null;
-    }
-
-    return data;
+    return findDietSessionBySlug(slug);
   },
   ["diet-session-by-slug"],
   {

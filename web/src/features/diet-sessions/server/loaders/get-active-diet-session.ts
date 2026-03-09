@@ -1,7 +1,7 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { DietSession } from "../../shared/types";
+import { findActiveDietSession } from "../repositories/diet-session-repository";
 
 /**
  * アクティブな国会会期を取得
@@ -14,20 +14,7 @@ export async function getActiveDietSession(): Promise<DietSession | null> {
 
 const _getCachedActiveDietSession = unstable_cache(
   async (): Promise<DietSession | null> => {
-    const supabase = createAdminClient();
-
-    const { data: activeSession, error: activeError } = await supabase
-      .from("diet_sessions")
-      .select("*")
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (activeError) {
-      console.error("Failed to fetch active diet session:", activeError);
-      return null;
-    }
-
-    return activeSession;
+    return findActiveDietSession();
   },
   ["active-diet-session"],
   {

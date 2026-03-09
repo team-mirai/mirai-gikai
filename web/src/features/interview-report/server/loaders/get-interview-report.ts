@@ -1,8 +1,8 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
 import type { InterviewReport } from "../../shared/types";
+import { findReportBySessionId } from "../repositories/interview-report-repository";
 
 /**
  * セッションIDからインタビューレポートを取得
@@ -21,19 +21,10 @@ export async function getInterviewReport(
     return null;
   }
 
-  const supabase = createAdminClient();
-
-  // レポートを取得
-  const { data: report, error: reportError } = await supabase
-    .from("interview_report")
-    .select("*")
-    .eq("interview_session_id", sessionId)
-    .single();
-
-  if (reportError) {
-    console.error("Failed to fetch interview report:", reportError);
+  try {
+    return await findReportBySessionId(sessionId);
+  } catch (error) {
+    console.error("Failed to fetch interview report:", error);
     return null;
   }
-
-  return report;
 }

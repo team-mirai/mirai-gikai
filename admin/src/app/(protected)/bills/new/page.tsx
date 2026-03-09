@@ -1,5 +1,5 @@
-import { BillCreateForm } from "@/features/bills-edit/components/bill-create-form";
-import { loadDietSessions } from "@/features/diet-sessions/loaders/load-diet-sessions";
+import { BillCreateForm } from "@/features/bills-edit/client/components/bill-create-form";
+import { loadDietSessions } from "@/features/diet-sessions/server/loaders/load-diet-sessions";
 
 export default async function BillCreatePage() {
   const dietSessions = await loadDietSessions();

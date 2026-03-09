@@ -1,5 +1,5 @@
 ---
-name: Parallel PR
+name: parallel-pr
 description: 複数の独立PRをチーム×worktreeで並列作成する。タスク一覧を受け取り、worktree準備→チーム組成→エージェント起動→CI確認→クリーンアップまで一気に実行する。
 ---
 
@@ -84,8 +84,12 @@ Task(
 1. `git checkout -b {branch} develop` でブランチ作成
 2. 対象ファイルを読んで理解
 3. 実装・修正
-4. 検証（テスト実行 or typecheck）
-5. `pnpm lint:fix` でフォーマット
+4. push前のローカル検証（CIと同じコマンドを全て実行し、全て通過すること）:
+   - `pnpm lint:fix` でフォーマット修正
+   - `pnpm lint` でlintチェック通過を確認
+   - `pnpm typecheck` で型チェック通過を確認
+   - `pnpm test` でテスト通過を確認
+5. エラーがあれば修正して再度ステップ4を実行
 6. コミット（Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>）
 7. `git push -u origin {branch}`
 8. `gh pr create --base develop --title "{title}" --body "..."`

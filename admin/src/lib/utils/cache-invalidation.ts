@@ -2,9 +2,22 @@ import { env } from "../env";
 import { logger } from "../logger";
 
 /**
- * Invalidate all caches in the web application
+ * Web側で定義されているキャッシュタグと同じ値
+ * web/src/lib/cache-tags.ts と同期を保つこと
  */
-export async function invalidateWebCache(): Promise<void> {
+export const WEB_CACHE_TAGS = {
+  BILLS: "bills",
+  DIET_SESSIONS: "diet-sessions",
+  INTERVIEW_CONFIGS: "interview-configs",
+} as const;
+
+export type WebCacheTag = (typeof WEB_CACHE_TAGS)[keyof typeof WEB_CACHE_TAGS];
+
+/**
+ * Invalidate specific cache tags in the web application.
+ * If no tags are specified, all caches are invalidated.
+ */
+export async function invalidateWebCache(tags?: WebCacheTag[]): Promise<void> {
   if (!env.webUrl || !env.revalidateSecret) {
     console.warn(
       "Web URL or revalidate secret not configured, skipping cache invalidation"
@@ -19,6 +32,7 @@ export async function invalidateWebCache(): Promise<void> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${env.revalidateSecret}`,
       },
+      body: tags ? JSON.stringify({ tags }) : undefined,
     });
 
     if (!response.ok) {

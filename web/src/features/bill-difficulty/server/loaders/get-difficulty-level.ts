@@ -1,17 +1,9 @@
 import { cookies } from "next/headers";
 import {
-  DEFAULT_DIFFICULTY,
   DIFFICULTY_COOKIE_NAME,
   type DifficultyLevelEnum,
-  VALID_DIFFICULTY_LEVELS,
 } from "../../shared/types";
-
-/**
- * 有効な難易度レベルかチェック
- */
-function isValidDifficultyLevel(value: string): value is DifficultyLevelEnum {
-  return VALID_DIFFICULTY_LEVELS.includes(value as DifficultyLevelEnum);
-}
+import { parseDifficultyLevel } from "../../shared/utils/parse-difficulty-level";
 
 /**
  * 現在の難易度設定をCookieから取得
@@ -24,15 +16,5 @@ function isValidDifficultyLevel(value: string): value is DifficultyLevelEnum {
 export async function getDifficultyLevel(): Promise<DifficultyLevelEnum> {
   const cookieStore = await cookies();
   const difficulty = cookieStore.get(DIFFICULTY_COOKIE_NAME);
-
-  if (!difficulty) {
-    return DEFAULT_DIFFICULTY;
-  }
-
-  // 有効な値かチェック
-  if (isValidDifficultyLevel(difficulty.value)) {
-    return difficulty.value;
-  }
-
-  return DEFAULT_DIFFICULTY;
+  return parseDifficultyLevel(difficulty?.value);
 }
