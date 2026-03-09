@@ -681,11 +681,159 @@ export type Database = {
         }
         Relationships: []
       }
+      topic_analysis_classifications: {
+        Row: {
+          id: string
+          interview_report_id: string
+          opinion_index: number
+          topic_id: string
+          version_id: string
+        }
+        Insert: {
+          id?: string
+          interview_report_id: string
+          opinion_index: number
+          topic_id: string
+          version_id: string
+        }
+        Update: {
+          id?: string
+          interview_report_id?: string
+          opinion_index?: number
+          topic_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_analysis_classifications_interview_report_id_fkey"
+            columns: ["interview_report_id"]
+            isOneToOne: false
+            referencedRelation: "interview_report"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topic_analysis_classifications_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topic_analysis_topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topic_analysis_classifications_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "topic_analysis_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topic_analysis_topics: {
+        Row: {
+          created_at: string
+          description_md: string
+          id: string
+          name: string
+          representative_opinions: Json
+          sort_order: number
+          version_id: string
+        }
+        Insert: {
+          created_at?: string
+          description_md: string
+          id?: string
+          name: string
+          representative_opinions?: Json
+          sort_order?: number
+          version_id: string
+        }
+        Update: {
+          created_at?: string
+          description_md?: string
+          id?: string
+          name?: string
+          representative_opinions?: Json
+          sort_order?: number
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_analysis_topics_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "topic_analysis_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topic_analysis_versions: {
+        Row: {
+          bill_id: string
+          completed_at: string | null
+          created_at: string
+          current_step: string | null
+          error_message: string | null
+          id: string
+          intermediate_results: Json | null
+          phase_data: Json | null
+          started_at: string | null
+          status: string
+          summary_md: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          bill_id: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          error_message?: string | null
+          id?: string
+          intermediate_results?: Json | null
+          phase_data?: Json | null
+          started_at?: string | null
+          status?: string
+          summary_md?: string | null
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          bill_id?: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          error_message?: string | null
+          id?: string
+          intermediate_results?: Json | null
+          phase_data?: Json | null
+          started_at?: string | null
+          status?: string
+          summary_md?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_analysis_versions_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      count_reactions_by_report_ids: {
+        Args: { report_ids: string[] }
+        Returns: {
+          cnt: number
+          interview_report_id: string
+          reaction_type: string
+        }[]
+      }
       get_admin_users: {
         Args: never
         Returns: {

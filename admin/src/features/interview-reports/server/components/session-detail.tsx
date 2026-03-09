@@ -1,3 +1,4 @@
+import { Clock, MessageCircle, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -8,11 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, MessageCircle, User } from "lucide-react";
-import type { InterviewSessionDetail } from "../../shared/types";
-import { formatRoleLabel } from "../../shared/constants";
-import { formatDuration, getSessionStatus } from "../../shared/types";
 import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
+import { formatRoleLabel } from "../../shared/constants";
+import type { InterviewSessionDetail } from "../../shared/types";
+import { formatDuration, getSessionStatus } from "../../shared/types";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 

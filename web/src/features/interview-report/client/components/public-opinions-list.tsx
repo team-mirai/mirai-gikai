@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
+import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
+import type { ReportReactionData } from "@/features/report-reaction/shared/types";
 import { ReportCard } from "../../shared/components/report-card";
 import type { PublicInterviewReport } from "../../server/loaders/get-public-reports-by-bill-id";
 import {
@@ -42,9 +45,17 @@ function _FilterChip({
 
 interface PublicOpinionsListProps {
   reports: PublicInterviewReport[];
+  reactionsRecord: Record<
+    string,
+    { counts: { helpful: number; hmm: number }; userReaction: string | null }
+  >;
 }
 
-export function PublicOpinionsList({ reports }: PublicOpinionsListProps) {
+export function PublicOpinionsList({
+  reports,
+  reactionsRecord,
+}: PublicOpinionsListProps) {
+  useAnonymousSupabaseUser();
   const [activeFilter, setActiveFilter] = useState<StanceFilter>("all");
 
   const counts = useMemo(() => countReportsByStance(reports), [reports]);
@@ -80,9 +91,29 @@ export function PublicOpinionsList({ reports }: PublicOpinionsListProps) {
 
       {/* レポートカード一覧 */}
       <div className="flex flex-col gap-4">
-        {filteredReports.map((report) => (
-          <ReportCard key={report.id} report={report} />
-        ))}
+        {filteredReports.map((report) => {
+          const reaction = reactionsRecord[report.id];
+          const reactionData: ReportReactionData = reaction
+            ? {
+                counts: reaction.counts,
+                userReaction:
+                  (reaction.userReaction as ReportReactionData["userReaction"]) ??
+                  null,
+              }
+            : { counts: { helpful: 0, hmm: 0 }, userReaction: null };
+
+          return (
+            <div key={report.id} className="flex flex-col">
+              <ReportCard report={report} />
+              <div className="bg-white rounded-b-lg px-4 pb-3 -mt-1">
+                <ReactionButtonsInline
+                  reportId={report.id}
+                  initialData={reactionData}
+                />
+              </div>
+            </div>
+          );
+        })}
         {filteredReports.length === 0 && (
           <p className="text-center text-mirai-text-muted py-8">
             該当する意見はありません

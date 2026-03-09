@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { InterviewQuestionInput } from "../../shared/types";
-import { textToArray, arrayToText } from "../../shared/types";
+import { arrayToText, textToArray } from "../../shared/types";
 
 interface InterviewQuestionFormProps {
   onSubmit: (question: InterviewQuestionInput) => void;

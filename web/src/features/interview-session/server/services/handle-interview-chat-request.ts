@@ -25,6 +25,7 @@ import type {
 } from "@/features/interview-session/shared/types";
 import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { logger } from "@/lib/logger";
+import { mergeMessagesWithIds } from "../../shared/utils/merge-messages-with-ids";
 import {
   buildInterviewSystemPrompt,
   buildSummarySystemPrompt,
@@ -140,9 +141,18 @@ export async function handleInterviewChatRequest({
       )
     : null;
 
+  // summaryフェーズではメッセージにDBのIDをマージ
+  const summaryMessages = isSummaryPhase
+    ? mergeMessagesWithIds(messages, dbMessages)
+    : messages;
+
   // システムプロンプトを構築（ステージ遷移ガイダンスを含む）
   const systemPrompt = isSummaryPhase
-    ? buildSummarySystemPrompt({ bill, interviewConfig, messages })
+    ? buildSummarySystemPrompt({
+        bill,
+        interviewConfig,
+        messages: summaryMessages,
+      })
     : buildInterviewSystemPrompt({
         bill,
         interviewConfig,

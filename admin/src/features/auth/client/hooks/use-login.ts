@@ -2,8 +2,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { getErrorMessage } from "@/lib/utils/get-error-message";
-import { signIn } from "../lib/auth-client";
 import type { LoginFormData } from "../../shared/types";
+import { signIn } from "../lib/auth-client";
 
 export function useLogin() {
   const router = useRouter();

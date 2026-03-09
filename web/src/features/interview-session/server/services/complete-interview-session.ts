@@ -37,6 +37,18 @@ export async function completeInterviewSession({
     throw new Error("No report found in conversation messages");
   }
 
+  // opinions にソースメッセージの内容を付与
+  const enrichedOpinions = reportData.opinions.map((opinion) => {
+    if (!opinion.source_message_id) {
+      return { ...opinion, source_message_content: null };
+    }
+    const sourceMsg = messages.find((m) => m.id === opinion.source_message_id);
+    return {
+      ...opinion,
+      source_message_content: sourceMsg?.content ?? null,
+    };
+  });
+
   // レポートを保存（UPSERT）
   // scoresはZodスキーマでバリデーション済み（totalは0-100の整数）
   const report = await upsertInterviewReport({
@@ -46,7 +58,7 @@ export async function completeInterviewSession({
     role: reportData.role,
     role_description: reportData.role_description,
     role_title: reportData.role_title,
-    opinions: reportData.opinions,
+    opinions: enrichedOpinions,
     scores: reportData.scores,
   });
 

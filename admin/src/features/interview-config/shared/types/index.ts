@@ -64,4 +64,4 @@ export type InterviewQuestionsInput = z.infer<
   typeof interviewQuestionsInputSchema
 >;
 
-export { textToArray, arrayToText } from "../utils/array-text-conversion";
+export { arrayToText, textToArray } from "../utils/array-text-conversion";

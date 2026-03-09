@@ -107,6 +107,15 @@ export const bills: BillInsert[] = [
     is_featured: false,
   })),
   {
+    name: "船荷証券の電子化に関する法律案",
+    originating_house: "HR",
+    status: "in_originating_house",
+    status_note: "衆議院で審議中",
+    published_at: "2025-09-15T09:00:00+09:00",
+    publish_status: "published",
+    is_featured: false,
+  },
+  {
     name: "中学生・高校生向けプログラミング教育必修化法案",
     originating_house: "HR",
     status: "rejected",
@@ -136,6 +145,7 @@ export function createBillsTags(
         ["子育て・教育"],
       ])
     ),
+    "船荷証券の電子化に関する法律案": ["エネルギー・環境"],
     "中学生・高校生向けプログラミング教育必修化法案": ["子育て・教育"],
   };
 
@@ -187,6 +197,15 @@ const miraiStancesData: Omit<MiraiStanceInsert, "bill_id">[] = [
     comment: `学校給食の無償化は、子育て支援と教育の充実を同時に実現する重要な政策です。
 
 全ての子どもが質の高い食事を平等に受けられることは、健康格差の解消にもつながります。地産地消の推進により地域経済の活性化も期待できます。`,
+  },
+  {
+    // 船荷証券の電子化に関する法律案に対する見解
+    type: "conditional_for",
+    comment: `国際海運のデジタル化は避けられない潮流であり、電子船荷証券の法整備は重要です。
+
+ただし、中小フォワーダーや地方港湾事業者への技術支援・移行期間の確保が不十分であれば、実務上の混乱を招く恐れがあります。
+
+国際条約（MLETR）との整合性を保ちつつ、段階的な導入と十分なサポート体制の構築を条件に賛成します。`,
   },
   // 第218回国会用の追加法案（デザイン確認用）- 同じ見解を4件追加
   ...Array.from({ length: 4 }, () => ({
