@@ -240,6 +240,8 @@ export async function createTopics(
 
 /**
  * 分類を一括作成する
+ * バッチ挿入でFK制約違反が起きた場合は1件ずつ挿入にフォールバックし、
+ * 不正な行をスキップしてレポート全体の出力を継続する
  */
 export async function createClassifications(
   versionId: string,
@@ -262,9 +264,37 @@ export async function createClassifications(
     .from("topic_analysis_classifications")
     .insert(rows);
 
-  if (error) {
-    throw new Error(`Failed to create classifications: ${error.message}`);
+  if (!error) {
+    return;
   }
+
+  // FK制約違反の場合、1件ずつ挿入してエラー行をスキップ
+  if (error.code === "23503") {
+    console.warn(
+      `[TopicAnalysis] Batch insert failed with FK violation, falling back to row-by-row insert: ${error.message}`
+    );
+    let inserted = 0;
+    let skipped = 0;
+    for (const row of rows) {
+      const { error: rowError } = await supabase
+        .from("topic_analysis_classifications")
+        .insert(row);
+      if (rowError) {
+        console.warn(
+          `[TopicAnalysis] Skipped classification (report: ${row.interview_report_id}): ${rowError.message}`
+        );
+        skipped++;
+      } else {
+        inserted++;
+      }
+    }
+    console.log(
+      `[TopicAnalysis] Classifications: ${inserted} inserted, ${skipped} skipped`
+    );
+    return;
+  }
+
+  throw new Error(`Failed to create classifications: ${error.message}`);
 }
 
 /**

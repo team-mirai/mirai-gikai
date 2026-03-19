@@ -223,13 +223,23 @@ async function runPhase3Steps(
     topicNameToId.set(topic.name, topic.id);
   }
 
+  // 有効な interview_report_id のセットを構築（FK制約違反を防止）
+  const validReportIds = new Set(
+    flatOpinions.map((o) => o.interview_report_id)
+  );
+
   const classificationRows: Array<{
     interview_report_id: string;
     topic_id: string;
     opinion_index: number;
   }> = [];
 
+  let skippedCount = 0;
   for (const c of classifications) {
+    if (!validReportIds.has(c.interview_report_id)) {
+      skippedCount++;
+      continue;
+    }
     for (const topicName of c.topic_names) {
       const topicId = topicNameToId.get(topicName);
       if (topicId) {
@@ -240,6 +250,12 @@ async function runPhase3Steps(
         });
       }
     }
+  }
+
+  if (skippedCount > 0) {
+    console.warn(
+      `[TopicAnalysis] Skipped ${skippedCount} classifications with invalid interview_report_id`
+    );
   }
 
   if (classificationRows.length > 0) {
