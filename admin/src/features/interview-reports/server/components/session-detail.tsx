@@ -13,6 +13,7 @@ import { ReportVisibilityToggle } from "../../client/components/report-visibilit
 import { formatRoleLabel } from "../../shared/constants";
 import type { InterviewSessionDetail } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
+import { parseOpinions } from "../../shared/utils/parse-opinions";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 
@@ -119,13 +120,28 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                   {report.summary || "-"}
                 </div>
               </div>
-              {report.opinions && (
+              {report.opinions && parseOpinions(report.opinions).length > 0 && (
                 <div>
                   <div className="text-sm text-gray-500 mb-1">意見</div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <pre className="text-sm whitespace-pre-wrap">
-                      {JSON.stringify(report.opinions, null, 2)}
-                    </pre>
+                  <div className="space-y-3">
+                    {parseOpinions(report.opinions).map((opinion, index) => (
+                      <div
+                        key={`opinion-${index}-${opinion.title.slice(0, 20)}`}
+                        className="bg-gray-50 p-3 rounded-lg"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-xs">
+                            意見{index + 1}
+                          </Badge>
+                          <span className="text-sm font-medium">
+                            {opinion.title}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {opinion.content}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
