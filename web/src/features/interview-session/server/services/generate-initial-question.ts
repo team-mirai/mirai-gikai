@@ -2,10 +2,14 @@ import "server-only";
 
 import { Output, generateText, type LanguageModel } from "ai";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
-import { recordChatUsage } from "@/features/chat/server/services/cost-tracker";
+import {
+  isWithinDailyCostLimit,
+  recordChatUsage,
+} from "@/features/chat/server/services/cost-tracker";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import { env } from "@/lib/env";
 import { interviewChatTextSchema } from "../../shared/schemas";
 import type { InterviewMessage } from "../../shared/types";
 import { overrideInitialTopicTitle } from "../../shared/utils/override-initial-topic-title";
@@ -61,6 +65,20 @@ export async function generateInitialQuestion({
     const firstQuestionId = questions[0]?.id;
     const billTitle = bill?.bill_content?.title ?? bill?.name ?? "この法案";
     const enhancedSystemPrompt = `${systemPrompt}\n\n## 重要: これはインタビューの開始です。ユーザーからのメッセージはありません。事前定義質問の最初の質問から始めてください。挨拶は温かく丁寧に（2文程度）、「${billTitle}」についてのインタビューであることを明確に伝えた上で、すぐに最初の質問をしてください。最初の質問にクイックリプライが設定されている場合は、必ず quick_replies フィールドに含めてください。${firstQuestionId ? `最初の質問は ID: ${firstQuestionId} であり、レスポンスの question_id にこの値を含めてください。` : ""}`;
+
+    // 日次コスト制限チェック
+    try {
+      const isWithinLimit = await isWithinDailyCostLimit(
+        userId,
+        env.chat.dailyCostLimitUsd
+      );
+      if (!isWithinLimit) {
+        console.error("Daily cost limit reached for initial question");
+        return null;
+      }
+    } catch (error) {
+      console.error("Cost limit check error:", error);
+    }
 
     // メッセージ履歴なしで最初の質問を生成（構造化出力）
     const model =
