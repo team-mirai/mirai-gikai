@@ -78,20 +78,13 @@ export async function handleInterviewChatRequest({
   userId: string;
   deps?: InterviewChatDeps;
 }) {
-  // 日次コスト制限チェック
-  try {
-    const isWithinLimit = await isWithinDailyCostLimit(
-      userId,
-      env.chat.dailyCostLimitUsd
-    );
-    if (!isWithinLimit) {
-      throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
-    }
-  } catch (error) {
-    if (error instanceof ChatError) {
-      throw error;
-    }
-    console.error("Cost limit check error:", error);
+  // 日次コスト制限チェック（fail-closed: エラー時もリクエストをブロック）
+  const isWithinLimit = await isWithinDailyCostLimit(
+    userId,
+    env.chat.dailyCostLimitUsd
+  );
+  if (!isWithinLimit) {
+    throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
   }
 
   // リクエスト単位のトレースID（同一リクエスト内のLLM呼び出しをまとめる）

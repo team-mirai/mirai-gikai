@@ -66,7 +66,7 @@ export async function generateInitialQuestion({
     const billTitle = bill?.bill_content?.title ?? bill?.name ?? "この法案";
     const enhancedSystemPrompt = `${systemPrompt}\n\n## 重要: これはインタビューの開始です。ユーザーからのメッセージはありません。事前定義質問の最初の質問から始めてください。挨拶は温かく丁寧に（2文程度）、「${billTitle}」についてのインタビューであることを明確に伝えた上で、すぐに最初の質問をしてください。最初の質問にクイックリプライが設定されている場合は、必ず quick_replies フィールドに含めてください。${firstQuestionId ? `最初の質問は ID: ${firstQuestionId} であり、レスポンスの question_id にこの値を含めてください。` : ""}`;
 
-    // 日次コスト制限チェック
+    // 日次コスト制限チェック（fail-closed: エラー時も生成をブロック）
     try {
       const isWithinLimit = await isWithinDailyCostLimit(
         userId,
@@ -78,9 +78,11 @@ export async function generateInitialQuestion({
       }
     } catch (error) {
       console.error("Cost limit check error:", error);
+      return null;
     }
 
     // メッセージ履歴なしで最初の質問を生成（構造化出力）
+    const occurredAt = new Date().toISOString();
     const model =
       deps?.model ?? interviewConfig.chat_model ?? DEFAULT_INTERVIEW_CHAT_MODEL;
     const result = await generateText({
@@ -107,6 +109,7 @@ export async function generateInitialQuestion({
         promptName: "interview-initial-question",
         model: modelName,
         usage: result.usage,
+        occurredAt,
         metadata: {
           pageType: "interview",
           billId,
