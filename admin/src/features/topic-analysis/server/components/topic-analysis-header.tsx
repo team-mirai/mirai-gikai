@@ -25,11 +25,11 @@ export function TopicAnalysisHeader({
           </Link>
         ) : (
           <Link
-            href={`/bills/${billId}`}
+            href="/bills"
             className="flex items-center gap-1 hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
-            議案詳細に戻る
+            議案一覧に戻る
           </Link>
         )}
       </div>
