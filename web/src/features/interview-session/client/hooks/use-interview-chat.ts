@@ -7,6 +7,7 @@ import {
   type InterviewStage,
   interviewChatResponseSchema,
 } from "@/features/interview-session/shared/schemas";
+import { collectUsedQuestionIds } from "@/features/interview-session/shared/utils/collect-used-question-ids";
 import {
   buildMessagesForApi,
   type ConversationMessage,
@@ -77,8 +78,18 @@ export function useInterviewChat({
           topic_title,
           next_stage,
         } = finishedObject;
-        const questionId = question_id ?? null;
         const topicTitle = topic_title ?? null;
+
+        // 既出の questionId を検出して無効化（深掘り時に前の質問IDが残る問題を防止）
+        const rawQuestionId = question_id ?? null;
+        const usedQuestionIds = collectUsedQuestionIds([
+          ...parsedInitialMessages,
+          ...conversationMessagesRef.current,
+        ]);
+        const questionId =
+          rawQuestionId && !usedQuestionIds.has(rawQuestionId)
+            ? rawQuestionId
+            : null;
 
         // レスポンスからnext_stageを取得してステージを更新
         if (next_stage) {
@@ -93,8 +104,7 @@ export function useInterviewChat({
           role: "assistant",
           content: text ?? "",
           report: shouldIncludeReport ? convertPartialReport(report) : null,
-          quickReplies:
-            questionId && Array.isArray(quick_replies) ? quick_replies : [],
+          quickReplies: Array.isArray(quick_replies) ? quick_replies : [],
           questionId,
           topicTitle,
         };
