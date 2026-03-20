@@ -97,6 +97,7 @@ Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-l
 - **純粋関数にはテスト必須**: `utils/` に切り出した純粋関数は、新規作成時に必ず `*.test.ts` を同階層に作成してテストを書いてください。
 - **mock は極力使わない**: `vi.mock("server-only")` 等のモックに頼らず、テスト対象のロジックを純粋関数として `shared/` に切り出してからテストしてください。`server-only` や外部依存を含むファイルからは re-export で参照を維持します。
 - **ローカルサービスは real で動かす**: Supabase などローカルで起動できるサービスはモックせず、実際のローカルインスタンスに接続してテストします。
+- **DB function（RPC）には統合テスト必須**: `supabase/migrations/` でDB function を追加・変更した場合、ローカル Supabase に接続する統合テスト（`*.integration.test.ts`）を書くこと。ソート・フィルタ・集計ロジックがDB側にある場合、アプリ層のユニットテストでは検出できないバグ（例: フルテーブルスキャン、不正なソート順）を防止できます。
 - **外部 API は DI でモックする**: OpenAI などの外部 API クライアントはインターフェースを定義し、テストでは Fake/Mock 実装に差し替えます。
 - PR 前に `pnpm --filter web test:watch` で失敗を早期検知し、必要に応じて `vitest run --coverage` でカバレッジ低下を確認します。
 - テストの書き方・構造化・コード例などの詳細は [docs/テストガイドライン.md](docs/20260219_1000_テストガイドライン.md) を参照。
