@@ -13,6 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -21,13 +22,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SortableTableHead } from "../../client/components/sortable-table-head";
 import type {
   InterviewSessionWithDetails,
-  SortParams,
+  SessionSortConfig,
 } from "../../shared/types";
 import {
-  DEFAULT_SORT,
+  DEFAULT_SESSION_SORT,
   formatDuration,
   getSessionStatus,
 } from "../../shared/types";
@@ -43,7 +43,7 @@ interface SessionListProps {
   sessions: InterviewSessionWithDetails[];
   totalCount: number;
   currentPage: number;
-  sort?: SortParams;
+  sort?: SessionSortConfig;
 }
 
 function BooleanIcon({ value }: { value: boolean }) {
@@ -53,15 +53,19 @@ function BooleanIcon({ value }: { value: boolean }) {
   return <XCircle className="h-5 w-5 text-red-400" />;
 }
 
-function buildPageUrl(billId: string, page: number, sort: SortParams): string {
+function buildPageUrl(
+  billId: string,
+  page: number,
+  sort: SessionSortConfig
+): string {
   const params = new URLSearchParams();
   params.set("page", String(page));
   if (
-    sort.sortBy !== DEFAULT_SORT.sortBy ||
-    sort.sortOrder !== DEFAULT_SORT.sortOrder
+    sort.field !== DEFAULT_SESSION_SORT.field ||
+    sort.order !== DEFAULT_SESSION_SORT.order
   ) {
-    params.set("sortBy", sort.sortBy);
-    params.set("sortOrder", sort.sortOrder);
+    params.set("sort", sort.field);
+    params.set("order", sort.order);
   }
   return `/bills/${billId}/reports?${params.toString()}`;
 }
@@ -71,7 +75,7 @@ export function SessionList({
   sessions,
   totalCount,
   currentPage,
-  sort = DEFAULT_SORT,
+  sort = DEFAULT_SESSION_SORT,
 }: SessionListProps) {
   const totalPages = Math.ceil(totalCount / SESSIONS_PER_PAGE);
   const startIndex = (currentPage - 1) * SESSIONS_PER_PAGE;
@@ -107,18 +111,18 @@ export function SessionList({
               <TableHead className="w-20 text-right">スコア</TableHead>
               <TableHead className="w-24 text-center">満足度</TableHead>
               <SortableTableHead
-                column="started_at"
-                currentSortBy={sort.sortBy}
-                currentSortOrder={sort.sortOrder}
+                field="started_at"
+                currentField={sort.field}
+                currentOrder={sort.order}
                 className="w-44"
               >
                 開始時刻
               </SortableTableHead>
               <TableHead className="w-24">時間</TableHead>
               <SortableTableHead
-                column="message_count"
-                currentSortBy={sort.sortBy}
-                currentSortOrder={sort.sortOrder}
+                field="message_count"
+                currentField={sort.field}
+                currentOrder={sort.order}
                 className="w-24 text-right"
               >
                 メッセージ数

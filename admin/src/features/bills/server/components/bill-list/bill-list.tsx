@@ -13,7 +13,7 @@ import {
 import { BillActionsMenu } from "../../../client/components/bill-actions-menu/bill-actions-menu";
 import { PreviewButton } from "../../../client/components/bill-list/preview-button";
 import { PublishStatusBadge } from "../../../client/components/bill-list/publish-status-badge";
-import { SortableTableHead } from "../../../client/components/bill-list/sortable-table-head";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { ViewButton } from "../../../client/components/bill-list/view-button";
 import { BILL_STATUS_CONFIG } from "../../../shared/constants/bill-config";
 import type {

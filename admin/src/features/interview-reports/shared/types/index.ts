@@ -1,4 +1,5 @@
 import type { Database } from "@mirai-gikai/supabase";
+import type { SortConfig } from "@/lib/sort";
 
 export type InterviewSession =
   Database["public"]["Tables"]["interview_sessions"]["Row"];
@@ -25,34 +26,20 @@ export type InterviewSessionDetail = InterviewSession & {
   reaction_counts: ReactionCounts | null;
 };
 
-export const SORTABLE_COLUMNS = ["started_at", "message_count"] as const;
+// ソート関連の型定義
+export type SessionSortField = "started_at" | "message_count";
 
-export type SortColumn = (typeof SORTABLE_COLUMNS)[number];
-export type SortOrder = "asc" | "desc";
+export const SESSION_SORT_FIELDS: readonly SessionSortField[] = [
+  "started_at",
+  "message_count",
+] as const;
 
-export interface SortParams {
-  sortBy: SortColumn;
-  sortOrder: SortOrder;
-}
+export type SessionSortConfig = SortConfig<SessionSortField>;
 
-export const DEFAULT_SORT: SortParams = {
-  sortBy: "started_at",
-  sortOrder: "desc",
+export const DEFAULT_SESSION_SORT: SessionSortConfig = {
+  field: "started_at",
+  order: "desc",
 };
-
-export function parseSortParams(
-  sortBy: string | undefined,
-  sortOrder: string | undefined
-): SortParams {
-  const column = SORTABLE_COLUMNS.includes(sortBy as SortColumn)
-    ? (sortBy as SortColumn)
-    : DEFAULT_SORT.sortBy;
-  const order =
-    sortOrder === "asc" || sortOrder === "desc"
-      ? sortOrder
-      : DEFAULT_SORT.sortOrder;
-  return { sortBy: column, sortOrder: order };
-}
 
 export { formatDuration } from "../utils/format-duration";
 export {
