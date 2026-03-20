@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-
-export const dynamic = "force-dynamic";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { InterviewLPPage } from "@/features/interview-config/client/components/interview-lp-page";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
 import { getLatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import { env } from "@/lib/env";
+
+export const dynamic = "force-dynamic";
 
 interface InterviewPageProps {
   params: Promise<{

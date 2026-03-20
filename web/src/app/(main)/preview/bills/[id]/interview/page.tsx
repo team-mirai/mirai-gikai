@@ -1,13 +1,13 @@
 import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
-
-export const dynamic = "force-dynamic";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
 import { InterviewLPPage } from "@/features/interview-config/client/components/interview-lp-page";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getLatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import { env } from "@/lib/env";
+
+export const dynamic = "force-dynamic";
 
 interface InterviewPreviewPageProps {
   params: Promise<{
