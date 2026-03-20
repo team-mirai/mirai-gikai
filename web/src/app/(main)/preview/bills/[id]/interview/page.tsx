@@ -1,5 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
 import { InterviewLPPage } from "@/features/interview-config/client/components/interview-lp-page";
