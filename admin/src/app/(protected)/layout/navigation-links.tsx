@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { routes } from "@/lib/routes";
@@ -24,7 +25,7 @@ export function NavigationLinks() {
           return (
             <Link
               key={link.href}
-              href={link.href}
+              href={link.href as Route}
               className={cn(
                 "inline-flex items-center gap-2 px-1 py-4 text-sm border-b-2 transition-colors",
                 isActive

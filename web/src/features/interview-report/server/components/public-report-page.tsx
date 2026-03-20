@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -48,7 +49,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
             インタビューレポート
           </h1>
           <Link
-            href={getBillDetailLink(data.bill_id)}
+            href={getBillDetailLink(data.bill_id) as Route}
             className="text-sm text-black underline"
           >
             {billName}

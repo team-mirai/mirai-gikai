@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { previewRegistry } from "./_lib/registry";
 
@@ -21,7 +22,7 @@ export default function DevIndexPage() {
               {group.items.map((item) => (
                 <Link
                   key={item.path}
-                  href={item.path}
+                  href={item.path as Route}
                   className="block p-4 border border-mirai-border rounded-lg hover:bg-mirai-surface transition-colors"
                 >
                   <h3 className="font-medium text-mirai-text">{item.label}</h3>

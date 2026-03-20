@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { Route } from "next";
 import { Bot, UserRound } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,7 +46,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
 
           {/* Bill Name */}
           <Link
-            href={getBillDetailLink(report.bill_id)}
+            href={getBillDetailLink(report.bill_id) as Route}
             className="text-sm text-black underline mt-2"
           >
             {billName}

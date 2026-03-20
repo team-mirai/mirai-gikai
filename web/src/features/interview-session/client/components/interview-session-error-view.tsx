@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, ArrowLeft } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
@@ -35,7 +36,7 @@ export function InterviewSessionErrorView({
         </div>
       </div>
 
-      <Link href={lpLink}>
+      <Link href={lpLink as Route}>
         <Button
           variant="outline"
           className="flex items-center gap-2 border-black rounded-[100px] font-bold"

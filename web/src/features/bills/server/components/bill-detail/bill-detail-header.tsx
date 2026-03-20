@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -79,7 +80,7 @@ export async function BillDetailHeader({
               asChild
               className="bg-mirai-light-gradient text-[13px] font-bold text-gray-800 gap-1.5 py-1 px-3"
             >
-              <Link href={getInterviewLPLink(bill.id)}>
+              <Link href={getInterviewLPLink(bill.id) as Route}>
                 <Image
                   src="/icons/interview-cooperation.svg"
                   alt=""

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
@@ -18,7 +19,7 @@ export function TopicAnalysisHeader({
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
         {showBackToAnalysis ? (
           <Link
-            href={routes.billTopicAnalysis(billId)}
+            href={routes.billTopicAnalysis(billId) as Route}
             className="flex items-center gap-1 hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />

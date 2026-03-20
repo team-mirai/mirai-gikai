@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { ArrowRight, Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -60,7 +61,7 @@ export function InterviewSuggestionBanner({
           asChild
           className="bg-mirai-gradient text-black border border-black rounded-3xl h-9 px-4 font-medium text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2.5"
         >
-          <Link href={getInterviewLPLink(billId)}>
+          <Link href={getInterviewLPLink(billId) as Route}>
             <span>AIインタビューを受ける</span>
             <ArrowRight className="size-3" />
           </Link>

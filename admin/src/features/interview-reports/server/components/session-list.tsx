@@ -1,4 +1,5 @@
 import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,7 @@ function buildPageUrl(
   billId: string,
   page: number,
   sort: SessionSortConfig
-): string {
+): Route {
   const params = new URLSearchParams();
   params.set("page", String(page));
   if (
@@ -68,7 +69,7 @@ function buildPageUrl(
     params.set("sort", sort.field);
     params.set("order", sort.order);
   }
-  return `${routes.billReports(billId)}?${params.toString()}`;
+  return `${routes.billReports(billId)}?${params.toString()}` as Route;
 }
 
 export function SessionList({
@@ -204,7 +205,11 @@ export function SessionList({
                     {session.message_count}
                   </TableCell>
                   <TableCell>
-                    <Link href={routes.billReportDetail(billId, session.id)}>
+                    <Link
+                      href={
+                        routes.billReportDetail(billId, session.id) as Route
+                      }
+                    >
                       <Button
                         variant="link"
                         size="sm"
