@@ -20,6 +20,7 @@ import { ReportVisibilityToggle } from "../../client/components/report-visibilit
 import { formatRoleLabel } from "../../shared/constants";
 import type { InterviewSessionDetail } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
+import { getMessageDisplayText } from "../../shared/utils/get-message-display-text";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
@@ -318,7 +319,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                         </Badge>
                       </TableCell>
                       <TableCell className="whitespace-pre-wrap">
-                        {message.content}
+                        {getMessageDisplayText(message.content)}
                       </TableCell>
                       <TableCell className="text-gray-500 text-sm">
                         {new Date(message.created_at).toLocaleString("ja-JP", {
