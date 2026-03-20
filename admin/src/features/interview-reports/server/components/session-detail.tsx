@@ -8,20 +8,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Clock,
-  Frown,
-  Lightbulb,
-  MessageCircle,
-  Star,
-  User,
-} from "lucide-react";
+import { Clock, Frown, Lightbulb, MessageCircle, User } from "lucide-react";
 import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
 import { formatRoleLabel } from "../../shared/constants";
 import type { InterviewSessionDetail } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
 import { getMessageDisplayText } from "../../shared/utils/get-message-display-text";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
+import { RatingStars } from "./rating-stars";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 
@@ -49,24 +43,6 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
         />
       </div>
       <div className="w-8 text-sm font-medium text-right">{value}</div>
-    </div>
-  );
-}
-
-function RatingStars({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`h-4 w-4 ${
-            star <= rating
-              ? "fill-yellow-400 text-yellow-400"
-              : "fill-gray-200 text-gray-200"
-          }`}
-        />
-      ))}
-      <span className="ml-1 text-sm text-gray-600">{rating}/5</span>
     </div>
   );
 }
@@ -129,7 +105,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
               <div className="text-sm text-gray-500">ユーザー評価</div>
               <div className="mt-1">
                 {session.rating ? (
-                  <RatingStars rating={session.rating} />
+                  <RatingStars rating={session.rating} showLabel />
                 ) : (
                   <span className="text-sm text-gray-400">未評価</span>
                 )}

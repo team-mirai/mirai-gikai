@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, ExternalLink, Star, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import type { InterviewSessionWithDetails } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
 import { generatePageNumbers } from "../../shared/utils/pagination-utils";
 import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
+import { RatingStars } from "./rating-stars";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 import { VisibilityBadge } from "./visibility-badge";
@@ -138,18 +139,7 @@ export function SessionList({
                   </TableCell>
                   <TableCell className="text-center">
                     {session.rating != null ? (
-                      <div className="flex items-center justify-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`h-4 w-4 ${
-                              star <= session.rating!
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
+                      <RatingStars rating={session.rating} />
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
