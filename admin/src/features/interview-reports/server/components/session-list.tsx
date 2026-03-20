@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, ExternalLink, Star, XCircle } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,7 @@ export function SessionList({
               <TableHead className="w-28">スタンス</TableHead>
               <TableHead className="w-28">役割</TableHead>
               <TableHead className="w-20 text-right">スコア</TableHead>
+              <TableHead className="w-24 text-center">満足度</TableHead>
               <TableHead className="w-44">開始時刻</TableHead>
               <TableHead className="w-24">時間</TableHead>
               <TableHead className="w-24 text-right">メッセージ数</TableHead>
@@ -134,6 +135,24 @@ export function SessionList({
                     {session.interview_report?.total_score != null
                       ? session.interview_report.total_score
                       : "-"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {session.rating != null ? (
+                      <div className="flex items-center justify-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-4 w-4 ${
+                              star <= session.rating!
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-gray-600">
                     <div className="flex items-center gap-1">
