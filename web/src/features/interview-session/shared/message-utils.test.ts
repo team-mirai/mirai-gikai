@@ -96,7 +96,9 @@ describe("isValidReport", () => {
         role: null,
         role_description: null,
         role_title: null,
-        opinions: [{ title: "意見1", content: "内容1" }],
+        opinions: [
+          { title: "意見1", content: "内容1", source_message_id: null },
+        ],
       })
     ).toBe(true);
   });

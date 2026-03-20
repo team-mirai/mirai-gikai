@@ -15,7 +15,7 @@ export function buildSummarySystemPrompt({
 }: {
   bill: BillWithContent | null;
   interviewConfig: InterviewConfig;
-  messages: Array<{ role: string; content: string }>;
+  messages: Array<{ role: string; content: string; id?: string }>;
 }): string {
   const billName = bill?.name || "";
   const billTitle = bill?.bill_content?.title || "";
@@ -23,8 +23,14 @@ export function buildSummarySystemPrompt({
   const themes = interviewConfig?.themes || [];
 
   // 会話履歴を {role}: {content} のフォーマットで連結
+  // userでidあり → `user [msg_id:UUID]: 内容`
   const conversationLog = messages
-    .map((m) => `${m.role}: ${m.content}`)
+    .map((m) => {
+      if (m.role === "user" && m.id) {
+        return `user [msg_id:${m.id}]: ${m.content}`;
+      }
+      return `${m.role}: ${m.content}`;
+    })
     .join("\n");
 
   return `あなたは半構造化デプスインタビューを実施する熟練のインタビュアーです。
@@ -76,6 +82,7 @@ ${conversationLog}
 - 最大3件まで
 - メインの主張を補強するように記載
 - 各主張には title（40文字以内）と content（120文字以内）を含める
+- 各主張のsource_message_id には、根拠となるユーザー発言の msg_id を指定する（該当なしの場合はnull）
 - **重要**: 元の対話ログに書かれていないことは記載しない
 
 ### 7. scores（スコアリング）

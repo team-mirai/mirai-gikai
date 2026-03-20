@@ -21,10 +21,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
 import type { InterviewSessionWithDetails } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
 import { generatePageNumbers } from "../../shared/utils/pagination-utils";
+import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 import { VisibilityBadge } from "./visibility-badge";
@@ -80,8 +80,8 @@ export function SessionList({
               <TableHead className="w-20 text-center">公開</TableHead>
               <TableHead className="w-28">スタンス</TableHead>
               <TableHead className="w-28">役割</TableHead>
-              <TableHead className="w-16 text-center">評価</TableHead>
               <TableHead className="w-20 text-right">スコア</TableHead>
+              <TableHead className="w-24 text-center">満足度</TableHead>
               <TableHead className="w-44">開始時刻</TableHead>
               <TableHead className="w-24">時間</TableHead>
               <TableHead className="w-24 text-right">メッセージ数</TableHead>
@@ -131,21 +131,25 @@ export function SessionList({
                   <TableCell className="text-gray-600 text-sm">
                     {session.interview_report?.role || "-"}
                   </TableCell>
-                  <TableCell className="text-center">
-                    {session.rating ? (
-                      <div className="flex items-center justify-center gap-0.5">
-                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm">{session.rating}</span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
+                  <TableCell className="text-right font-medium">
+                    {session.interview_report?.total_score != null
+                      ? session.interview_report.total_score
+                      : "-"}
                   </TableCell>
-                  <TableCell className="text-right">
-                    {session.interview_report?.total_score != null ? (
-                      <span className="text-sm font-medium">
-                        {session.interview_report.total_score}
-                      </span>
+                  <TableCell className="text-center">
+                    {session.rating != null ? (
+                      <div className="flex items-center justify-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-4 w-4 ${
+                              star <= session.rating!
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}

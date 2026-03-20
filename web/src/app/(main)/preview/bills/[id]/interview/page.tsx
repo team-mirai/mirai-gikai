@@ -7,6 +7,8 @@ import { getInterviewConfigAdmin } from "@/features/interview-config/server/load
 import { getLatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import { env } from "@/lib/env";
 
+export const dynamic = "force-dynamic";
+
 interface InterviewPreviewPageProps {
   params: Promise<{
     id: string;

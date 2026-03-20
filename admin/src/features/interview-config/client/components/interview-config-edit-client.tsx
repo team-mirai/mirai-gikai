@@ -4,19 +4,19 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
+import { saveInterviewQuestions } from "../../server/actions/save-interview-questions";
+import {
+  createInterviewConfig,
+  updateInterviewConfig,
+} from "../../server/actions/upsert-interview-config";
 import type {
   InterviewConfig,
   InterviewQuestion,
   InterviewQuestionInput,
 } from "../../shared/types";
-import {
-  createInterviewConfig,
-  updateInterviewConfig,
-} from "../../server/actions/upsert-interview-config";
-import { saveInterviewQuestions } from "../../server/actions/save-interview-questions";
+import { ConfigGenerationChat } from "./config-generation-chat";
 import { InterviewConfigForm } from "./interview-config-form";
 import { InterviewQuestionList } from "./interview-question-list";
-import { ConfigGenerationChat } from "./config-generation-chat";
 
 interface InterviewConfigEditClientProps {
   billId: string;

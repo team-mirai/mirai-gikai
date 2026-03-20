@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface VisibilityBadgeProps {
   isPublic: boolean;

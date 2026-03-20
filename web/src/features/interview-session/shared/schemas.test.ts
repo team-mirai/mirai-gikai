@@ -24,7 +24,9 @@ const validReport = {
   role: "subject_expert" as const,
   role_description: "テストの役割説明",
   role_title: "研究者",
-  opinions: [{ title: "テスト意見", content: "テスト内容" }],
+  opinions: [
+    { title: "テスト意見", content: "テスト内容", source_message_id: null },
+  ],
   scores: validScores,
 };
 
@@ -230,9 +232,9 @@ describe("interviewReportSchema", () => {
       const result = interviewReportSchema.parse({
         ...validReport,
         opinions: [
-          { title: "意見1", content: "内容1" },
-          { title: "意見2", content: "内容2" },
-          { title: "意見3", content: "内容3" },
+          { title: "意見1", content: "内容1", source_message_id: null },
+          { title: "意見2", content: "内容2", source_message_id: "msg-1" },
+          { title: "意見3", content: "内容3", source_message_id: null },
         ],
       });
       expect(result.opinions).toHaveLength(3);
@@ -242,10 +244,10 @@ describe("interviewReportSchema", () => {
       const result = interviewReportSchema.safeParse({
         ...validReport,
         opinions: [
-          { title: "意見1", content: "内容1" },
-          { title: "意見2", content: "内容2" },
-          { title: "意見3", content: "内容3" },
-          { title: "意見4", content: "内容4" },
+          { title: "意見1", content: "内容1", source_message_id: null },
+          { title: "意見2", content: "内容2", source_message_id: null },
+          { title: "意見3", content: "内容3", source_message_id: null },
+          { title: "意見4", content: "内容4", source_message_id: null },
         ],
       });
       expect(result.success).toBe(false);

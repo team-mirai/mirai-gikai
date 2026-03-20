@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { BILL_STATUS_ORDER } from "../types";
 import type { Bill } from "../types";
+import { BILL_STATUS_ORDER } from "../types";
 import {
-  prepareBillForDuplication,
   prepareBillContentsForDuplication,
+  prepareBillForDuplication,
 } from "./prepare-bill-for-duplication";
 
 const baseBill: Bill = {
@@ -21,6 +21,7 @@ const baseBill: Bill = {
   status: "introduced",
   status_note: null,
   status_order: BILL_STATUS_ORDER.introduced,
+  publish_status_order: 2,
   thumbnail_url: null,
 };
 

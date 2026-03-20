@@ -4,6 +4,10 @@ import { z } from "zod";
 const opinionSchema = z.object({
   title: z.string().describe("意見のタイトル（40文字以内）"),
   content: z.string().describe("意見の説明（120文字以内）"),
+  source_message_id: z
+    .string()
+    .nullable()
+    .describe("この意見の根拠となるユーザー発言のメッセージID"),
 });
 
 // 0-100のスコア（LLMが小数点を返す可能性があるため丸める）

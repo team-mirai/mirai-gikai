@@ -35,7 +35,12 @@ export function convertPartialReport(
         role_description?: string | null;
         role_title?: string | null;
         opinions?: Array<
-          { title?: string; content?: string } | undefined
+          | {
+              title?: string;
+              content?: string;
+              source_message_id?: string | null;
+            }
+          | undefined
         > | null;
       }
     | null
@@ -49,6 +54,7 @@ export function convertPartialReport(
         .map((op) => ({
           title: op.title ?? "",
           content: op.content ?? "",
+          source_message_id: op.source_message_id ?? null,
         }))
         .filter((op) => op.title || op.content)
     : [];
