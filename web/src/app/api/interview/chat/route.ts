@@ -3,8 +3,9 @@ import {
   checkSystemDailyCostLimit,
   checkSystemMonthlyCostLimit,
 } from "@/features/chat/server/services/system-cost-guard";
-import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import { chatErrorToResponse } from "@/features/chat/server/utils/chat-error-response";
 import { handleInterviewChatRequest } from "@/features/interview-session/server/services/handle-interview-chat-request";
+import { jsonResponse } from "@/lib/api/response";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
 export async function POST(req: Request) {
@@ -31,21 +32,11 @@ export async function POST(req: Request) {
   } = await getChatSupabaseUser();
 
   if (getUserError || !user) {
-    return new Response(
-      JSON.stringify({
-        error: "Anonymous session required",
-      }),
-      { status: 401, headers: { "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ error: "Anonymous session required" }, 401);
   }
 
   if (!billId) {
-    return new Response(
-      JSON.stringify({
-        error: "billId is required",
-      }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ error: "billId is required" }, 400);
   }
 
   try {
@@ -62,44 +53,6 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Interview chat request error:", error);
-
-    // レートリミットエラー（ユーザー別・システム全体共通）
-    if (
-      error instanceof ChatError &&
-      (error.code === ChatErrorCode.DAILY_COST_LIMIT_REACHED ||
-        error.code === ChatErrorCode.SYSTEM_DAILY_COST_LIMIT_REACHED)
-    ) {
-      return new Response(
-        "本日の利用上限に達しました。明日0時以降に再度お試しください。",
-        {
-          status: 429,
-          headers: { "Content-Type": "text/plain; charset=utf-8" },
-        }
-      );
-    }
-
-    // 月間コストリミットエラー
-    if (
-      error instanceof ChatError &&
-      error.code === ChatErrorCode.SYSTEM_MONTHLY_COST_LIMIT_REACHED
-    ) {
-      return new Response(
-        "今月の利用上限に達しました。来月1日以降に再度お試しください。",
-        {
-          status: 429,
-          headers: { "Content-Type": "text/plain; charset=utf-8" },
-        }
-      );
-    }
-
-    return new Response(
-      error instanceof Error
-        ? error.message
-        : "エラーが発生しました。しばらく待ってから再度お試しください。",
-      {
-        status: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
-      }
-    );
+    return chatErrorToResponse(error);
   }
 }
