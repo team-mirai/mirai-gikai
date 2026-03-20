@@ -1,5 +1,3 @@
-import "server-only";
-
 import { textResponse } from "@/lib/api/response";
 import { ChatError, ChatErrorCode } from "../../shared/types/errors";
 
