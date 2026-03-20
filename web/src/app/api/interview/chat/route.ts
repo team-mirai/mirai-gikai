@@ -1,4 +1,5 @@
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { handleInterviewChatRequest } from "@/features/interview-session/server/services/handle-interview-chat-request";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
@@ -49,9 +50,24 @@ export async function POST(req: Request) {
       billId,
       currentStage,
       isRetry,
+      userId: user.id,
     });
   } catch (error) {
     console.error("Interview chat request error:", error);
+
+    // レートリミットエラー
+    if (
+      error instanceof ChatError &&
+      error.code === ChatErrorCode.DAILY_COST_LIMIT_REACHED
+    ) {
+      return new Response(
+        "本日の利用上限に達しました。明日0時以降に再度お試しください。",
+        {
+          status: 429,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        }
+      );
+    }
 
     return new Response(
       error instanceof Error

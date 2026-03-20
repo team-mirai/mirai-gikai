@@ -2,6 +2,7 @@ import "server-only";
 
 import { Output, generateText, type LanguageModel } from "ai";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
+import { recordChatUsage } from "@/features/chat/server/services/cost-tracker";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
@@ -15,6 +16,7 @@ type GenerateInitialQuestionParams = {
   sessionId: string;
   billId: string;
   interviewConfigId: string;
+  userId: string;
   deps?: GenerateQuestionDeps;
 };
 
@@ -30,6 +32,7 @@ export async function generateInitialQuestion({
   sessionId,
   billId,
   interviewConfigId,
+  userId,
   deps,
 }: GenerateInitialQuestionParams): Promise<InterviewMessage | null> {
   try {
@@ -75,6 +78,27 @@ export async function generateInitialQuestion({
         },
       },
     });
+
+    // LLM利用コストを記録
+    const modelName =
+      typeof model === "string" ? model : (model.modelId ?? "unknown");
+    try {
+      await recordChatUsage({
+        userId,
+        sessionId,
+        promptName: "interview-initial-question",
+        model: modelName,
+        usage: result.usage,
+        metadata: {
+          pageType: "interview",
+          billId,
+          finishReason: result.finishReason ?? null,
+          stepCount: 0,
+        },
+      });
+    } catch (usageError) {
+      console.error("Failed to record interview usage:", usageError);
+    }
 
     const generatedText = result.text;
 

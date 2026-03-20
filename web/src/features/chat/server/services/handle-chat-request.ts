@@ -24,7 +24,7 @@ import {
   type PromptProvider,
 } from "@/lib/prompt";
 import { AI_MODELS } from "@/lib/ai/models";
-import { getUsageCostUsd, recordChatUsage } from "./cost-tracker";
+import { isWithinDailyCostLimit, recordChatUsage } from "./cost-tracker";
 
 export type ChatMessageMetadata = {
   billContext?: BillWithContent;
@@ -67,7 +67,10 @@ export async function handleChatRequest({
 
   try {
     // Check cost limit before processing
-    const isWithinLimit = await isWithinCostLimit(userId);
+    const isWithinLimit = await isWithinDailyCostLimit(
+      userId,
+      env.chat.dailyCostLimitUsd
+    );
     if (!isWithinLimit) {
       throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
     }
@@ -164,21 +167,6 @@ function extractChatContext(
 }
 
 /**
- * ユーザーがコストリミット内かどうかを判定
- */
-async function isWithinCostLimit(userId: string): Promise<boolean> {
-  const jstDayRange = getJstDayRange();
-  const usedCost = await getUsageCostUsd(
-    userId,
-    jstDayRange.from,
-    jstDayRange.to
-  );
-  const limitCost = env.chat.dailyCostLimitUsd;
-
-  return usedCost < limitCost;
-}
-
-/**
  * コンテキストに基づいてプロンプトを組み立てる
  */
 async function buildPrompt(
@@ -213,35 +201,6 @@ async function buildPrompt(
       error instanceof Error ? error.message : String(error)
     );
   }
-}
-
-/**
- * JST基準の1日の時間範囲を取得（UTC形式で返す）
- */
-function getJstDayRange(): { from: string; to: string } {
-  const now = new Date();
-  const jstOffsetMs = 9 * 60 * 60 * 1000;
-  const jstNow = new Date(now.getTime() + jstOffsetMs);
-
-  const startOfJstDay = new Date(
-    Date.UTC(
-      jstNow.getUTCFullYear(),
-      jstNow.getUTCMonth(),
-      jstNow.getUTCDate(),
-      0,
-      0,
-      0,
-      0
-    )
-  );
-
-  const startUtc = new Date(startOfJstDay.getTime() - jstOffsetMs);
-  const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000);
-
-  return {
-    from: startUtc.toISOString(),
-    to: endUtc.toISOString(),
-  };
 }
 
 /**
