@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import {
   Table,
   TableBody,
@@ -49,7 +50,7 @@ export async function BillList({ sortConfig }: { sortConfig: BillSortConfig }) {
     <div>
       <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="text-sm text-gray-600">{bills.length}件の議案</div>
-        <Link href="/bills/new">
+        <Link href={routes.billNew()}>
           <Button>
             <Plus className="h-4 w-4 mr-1" />
             新規作成
@@ -103,7 +104,7 @@ function BillRow({ bill }: { bill: BillWithDietSession }) {
     <TableRow>
       <TableCell className="max-w-[400px]">
         <Link
-          href={`/bills/${bill.id}/edit`}
+          href={routes.billEdit(bill.id)}
           className="block truncate font-medium hover:underline"
         >
           {bill.name}

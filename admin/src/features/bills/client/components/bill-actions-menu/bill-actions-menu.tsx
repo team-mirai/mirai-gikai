@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import {
   Popover,
   PopoverContent,
@@ -33,31 +34,31 @@ export function BillActionsMenu({ billId, billName }: BillActionsMenuProps) {
       </PopoverTrigger>
       <PopoverContent className="w-48 p-1" align="end">
         <div className="flex flex-col">
-          <Link href={`/bills/${billId}/edit`}>
+          <Link href={routes.billEdit(billId)}>
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <Edit className="h-4 w-4 mr-2" />
               基本情報
             </Button>
           </Link>
-          <Link href={`/bills/${billId}/contents/edit`}>
+          <Link href={routes.billContentsEdit(billId)}>
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <FileText className="h-4 w-4 mr-2" />
               コンテンツ
             </Button>
           </Link>
-          <Link href={`/bills/${billId}/interview`}>
+          <Link href={routes.billInterview(billId)}>
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <MessageCircle className="h-4 w-4 mr-2" />
               インタビュー設定
             </Button>
           </Link>
-          <Link href={`/bills/${billId}/reports`}>
+          <Link href={routes.billReports(billId)}>
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <BarChart3 className="h-4 w-4 mr-2" />
               レポート一覧
             </Button>
           </Link>
-          <Link href={`/bills/${billId}/topic-analysis`}>
+          <Link href={routes.billTopicAnalysis(billId)}>
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <Sparkles className="h-4 w-4 mr-2" />
               トピック解析

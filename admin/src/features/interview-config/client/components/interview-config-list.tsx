@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import {
   Table,
   TableBody,
@@ -65,7 +66,7 @@ export function InterviewConfigList({
       const result = await duplicateInterviewConfig(configId);
       if (result.success) {
         toast.success("インタビュー設定を複製しました");
-        router.push(`/bills/${billId}/interview/${result.data.id}/edit`);
+        router.push(routes.billInterviewEdit(billId, result.data.id));
       } else {
         toast.error(result.error || "複製に失敗しました");
       }
@@ -105,7 +106,7 @@ export function InterviewConfigList({
           <div className="text-sm text-gray-600">
             {configs.length}件のインタビュー設定
           </div>
-          <Link href={`/bills/${billId}/interview/new`}>
+          <Link href={routes.billInterviewNew(billId)}>
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
               新規作成
@@ -135,7 +136,7 @@ export function InterviewConfigList({
                   <TableRow key={config.id}>
                     <TableCell>
                       <Link
-                        href={`/bills/${billId}/interview/${config.id}/edit`}
+                        href={routes.billInterviewEdit(billId, config.id)}
                         className="font-medium hover:underline"
                       >
                         {config.name}
@@ -180,7 +181,7 @@ export function InterviewConfigList({
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Link
-                          href={`/bills/${billId}/interview/${config.id}/edit`}
+                          href={routes.billInterviewEdit(billId, config.id)}
                         >
                           <Button variant="ghost" size="icon">
                             <Pencil className="h-4 w-4" />

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import { routes } from "@/lib/routes";
 import {
   invalidateWebCache,
   WEB_CACHE_TAGS,
@@ -38,5 +39,5 @@ export async function createBill(input: BillCreateInput) {
   }
 
   // 成功したら一覧ページへリダイレクト
-  redirect("/bills");
+  redirect(routes.bills());
 }

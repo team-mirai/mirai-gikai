@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const navigationLinks = [
-  { href: "/bills", label: "議案管理" },
-  { href: "/diet-sessions", label: "国会会期管理" },
-  { href: "/tags", label: "タグ管理" },
-  { href: "/admins", label: "管理者" },
+  { href: routes.bills(), label: "議案管理" },
+  { href: routes.dietSessions(), label: "国会会期管理" },
+  { href: routes.tags(), label: "タグ管理" },
+  { href: routes.admins(), label: "管理者" },
 ];
 
 export function NavigationLinks() {

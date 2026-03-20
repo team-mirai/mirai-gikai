@@ -1,5 +1,6 @@
 import { FileText } from "lucide-react";
 import Link from "next/link";
+import { routes } from "@/lib/routes";
 
 import type { TopicAnalysisVersion } from "../../shared/types";
 import { formatAnalysisDuration } from "../../shared/utils/format-analysis-duration";
@@ -84,7 +85,7 @@ export function VersionList({ versions, billId }: VersionListProps) {
                 <td className="px-4 py-3 text-sm text-right">
                   {version.status === "completed" && (
                     <Link
-                      href={`/bills/${billId}/topic-analysis/${version.id}`}
+                      href={routes.billTopicAnalysisDetail(billId, version.id)}
                       className="inline-flex items-center gap-1 text-primary hover:underline"
                     >
                       <FileText className="h-4 w-4" />
