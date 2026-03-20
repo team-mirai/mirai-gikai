@@ -70,7 +70,7 @@ export function buildBulkModeSystemPrompt(
 
 ## クイックリプライについて
 quick_repliesフィールドについては以下の選択肢のみを使用してください。
-${nextQuestion.quick_replies ? nextQuestion.quick_replies.join(", ") : "（クイックリプライなし）"}
+${nextQuestion.quick_replies && nextQuestion.quick_replies.length > 0 ? nextQuestion.quick_replies.join(", ") : "（クイックリプライなし）"}
 
 ${stageTransitionGuidance}
 `;

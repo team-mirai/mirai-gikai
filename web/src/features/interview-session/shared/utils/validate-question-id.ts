@@ -18,7 +18,7 @@ export function validateQuestionId({
   questionId: string | null;
   quickReplies: string[];
 } {
-  if (!questionId) {
+  if (!questionId || questionId.trim().length === 0) {
     return { questionId: null, quickReplies };
   }
 
