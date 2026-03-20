@@ -124,6 +124,38 @@ export async function findInterviewMessagesBySessionId(sessionId: string) {
   return data;
 }
 
+export async function findReactionCountsByReportId(
+  reportId: string
+): Promise<{ helpful: number; hmm: number }> {
+  const supabase = createAdminClient();
+  const [helpfulResult, hmmResult] = await Promise.all([
+    supabase
+      .from("report_reactions")
+      .select("*", { count: "exact", head: true })
+      .eq("interview_report_id", reportId)
+      .eq("reaction_type", "helpful"),
+    supabase
+      .from("report_reactions")
+      .select("*", { count: "exact", head: true })
+      .eq("interview_report_id", reportId)
+      .eq("reaction_type", "hmm"),
+  ]);
+
+  if (helpfulResult.error) {
+    throw new Error(
+      `Failed to fetch helpful count: ${helpfulResult.error.message}`
+    );
+  }
+  if (hmmResult.error) {
+    throw new Error(`Failed to fetch hmm count: ${hmmResult.error.message}`);
+  }
+
+  return {
+    helpful: helpfulResult.count ?? 0,
+    hmm: hmmResult.count ?? 0,
+  };
+}
+
 export async function updateReportVisibility(
   reportId: string,
   isPublic: boolean

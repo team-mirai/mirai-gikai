@@ -14,9 +14,15 @@ export type InterviewSessionWithDetails = InterviewSession & {
   interview_report: InterviewReport | null;
 };
 
+export type ReactionCounts = {
+  helpful: number;
+  hmm: number;
+};
+
 export type InterviewSessionDetail = InterviewSession & {
   interview_report: InterviewReport | null;
   interview_messages: InterviewMessage[];
+  reaction_counts: ReactionCounts | null;
 };
 
 export {

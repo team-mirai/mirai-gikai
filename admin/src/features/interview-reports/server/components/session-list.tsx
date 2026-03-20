@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, ExternalLink, Star, XCircle } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -80,6 +80,8 @@ export function SessionList({
               <TableHead className="w-20 text-center">公開</TableHead>
               <TableHead className="w-28">スタンス</TableHead>
               <TableHead className="w-28">役割</TableHead>
+              <TableHead className="w-16 text-center">評価</TableHead>
+              <TableHead className="w-20 text-right">スコア</TableHead>
               <TableHead className="w-44">開始時刻</TableHead>
               <TableHead className="w-24">時間</TableHead>
               <TableHead className="w-24 text-right">メッセージ数</TableHead>
@@ -128,6 +130,25 @@ export function SessionList({
                   </TableCell>
                   <TableCell className="text-gray-600 text-sm">
                     {session.interview_report?.role || "-"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {session.rating ? (
+                      <div className="flex items-center justify-center gap-0.5">
+                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm">{session.rating}</span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {session.interview_report?.total_score != null ? (
+                      <span className="text-sm font-medium">
+                        {session.interview_report.total_score}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-gray-600">
                     <div className="flex items-center gap-1">
