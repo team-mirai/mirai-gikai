@@ -4,6 +4,7 @@ import type { LanguageModelUsage } from "ai";
 
 import { sanitizeUsage } from "@/lib/ai/calculate-ai-cost";
 import { parseCost, resolveCostUsd } from "../../shared/utils/cost-utils";
+import { getJstDayRange } from "../../shared/utils/jst-day-range";
 
 import {
   type ChatUsageInsert,
@@ -65,4 +66,20 @@ export async function getTotalUsageCostUsd(
   toIso: string
 ): Promise<number> {
   return sumChatUsageCost(fromIso, toIso);
+}
+
+/**
+ * ユーザーが日次コストリミット内かどうかを判定
+ */
+export async function isWithinDailyCostLimit(
+  userId: string,
+  dailyCostLimitUsd: number
+): Promise<boolean> {
+  const jstDayRange = getJstDayRange();
+  const usedCost = await getUsageCostUsd(
+    userId,
+    jstDayRange.from,
+    jstDayRange.to
+  );
+  return usedCost < dailyCostLimitUsd;
 }

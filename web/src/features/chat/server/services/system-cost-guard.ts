@@ -2,7 +2,7 @@ import "server-only";
 
 import { ChatError, ChatErrorCode } from "../../shared/types/errors";
 import { getTotalUsageCostUsd } from "./cost-tracker";
-import { getJstDayRange } from "./jst-day-range";
+import { getJstDayRange } from "../../shared/utils/jst-day-range";
 import { env } from "@/lib/env";
 
 /**

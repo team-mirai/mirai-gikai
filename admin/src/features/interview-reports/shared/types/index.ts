@@ -1,4 +1,5 @@
 import type { Database } from "@mirai-gikai/supabase";
+import type { SortConfig } from "@/lib/sort";
 
 export type InterviewSession =
   Database["public"]["Tables"]["interview_sessions"]["Row"];
@@ -23,6 +24,21 @@ export type InterviewSessionDetail = InterviewSession & {
   interview_report: InterviewReport | null;
   interview_messages: InterviewMessage[];
   reaction_counts: ReactionCounts | null;
+};
+
+// ソート関連の型定義
+export type SessionSortField = "started_at" | "message_count";
+
+export const SESSION_SORT_FIELDS: readonly SessionSortField[] = [
+  "started_at",
+  "message_count",
+] as const;
+
+export type SessionSortConfig = SortConfig<SessionSortField>;
+
+export const DEFAULT_SESSION_SORT: SessionSortConfig = {
+  field: "started_at",
+  order: "desc",
 };
 
 export { formatDuration } from "../utils/format-duration";

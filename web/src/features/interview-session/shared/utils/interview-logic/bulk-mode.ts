@@ -69,8 +69,8 @@ export function buildBulkModeSystemPrompt(
 1つのメッセージにつき、この1つの質問のみをしてください。
 
 ## クイックリプライについて
-quick_repliesフィールドについては以下を使用してください。
-${nextQuestion.quick_replies}
+quick_repliesフィールドについては以下の選択肢のみを使用してください。
+${nextQuestion.quick_replies && nextQuestion.quick_replies.length > 0 ? nextQuestion.quick_replies.join(", ") : "（クイックリプライなし）"}
 
 ${stageTransitionGuidance}
 `;
@@ -163,8 +163,9 @@ ${timeManagementGuidance}
 ## クイックリプライについて
 - 事前定義質問そのものをこれから行う場合は、その質問のIDをレスポンスの \`question_id\` フィールドに含めてください
 - 事前定義質問にクイックリプライが設定されている場合、その質問をする際はレスポンスの \`quick_replies\` フィールドにその選択肢を含めてください
-- クイックリプライは事前定義質問に設定されているもののみを使用してください
-- 深掘り質問など、事前定義質問以外の質問をする場合は \`question_id\` を含めず、\`quick_replies\` も含めないでください
+- 深掘り質問など、事前定義質問以外の質問をする場合は \`question_id\` を含めないでください
+- 深掘り質問でも選択肢形式で聞きたい場合は、\`quick_replies\` フィールドに選択肢を含めてください（\`question_id\` は不要です）
+- 「次のうちどれに近いですか？」のように選択を促す質問をする場合は、**必ず** \`quick_replies\` に選択肢を含めてください。テキストだけで選択肢を示してはいけません
 
 ${stageTransitionGuidance}
 `;

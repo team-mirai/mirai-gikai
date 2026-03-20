@@ -1,7 +1,7 @@
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import { checkSystemDailyCostLimit } from "@/features/chat/server/services/system-cost-guard";
-import { handleInterviewChatRequest } from "@/features/interview-session/server/services/handle-interview-chat-request";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import { handleInterviewChatRequest } from "@/features/interview-session/server/services/handle-interview-chat-request";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
 export async function POST(req: Request) {
@@ -59,9 +59,11 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Interview chat request error:", error);
 
+    // レートリミットエラー（ユーザー別・システム全体共通）
     if (
       error instanceof ChatError &&
-      error.code === ChatErrorCode.SYSTEM_DAILY_COST_LIMIT_REACHED
+      (error.code === ChatErrorCode.DAILY_COST_LIMIT_REACHED ||
+        error.code === ChatErrorCode.SYSTEM_DAILY_COST_LIMIT_REACHED)
     ) {
       return new Response(
         "本日の利用上限に達しました。明日0時以降に再度お試しください。",

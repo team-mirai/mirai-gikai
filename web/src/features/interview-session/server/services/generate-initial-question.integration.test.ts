@@ -53,6 +53,7 @@ describe("generateInitialQuestion 統合テスト", () => {
       sessionId,
       billId,
       interviewConfigId,
+      userId: testUser.id,
       deps: { model: mockModel },
     });
 
@@ -81,6 +82,7 @@ describe("generateInitialQuestion 統合テスト", () => {
       sessionId,
       billId,
       interviewConfigId,
+      userId: testUser.id,
       deps: { model: mockModel },
     });
 
@@ -105,6 +107,7 @@ describe("generateInitialQuestion 統合テスト", () => {
       sessionId,
       billId: nonExistentBillId,
       interviewConfigId,
+      userId: testUser.id,
       deps: { model: mockModel },
     });
 

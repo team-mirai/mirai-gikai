@@ -1,5 +1,7 @@
 version: 1
 
+language: ja
+
 auto_review:
   enabled: true
   drafts: true 

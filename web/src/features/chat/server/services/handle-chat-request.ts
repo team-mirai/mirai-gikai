@@ -24,8 +24,7 @@ import {
   type PromptProvider,
 } from "@/lib/prompt";
 import { AI_MODELS } from "@/lib/ai/models";
-import { getUsageCostUsd, recordChatUsage } from "./cost-tracker";
-import { getJstDayRange } from "./jst-day-range";
+import { isWithinDailyCostLimit, recordChatUsage } from "./cost-tracker";
 import { checkSystemDailyCostLimit } from "./system-cost-guard";
 
 export type ChatMessageMetadata = {
@@ -72,7 +71,10 @@ export async function handleChatRequest({
     await checkSystemDailyCostLimit();
 
     // Check per-user cost limit before processing
-    const isWithinLimit = await isWithinCostLimit(userId);
+    const isWithinLimit = await isWithinDailyCostLimit(
+      userId,
+      env.chat.dailyCostLimitUsd
+    );
     if (!isWithinLimit) {
       throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
     }
@@ -166,21 +168,6 @@ function extractChatContext(
       "normal") as DifficultyLevelEnum,
     sessionId: metadata?.sessionId || "",
   };
-}
-
-/**
- * ユーザーがコストリミット内かどうかを判定
- */
-async function isWithinCostLimit(userId: string): Promise<boolean> {
-  const jstDayRange = getJstDayRange();
-  const usedCost = await getUsageCostUsd(
-    userId,
-    jstDayRange.from,
-    jstDayRange.to
-  );
-  const limitCost = env.chat.dailyCostLimitUsd;
-
-  return usedCost < limitCost;
 }
 
 /**

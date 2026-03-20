@@ -1,17 +1,24 @@
-import type { InterviewSessionWithDetails } from "../../shared/types";
+import type {
+  InterviewSessionWithDetails,
+  SessionSortConfig,
+} from "../../shared/types";
+import { DEFAULT_SESSION_SORT } from "../../shared/types";
 import { calculatePaginationRange } from "../../shared/utils/pagination-utils";
 import {
   countInterviewSessionsByConfigId,
   findInterviewConfigIdByBillId,
   findInterviewMessageCounts,
   findInterviewSessionsWithReport,
+  findInterviewSessionsWithReportByIds,
+  findSessionIdsOrderedByMessageCount,
 } from "../repositories/interview-report-repository";
 
 export const SESSIONS_PER_PAGE = 30;
 
 export async function getInterviewSessions(
   billId: string,
-  page = 1
+  page = 1,
+  sort: SessionSortConfig = DEFAULT_SESSION_SORT
 ): Promise<InterviewSessionWithDetails[]> {
   const config = await findInterviewConfigIdByBillId(billId);
 
@@ -21,11 +28,25 @@ export async function getInterviewSessions(
 
   // ページネーション計算
   const { from, to } = calculatePaginationRange(page, SESSIONS_PER_PAGE);
+  const limit = to - from + 1;
 
-  // セッション一覧を取得
+  // message_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
-    sessions = await findInterviewSessionsWithReport(config.id, from, to);
+    if (sort.field === "message_count") {
+      const orderedIds = await findSessionIdsOrderedByMessageCount(
+        config.id,
+        sort.order === "asc",
+        from,
+        limit
+      );
+      sessions = await findInterviewSessionsWithReportByIds(orderedIds);
+    } else {
+      sessions = await findInterviewSessionsWithReport(config.id, from, to, {
+        column: sort.field,
+        ascending: sort.order === "asc",
+      });
+    }
   } catch (error) {
     console.error("Failed to fetch interview sessions:", error);
     return [];

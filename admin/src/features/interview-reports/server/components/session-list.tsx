@@ -13,6 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -21,8 +22,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { InterviewSessionWithDetails } from "../../shared/types";
-import { formatDuration, getSessionStatus } from "../../shared/types";
+import type {
+  InterviewSessionWithDetails,
+  SessionSortConfig,
+} from "../../shared/types";
+import {
+  DEFAULT_SESSION_SORT,
+  formatDuration,
+  getSessionStatus,
+} from "../../shared/types";
 import { generatePageNumbers } from "../../shared/utils/pagination-utils";
 import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
 import { RatingStars } from "./rating-stars";
@@ -35,6 +43,7 @@ interface SessionListProps {
   sessions: InterviewSessionWithDetails[];
   totalCount: number;
   currentPage: number;
+  sort?: SessionSortConfig;
 }
 
 function BooleanIcon({ value }: { value: boolean }) {
@@ -44,11 +53,29 @@ function BooleanIcon({ value }: { value: boolean }) {
   return <XCircle className="h-5 w-5 text-red-400" />;
 }
 
+function buildPageUrl(
+  billId: string,
+  page: number,
+  sort: SessionSortConfig
+): string {
+  const params = new URLSearchParams();
+  params.set("page", String(page));
+  if (
+    sort.field !== DEFAULT_SESSION_SORT.field ||
+    sort.order !== DEFAULT_SESSION_SORT.order
+  ) {
+    params.set("sort", sort.field);
+    params.set("order", sort.order);
+  }
+  return `/bills/${billId}/reports?${params.toString()}`;
+}
+
 export function SessionList({
   billId,
   sessions,
   totalCount,
   currentPage,
+  sort = DEFAULT_SESSION_SORT,
 }: SessionListProps) {
   const totalPages = Math.ceil(totalCount / SESSIONS_PER_PAGE);
   const startIndex = (currentPage - 1) * SESSIONS_PER_PAGE;
@@ -83,9 +110,23 @@ export function SessionList({
               <TableHead className="w-28">役割</TableHead>
               <TableHead className="w-20 text-right">スコア</TableHead>
               <TableHead className="w-24 text-center">満足度</TableHead>
-              <TableHead className="w-44">開始時刻</TableHead>
+              <SortableTableHead
+                field="started_at"
+                currentField={sort.field}
+                currentOrder={sort.order}
+                className="w-44"
+              >
+                開始時刻
+              </SortableTableHead>
               <TableHead className="w-24">時間</TableHead>
-              <TableHead className="w-24 text-right">メッセージ数</TableHead>
+              <SortableTableHead
+                field="message_count"
+                currentField={sort.field}
+                currentOrder={sort.order}
+                className="w-24 text-right"
+              >
+                メッセージ数
+              </SortableTableHead>
               <TableHead className="w-32">アクション</TableHead>
             </TableRow>
           </TableHeader>
@@ -186,7 +227,7 @@ export function SessionList({
           <PaginationContent>
             <PaginationItem>
               <PaginationFirst
-                href={`/bills/${billId}/reports?page=1`}
+                href={buildPageUrl(billId, 1, sort)}
                 aria-disabled={currentPage <= 1}
                 className={
                   currentPage <= 1 ? "pointer-events-none opacity-50" : ""
@@ -196,11 +237,11 @@ export function SessionList({
 
             <PaginationItem>
               <PaginationPrevious
-                href={
-                  currentPage > 1
-                    ? `/bills/${billId}/reports?page=${currentPage - 1}`
-                    : `/bills/${billId}/reports?page=1`
-                }
+                href={buildPageUrl(
+                  billId,
+                  currentPage > 1 ? currentPage - 1 : 1,
+                  sort
+                )}
                 aria-disabled={currentPage <= 1}
                 className={
                   currentPage <= 1 ? "pointer-events-none opacity-50" : ""
@@ -217,7 +258,7 @@ export function SessionList({
               ) : (
                 <PaginationItem key={page}>
                   <PaginationLink
-                    href={`/bills/${billId}/reports?page=${page}`}
+                    href={buildPageUrl(billId, page, sort)}
                     isActive={page === currentPage}
                   >
                     {page}
@@ -228,11 +269,11 @@ export function SessionList({
 
             <PaginationItem>
               <PaginationNext
-                href={
-                  currentPage < totalPages
-                    ? `/bills/${billId}/reports?page=${currentPage + 1}`
-                    : `/bills/${billId}/reports?page=${totalPages}`
-                }
+                href={buildPageUrl(
+                  billId,
+                  currentPage < totalPages ? currentPage + 1 : totalPages,
+                  sort
+                )}
                 aria-disabled={currentPage >= totalPages}
                 className={
                   currentPage >= totalPages
@@ -244,7 +285,7 @@ export function SessionList({
 
             <PaginationItem>
               <PaginationLast
-                href={`/bills/${billId}/reports?page=${totalPages}`}
+                href={buildPageUrl(billId, totalPages, sort)}
                 aria-disabled={currentPage >= totalPages}
                 className={
                   currentPage >= totalPages

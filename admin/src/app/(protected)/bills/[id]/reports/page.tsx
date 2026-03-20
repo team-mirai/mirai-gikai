@@ -8,6 +8,7 @@ import {
   getInterviewSessions,
   getInterviewSessionsCount,
 } from "@/features/interview-reports/server/loaders/get-interview-sessions";
+import { parseSessionSortParams } from "@/features/interview-reports/shared/utils/parse-session-sort-params";
 
 interface ReportsPageProps {
   params: Promise<{
@@ -15,6 +16,8 @@ interface ReportsPageProps {
   }>;
   searchParams: Promise<{
     page?: string;
+    sort?: string;
+    order?: string;
   }>;
 }
 
@@ -23,12 +26,13 @@ export default async function ReportsPage({
   searchParams,
 }: ReportsPageProps) {
   const { id } = await params;
-  const { page } = await searchParams;
+  const { page, sort, order } = await searchParams;
   const currentPage = Math.max(1, Number(page) || 1);
+  const sortConfig = parseSessionSortParams(sort, order);
 
   const [bill, sessions, totalCount] = await Promise.all([
     getBillById(id),
-    getInterviewSessions(id, currentPage),
+    getInterviewSessions(id, currentPage, sortConfig),
     getInterviewSessionsCount(id),
   ]);
 
@@ -60,6 +64,7 @@ export default async function ReportsPage({
         sessions={sessions}
         totalCount={totalCount}
         currentPage={currentPage}
+        sort={sortConfig}
       />
     </div>
   );
