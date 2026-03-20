@@ -81,15 +81,15 @@ export function useInterviewChat({
         const topicTitle = topic_title ?? null;
 
         // 既出の questionId を検出して無効化（深掘り時に前の質問IDが残る問題を防止）
+        // 既出IDの場合は quick_replies も引きずられている可能性が高いため両方クリア
         const rawQuestionId = question_id ?? null;
         const usedQuestionIds = collectUsedQuestionIds([
           ...parsedInitialMessages,
           ...conversationMessagesRef.current,
         ]);
-        const questionId =
-          rawQuestionId && !usedQuestionIds.has(rawQuestionId)
-            ? rawQuestionId
-            : null;
+        const isQuestionIdReused =
+          rawQuestionId != null && usedQuestionIds.has(rawQuestionId);
+        const questionId = isQuestionIdReused ? null : rawQuestionId;
 
         // レスポンスからnext_stageを取得してステージを更新
         if (next_stage) {
@@ -104,7 +104,10 @@ export function useInterviewChat({
           role: "assistant",
           content: text ?? "",
           report: shouldIncludeReport ? convertPartialReport(report) : null,
-          quickReplies: Array.isArray(quick_replies) ? quick_replies : [],
+          quickReplies:
+            isQuestionIdReused || !Array.isArray(quick_replies)
+              ? []
+              : quick_replies,
           questionId,
           topicTitle,
         };
