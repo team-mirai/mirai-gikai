@@ -20,7 +20,9 @@ export default function PrivacyPage() {
       description="チームみらい（以下「当組織」といいます）における個人情報の取り扱いについてご説明します。"
     >
       <Container className="space-y-8">
-        <p className="text-sm text-slate-500">最終更新日：2026年3月20日</p>
+        <p className="text-sm text-mirai-text-muted">
+          最終更新日：2026年3月20日
+        </p>
 
         <section className="space-y-4">
           <LegalSectionTitle>1. 個人情報の定義</LegalSectionTitle>
