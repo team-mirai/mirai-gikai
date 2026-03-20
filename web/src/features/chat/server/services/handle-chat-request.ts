@@ -70,7 +70,7 @@ export async function handleChatRequest({
     // Check per-user cost limit before processing
     const isWithinLimit = await isWithinDailyCostLimit(
       userId,
-      env.chat.dailyCostLimitUsd
+      env.chat.dailyUserCostLimitUsd
     );
     if (!isWithinLimit) {
       throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);

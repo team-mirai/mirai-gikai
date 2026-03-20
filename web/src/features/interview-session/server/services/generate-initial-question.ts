@@ -70,7 +70,7 @@ export async function generateInitialQuestion({
     try {
       const isWithinLimit = await isWithinDailyCostLimit(
         userId,
-        env.chat.dailyCostLimitUsd
+        env.chat.dailyUserCostLimitUsd
       );
       if (!isWithinLimit) {
         console.error("Daily cost limit reached for initial question");

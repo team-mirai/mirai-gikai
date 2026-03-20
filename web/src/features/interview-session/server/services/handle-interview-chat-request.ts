@@ -82,7 +82,7 @@ export async function handleInterviewChatRequest({
   // 日次コスト制限チェック（fail-closed: エラー時もリクエストをブロック）
   const isWithinLimit = await isWithinDailyCostLimit(
     userId,
-    env.chat.dailyCostLimitUsd
+    env.chat.dailyUserCostLimitUsd
   );
   if (!isWithinLimit) {
     throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
