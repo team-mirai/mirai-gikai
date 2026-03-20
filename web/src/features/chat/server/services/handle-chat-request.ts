@@ -67,9 +67,6 @@ export async function handleChatRequest({
   const context = extractChatContext(messages);
 
   try {
-    // Check system-wide cost limit before processing
-    await checkSystemDailyCostLimit();
-
     // Check per-user cost limit before processing
     const isWithinLimit = await isWithinDailyCostLimit(
       userId,
@@ -78,6 +75,9 @@ export async function handleChatRequest({
     if (!isWithinLimit) {
       throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
     }
+
+    // Check system-wide cost limit before processing
+    await checkSystemDailyCostLimit();
   } catch (error) {
     if (error instanceof ChatError) {
       throw error;
