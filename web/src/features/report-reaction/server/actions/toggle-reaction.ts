@@ -6,7 +6,7 @@ import type { ReactionType } from "../../shared/types";
 import {
   deleteReaction,
   findUserReaction,
-  isReportPublic,
+  getReportPublicStatus,
   upsertReaction,
 } from "../repositories/report-reaction-repository";
 
@@ -39,8 +39,8 @@ export async function toggleReaction(
   const userId = authResult.userId;
 
   try {
-    // レポートが公開されているか確認
-    const isPublic = await isReportPublic(reportId);
+    // レポートが公開されているか確認し、紐づくbillIdもサーバー側で取得
+    const { isPublic, billId } = await getReportPublicStatus(reportId);
     if (!isPublic) {
       return {
         success: false,
@@ -55,12 +55,20 @@ export async function toggleReaction(
       // 同じリアクション → 解除
       await deleteReaction(reportId, userId);
       revalidatePath(`/report/${reportId}/chat-log`);
+      if (billId) {
+        revalidatePath(`/bills/${billId}`);
+        revalidatePath(`/bills/${billId}/opinions`);
+      }
       return { success: true, newReaction: null };
     }
 
     // 新規 or 切り替え → upsert
     await upsertReaction(reportId, userId, reactionType);
     revalidatePath(`/report/${reportId}/chat-log`);
+    if (billId) {
+      revalidatePath(`/bills/${billId}`);
+      revalidatePath(`/bills/${billId}/opinions`);
+    }
     return { success: true, newReaction: reactionType };
   } catch {
     return {

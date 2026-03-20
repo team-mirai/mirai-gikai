@@ -20,6 +20,7 @@ const makeBill = (
   status: "introduced",
   status_note: null,
   status_order: BILL_STATUS_ORDER.introduced,
+  publish_status_order: 2,
   thumbnail_url: null,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
@@ -116,5 +117,33 @@ describe("buildSummarySystemPrompt", () => {
     expect(result).toContain(
       "assistant: 質問1\nuser: 回答1\nassistant: 質問2\nuser: 回答2"
     );
+  });
+
+  it("IDつきのuserメッセージが msg_id 付きフォーマットで含まれる", () => {
+    const result = buildSummarySystemPrompt({
+      bill: makeBill(),
+      interviewConfig: { themes: [] },
+      messages: [
+        { role: "assistant", content: "質問1" },
+        { role: "user", content: "回答1", id: "msg-uuid-1" },
+        { role: "assistant", content: "質問2" },
+        { role: "user", content: "回答2", id: "msg-uuid-2" },
+      ],
+    });
+
+    expect(result).toContain("user [msg_id:msg-uuid-1]: 回答1");
+    expect(result).toContain("user [msg_id:msg-uuid-2]: 回答2");
+    expect(result).toContain("assistant: 質問1");
+    expect(result).toContain("assistant: 質問2");
+  });
+
+  it("source_message_idの指示がプロンプトに含まれる", () => {
+    const result = buildSummarySystemPrompt({
+      bill: makeBill(),
+      interviewConfig: { themes: [] },
+      messages: [],
+    });
+
+    expect(result).toContain("source_message_id");
   });
 });

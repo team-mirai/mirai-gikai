@@ -22,6 +22,7 @@ const validReportMessage = JSON.stringify({
       {
         title: "賛成の理由",
         content: "社会全体の利益になると考える",
+        source_message_id: null,
       },
     ],
     scores: {

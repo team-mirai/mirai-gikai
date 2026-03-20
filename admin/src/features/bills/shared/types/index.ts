@@ -17,6 +17,20 @@ export type BillWithDietSession = Bill & {
   diet_sessions: { name: string } | null;
 };
 
+// ソート関連の型定義
+export type BillSortField =
+  | "created_at"
+  | "published_at"
+  | "status_order"
+  | "publish_status_order";
+
+export type SortOrder = "asc" | "desc";
+
+export type BillSortConfig = {
+  field: BillSortField;
+  order: SortOrder;
+};
+
 // ステータスのソート順（DBのstatus_order generated columnと一致させる）
 export const BILL_STATUS_ORDER: Record<BillStatus, number> = {
   enacted: 0,

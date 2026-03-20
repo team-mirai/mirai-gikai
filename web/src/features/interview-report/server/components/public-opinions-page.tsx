@@ -6,6 +6,7 @@ import { Container } from "@/components/layouts/container";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { InterviewLandingSection } from "@/features/interview-config/client/components/interview-landing-section";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
+import { getReportReactionsBatch } from "@/features/report-reaction/server/loaders/get-report-reactions";
 import { PublicOpinionsList } from "../../client/components/public-opinions-list";
 import { getAllPublicReportsByBillId } from "../loaders/get-all-public-reports-by-bill-id";
 
@@ -25,6 +26,19 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
   }
 
   const billTitle = bill.bill_content?.title || bill.name;
+
+  const reportIds = reports.map((r) => r.id);
+  const reactionsMap = await getReportReactionsBatch(reportIds);
+  const reactionsRecord: Record<
+    string,
+    { counts: { helpful: number; hmm: number }; userReaction: string | null }
+  > = {};
+  for (const [id, data] of reactionsMap) {
+    reactionsRecord[id] = {
+      counts: data.counts,
+      userReaction: data.userReaction,
+    };
+  }
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -54,7 +68,10 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
         </div>
 
         {/* 意見一覧（フィルター付き） */}
-        <PublicOpinionsList reports={reports} />
+        <PublicOpinionsList
+          reports={reports}
+          reactionsRecord={reactionsRecord}
+        />
 
         {/* AIインタビューCTAバナー */}
         {interviewConfig != null && (

@@ -6,6 +6,7 @@ import {
   FileText,
   MessageCircle,
   MoreVertical,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,12 @@ export function BillActionsMenu({ billId, billName }: BillActionsMenuProps) {
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <BarChart3 className="h-4 w-4 mr-2" />
               レポート一覧
+            </Button>
+          </Link>
+          <Link href={`/bills/${billId}/topic-analysis`}>
+            <Button variant="ghost" size="sm" className="w-full justify-start">
+              <Sparkles className="h-4 w-4 mr-2" />
+              トピック解析
             </Button>
           </Link>
           <div className="my-1 border-t" />

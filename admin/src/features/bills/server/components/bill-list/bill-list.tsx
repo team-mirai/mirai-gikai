@@ -10,14 +10,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { BILL_STATUS_CONFIG } from "../../../shared/constants/bill-config";
-import { getBills } from "../../loaders/get-bills";
-import type { BillStatus, BillWithDietSession } from "../../../shared/types";
-import { getBillStatusLabel } from "../../../shared/types";
 import { BillActionsMenu } from "../../../client/components/bill-actions-menu/bill-actions-menu";
 import { PreviewButton } from "../../../client/components/bill-list/preview-button";
 import { PublishStatusBadge } from "../../../client/components/bill-list/publish-status-badge";
+import { SortableTableHead } from "../../../client/components/bill-list/sortable-table-head";
 import { ViewButton } from "../../../client/components/bill-list/view-button";
+import { BILL_STATUS_CONFIG } from "../../../shared/constants/bill-config";
+import type {
+  BillSortConfig,
+  BillStatus,
+  BillWithDietSession,
+} from "../../../shared/types";
+import { getBillStatusLabel } from "../../../shared/types";
+import { getBills } from "../../loaders/get-bills";
 
 function StatusBadge({
   status,
@@ -37,8 +42,8 @@ function StatusBadge({
   );
 }
 
-export async function BillList() {
-  const bills = await getBills();
+export async function BillList({ sortConfig }: { sortConfig: BillSortConfig }) {
+  const bills = await getBills(sortConfig);
 
   return (
     <div>
@@ -58,9 +63,27 @@ export async function BillList() {
             <TableRow>
               <TableHead>議案名</TableHead>
               <TableHead>国会会期</TableHead>
-              <TableHead>公開ステータス</TableHead>
-              <TableHead>審議ステータス</TableHead>
-              <TableHead>公開日</TableHead>
+              <SortableTableHead
+                field="publish_status_order"
+                currentField={sortConfig.field}
+                currentOrder={sortConfig.order}
+              >
+                公開ステータス
+              </SortableTableHead>
+              <SortableTableHead
+                field="status_order"
+                currentField={sortConfig.field}
+                currentOrder={sortConfig.order}
+              >
+                審議ステータス
+              </SortableTableHead>
+              <SortableTableHead
+                field="published_at"
+                currentField={sortConfig.field}
+                currentOrder={sortConfig.order}
+              >
+                公開日
+              </SortableTableHead>
               <TableHead className="w-[50px]" />
             </TableRow>
           </TableHeader>

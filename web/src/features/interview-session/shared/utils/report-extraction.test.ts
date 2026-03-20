@@ -10,7 +10,7 @@ describe("extractReportFromMessage", () => {
       role: "general_citizen",
       role_description: "一般市民です",
       role_title: "市民",
-      opinions: [{ title: "意見1", content: "内容1" }],
+      opinions: [{ title: "意見1", content: "内容1", source_message_id: null }],
       scores: {
         total: 75,
         clarity: 80,
