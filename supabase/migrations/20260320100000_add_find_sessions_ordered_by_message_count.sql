@@ -14,6 +14,9 @@ BEGIN
   LEFT JOIN (
     SELECT im.interview_session_id, COUNT(*)::BIGINT AS cnt
     FROM interview_messages im
+    INNER JOIN interview_sessions iss
+      ON iss.id = im.interview_session_id
+    WHERE iss.interview_config_id = p_config_id
     GROUP BY im.interview_session_id
   ) mc ON mc.interview_session_id = s.id
   WHERE s.interview_config_id = p_config_id
