@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
+import { routes } from "@/lib/routes";
 import { SessionDetail } from "@/features/interview-reports/server/components/session-detail";
 import { getInterviewSessionDetail } from "@/features/interview-reports/server/loaders/get-interview-session-detail";
 
@@ -34,7 +35,7 @@ export default async function ReportDetailPage({
     <div>
       <div className="mb-6">
         <Link
-          href={`/bills/${id}/reports`}
+          href={routes.billReports(id)}
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4" />

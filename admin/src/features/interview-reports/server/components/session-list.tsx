@@ -2,6 +2,7 @@ import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import {
   Pagination,
   PaginationContent,
@@ -67,7 +68,7 @@ function buildPageUrl(
     params.set("sort", sort.field);
     params.set("order", sort.order);
   }
-  return `/bills/${billId}/reports?${params.toString()}`;
+  return `${routes.billReports(billId)}?${params.toString()}`;
 }
 
 export function SessionList({
@@ -203,7 +204,7 @@ export function SessionList({
                     {session.message_count}
                   </TableCell>
                   <TableCell>
-                    <Link href={`/bills/${billId}/reports/${session.id}`}>
+                    <Link href={routes.billReportDetail(billId, session.id)}>
                       <Button
                         variant="link"
                         size="sm"

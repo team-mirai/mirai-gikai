@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
+import { routes } from "@/lib/routes";
 import { InterviewConfigList } from "@/features/interview-config/client/components/interview-config-list";
 import { getInterviewConfigs } from "@/features/interview-config/server/loaders/get-interview-config";
 
@@ -29,7 +30,7 @@ export default async function InterviewListPage({
     <div>
       <div className="mb-6">
         <Link
-          href="/bills"
+          href={routes.bills()}
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4" />
