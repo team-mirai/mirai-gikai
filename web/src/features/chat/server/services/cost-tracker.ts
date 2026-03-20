@@ -9,6 +9,7 @@ import {
   type ChatUsageInsert,
   findChatUsageEvents,
   insertChatUsageEvent,
+  sumChatUsageCost,
 } from "../repositories/chat-usage-repository";
 
 type RecordChatUsageParams = {
@@ -57,4 +58,11 @@ export async function getUsageCostUsd(
 ): Promise<number> {
   const rows = await findChatUsageEvents(userId, fromIso, toIso);
   return rows.reduce((acc, row) => acc + parseCost(row), 0);
+}
+
+export async function getTotalUsageCostUsd(
+  fromIso: string,
+  toIso: string
+): Promise<number> {
+  return sumChatUsageCost(fromIso, toIso);
 }

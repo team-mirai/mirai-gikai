@@ -3,6 +3,7 @@ import "server-only";
 import {
   convertToModelMessages,
   type LanguageModel,
+  type LanguageModelUsage,
   Output,
   streamText,
 } from "ai";
@@ -23,6 +24,7 @@ import type {
   InterviewMessage,
   InterviewSession,
 } from "@/features/interview-session/shared/types";
+import { recordChatUsage } from "@/features/chat/server/services/cost-tracker";
 import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { logger } from "@/lib/logger";
 import { mergeMessagesWithIds } from "../../shared/utils/merge-messages-with-ids";
@@ -66,8 +68,12 @@ export async function handleInterviewChatRequest({
   billId,
   currentStage,
   isRetry = false,
+  userId,
   deps,
-}: InterviewChatRequestParams & { deps?: InterviewChatDeps }) {
+}: InterviewChatRequestParams & {
+  userId?: string;
+  deps?: InterviewChatDeps;
+}) {
   // リクエスト単位のトレースID（同一リクエスト内のLLM呼び出しをまとめる）
   const traceId = crypto.randomUUID();
 
@@ -171,6 +177,7 @@ export async function handleInterviewChatRequest({
     messages,
     sessionId: session.id,
     isSummaryPhase,
+    userId,
     chatModel: deps?.chatModel,
     summaryModel: deps?.summaryModel,
     configChatModel: interviewConfig.chat_model,
@@ -194,6 +201,7 @@ async function generateStreamingResponse({
   messages,
   sessionId,
   isSummaryPhase,
+  userId,
   chatModel,
   summaryModel,
   configChatModel,
@@ -203,6 +211,7 @@ async function generateStreamingResponse({
   messages: { role: string; content: string }[];
   sessionId: string;
   isSummaryPhase: boolean;
+  userId?: string;
   chatModel?: LanguageModel;
   summaryModel?: LanguageModel;
   configChatModel?: string | null;
@@ -218,6 +227,9 @@ async function generateStreamingResponse({
     ? (summaryModel ?? AI_MODELS.gemini3_flash)
     : (chatModel ?? configChatModel ?? DEFAULT_INTERVIEW_CHAT_MODEL);
 
+  const modelName =
+    typeof model === "string" ? model : (model.modelId ?? "unknown");
+
   const handleError = (error: unknown) => {
     console.error("LLM generation error:", error);
     throw new Error(
@@ -225,13 +237,32 @@ async function generateStreamingResponse({
     );
   };
 
-  const handleFinish = async (event: { text?: string }) => {
+  const handleFinish = async (event: {
+    text?: string;
+    totalUsage: LanguageModelUsage;
+  }) => {
     try {
       if (event.text) {
         await saveInterviewMessage({
           sessionId,
           role: "assistant",
           content: event.text,
+        });
+      }
+
+      // コスト記録（userIdがある場合のみ）
+      if (userId) {
+        await recordChatUsage({
+          userId,
+          sessionId,
+          promptName: isSummaryPhase ? "interview-summary" : "interview-chat",
+          model: modelName,
+          usage: event.totalUsage,
+          metadata: {
+            pageType: "interview",
+            billId: telemetry?.billId ?? null,
+            stage: telemetry?.stage ?? null,
+          },
         });
       }
     } catch (err) {
