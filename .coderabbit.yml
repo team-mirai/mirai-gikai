@@ -12,9 +12,9 @@ reviews:
     drafts: true
     ignore_title_keywords: []
     labels:
-      - "-skip-ai-review"
-      - "-no-bots"
-      - "-dependencies"
+      - "!skip-ai-review"
+      - "!no-bots"
+      - "!dependencies"
     ignore_usernames:
       - "dependabot"
       - "renovate"
