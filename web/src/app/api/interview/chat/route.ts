@@ -1,5 +1,8 @@
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
-import { checkSystemDailyCostLimit } from "@/features/chat/server/services/system-cost-guard";
+import {
+  checkSystemDailyCostLimit,
+  checkSystemMonthlyCostLimit,
+} from "@/features/chat/server/services/system-cost-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { handleInterviewChatRequest } from "@/features/interview-session/server/services/handle-interview-chat-request";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
@@ -46,8 +49,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    // システム全体の1日の予算上限チェック
+    // システム全体の予算上限チェック（日次・月次）
     await checkSystemDailyCostLimit();
+    await checkSystemMonthlyCostLimit();
 
     return await handleInterviewChatRequest({
       messages,
@@ -67,6 +71,20 @@ export async function POST(req: Request) {
     ) {
       return new Response(
         "本日の利用上限に達しました。明日0時以降に再度お試しください。",
+        {
+          status: 429,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        }
+      );
+    }
+
+    // 月間コストリミットエラー
+    if (
+      error instanceof ChatError &&
+      error.code === ChatErrorCode.SYSTEM_MONTHLY_COST_LIMIT_REACHED
+    ) {
+      return new Response(
+        "今月の利用上限に達しました。来月1日以降に再度お試しください。",
         {
           status: 429,
           headers: { "Content-Type": "text/plain; charset=utf-8" },

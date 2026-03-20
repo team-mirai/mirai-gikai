@@ -89,6 +89,20 @@ export async function POST(req: Request) {
       );
     }
 
+    // 月間コストリミットエラー
+    if (
+      error instanceof ChatError &&
+      error.code === ChatErrorCode.SYSTEM_MONTHLY_COST_LIMIT_REACHED
+    ) {
+      return new Response(
+        "今月の利用上限に達しました。来月1日以降に再度お試しください。",
+        {
+          status: 429,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        }
+      );
+    }
+
     // その他のChatError
     if (error instanceof ChatError) {
       return new Response(

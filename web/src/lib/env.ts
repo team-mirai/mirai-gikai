@@ -40,6 +40,20 @@ if (
   );
 }
 
+const chatMonthlyTotalCostLimitUsdRaw =
+  process.env.CHAT_MONTHLY_TOTAL_COST_LIMIT_USD || "1000";
+
+const chatMonthlyTotalCostLimitUsd = Number(chatMonthlyTotalCostLimitUsdRaw);
+
+if (
+  Number.isNaN(chatMonthlyTotalCostLimitUsd) ||
+  chatMonthlyTotalCostLimitUsd <= 0
+) {
+  throw new Error(
+    "環境変数 CHAT_MONTHLY_TOTAL_COST_LIMIT_USD は正の数値で指定してください"
+  );
+}
+
 export const env = {
   webUrl: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000",
   adminUrl: process.env.ADMIN_URL || "http://localhost:3001",
@@ -58,6 +72,7 @@ export const env = {
   chat: {
     dailyUserCostLimitUsd: chatDailyUserCostLimitUsd,
     dailyTotalCostLimitUsd: chatDailyTotalCostLimitUsd,
+    monthlyTotalCostLimitUsd: chatMonthlyTotalCostLimitUsd,
   },
 } as const;
 

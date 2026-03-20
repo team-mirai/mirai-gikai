@@ -25,7 +25,10 @@ import {
 } from "@/lib/prompt";
 import { AI_MODELS } from "@/lib/ai/models";
 import { isWithinDailyCostLimit, recordChatUsage } from "./cost-tracker";
-import { checkSystemDailyCostLimit } from "./system-cost-guard";
+import {
+  checkSystemDailyCostLimit,
+  checkSystemMonthlyCostLimit,
+} from "./system-cost-guard";
 
 export type ChatMessageMetadata = {
   billContext?: BillWithContent;
@@ -76,8 +79,9 @@ export async function handleChatRequest({
       throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
     }
 
-    // Check system-wide cost limit before processing
+    // Check system-wide cost limits before processing
     await checkSystemDailyCostLimit();
+    await checkSystemMonthlyCostLimit();
   } catch (error) {
     if (error instanceof ChatError) {
       throw error;
