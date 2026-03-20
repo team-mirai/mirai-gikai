@@ -16,7 +16,7 @@ function collectAppRoutes(appDir: string): string[] {
       if (entry.isDirectory()) {
         walk(full);
       } else if (entry.name === "page.tsx") {
-        const rel = path.relative(appDir, dir);
+        const rel = path.relative(appDir, dir).split(path.sep).join("/");
         // ルートグループ除去: (main) など
         const route =
           `/${rel.replace(/\([^)]+\)\/?/g, "")}`.replace(/\/+$/, "") || "/";

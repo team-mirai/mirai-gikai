@@ -24,13 +24,13 @@ export const routes = {
 
   // ── プレビュー（token 付き） ──────────────────────
   previewBillDetail: (billId: string, token: string) =>
-    `/preview/bills/${billId}?token=${token}` as const,
+    `/preview/bills/${billId}?token=${encodeURIComponent(token)}` as const,
   previewInterviewLP: (billId: string, token: string) =>
-    `/preview/bills/${billId}/interview?token=${token}` as const,
+    `/preview/bills/${billId}/interview?token=${encodeURIComponent(token)}` as const,
   previewInterviewDisclosure: (billId: string, token: string) =>
-    `/preview/bills/${billId}/interview/disclosure?token=${token}` as const,
+    `/preview/bills/${billId}/interview/disclosure?token=${encodeURIComponent(token)}` as const,
   previewInterviewChat: (billId: string, token: string) =>
-    `/preview/bills/${billId}/interview/chat?token=${token}` as const,
+    `/preview/bills/${billId}/interview/chat?token=${encodeURIComponent(token)}` as const,
 
   // ── レポート ──────────────────────────────────────
   publicReport: (reportId: string) => `/report/${reportId}` as const,
