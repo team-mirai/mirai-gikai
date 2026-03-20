@@ -37,12 +37,17 @@ function collectDefinedRoutes(): string[] {
   const patterns: string[] = [];
 
   for (const [, fn] of Object.entries(routes)) {
-    // ダミー引数で呼び出してパスを取得
-    const result = (fn as (...args: string[]) => string)("__ID__", "__ID2__");
+    const routeFn = fn as (...args: string[]) => string;
+    // 関数のarity分のダミー引数を生成
+    const args = Array.from(
+      { length: routeFn.length },
+      (_, i) => `__PARAM_${i}__`
+    );
+    const result = routeFn(...args);
     // クエリパラメータ除去
     const withoutQuery = result.split("?")[0];
     // ダミー引数 → [param] に変換
-    const normalized = withoutQuery.replace(/__ID2?__/g, "[param]");
+    const normalized = withoutQuery.replace(/__PARAM_\d+__/g, "[param]");
     if (!patterns.includes(normalized)) {
       patterns.push(normalized);
     }
