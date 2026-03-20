@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
 import { extractBillIdFromPath } from "@/lib/page-layout-utils";
+import { routes } from "@/lib/routes";
 
 export function InterviewHeaderActions() {
   const pathname = usePathname();
@@ -20,7 +21,7 @@ export function InterviewHeaderActions() {
     if (billId) {
       router.push(getInterviewLPLink(billId, previewToken));
     } else {
-      router.push("/");
+      router.push(routes.home());
     }
   };
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { EXTERNAL_LINKS } from "@/config/external-links";
+import { routes } from "@/lib/routes";
 
 type FooterLinkItem = {
   label: string;
@@ -15,12 +16,12 @@ const links: FooterLinkItem[] = [
   },
   {
     label: "利用規約",
-    href: "/terms",
+    href: routes.terms(),
     external: false,
   },
   {
     label: "プライバシーポリシー",
-    href: "/privacy",
+    href: routes.privacy(),
     external: false,
   },
   {

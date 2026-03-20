@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isInterviewPage } from "@/lib/page-layout-utils";
+import { routes } from "@/lib/routes";
 import { policyLinks, primaryLinks } from "./footer.config";
 
 export function Footer() {
@@ -28,7 +29,7 @@ export function Footer() {
 function FooterLogoSection() {
   return (
     <div className="flex flex-col items-center text-center mb-9">
-      <Link href="/" aria-label="みらい議会 トップページ">
+      <Link href={routes.home()} aria-label="みらい議会 トップページ">
         <Image
           src="/img/logo.svg"
           alt="みらい議会"

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { routes } from "@/lib/routes";
 import type { BillsByTag } from "../../shared/types";
 import { BillCard } from "../../client/components/bill-list/bill-card";
 
@@ -30,7 +31,7 @@ export function BillsByTagSection({ billsByTag }: BillsByTagSectionProps) {
           {/* 議案カード一覧 */}
           <div className="flex flex-col gap-4">
             {bills.map((bill) => (
-              <Link key={bill.id} href={`/bills/${bill.id}`}>
+              <Link key={bill.id} href={routes.billDetail(bill.id)}>
                 <BillCard bill={bill} />
               </Link>
             ))}

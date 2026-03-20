@@ -96,6 +96,11 @@ Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-l
 - admin アプリの内部リンク（Link href, router.push, redirect）には `@/lib/routes` の関数を使用すること。文字列リテラルでのルート直書きは禁止。
 - 新しいページ（page.tsx）を追加したら `admin/src/lib/routes.ts` にもルート関数を追加すること。テスト（routes.test.ts）が page.tsx との同期を検証する。
 
+### web 内部ルート定義
+- web アプリの内部リンク（Link href, router.push, redirect, revalidatePath）には `@/lib/routes` の関数を使用すること。文字列リテラルでのルート直書きは禁止。
+- 新しいページ（page.tsx）を追加したら `web/src/lib/routes.ts` にもルート関数を追加すること。テスト（routes.test.ts）が page.tsx との同期を検証する。
+- preview 付きリンク生成は `interview-links.ts` のラッパー関数を使用すること。
+
 ## Testing Guidelines
 - Vitest の単体テストを `*.test.ts` として実装と同階層に配置し、AI コスト計算や Markdown 処理などデータ変換の変更時は必ず回帰テストを追加します。
 - **純粋関数にはテスト必須**: `utils/` に切り出した純粋関数は、新規作成時に必ず `*.test.ts` を同階層に作成してテストを書いてください。

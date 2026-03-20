@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { routes } from "@/lib/routes";
 import type { BillWithContent } from "../../shared/types";
 import { BillCard } from "../../client/components/bill-list/bill-card";
 
@@ -26,7 +27,7 @@ export function FeaturedBillSection({ bills }: FeaturedBillSectionProps) {
       {/* 注目の議案カード */}
       <div className="flex flex-col gap-4">
         {bills.map((bill) => (
-          <Link key={bill.id} href={`/bills/${bill.id}`}>
+          <Link key={bill.id} href={routes.billDetail(bill.id)}>
             <BillCard bill={bill} />
           </Link>
         ))}

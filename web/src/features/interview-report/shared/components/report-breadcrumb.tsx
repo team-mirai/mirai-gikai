@@ -1,4 +1,5 @@
 import { Breadcrumb, type BreadcrumbItem } from "@/components/ui/breadcrumb";
+import { routes } from "@/lib/routes";
 import {
   getBillDetailLink,
   getInterviewLPLink,
@@ -17,7 +18,7 @@ export function ReportBreadcrumb({
   additionalItems = [],
 }: ReportBreadcrumbProps) {
   const baseItems: BreadcrumbItem[] = [
-    { label: "TOP", href: "/" },
+    { label: "TOP", href: routes.home() },
     { label: "法案詳細", href: getBillDetailLink(billId) },
     { label: "AIインタビュー", href: getInterviewLPLink(billId) },
     {

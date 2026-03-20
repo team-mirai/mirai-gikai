@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatEstimatedDuration } from "@/features/interview-config/shared/utils/format-estimated-duration";
+import { routes } from "@/lib/routes";
 
 interface InterviewLandingSectionProps {
   billId: string;
@@ -56,7 +57,7 @@ function _CheckPointsList({
 
 function _InterviewCTAButton({ billId }: { billId: string }) {
   return (
-    <Link href={`/bills/${billId}/interview`}>
+    <Link href={routes.interviewLP(billId)}>
       <Button className="w-[224px] bg-mirai-gradient text-black border border-black rounded-3xl h-[42px] px-5 font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-1">
         <span>AIインタビューを受ける</span>
         <ArrowRight className="size-4" />

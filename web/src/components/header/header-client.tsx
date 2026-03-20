@@ -7,6 +7,7 @@ import { DifficultySelector } from "@/features/bill-difficulty/client/components
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { InterviewHeaderActions } from "@/features/interview-session/client/components/interview-header-actions";
 import { isInterviewPage, isMainPage } from "@/lib/page-layout-utils";
+import { routes } from "@/lib/routes";
 import { HamburgerMenu } from "./hamburger-menu";
 
 interface HeaderClientProps {
@@ -25,7 +26,7 @@ export function HeaderClient({ difficultyLevel }: HeaderClientProps) {
           {/* Logo / Site Title */}
           <div className="flex items-center">
             <Link
-              href="/"
+              href={routes.home()}
               className="flex items-center space-x-2"
               aria-label="ホーム"
             >

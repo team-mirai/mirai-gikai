@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import {
   Dialog,
   DialogContent,
@@ -192,7 +193,11 @@ export function ExpertRegistrationModal({
               className="size-5 rounded-full accent-primary"
             />
             <label htmlFor="expert-privacy" className="text-xs text-gray-800">
-              <Link href="/privacy" target="_blank" className="underline">
+              <Link
+                href={routes.privacy()}
+                target="_blank"
+                className="underline"
+              >
                 プライバシーポリシー
               </Link>
               に同意する

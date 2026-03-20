@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
+import { routes } from "@/lib/routes";
 import { CompactBillCard } from "../../client/components/bill-list/compact-bill-card";
 import type { BillWithContent } from "../../shared/types";
 
@@ -27,7 +28,7 @@ export function PreviousSessionSection({
     return null;
   }
 
-  const sessionBillsUrl = `/kokkai/${session.slug}/bills`;
+  const sessionBillsUrl = routes.kokkaiSessionBills(session.slug);
   const startDate = new Date(session.start_date);
   const endDate = new Date(session.end_date);
   const sessionDescription = `${startDate.getFullYear()}.${startDate.getMonth() + 1}月〜${endDate.getMonth() + 1}月に実施された${session.name}`;
@@ -70,7 +71,7 @@ export function PreviousSessionSection({
       {/* 議案カードリスト */}
       <div className="relative flex flex-col gap-3">
         {visibleBills.map((bill) => (
-          <Link key={bill.id} href={`/bills/${bill.id}`}>
+          <Link key={bill.id} href={routes.billDetail(bill.id)}>
             <CompactBillCard bill={bill} />
           </Link>
         ))}

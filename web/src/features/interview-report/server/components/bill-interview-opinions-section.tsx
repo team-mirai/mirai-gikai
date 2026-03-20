@@ -3,6 +3,7 @@ import "server-only";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
 import { AnonymousAuthProvider } from "@/features/report-reaction/client/components/report-card-with-reactions";
 import { getReportReactionsBatch } from "@/features/report-reaction/server/loaders/get-report-reactions";
@@ -67,7 +68,7 @@ export async function BillInterviewOpinionsSection({
       {totalCount > reports.length && (
         <div className="flex justify-center">
           <Button variant="outline" asChild>
-            <Link href={`/bills/${billId}/opinions`}>
+            <Link href={routes.billOpinions(billId)}>
               もっと読む
               <ChevronRight size={16} />
             </Link>

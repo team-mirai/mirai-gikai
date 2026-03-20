@@ -1,3 +1,5 @@
+import { routes } from "@/lib/routes";
+
 /**
  * 議案詳細ページへのリンクを取得
  */
@@ -6,9 +8,9 @@ export function getBillDetailLink(
   previewToken?: string
 ): string {
   if (previewToken) {
-    return `/preview/bills/${billId}?token=${previewToken}`;
+    return routes.previewBillDetail(billId, previewToken);
   }
-  return `/bills/${billId}`;
+  return routes.billDetail(billId);
 }
 
 /**
@@ -19,9 +21,9 @@ export function getInterviewLPLink(
   previewToken?: string
 ): string {
   if (previewToken) {
-    return `/preview/bills/${billId}/interview?token=${previewToken}`;
+    return routes.previewInterviewLP(billId, previewToken);
   }
-  return `/bills/${billId}/interview`;
+  return routes.interviewLP(billId);
 }
 
 /**
@@ -32,9 +34,9 @@ export function getInterviewDisclosureLink(
   previewToken?: string
 ): string {
   if (previewToken) {
-    return `/preview/bills/${billId}/interview/disclosure?token=${previewToken}`;
+    return routes.previewInterviewDisclosure(billId, previewToken);
   }
-  return `/bills/${billId}/interview/disclosure`;
+  return routes.interviewDisclosure(billId);
 }
 
 /**
@@ -45,28 +47,28 @@ export function getInterviewChatLink(
   previewToken?: string
 ): string {
   if (previewToken) {
-    return `/preview/bills/${billId}/interview/chat?token=${previewToken}`;
+    return routes.previewInterviewChat(billId, previewToken);
   }
-  return `/bills/${billId}/interview/chat`;
+  return routes.interviewChat(billId);
 }
 
 /**
  * インタビュー完了レポートページへのリンクを取得
  */
 export function getInterviewReportCompleteLink(reportId: string): string {
-  return `/report/${reportId}/complete`;
+  return routes.reportComplete(reportId);
 }
 
 /**
  * 公開レポートページへのリンクを取得
  */
 export function getPublicReportLink(reportId: string): string {
-  return `/report/${reportId}`;
+  return routes.publicReport(reportId);
 }
 
 /**
  * インタビュー会話ログページへのリンクを取得
  */
 export function getInterviewChatLogLink(reportId: string): string {
-  return `/report/${reportId}/chat-log`;
+  return routes.reportChatLog(reportId);
 }

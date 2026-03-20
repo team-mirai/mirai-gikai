@@ -1,4 +1,5 @@
 import { EXTERNAL_LINKS } from "@/config/external-links";
+import { routes } from "@/lib/routes";
 
 export type FooterLink = {
   label: string;
@@ -15,7 +16,7 @@ export type FooterPolicyLink = {
 export const primaryLinks: FooterLink[] = [
   {
     label: "TOP",
-    href: "/",
+    href: routes.home(),
   },
   {
     label: "みらい議会とは",
@@ -42,10 +43,10 @@ export const policyLinks: FooterPolicyLink[] = [
   },
   {
     label: "利用規約",
-    href: "/terms",
+    href: routes.terms(),
   },
   {
     label: "プライバシーポリシー",
-    href: "/privacy",
+    href: routes.privacy(),
   },
 ];
