@@ -1,8 +1,14 @@
+import "server-only";
+
 import type {
   InterviewSessionWithDetails,
+  SessionFilterConfig,
   SessionSortConfig,
 } from "../../shared/types";
-import { DEFAULT_SESSION_SORT } from "../../shared/types";
+import {
+  DEFAULT_SESSION_FILTER,
+  DEFAULT_SESSION_SORT,
+} from "../../shared/types";
 import { calculatePaginationRange } from "../../shared/utils/pagination-utils";
 import {
   countInterviewSessionsByConfigId,
@@ -19,7 +25,8 @@ export const SESSIONS_PER_PAGE = 30;
 export async function getInterviewSessions(
   billId: string,
   page = 1,
-  sort: SessionSortConfig = DEFAULT_SESSION_SORT
+  sort: SessionSortConfig = DEFAULT_SESSION_SORT,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
 ): Promise<InterviewSessionWithDetails[]> {
   const config = await findInterviewConfigIdByBillId(billId);
 
@@ -34,27 +41,35 @@ export async function getInterviewSessions(
   // message_count/total_scoreソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
-    if (sort.field === "message_count") {
-      const orderedIds = await findSessionIdsOrderedByMessageCount(
-        config.id,
-        sort.order === "asc",
-        from,
-        limit
-      );
-      sessions = await findInterviewSessionsWithReportByIds(orderedIds);
-    } else if (sort.field === "total_score") {
-      const orderedIds = await findSessionIdsOrderedByTotalScore(
-        config.id,
-        sort.order === "asc",
-        from,
-        limit
-      );
+    if (sort.field === "message_count" || sort.field === "total_score") {
+      const orderedIds =
+        sort.field === "total_score"
+          ? await findSessionIdsOrderedByTotalScore(
+              config.id,
+              sort.order === "asc",
+              from,
+              limit,
+              filters
+            )
+          : await findSessionIdsOrderedByMessageCount(
+              config.id,
+              sort.order === "asc",
+              from,
+              limit,
+              filters
+            );
       sessions = await findInterviewSessionsWithReportByIds(orderedIds);
     } else {
-      sessions = await findInterviewSessionsWithReport(config.id, from, to, {
-        column: sort.field,
-        ascending: sort.order === "asc",
-      });
+      sessions = await findInterviewSessionsWithReport(
+        config.id,
+        from,
+        to,
+        {
+          column: sort.field,
+          ascending: sort.order === "asc",
+        },
+        filters
+      );
     }
   } catch (error) {
     console.error("Failed to fetch interview sessions:", error);
@@ -104,7 +119,8 @@ export async function getInterviewSessions(
 }
 
 export async function getInterviewSessionsCount(
-  billId: string
+  billId: string,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
 ): Promise<number> {
   const config = await findInterviewConfigIdByBillId(billId);
 
@@ -113,7 +129,7 @@ export async function getInterviewSessionsCount(
   }
 
   try {
-    return await countInterviewSessionsByConfigId(config.id);
+    return await countInterviewSessionsByConfigId(config.id, filters);
   } catch (error) {
     console.error("Failed to fetch session count:", error);
     return 0;

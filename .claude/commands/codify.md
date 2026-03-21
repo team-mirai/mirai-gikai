@@ -19,7 +19,7 @@ $ARGUMENTS
 
 引数がある場合はそれを指摘事項として扱う。引数がない場合は以下を自動収集：
 
-- 直近の `/review-codex` や `/review_pr` の出力結果があればそれを参照
+- 直近の `/review` や `/review_pr` の出力結果があればそれを参照
 - `git diff` から現在の変更内容を確認
 - ユーザーに確認が必要な場合は `AskUserQuestion` で聞く
 

@@ -68,7 +68,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
       </div>
 
       {/* レポート本体（共通コンポーネント） */}
-      <div className="px-4 py-8">
+      <div className="px-4 pt-8 pb-28">
         <ReportContent
           reportId={reportId}
           billId={data.bill_id}
