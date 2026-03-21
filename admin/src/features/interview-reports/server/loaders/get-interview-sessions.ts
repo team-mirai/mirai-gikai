@@ -117,6 +117,9 @@ export async function getInterviewSessions(
   if (messageCountsResult.status === "fulfilled") {
     messageCounts = messageCountsResult.value;
   } else {
+    if (sort.field === "message_count") {
+      throw messageCountsResult.reason;
+    }
     console.error(
       "Failed to fetch message counts:",
       messageCountsResult.reason
@@ -126,6 +129,9 @@ export async function getInterviewSessions(
   if (helpfulCountsResult.status === "fulfilled") {
     helpfulCountsMap = helpfulCountsResult.value;
   } else {
+    if (sort.field === "helpful_count") {
+      throw helpfulCountsResult.reason;
+    }
     console.error(
       "Failed to fetch helpful counts:",
       helpfulCountsResult.reason
