@@ -1,11 +1,9 @@
-export function formatAverageDuration(
-  avgDurationSeconds: number | null
-): string {
-  if (avgDurationSeconds == null || avgDurationSeconds <= 0) {
+export function formatDurationSeconds(durationSeconds: number | null): string {
+  if (durationSeconds == null || durationSeconds <= 0) {
     return "-";
   }
 
-  const totalSeconds = Math.max(1, Math.round(avgDurationSeconds));
+  const totalSeconds = Math.max(1, Math.round(durationSeconds));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 

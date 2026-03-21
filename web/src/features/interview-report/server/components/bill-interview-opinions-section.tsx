@@ -2,7 +2,6 @@ import "server-only";
 
 import type { Route } from "next";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
@@ -48,7 +47,7 @@ export async function BillInterviewOpinionsSection({
 
       {/* レポートカード一覧（リアクション付き） */}
       <AnonymousAuthProvider>
-        <div className="flex flex-col gap-4">
+        <div className="relative flex flex-col gap-4">
           {reports.map((report) => (
             <div key={report.id} className="flex flex-col">
               <ReportCard report={report} />
@@ -62,20 +61,26 @@ export async function BillInterviewOpinionsSection({
               </div>
             </div>
           ))}
+
+          {/* もっと読むリンク（グラデーションオーバーレイ付き） */}
+          {totalCount > reports.length && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[164px] bg-mirai-white-fade rounded-b-2xl">
+              <div className="absolute inset-x-0 bottom-6 flex justify-center pointer-events-auto">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="w-[214px] h-12 text-base font-bold border-mirai-text rounded-full hover:bg-gray-50 bg-white"
+                >
+                  <Link href={routes.billOpinions(billId) as Route}>
+                    もっと読む
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </AnonymousAuthProvider>
-
-      {/* もっと読むリンク */}
-      {totalCount > reports.length && (
-        <div className="flex justify-center">
-          <Button variant="outline" asChild>
-            <Link href={routes.billOpinions(billId) as Route}>
-              もっと読む
-              <ChevronRight size={16} />
-            </Link>
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
