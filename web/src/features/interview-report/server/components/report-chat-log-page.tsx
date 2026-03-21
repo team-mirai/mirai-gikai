@@ -57,6 +57,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
             <ReportMetaInfo
               stance={report.stance}
               role={report.role}
+              roleTitle={report.role_title}
               sessionStartedAt={report.session_started_at}
               characterCount={characterCount}
               variant="chat-log"

@@ -203,6 +203,32 @@ export async function findFilteredSessionIds(
   return (data || []).map((row) => row.id);
 }
 
+export async function findSessionIdsOrderedByTotalScore(
+  configId: string,
+  ascending: boolean,
+  offset: number,
+  limit: number
+): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc(
+    "find_sessions_ordered_by_total_score",
+    {
+      p_config_id: configId,
+      p_ascending: ascending,
+      p_offset: offset,
+      p_limit: limit,
+    }
+  );
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch sessions ordered by total score: ${error.message}`
+    );
+  }
+
+  return (data || []).map((row) => row.session_id);
+}
+
 export async function findInterviewMessageCounts(sessionIds: string[]) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("get_interview_message_counts", {
@@ -338,6 +364,19 @@ export async function findReactionCountsByReportId(
     helpful: helpfulResult.count ?? 0,
     hmm: hmmResult.count ?? 0,
   };
+}
+
+export async function findInterviewStatistics(configId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("get_interview_statistics", {
+    p_config_id: configId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to fetch interview statistics: ${error.message}`);
+  }
+
+  return data?.[0] ?? null;
 }
 
 export async function updateReportVisibility(

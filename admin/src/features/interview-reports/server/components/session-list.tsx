@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SessionFilterBar } from "../../client/components/session-filter-bar";
+import { ReportVisibilityListToggle } from "../../client/components/report-visibility-list-toggle";
 import type {
   InterviewSessionWithDetails,
   SessionFilterConfig,
@@ -41,7 +42,6 @@ import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
 import { RatingStars } from "./rating-stars";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
-import { VisibilityBadge } from "./visibility-badge";
 
 interface SessionListProps {
   billId: string;
@@ -133,7 +133,14 @@ export function SessionList({
                   <TableHead className="w-28">スタンス</TableHead>
                   <TableHead className="w-40">役割名</TableHead>
                   <TableHead className="w-64">要約</TableHead>
-                  <TableHead className="w-20 text-right">スコア</TableHead>
+                  <SortableTableHead
+                    field="total_score"
+                    currentField={sort.field}
+                    currentOrder={sort.order}
+                    className="w-20 text-right"
+                  >
+                    スコア
+                  </SortableTableHead>
                   <TableHead className="w-24 text-center">満足度</TableHead>
                   <SortableTableHead
                     field="started_at"
@@ -181,8 +188,8 @@ export function SessionList({
                       </TableCell>
                       <TableCell className="text-center">
                         {hasReport ? (
-                          <VisibilityBadge
-                            isPublic={
+                          <BooleanIcon
+                            value={
                               session.interview_report?.is_public_by_user ??
                               false
                             }
@@ -192,10 +199,17 @@ export function SessionList({
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {hasReport ? (
-                          <VisibilityBadge
+                        {hasReport && session.interview_report ? (
+                          <ReportVisibilityListToggle
+                            reportId={session.interview_report.id}
+                            sessionId={session.id}
+                            billId={billId}
                             isPublic={
-                              session.interview_report?.is_public_by_admin ??
+                              session.interview_report.is_public_by_admin ??
+                              false
+                            }
+                            isPublicByUser={
+                              session.interview_report.is_public_by_user ??
                               false
                             }
                           />

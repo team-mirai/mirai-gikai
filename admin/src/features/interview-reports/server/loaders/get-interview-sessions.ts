@@ -16,6 +16,7 @@ import {
   findInterviewSessionsWithReport,
   findInterviewSessionsWithReportByIds,
   findSessionIdsOrderedByMessageCount,
+  findSessionIdsOrderedByTotalScore,
 } from "../repositories/interview-report-repository";
 
 export const SESSIONS_PER_PAGE = 30;
@@ -42,12 +43,12 @@ export async function getInterviewSessions(
     filters.stance !== "all" ||
     filters.role !== "all";
 
-  // message_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
+  // message_count/total_scoreソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
-    if (sort.field === "message_count") {
+    if (sort.field === "message_count" || sort.field === "total_score") {
       if (hasFilters) {
-        // フィルタ有りの場合：全フィルタ済みIDを取得→メッセージ数でソート→ページネーション
+        // フィルタ有りの場合：全フィルタ済みIDを取得→メッセージ数/スコアでソート→ページネーション
         // NOTE: 全件取得後にインメモリでソートするため、大量データ時は
         // DB側にフィルタ対応RPCを追加することを検討
         const filteredIds = await findFilteredSessionIds(config.id, filters);
@@ -59,22 +60,51 @@ export async function getInterviewSessions(
         for (const row of messageCounts || []) {
           countMap.set(row.interview_session_id, Number(row.message_count));
         }
-        const sortedIds = [...filteredIds]
-          .sort((a, b) => {
-            const diff = (countMap.get(a) || 0) - (countMap.get(b) || 0);
-            if (diff !== 0) return sort.order === "asc" ? diff : -diff;
-            // 同数の場合はIDで安定ソート
-            return a.localeCompare(b);
-          })
-          .slice(from, from + limit);
-        sessions = await findInterviewSessionsWithReportByIds(sortedIds);
+        // total_scoreソートの場合はセッション情報を取得してスコアでソート
+        if (sort.field === "total_score") {
+          const allSessions =
+            await findInterviewSessionsWithReportByIds(filteredIds);
+          const scoreMap = new Map<string, number>();
+          for (const s of allSessions) {
+            const report = Array.isArray(s.interview_report)
+              ? s.interview_report[0]
+              : s.interview_report;
+            scoreMap.set(s.id, report?.total_score ?? -1);
+          }
+          const sortedIds = [...filteredIds]
+            .sort((a, b) => {
+              const diff = (scoreMap.get(a) || 0) - (scoreMap.get(b) || 0);
+              if (diff !== 0) return sort.order === "asc" ? diff : -diff;
+              return a.localeCompare(b);
+            })
+            .slice(from, from + limit);
+          sessions = await findInterviewSessionsWithReportByIds(sortedIds);
+        } else {
+          const sortedIds = [...filteredIds]
+            .sort((a, b) => {
+              const diff = (countMap.get(a) || 0) - (countMap.get(b) || 0);
+              if (diff !== 0) return sort.order === "asc" ? diff : -diff;
+              return a.localeCompare(b);
+            })
+            .slice(from, from + limit);
+          sessions = await findInterviewSessionsWithReportByIds(sortedIds);
+        }
       } else {
-        const orderedIds = await findSessionIdsOrderedByMessageCount(
-          config.id,
-          sort.order === "asc",
-          from,
-          limit
-        );
+        // フィルタなしの場合はRPCで直接ソート
+        const orderedIds =
+          sort.field === "total_score"
+            ? await findSessionIdsOrderedByTotalScore(
+                config.id,
+                sort.order === "asc",
+                from,
+                limit
+              )
+            : await findSessionIdsOrderedByMessageCount(
+                config.id,
+                sort.order === "asc",
+                from,
+                limit
+              );
         sessions = await findInterviewSessionsWithReportByIds(orderedIds);
       }
     } else {
