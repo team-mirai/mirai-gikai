@@ -40,38 +40,26 @@ export async function getInterviewSessions(
   const { from, to } = calculatePaginationRange(page, SESSIONS_PER_PAGE);
   const limit = to - from + 1;
 
+  // RPC経由ソート用のディスパッチテーブル
+  const rpcSortFetchers = {
+    total_score: findSessionIdsOrderedByTotalScore,
+    helpful_count: findSessionIdsOrderedByHelpfulCount,
+    message_count: findSessionIdsOrderedByMessageCount,
+  } as const;
+
   // message_count/total_score/helpful_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
-    if (
-      sort.field === "message_count" ||
-      sort.field === "total_score" ||
-      sort.field === "helpful_count"
-    ) {
-      const orderedIds =
-        sort.field === "total_score"
-          ? await findSessionIdsOrderedByTotalScore(
-              config.id,
-              sort.order === "asc",
-              from,
-              limit,
-              filters
-            )
-          : sort.field === "helpful_count"
-            ? await findSessionIdsOrderedByHelpfulCount(
-                config.id,
-                sort.order === "asc",
-                from,
-                limit,
-                filters
-              )
-            : await findSessionIdsOrderedByMessageCount(
-                config.id,
-                sort.order === "asc",
-                from,
-                limit,
-                filters
-              );
+    const rpcFetcher =
+      rpcSortFetchers[sort.field as keyof typeof rpcSortFetchers];
+    if (rpcFetcher) {
+      const orderedIds = await rpcFetcher(
+        config.id,
+        sort.order === "asc",
+        from,
+        limit,
+        filters
+      );
       sessions = await findInterviewSessionsWithReportByIds(orderedIds);
     } else {
       sessions = await findInterviewSessionsWithReport(
