@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
-import { Frown, Lightbulb } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useOptimistic, useTransition } from "react";
 import { toggleReaction } from "../../server/actions/toggle-reaction";
@@ -53,14 +53,6 @@ export function ReactionButtons({
             disabled={isPending}
             onClick={() => handleClick("helpful")}
           />
-          <ReactionButton
-            type="hmm"
-            label="うーん..."
-            count={optimistic.counts.hmm}
-            isActive={optimistic.userReaction === "hmm"}
-            disabled={isPending}
-            onClick={() => handleClick("hmm")}
-          />
         </div>
       </div>
     </div>
@@ -84,7 +76,7 @@ function ReactionButton({
   disabled,
   onClick,
 }: ReactionButtonProps) {
-  const Icon = type === "helpful" ? Lightbulb : Frown;
+  const Icon = Lightbulb;
 
   return (
     <Button
