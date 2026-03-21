@@ -103,11 +103,12 @@ export function ReportShareModal({
           {/* SNSアイコン */}
           <div className="flex flex-wrap items-center justify-center gap-4">
             {shareButtons.map((button) => (
-              <button
+              <Button
                 key={button.name}
                 type="button"
+                variant="ghost"
                 onClick={button.onClick}
-                className="w-12 h-12 flex items-center justify-center"
+                className="w-12 h-12 flex items-center justify-center p-0"
               >
                 <Image
                   src={button.iconPath}
@@ -116,7 +117,7 @@ export function ReportShareModal({
                   height={48}
                   className="w-12 h-12"
                 />
-              </button>
+              </Button>
             ))}
           </div>
         </div>
