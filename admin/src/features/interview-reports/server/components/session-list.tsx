@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -45,6 +45,13 @@ interface SessionListProps {
   totalCount: number;
   currentPage: number;
   sort?: SessionSortConfig;
+}
+
+function BooleanIcon({ value }: { value: boolean }) {
+  if (value) {
+    return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+  }
+  return <XCircle className="h-5 w-5 text-red-400" />;
 }
 
 function buildPageUrl(
