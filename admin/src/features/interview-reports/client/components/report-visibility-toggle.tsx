@@ -24,7 +24,7 @@ export function ReportVisibilityToggle({
 }: ReportVisibilityToggleProps) {
   const [isPending, startTransition] = useTransition();
   const switchId = useId();
-  const isDisabled = isPending || !isPublicByUser;
+  const isDisabled = isPending || (!isPublicByUser && !isPublic);
 
   const handleToggle = (checked: boolean) => {
     startTransition(async () => {
@@ -79,9 +79,9 @@ export function ReportVisibilityToggle({
         )}
       </Label>
       {isPending && <span className="text-xs text-gray-400">更新中...</span>}
-      {!isPublicByUser && (
+      {!isPublicByUser && !isPublic && (
         <span className="text-xs text-gray-400">
-          ユーザーが非公開のため変更不可
+          ユーザーが非公開のため公開不可
         </span>
       )}
     </div>
