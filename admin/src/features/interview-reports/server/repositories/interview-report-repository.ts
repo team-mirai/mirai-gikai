@@ -4,6 +4,16 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import type { SessionFilterConfig } from "../../shared/types";
 import { DEFAULT_SESSION_FILTER } from "../../shared/types";
 
+function toRpcFilterParams(filters: SessionFilterConfig) {
+  return {
+    p_status: filters.status !== "all" ? (filters.status as string) : undefined,
+    p_visibility:
+      filters.visibility !== "all" ? (filters.visibility as string) : undefined,
+    p_stance: filters.stance !== "all" ? (filters.stance as string) : undefined,
+    p_role: filters.role !== "all" ? (filters.role as string) : undefined,
+  };
+}
+
 function hasReportLevelFilters(filters: SessionFilterConfig): boolean {
   return (
     filters.visibility !== "all" ||
@@ -90,7 +100,8 @@ export async function findSessionIdsOrderedByMessageCount(
   configId: string,
   ascending: boolean,
   offset: number,
-  limit: number
+  limit: number,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
 ): Promise<string[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc(
@@ -100,6 +111,7 @@ export async function findSessionIdsOrderedByMessageCount(
       p_ascending: ascending,
       p_offset: offset,
       p_limit: limit,
+      ...toRpcFilterParams(filters),
     }
   );
 
@@ -207,7 +219,8 @@ export async function findSessionIdsOrderedByTotalScore(
   configId: string,
   ascending: boolean,
   offset: number,
-  limit: number
+  limit: number,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
 ): Promise<string[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc(
@@ -217,6 +230,7 @@ export async function findSessionIdsOrderedByTotalScore(
       p_ascending: ascending,
       p_offset: offset,
       p_limit: limit,
+      ...toRpcFilterParams(filters),
     }
   );
 
