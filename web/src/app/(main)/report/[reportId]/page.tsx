@@ -28,21 +28,22 @@ export async function generateMetadata({
         ? "懸念"
         : "意見";
 
-  const title = `${stanceText} - ${billName} インタビューレポート`;
-  const description = data.summary || `${billName}に対するインタビューレポート`;
+  const ogTitle =
+    data.summary || `${stanceText} - ${billName} インタビューレポート`;
+  const ogDescription = `${billName}に対するインタビューレポート`;
   const defaultOgpUrl = new URL("/ogp.jpg", env.webUrl).toString();
   const shareImageUrl =
     data.bill.share_thumbnail_url || data.bill.thumbnail_url || defaultOgpUrl;
 
   return {
-    title,
-    description,
+    title: ogTitle,
+    description: ogDescription,
     alternates: {
       canonical: routes.publicReport(reportId),
     },
     openGraph: {
-      title,
-      description,
+      title: ogTitle,
+      description: ogDescription,
       type: "article",
       images: [
         {
@@ -53,8 +54,8 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: ogTitle,
+      description: ogDescription,
       images: [shareImageUrl],
     },
   };
