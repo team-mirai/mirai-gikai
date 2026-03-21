@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
 import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
+import { getOrigin } from "@/lib/utils/url";
+import { routes } from "@/lib/routes";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
 import { BackToReportButton } from "../../shared/components/back-to-report-button";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
@@ -32,7 +34,11 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
   const billName = bill.bill_content?.title || bill.name;
   const characterCount = countCharacters(messages);
   const opinions = parseOpinions(report.opinions);
-  const reactionData = await getReportReactions(reportId);
+  const [reactionData, origin] = await Promise.all([
+    getReportReactions(reportId),
+    getOrigin(),
+  ]);
+  const shareUrl = `${origin}${routes.publicReport(reportId)}`;
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -105,7 +111,14 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
       </div>
 
       {/* Reaction Buttons - Fixed at bottom */}
-      <ReactionButtons reportId={reportId} initialData={reactionData} />
+      <ReactionButtons
+        reportId={reportId}
+        initialData={reactionData}
+        billName={billName}
+        shareUrl={shareUrl}
+        thumbnailUrl={bill.thumbnail_url}
+        showShare={report.is_public_by_user && report.is_public_by_admin}
+      />
     </div>
   );
 }

@@ -5,6 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
+import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
+import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
+import { getOrigin } from "@/lib/utils/url";
+import { routes } from "@/lib/routes";
 import { ReportContent } from "../../shared/components/report-content";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import { calculateDuration } from "../../shared/utils/report-utils";
@@ -28,8 +32,14 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
     data.session_completed_at
   );
 
+  const [reactionData, origin] = await Promise.all([
+    getReportReactions(reportId),
+    getOrigin(),
+  ]);
+  const shareUrl = `${origin}${routes.publicReport(reportId)}`;
+
   return (
-    <div className="min-h-dvh bg-mirai-surface">
+    <div className="min-h-dvh bg-mirai-surface pb-20">
       {/* 法案サムネイル画像 */}
       {data.bill.thumbnail_url && (
         <div className="relative w-full h-[320px]">
@@ -73,6 +83,15 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
           opinions={opinions}
         />
       </div>
+
+      {/* アクションバー - Fixed at bottom */}
+      <ReactionButtons
+        reportId={reportId}
+        initialData={reactionData}
+        billName={billName}
+        shareUrl={shareUrl}
+        thumbnailUrl={data.bill.thumbnail_url}
+      />
     </div>
   );
 }
