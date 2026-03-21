@@ -1,5 +1,9 @@
--- Add filter parameters to find_sessions_ordered_by_message_count
-CREATE OR REPLACE FUNCTION find_sessions_ordered_by_message_count(
+-- Drop old signatures (different arg count = different overload in PostgreSQL)
+DROP FUNCTION IF EXISTS find_sessions_ordered_by_message_count(UUID, BOOLEAN, INT, INT);
+DROP FUNCTION IF EXISTS find_sessions_ordered_by_total_score(UUID, BOOLEAN, INT, INT);
+
+-- Recreate with filter parameters
+CREATE FUNCTION find_sessions_ordered_by_message_count(
   p_config_id UUID,
   p_ascending BOOLEAN DEFAULT FALSE,
   p_offset INT DEFAULT 0,
@@ -42,8 +46,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
--- Add filter parameters to find_sessions_ordered_by_total_score
-CREATE OR REPLACE FUNCTION find_sessions_ordered_by_total_score(
+CREATE FUNCTION find_sessions_ordered_by_total_score(
   p_config_id UUID,
   p_ascending BOOLEAN DEFAULT FALSE,
   p_offset INT DEFAULT 0,
