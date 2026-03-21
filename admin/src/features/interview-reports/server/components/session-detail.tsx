@@ -125,6 +125,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
               sessionId={session.id}
               billId={billId}
               isPublic={report.is_public_by_admin ?? false}
+              isPublicByUser={report.is_public_by_user ?? false}
             />
           )}
         </CardHeader>
