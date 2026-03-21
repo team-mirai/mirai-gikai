@@ -1,11 +1,16 @@
 import type {
   InterviewSessionWithDetails,
+  SessionFilterConfig,
   SessionSortConfig,
 } from "../../shared/types";
-import { DEFAULT_SESSION_SORT } from "../../shared/types";
+import {
+  DEFAULT_SESSION_FILTER,
+  DEFAULT_SESSION_SORT,
+} from "../../shared/types";
 import { calculatePaginationRange } from "../../shared/utils/pagination-utils";
 import {
   countInterviewSessionsByConfigId,
+  findFilteredSessionIds,
   findInterviewConfigIdByBillId,
   findInterviewMessageCounts,
   findInterviewSessionsWithReport,
@@ -18,7 +23,8 @@ export const SESSIONS_PER_PAGE = 30;
 export async function getInterviewSessions(
   billId: string,
   page = 1,
-  sort: SessionSortConfig = DEFAULT_SESSION_SORT
+  sort: SessionSortConfig = DEFAULT_SESSION_SORT,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
 ): Promise<InterviewSessionWithDetails[]> {
   const config = await findInterviewConfigIdByBillId(billId);
 
@@ -30,22 +36,58 @@ export async function getInterviewSessions(
   const { from, to } = calculatePaginationRange(page, SESSIONS_PER_PAGE);
   const limit = to - from + 1;
 
+  const hasFilters =
+    filters.status !== "all" ||
+    filters.visibility !== "all" ||
+    filters.stance !== "all" ||
+    filters.role !== "all";
+
   // message_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
     if (sort.field === "message_count") {
-      const orderedIds = await findSessionIdsOrderedByMessageCount(
-        config.id,
-        sort.order === "asc",
-        from,
-        limit
-      );
-      sessions = await findInterviewSessionsWithReportByIds(orderedIds);
+      if (hasFilters) {
+        // フィルタ有りの場合：全フィルタ済みIDを取得→メッセージ数でソート→ページネーション
+        // NOTE: 全件取得後にインメモリでソートするため、大量データ時は
+        // DB側にフィルタ対応RPCを追加することを検討
+        const filteredIds = await findFilteredSessionIds(config.id, filters);
+        const messageCounts = await findInterviewMessageCounts(filteredIds);
+        const countMap = new Map<string, number>();
+        for (const id of filteredIds) {
+          countMap.set(id, 0);
+        }
+        for (const row of messageCounts || []) {
+          countMap.set(row.interview_session_id, Number(row.message_count));
+        }
+        const sortedIds = [...filteredIds]
+          .sort((a, b) => {
+            const diff = (countMap.get(a) || 0) - (countMap.get(b) || 0);
+            if (diff !== 0) return sort.order === "asc" ? diff : -diff;
+            // 同数の場合はIDで安定ソート
+            return a.localeCompare(b);
+          })
+          .slice(from, from + limit);
+        sessions = await findInterviewSessionsWithReportByIds(sortedIds);
+      } else {
+        const orderedIds = await findSessionIdsOrderedByMessageCount(
+          config.id,
+          sort.order === "asc",
+          from,
+          limit
+        );
+        sessions = await findInterviewSessionsWithReportByIds(orderedIds);
+      }
     } else {
-      sessions = await findInterviewSessionsWithReport(config.id, from, to, {
-        column: sort.field,
-        ascending: sort.order === "asc",
-      });
+      sessions = await findInterviewSessionsWithReport(
+        config.id,
+        from,
+        to,
+        {
+          column: sort.field,
+          ascending: sort.order === "asc",
+        },
+        filters
+      );
     }
   } catch (error) {
     console.error("Failed to fetch interview sessions:", error);
@@ -95,7 +137,8 @@ export async function getInterviewSessions(
 }
 
 export async function getInterviewSessionsCount(
-  billId: string
+  billId: string,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
 ): Promise<number> {
   const config = await findInterviewConfigIdByBillId(billId);
 
@@ -104,7 +147,7 @@ export async function getInterviewSessionsCount(
   }
 
   try {
-    return await countInterviewSessionsByConfigId(config.id);
+    return await countInterviewSessionsByConfigId(config.id, filters);
   } catch (error) {
     console.error("Failed to fetch session count:", error);
     return 0;
