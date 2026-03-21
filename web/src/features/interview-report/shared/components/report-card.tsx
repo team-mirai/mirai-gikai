@@ -55,7 +55,11 @@ export function ReportCard({
       <Link
         href={getPublicReportLink(report.id) as Route}
         className="absolute inset-0 rounded-lg"
-        aria-label={stanceLabel || "レポートを見る"}
+        aria-label={
+          [stanceLabel, roleLabel, truncatedSummary]
+            .filter(Boolean)
+            .join(" / ") || "レポートを見る"
+        }
       />
       <div className="flex items-start gap-2.5">
         {report.stance && (
@@ -96,7 +100,11 @@ export function ReportCard({
         </p>
       )}
 
-      {children && <div className="relative z-10 mt-2">{children}</div>}
+      {children && (
+        <div className="relative z-10 mt-2 pointer-events-none [&_button]:pointer-events-auto [&_a]:pointer-events-auto">
+          {children}
+        </div>
+      )}
     </article>
   );
 }
