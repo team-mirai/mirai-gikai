@@ -16,6 +16,7 @@ interface ReportContentProps {
   summary: string | null;
   stance: string | null;
   role: string | null;
+  roleTitle?: string | null;
   sessionStartedAt: string | null;
   duration?: string;
   characterCount: number;
@@ -31,6 +32,7 @@ export function ReportContent({
   summary,
   stance,
   role,
+  roleTitle,
   sessionStartedAt,
   duration,
   characterCount,
@@ -52,6 +54,7 @@ export function ReportContent({
         <ReportMetaInfo
           stance={stance}
           role={role}
+          roleTitle={roleTitle}
           sessionStartedAt={sessionStartedAt}
           duration={duration}
           characterCount={characterCount}

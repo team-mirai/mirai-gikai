@@ -5,6 +5,7 @@ import { StanceDisplay } from "./stance-display";
 interface ReportMetaInfoProps {
   stance?: string | null;
   role?: string | null;
+  roleTitle?: string | null;
   sessionStartedAt: string | null;
   duration?: string;
   characterCount: number;
@@ -14,6 +15,7 @@ interface ReportMetaInfoProps {
 export function ReportMetaInfo({
   stance,
   role,
+  roleTitle,
   sessionStartedAt,
   duration,
   characterCount,
@@ -29,7 +31,9 @@ export function ReportMetaInfo({
         {/* スタンス */}
         {stance && <StanceDisplay stance={stance} />}
         {/* 役割 */}
-        {role && <RoleDisplay role={role} />}
+        {(role || roleTitle) && (
+          <RoleDisplay role={role} roleTitle={roleTitle} />
+        )}
       </div>
 
       {/* 日時・時間・文字数 */}
