@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
+import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
+import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
 import { ReportContent } from "../../shared/components/report-content";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import { calculateDuration } from "../../shared/utils/report-utils";
@@ -27,6 +29,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
     data.session_started_at,
     data.session_completed_at
   );
+  const reactionData = await getReportReactions(reportId);
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -73,6 +76,9 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
           opinions={opinions}
         />
       </div>
+
+      {/* Reaction Buttons - Fixed at bottom */}
+      <ReactionButtons reportId={reportId} initialData={reactionData} />
     </div>
   );
 }

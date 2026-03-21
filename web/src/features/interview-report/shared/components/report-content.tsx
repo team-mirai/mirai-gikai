@@ -42,11 +42,11 @@ export function ReportContent({
   children,
 }: ReportContentProps) {
   return (
-    <div className="flex flex-col gap-9">
+    <div className="flex flex-col gap-12">
       {/* 要約カード */}
-      <div className="flex flex-col items-center gap-9">
-        <SpeechBubble>
-          <p className="text-lg font-bold text-gray-800 leading-relaxed relative z-10 text-center">
+      <div className="flex flex-col items-center gap-12">
+        <SpeechBubble className="px-7 py-8">
+          <p className="text-[22px] font-bold text-black leading-[36px] relative z-10">
             {summary}
           </p>
         </SpeechBubble>
