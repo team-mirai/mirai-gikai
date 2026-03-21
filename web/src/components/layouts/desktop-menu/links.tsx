@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { EXTERNAL_LINKS } from "@/config/external-links";
 import { routes } from "@/lib/routes";
@@ -40,7 +41,7 @@ export function DesktopMenuLinks() {
       {links.map((link) => (
         <Link
           key={link.label}
-          href={link.href}
+          href={link.href as Route}
           target={link.external ? "_blank" : undefined}
           rel={link.external ? "noreferrer" : undefined}
           className="font-medium text-xs transition-opacity hover:opacity-70"

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -17,7 +18,7 @@ export function useLogin() {
       setError(null);
 
       await signIn(data.email, data.password);
-      router.push(routes.bills());
+      router.push(routes.bills() as Route);
     } catch (err) {
       setError(getErrorMessage(err, "予期しないエラーが発生しました。"));
     } finally {

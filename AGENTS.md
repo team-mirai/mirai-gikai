@@ -116,6 +116,7 @@ Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-l
   ```bash
   pnpm lint        # Biome format + lint チェック
   pnpm typecheck   # TypeScript 型チェック
+  pnpm build       # Next.js ビルドチェック
   pnpm test        # 全ワークスペースのテスト実行
   ```
 - **push / PR作成前のGitHub状態確認（必須）**: `git push` やPR作成を行う前に、必ず `gh pr list` や `gh pr view <番号>` でGitHub上のPR状態（open/merged/closed）を確認すること。マージ済みブランチへの追加pushや、既にクローズされたPRとの重複を防ぐ。

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { ArrowRight, Undo2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -85,7 +86,7 @@ function _InterviewLPHero({
         <h1 className="text-2xl font-bold text-center leading-[1.5]">
           法案についてのAIインタビュー
         </h1>
-        <Link href={billLink}>
+        <Link href={billLink as Route}>
           <div className="inline-flex items-center justify-center gap-2.5 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-opacity cursor-pointer">
             <span className="text-[15px] font-bold text-black leading-[1.87]">
               {bill.bill_content?.title ?? bill.name}
@@ -144,7 +145,7 @@ function _InterviewOverviewSection({
         <p>
           国会で検討されている
           <Link
-            href={billLink}
+            href={billLink as Route}
             className="text-primary underline underline-offset-2 hover:opacity-70 transition-opacity"
           >
             {billName}
@@ -156,7 +157,7 @@ function _InterviewOverviewSection({
         </p>
       </div>
       <div>
-        <Link href={billLink}>
+        <Link href={billLink as Route}>
           <Button
             variant="outline"
             className="w-full border border-black rounded-[100px] h-[48px] px-6 font-bold text-[15px] hover:opacity-90 transition-opacity flex items-center justify-center gap-4"
@@ -260,7 +261,7 @@ function _InterviewDisclosureLink({
   return (
     <div className="w-full max-w-[370px] mx-auto">
       <Link
-        href={disclosureLink}
+        href={disclosureLink as Route}
         className="text-xs text-black leading-[1.83] underline underline-offset-2 hover:opacity-70 transition-opacity"
       >
         AIインタビューに関する情報開示
@@ -287,7 +288,7 @@ function _InterviewFooterActions({
         sessionInfo={sessionInfo}
         previewToken={previewToken}
       />
-      <Link href={billLink}>
+      <Link href={billLink as Route}>
         <Button variant="outline" className="w-full">
           <Undo2 className="size-5" />
           <span>法案詳細に戻る</span>

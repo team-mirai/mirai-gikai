@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -33,7 +34,7 @@ export function useBillForm() {
   };
 
   const handleCancel = () => {
-    router.push(routes.bills());
+    router.push(routes.bills() as Route);
   };
 
   return {

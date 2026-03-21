@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { FileText } from "lucide-react";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
@@ -85,7 +86,12 @@ export function VersionList({ versions, billId }: VersionListProps) {
                 <td className="px-4 py-3 text-sm text-right">
                   {version.status === "completed" && (
                     <Link
-                      href={routes.billTopicAnalysisDetail(billId, version.id)}
+                      href={
+                        routes.billTopicAnalysisDetail(
+                          billId,
+                          version.id
+                        ) as Route
+                      }
                       className="inline-flex items-center gap-1 text-primary hover:underline"
                     >
                       <FileText className="h-4 w-4" />

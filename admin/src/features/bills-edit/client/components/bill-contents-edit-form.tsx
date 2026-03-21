@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -187,7 +188,7 @@ export function BillContentsEditForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push(routes.bills())}
+                onClick={() => router.push(routes.bills() as Route)}
                 disabled={isSubmitting}
               >
                 キャンセル

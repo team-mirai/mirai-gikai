@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,7 @@ export function ReportCard({ report, summaryMaxLength = 80 }: ReportCardProps) {
 
   return (
     <Link
-      href={getPublicReportLink(report.id)}
+      href={getPublicReportLink(report.id) as Route}
       className="block bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors"
     >
       <div className="flex items-center gap-2">

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Route } from "next";
 import { MessageSquareMore } from "lucide-react";
 import Link from "next/link";
 import { SpeechBubble } from "@/components/ui/speech-bubble";
@@ -67,7 +68,7 @@ export function ReportContent({
         title="💬主な意見"
         footer={
           <Link
-            href={getInterviewChatLogLink(reportId)}
+            href={getInterviewChatLogLink(reportId) as Route}
             className="flex items-center justify-center gap-2.5 px-6 py-3 border border-gray-800 rounded-full"
           >
             <MessageSquareMore className="w-6 h-6 text-gray-800" />

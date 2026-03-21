@@ -1,4 +1,5 @@
 import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ function buildPageUrl(
   page: number,
   sort: SessionSortConfig,
   filters: SessionFilterConfig
-): string {
+): Route {
   const params = new URLSearchParams();
   params.set("page", String(page));
   if (
@@ -86,7 +87,7 @@ function buildPageUrl(
   if (filters.role !== DEFAULT_SESSION_FILTER.role) {
     params.set("role", filters.role);
   }
-  return `${routes.billReports(billId)}?${params.toString()}`;
+  return `${routes.billReports(billId)}?${params.toString()}` as Route;
 }
 
 export function SessionList({
@@ -125,9 +126,13 @@ export function SessionList({
                   <TableHead className="w-32">セッションID</TableHead>
                   <TableHead className="w-24">ステータス</TableHead>
                   <TableHead className="w-20 text-center">レポート</TableHead>
-                  <TableHead className="w-20 text-center">公開</TableHead>
+                  <TableHead className="w-24 text-center">
+                    ユーザー公開
+                  </TableHead>
+                  <TableHead className="w-24 text-center">管理者公開</TableHead>
                   <TableHead className="w-28">スタンス</TableHead>
-                  <TableHead className="w-28">役割</TableHead>
+                  <TableHead className="w-40">役割名</TableHead>
+                  <TableHead className="w-64">要約</TableHead>
                   <TableHead className="w-20 text-right">スコア</TableHead>
                   <TableHead className="w-24 text-center">満足度</TableHead>
                   <SortableTableHead
@@ -178,6 +183,18 @@ export function SessionList({
                         {hasReport ? (
                           <VisibilityBadge
                             isPublic={
+                              session.interview_report?.is_public_by_user ??
+                              false
+                            }
+                          />
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {hasReport ? (
+                          <VisibilityBadge
+                            isPublic={
                               session.interview_report?.is_public_by_admin ??
                               false
                             }
@@ -192,7 +209,12 @@ export function SessionList({
                         />
                       </TableCell>
                       <TableCell className="text-gray-600 text-sm">
-                        {session.interview_report?.role || "-"}
+                        {session.interview_report?.role_title || "-"}
+                      </TableCell>
+                      <TableCell className="text-gray-600 text-sm">
+                        <span className="line-clamp-2">
+                          {session.interview_report?.summary || "-"}
+                        </span>
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {session.interview_report?.total_score != null
@@ -230,7 +252,9 @@ export function SessionList({
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={routes.billReportDetail(billId, session.id)}
+                          href={
+                            routes.billReportDetail(billId, session.id) as Route
+                          }
                         >
                           <Button
                             variant="link"
