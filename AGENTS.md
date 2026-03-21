@@ -25,9 +25,9 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 ### 実装完了後は即PR作成
 実装完了後は「コミットしますか？」等の確認を挟まず、コミット → push → PR作成まで一気に進めること。ユーザーへの確認は不要。
 
-### Codexレビュー必須
-実装完了後（コミット前）に、必ず `/review-codex` スキルを実行してCodex CLIによるコードレビューを受けること。`/review-codex` はCodexレビューと `test-guidelines-checker` エージェントによるテストガイドラインチェックを同時に実行する。指摘があれば修正してからコミットする。
-Codexレビューを通過したら、ユーザーに確認せずそのままPR作成まで一気に進めること（push → `gh pr create`）。
+### セルフレビュー必須
+実装完了後（コミット前）に、必ず `/review` スキルを実行してセルフレビューを受けること。`/review` はCodexレビューと `test-guidelines-checker` エージェントによるテストガイドラインチェックを同時に実行する。指摘があれば修正してからコミットする。
+レビューを通過したら、ユーザーに確認せずそのままPR作成まで一気に進めること（push → `gh pr create`）。
 
 ### 並列PR作成
 複数の独立したPRを作成する場合は `/parallel-pr` スキルを使用すること。

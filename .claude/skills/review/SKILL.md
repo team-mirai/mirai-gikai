@@ -1,19 +1,19 @@
 ---
-name: review-codex
-description: Codex CLIのコードレビューとテストガイドラインチェックを同時実行する
+name: review
+description: コードレビューとテストガイドラインチェックを同時実行する
 ---
 
-# Review with Codex
+# Review
 
-Codex CLI の `codex review` コマンドと `test-guidelines-checker` エージェントを**同時に実行**し、コードレビューとテストガイドライン遵守チェックを行うスキル。
+コードレビューとテストガイドラインチェックを**同時に実行**するセルフレビュースキル。
 
 ## 使い方
 
 引数なしで実行すると、develop ブランチとの差分をレビューする。
 
 ```
-/review-codex
-/review-codex "セキュリティ面を重点的にチェックして"
+/review
+/review "セキュリティ面を重点的にチェックして"
 ```
 
 ## ワークフロー
@@ -29,7 +29,7 @@ git diff --stat develop...HEAD
 
 変更がない場合はユーザーに通知して終了。
 
-### Step 2: Codex Review とテストガイドラインチェックを同時実行
+### Step 2: コードレビューとテストガイドラインチェックを同時実行
 
 以下の2つを **Task ツールで並列に** 起動する:
 
