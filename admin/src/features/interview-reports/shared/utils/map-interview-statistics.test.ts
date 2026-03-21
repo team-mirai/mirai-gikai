@@ -37,7 +37,7 @@ describe("mapInterviewStatistics", () => {
     expect(result.avgMessageCount).toBe(12.3);
     expect(result.avgDurationSeconds).toBe(345);
     expect(result.publicByUserCount).toBe(60);
-    expect(result.publicRate).toBe(60);
+    expect(result.publicRate).toBe(75);
   });
 
   it("handles zero total sessions", () => {

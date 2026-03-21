@@ -37,6 +37,9 @@ export function mapInterviewStatistics(
     avgMessageCount: raw.avg_message_count,
     avgDurationSeconds: raw.avg_duration_seconds,
     publicByUserCount: raw.public_by_user_count,
-    publicRate: total > 0 ? (raw.public_by_user_count / total) * 100 : 0,
+    publicRate:
+      raw.completed_sessions > 0
+        ? (raw.public_by_user_count / raw.completed_sessions) * 100
+        : 0,
   };
 }
