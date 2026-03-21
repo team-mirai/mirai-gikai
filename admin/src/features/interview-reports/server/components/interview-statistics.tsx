@@ -12,7 +12,7 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import type { InterviewStatistics as InterviewStatisticsType } from "../../shared/types";
-import { formatAverageDuration } from "../../shared/utils/format-average-duration";
+import { formatDurationSeconds } from "../../shared/utils/format-average-duration";
 
 interface InterviewStatisticsProps {
   statistics: InterviewStatisticsType;
@@ -203,8 +203,8 @@ export function InterviewStatistics({
         />
         <StatCard
           icon={<Clock className="h-5 w-5" />}
-          label="平均所要時間"
-          value={formatAverageDuration(stats.avgDurationSeconds)}
+          label="所要時間（中央値）"
+          value={formatDurationSeconds(stats.medianDurationSeconds)}
         />
         <StatCard
           icon={<Eye className="h-5 w-5" />}

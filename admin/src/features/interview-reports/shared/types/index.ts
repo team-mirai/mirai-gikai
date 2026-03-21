@@ -40,7 +40,7 @@ export type InterviewStatistics = {
   roleDailyLifeAffected: number;
   roleGeneralCitizen: number;
   avgMessageCount: number | null;
-  avgDurationSeconds: number | null;
+  medianDurationSeconds: number | null;
   publicByUserCount: number;
   publicRate: number;
 };
