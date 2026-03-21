@@ -1,11 +1,11 @@
 ---
 name: review-codex
-description: Codex CLIを使って現在の変更差分のコードレビューを取得する
+description: Codex CLIのコードレビューとテストガイドラインチェックを同時実行する
 ---
 
 # Review with Codex
 
-Codex CLI の `codex review` コマンドで、現在の変更に対するコードレビューを取得するスキル。
+Codex CLI の `codex review` コマンドと `test-guidelines-checker` エージェントを**同時に実行**し、コードレビューとテストガイドライン遵守チェックを行うスキル。
 
 ## 使い方
 
@@ -29,7 +29,11 @@ git diff --stat develop...HEAD
 
 変更がない場合はユーザーに通知して終了。
 
-### Step 2: Codex Review の実行
+### Step 2: Codex Review とテストガイドラインチェックを同時実行
+
+以下の2つを **Task ツールで並列に** 起動する:
+
+#### 2a. Codex Review（Bashで実行）
 
 ユーザーから追加の指示（引数）があればそれを PROMPT として渡す。
 
@@ -43,12 +47,22 @@ codex review --base develop "{ユーザーの指示}"
 
 コマンドのタイムアウトは5分（300000ms）に設定する。
 
+#### 2b. テストガイドラインチェック（Task ツールで実行）
+
+`.claude/agents/test-guidelines-checker.md` の内容に従い、`subagent_type: "general-purpose"` の Task エージェントを起動してテストガイドラインの遵守状況をチェックする。
+
+**重要**: 2a と 2b は必ず並列（同一メッセージ内で複数の Tool call）で実行すること。
+
 ### Step 3: 結果の報告
 
-Codex の出力をそのままユーザーに表示する。
+両方の結果をまとめてユーザーに表示する:
+
+1. **Codex Review 結果**: Codex の出力をそのまま表示
+2. **テストガイドラインチェック結果**: エージェントの出力をそのまま表示
 
 ## 注意事項
 
 - `codex` CLI がインストール済みであること（`/opt/homebrew/bin/codex`）
 - レビュー対象はデフォルトで `develop` ブランチとの差分
 - `--base` オプションで比較対象を変更可能
+- テストガイドラインチェッカーが `.claude/agents/test-guidelines-checker.md` に存在しない場合は Codex Review のみ実行する
