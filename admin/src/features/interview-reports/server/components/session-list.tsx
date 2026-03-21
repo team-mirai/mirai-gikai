@@ -106,8 +106,8 @@ export function SessionList({
               <TableHead className="w-32">セッションID</TableHead>
               <TableHead className="w-24">ステータス</TableHead>
               <TableHead className="w-20 text-center">レポート</TableHead>
-              <TableHead className="w-24 text-center">管理者公開</TableHead>
               <TableHead className="w-24 text-center">ユーザー公開</TableHead>
+              <TableHead className="w-24 text-center">管理者公開</TableHead>
               <TableHead className="w-28">スタンス</TableHead>
               <TableHead className="w-28">役割</TableHead>
               <TableHead className="w-20 text-right">スコア</TableHead>
@@ -160,7 +160,7 @@ export function SessionList({
                     {hasReport ? (
                       <VisibilityBadge
                         isPublic={
-                          session.interview_report?.is_public_by_admin ?? false
+                          session.interview_report?.is_public_by_user ?? false
                         }
                       />
                     ) : (
@@ -171,7 +171,7 @@ export function SessionList({
                     {hasReport ? (
                       <VisibilityBadge
                         isPublic={
-                          session.interview_report?.is_public_by_user ?? false
+                          session.interview_report?.is_public_by_admin ?? false
                         }
                       />
                     ) : (
