@@ -16,6 +16,8 @@ interface ReactionButtonsProps {
   billName: string;
   shareUrl: string;
   thumbnailUrl?: string | null;
+  /** シェア時のメッセージ（レポートのsummary等） */
+  shareMessage?: string | null;
   /** 共有ボタンを表示するかどうか（非公開レポートでは非表示） */
   showShare?: boolean;
 }
@@ -26,6 +28,7 @@ export function ReactionButtons({
   billName,
   shareUrl,
   thumbnailUrl,
+  shareMessage,
   showShare = true,
 }: ReactionButtonsProps) {
   useAnonymousSupabaseUser();
@@ -110,6 +113,7 @@ export function ReactionButtons({
         billName={billName}
         shareUrl={shareUrl}
         thumbnailUrl={thumbnailUrl}
+        shareMessage={shareMessage}
       />
     </>
   );

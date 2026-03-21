@@ -16,6 +16,8 @@ interface ReportShareModalProps {
   billName: string;
   shareUrl: string;
   thumbnailUrl?: string | null;
+  /** シェア時のメッセージ（レポートのsummary等） */
+  shareMessage?: string | null;
 }
 
 export function ReportShareModal({
@@ -24,10 +26,12 @@ export function ReportShareModal({
   billName,
   shareUrl,
   thumbnailUrl,
+  shareMessage: shareMessageProp,
 }: ReportShareModalProps) {
   if (!isOpen) return null;
 
-  const shareMessage = `${billName}に対する意見をチェック！`;
+  const shareMessage =
+    shareMessageProp || `${billName}に対する意見をチェック！`;
 
   const shareButtons = [
     {

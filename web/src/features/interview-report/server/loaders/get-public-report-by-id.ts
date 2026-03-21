@@ -16,6 +16,7 @@ export type PublicReportData = InterviewReport & {
     id: string;
     name: string;
     thumbnail_url: string | null;
+    share_thumbnail_url: string | null;
     bill_content: { title: string } | null;
   };
   characterCount: number;
@@ -69,6 +70,7 @@ export const getPublicReportById = cache(
         id: bill.id,
         name: bill.name,
         thumbnail_url: bill.thumbnail_url,
+        share_thumbnail_url: bill.share_thumbnail_url,
         bill_content: bill.bill_contents
           ? Array.isArray(bill.bill_contents)
             ? bill.bill_contents[0]
