@@ -15,7 +15,7 @@ describe("mapInterviewStatistics", () => {
     role_daily_life_affected_count: 15,
     role_general_citizen_count: 35,
     avg_message_count: 12.3,
-    avg_duration_seconds: 345,
+    median_duration_seconds: 345,
     public_by_user_count: 60,
   };
 
@@ -35,7 +35,7 @@ describe("mapInterviewStatistics", () => {
     expect(result.roleDailyLifeAffected).toBe(15);
     expect(result.roleGeneralCitizen).toBe(35);
     expect(result.avgMessageCount).toBe(12.3);
-    expect(result.avgDurationSeconds).toBe(345);
+    expect(result.medianDurationSeconds).toBe(345);
     expect(result.publicByUserCount).toBe(60);
     expect(result.publicRate).toBe(60);
   });
@@ -58,12 +58,12 @@ describe("mapInterviewStatistics", () => {
       avg_rating: null,
       avg_total_score: null,
       avg_message_count: null,
-      avg_duration_seconds: null,
+      median_duration_seconds: null,
     });
 
     expect(result.avgRating).toBeNull();
     expect(result.avgTotalScore).toBeNull();
     expect(result.avgMessageCount).toBeNull();
-    expect(result.avgDurationSeconds).toBeNull();
+    expect(result.medianDurationSeconds).toBeNull();
   });
 });

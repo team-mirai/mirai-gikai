@@ -13,7 +13,7 @@ type RawStatistics = {
   role_daily_life_affected_count: number;
   role_general_citizen_count: number;
   avg_message_count: number | null;
-  avg_duration_seconds: number | null;
+  median_duration_seconds: number | null;
   public_by_user_count: number;
 };
 
@@ -35,7 +35,7 @@ export function mapInterviewStatistics(
     roleDailyLifeAffected: raw.role_daily_life_affected_count,
     roleGeneralCitizen: raw.role_general_citizen_count,
     avgMessageCount: raw.avg_message_count,
-    avgDurationSeconds: raw.avg_duration_seconds,
+    medianDurationSeconds: raw.median_duration_seconds,
     publicByUserCount: raw.public_by_user_count,
     publicRate: total > 0 ? (raw.public_by_user_count / total) * 100 : 0,
   };
