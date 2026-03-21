@@ -243,6 +243,58 @@ export async function findSessionIdsOrderedByTotalScore(
   return (data || []).map((row) => row.session_id);
 }
 
+export async function findSessionIdsOrderedByHelpfulCount(
+  configId: string,
+  ascending: boolean,
+  offset: number,
+  limit: number,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
+): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc(
+    "find_sessions_ordered_by_helpful_count",
+    {
+      p_config_id: configId,
+      p_ascending: ascending,
+      p_offset: offset,
+      p_limit: limit,
+      ...toRpcFilterParams(filters),
+    }
+  );
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch sessions ordered by helpful count: ${error.message}`
+    );
+  }
+
+  return (data || []).map((row) => row.session_id);
+}
+
+export async function findHelpfulCountsByReportIds(
+  reportIds: string[]
+): Promise<Map<string, number>> {
+  const countsMap = new Map<string, number>();
+  if (reportIds.length === 0) return countsMap;
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("count_reactions_by_report_ids", {
+    report_ids: reportIds,
+  });
+
+  if (error) {
+    throw new Error(`Failed to fetch helpful counts: ${error.message}`);
+  }
+
+  for (const row of data) {
+    if (row.reaction_type === "helpful") {
+      countsMap.set(row.interview_report_id, Number(row.cnt));
+    }
+  }
+
+  return countsMap;
+}
+
 export async function findInterviewMessageCounts(sessionIds: string[]) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("get_interview_message_counts", {

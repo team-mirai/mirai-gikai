@@ -837,6 +837,21 @@ export type Database = {
           reaction_type: string
         }[]
       }
+      find_sessions_ordered_by_helpful_count: {
+        Args: {
+          p_ascending?: boolean
+          p_config_id: string
+          p_limit?: number
+          p_offset?: number
+          p_role?: string
+          p_stance?: string
+          p_status?: string
+          p_visibility?: string
+        }
+        Returns: {
+          session_id: string
+        }[]
+      }
       find_sessions_ordered_by_message_count: {
         Args: {
           p_ascending?: boolean
