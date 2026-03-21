@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -66,7 +67,7 @@ export function InterviewConfigList({
       const result = await duplicateInterviewConfig(configId);
       if (result.success) {
         toast.success("インタビュー設定を複製しました");
-        router.push(routes.billInterviewEdit(billId, result.data.id));
+        router.push(routes.billInterviewEdit(billId, result.data.id) as Route);
       } else {
         toast.error(result.error || "複製に失敗しました");
       }
@@ -106,7 +107,7 @@ export function InterviewConfigList({
           <div className="text-sm text-gray-600">
             {configs.length}件のインタビュー設定
           </div>
-          <Link href={routes.billInterviewNew(billId)}>
+          <Link href={routes.billInterviewNew(billId) as Route}>
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
               新規作成
@@ -136,7 +137,9 @@ export function InterviewConfigList({
                   <TableRow key={config.id}>
                     <TableCell>
                       <Link
-                        href={routes.billInterviewEdit(billId, config.id)}
+                        href={
+                          routes.billInterviewEdit(billId, config.id) as Route
+                        }
                         className="font-medium hover:underline"
                       >
                         {config.name}
@@ -181,7 +184,9 @@ export function InterviewConfigList({
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Link
-                          href={routes.billInterviewEdit(billId, config.id)}
+                          href={
+                            routes.billInterviewEdit(billId, config.id) as Route
+                          }
                         >
                           <Button variant="ghost" size="icon">
                             <Pencil className="h-4 w-4" />

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -104,7 +105,7 @@ function BillRow({ bill }: { bill: BillWithDietSession }) {
     <TableRow>
       <TableCell className="max-w-[400px]">
         <Link
-          href={routes.billEdit(bill.id)}
+          href={routes.billEdit(bill.id) as Route}
           className="block truncate font-medium hover:underline"
         >
           {bill.name}

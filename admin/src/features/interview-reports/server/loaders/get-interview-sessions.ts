@@ -11,6 +11,7 @@ import {
   findInterviewSessionsWithReport,
   findInterviewSessionsWithReportByIds,
   findSessionIdsOrderedByMessageCount,
+  findSessionIdsOrderedByTotalScore,
 } from "../repositories/interview-report-repository";
 
 export const SESSIONS_PER_PAGE = 30;
@@ -30,11 +31,19 @@ export async function getInterviewSessions(
   const { from, to } = calculatePaginationRange(page, SESSIONS_PER_PAGE);
   const limit = to - from + 1;
 
-  // message_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
+  // message_count/total_scoreソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
     if (sort.field === "message_count") {
       const orderedIds = await findSessionIdsOrderedByMessageCount(
+        config.id,
+        sort.order === "asc",
+        from,
+        limit
+      );
+      sessions = await findInterviewSessionsWithReportByIds(orderedIds);
+    } else if (sort.field === "total_score") {
+      const orderedIds = await findSessionIdsOrderedByTotalScore(
         config.id,
         sort.order === "asc",
         from,

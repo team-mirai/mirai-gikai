@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -133,7 +134,9 @@ export function InterviewConfigForm({
             await onConfigCreated(result.data.id);
           }
           toast.success("インタビュー設定を作成しました");
-          router.push(routes.billInterviewEdit(billId, result.data.id));
+          router.push(
+            routes.billInterviewEdit(billId, result.data.id) as Route
+          );
         } else {
           toast.success("インタビュー設定を保存しました");
           router.refresh();

@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, Play } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,7 @@ export function RunAnalysisButton({ billId }: RunAnalysisButtonProps) {
         stopPolling();
         setIsRunning(false);
         router.push(
-          routes.billTopicAnalysisDetail(billId, versionIdRef.current!)
+          routes.billTopicAnalysisDetail(billId, versionIdRef.current!) as Route
         );
         router.refresh();
       } else if (data.status === "failed") {

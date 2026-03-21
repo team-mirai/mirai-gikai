@@ -1,6 +1,7 @@
 "use client";
 
 import { RotateCcw } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ export function RestartInterviewButton({
         // アーカイブ成功後、チャットページに遷移（新しいセッションが作成される）
         // 遷移完了までローディングを維持するため、成功時は setIsLoading(false) を呼ばない
         const chatLink = getInterviewChatLink(billId, previewToken);
-        router.push(chatLink);
+        router.push(chatLink as Route);
       } else {
         console.error("Failed to archive session:", result.error);
         alert(result.error || "やり直しに失敗しました");

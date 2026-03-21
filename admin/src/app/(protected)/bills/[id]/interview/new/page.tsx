@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -26,7 +27,7 @@ export default async function InterviewNewPage({
     <div>
       <div className="mb-6">
         <Link
-          href={routes.billInterview(id)}
+          href={routes.billInterview(id) as Route}
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4" />

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { ComingSoonBill } from "@/features/bills/shared/types";
@@ -86,7 +87,7 @@ function ComingSoonBillCard({ bill }: { bill: ComingSoonBill }) {
   if (bill.shugiin_url) {
     return (
       <Link
-        href={bill.shugiin_url}
+        href={bill.shugiin_url as Route}
         target="_blank"
         rel="noopener noreferrer"
         className="block"

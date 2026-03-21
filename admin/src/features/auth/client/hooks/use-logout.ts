@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -12,11 +13,11 @@ export function useLogout() {
     try {
       setIsLoading(true);
       await signOut();
-      router.push(routes.login());
+      router.push(routes.login() as Route);
     } catch (err) {
       console.error("Logout failed:", err);
       // Even if logout fails on server, redirect to login
-      router.push(routes.login());
+      router.push(routes.login() as Route);
     } finally {
       setIsLoading(false);
     }

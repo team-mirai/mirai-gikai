@@ -1,14 +1,14 @@
+import "server-only";
+import {
+  Bot,
+  Clock,
+  Frown,
+  Lightbulb,
+  MessageCircle,
+  User,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Clock, Frown, Lightbulb, MessageCircle, User } from "lucide-react";
 import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
 import { formatRoleLabel } from "../../shared/constants";
 import type { InterviewSessionDetail } from "../../shared/types";
@@ -125,6 +125,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
               sessionId={session.id}
               billId={billId}
               isPublic={report.is_public_by_admin ?? false}
+              isPublicByUser={report.is_public_by_user ?? false}
             />
           )}
         </CardHeader>
@@ -263,49 +264,55 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
         </Card>
       )}
 
-      {/* チャット生データ */}
+      {/* チャット履歴 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">チャット履歴</CardTitle>
         </CardHeader>
         <CardContent>
           {messages.length > 0 ? (
-            <div className="rounded-lg border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="w-24">役割</TableHead>
-                    <TableHead>内容</TableHead>
-                    <TableHead className="w-44">時刻</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {messages.map((message) => (
-                    <TableRow key={message.id}>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            message.role === "assistant"
-                              ? "bg-blue-50 text-blue-700 border-blue-200"
-                              : "bg-gray-50 text-gray-700 border-gray-200"
-                          }
-                        >
-                          {message.role === "assistant" ? "AI" : "ユーザー"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="whitespace-pre-wrap">
+            <div className="space-y-4">
+              {messages.map((message) => {
+                const isAssistant = message.role === "assistant";
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${isAssistant ? "" : "flex-row-reverse"}`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        isAssistant
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {isAssistant ? (
+                        <Bot className="h-4 w-4" />
+                      ) : (
+                        <User className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div
+                      className={`max-w-[75%] ${isAssistant ? "" : "text-right"}`}
+                    >
+                      <div
+                        className={`inline-block rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap text-left ${
+                          isAssistant
+                            ? "bg-blue-50 text-gray-800 rounded-tl-sm"
+                            : "bg-gray-100 text-gray-800 rounded-tr-sm"
+                        }`}
+                      >
                         {getMessageDisplayText(message.content)}
-                      </TableCell>
-                      <TableCell className="text-gray-500 text-sm">
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1 px-1">
                         {new Date(message.created_at).toLocaleString("ja-JP", {
                           timeZone: "Asia/Tokyo",
                         })}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-gray-500 text-sm">メッセージはありません</div>

@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import Image from "next/image";
+import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
@@ -53,7 +54,7 @@ export function PreviousSessionSection({
 
       {/* セクションヘッダー（リンク付き） */}
       <div className="flex flex-col gap-1.5">
-        <Link href={sessionBillsUrl} className="group">
+        <Link href={sessionBillsUrl as Route} className="group">
           <h3 className="text-[22px] font-bold text-black leading-[1.48] flex items-center gap-1.5">
             <span className="flex items-center gap-4">
               {new Date(session.start_date).getFullYear()}年 {session.name}
@@ -71,7 +72,7 @@ export function PreviousSessionSection({
       {/* 議案カードリスト */}
       <div className="relative flex flex-col gap-3">
         {visibleBills.map((bill) => (
-          <Link key={bill.id} href={routes.billDetail(bill.id)}>
+          <Link key={bill.id} href={routes.billDetail(bill.id) as Route}>
             <CompactBillCard bill={bill} />
           </Link>
         ))}
@@ -86,7 +87,7 @@ export function PreviousSessionSection({
                 asChild
                 className="w-[214px] h-12 text-base font-bold border-mirai-text rounded-full hover:bg-gray-50 bg-white"
               >
-                <Link href={sessionBillsUrl}>もっと読む</Link>
+                <Link href={sessionBillsUrl as Route}>もっと読む</Link>
               </Button>
             </div>
           </div>

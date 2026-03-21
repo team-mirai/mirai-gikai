@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
@@ -40,7 +41,7 @@ export function SortableTableHead<TField extends string>({
   return (
     <TableHead className={className}>
       <Link
-        href={`${pathname}?${params.toString()}`}
+        href={`${pathname}?${params.toString()}` as Route}
         className="inline-flex items-center gap-1 hover:text-gray-900 transition-colors"
       >
         {children}

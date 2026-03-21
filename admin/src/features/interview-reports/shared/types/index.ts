@@ -26,12 +26,32 @@ export type InterviewSessionDetail = InterviewSession & {
   reaction_counts: ReactionCounts | null;
 };
 
+export type InterviewStatistics = {
+  totalSessions: number;
+  completedSessions: number;
+  completionRate: number;
+  avgRating: number | null;
+  stanceFor: number;
+  stanceAgainst: number;
+  stanceNeutral: number;
+  avgTotalScore: number | null;
+  roleSubjectExpert: number;
+  roleWorkRelated: number;
+  roleDailyLifeAffected: number;
+  roleGeneralCitizen: number;
+  avgMessageCount: number | null;
+  avgDurationSeconds: number | null;
+  publicByUserCount: number;
+  publicRate: number;
+};
+
 // ソート関連の型定義
-export type SessionSortField = "started_at" | "message_count";
+export type SessionSortField = "started_at" | "message_count" | "total_score";
 
 export const SESSION_SORT_FIELDS: readonly SessionSortField[] = [
   "started_at",
   "message_count",
+  "total_score",
 ] as const;
 
 export type SessionSortConfig = SortConfig<SessionSortField>;

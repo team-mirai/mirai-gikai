@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -68,7 +69,7 @@ export async function BillInterviewOpinionsSection({
       {totalCount > reports.length && (
         <div className="flex justify-center">
           <Button variant="outline" asChild>
-            <Link href={routes.billOpinions(billId)}>
+            <Link href={routes.billOpinions(billId) as Route}>
               もっと読む
               <ChevronRight size={16} />
             </Link>

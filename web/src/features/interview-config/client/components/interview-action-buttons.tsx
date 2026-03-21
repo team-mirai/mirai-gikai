@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { ArrowRight, FileText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -32,7 +33,9 @@ export function InterviewActionButtons({
   if (isCompleted && sessionInfo?.reportId) {
     return (
       <>
-        <Link href={getInterviewReportCompleteLink(sessionInfo.reportId)}>
+        <Link
+          href={getInterviewReportCompleteLink(sessionInfo.reportId) as Route}
+        >
           <Button className="w-full bg-mirai-gradient text-black border border-black rounded-[100px] h-[48px] px-6 font-bold text-[15px] hover:opacity-90 transition-opacity flex items-center justify-center gap-4">
             <FileText className="size-5" />
             <span>インタビューレポートを確認する</span>
@@ -54,7 +57,7 @@ export function InterviewActionButtons({
 
     return (
       <>
-        <Link href={chatLink}>
+        <Link href={chatLink as Route}>
           <Button className="w-full bg-mirai-gradient text-black border border-black rounded-[100px] h-[48px] px-6 font-bold text-[15px] hover:opacity-90 transition-opacity flex items-center justify-center gap-4">
             <Image
               src="/icons/messages-square-icon.svg"

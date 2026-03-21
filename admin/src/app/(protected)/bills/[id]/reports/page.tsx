@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { routes } from "@/lib/routes";
+import { InterviewStatistics } from "@/features/interview-reports/server/components/interview-statistics";
 import { SessionList } from "@/features/interview-reports/server/components/session-list";
+import { getInterviewStatistics } from "@/features/interview-reports/server/loaders/get-interview-statistics";
 import {
   getInterviewSessions,
   getInterviewSessionsCount,
@@ -31,10 +33,11 @@ export default async function ReportsPage({
   const currentPage = Math.max(1, Number(page) || 1);
   const sortConfig = parseSessionSortParams(sort, order);
 
-  const [bill, sessions, totalCount] = await Promise.all([
+  const [bill, sessions, totalCount, statistics] = await Promise.all([
     getBillById(id),
     getInterviewSessions(id, currentPage, sortConfig),
     getInterviewSessionsCount(id),
+    getInterviewStatistics(id),
   ]);
 
   if (!bill) {
@@ -59,6 +62,12 @@ export default async function ReportsPage({
         </h1>
         <p className="text-gray-600 mt-1">議案「{bill.name}」のレポート</p>
       </div>
+
+      {statistics && (
+        <div className="mb-6">
+          <InterviewStatistics statistics={statistics} />
+        </div>
+      )}
 
       <SessionList
         billId={id}
