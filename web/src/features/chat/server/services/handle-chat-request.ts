@@ -108,9 +108,12 @@ export async function handleChatRequest({
   );
 
   // Build system prompt with interview suggestion instructions
+  const isBillPage =
+    context.pageContext?.type === "bill" || !!context.billContext;
   const systemPrompt = buildSystemPromptWithInterviewInstructions(
     promptResult.content,
-    shouldSuggestInterview
+    shouldSuggestInterview,
+    isBillPage
   );
 
   // Build tools configuration
@@ -269,6 +272,14 @@ function extractGatewayCost(event: {
   return Number.isFinite(numericCost) ? numericCost : undefined;
 }
 
+const INTERVIEW_AWARENESS_PROMPT = `
+
+## AIインタビュー機能について
+みらい議会には「AIインタビュー」機能があります。これは法案ごとに提供される機能で、ユーザーがAIインタビュアーと対話形式で法案に対する意見や知見を共有できる仕組みです。インタビュー結果は分析・レポート化され、政策議論に活用されます。
+
+この法案のインタビュー機能が現在利用可能かどうかは状況によって異なります。インタビューについて質問された場合は、この機能の存在を説明した上で、法案詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
+`;
+
 const INTERVIEW_SUGGESTION_PROMPT = `
 
 ## AIインタビュー提案について
@@ -365,12 +376,17 @@ async function hasExistingInterviewSession(
  */
 function buildSystemPromptWithInterviewInstructions(
   basePrompt: string,
-  shouldSuggestInterview: boolean
+  shouldSuggestInterview: boolean,
+  isBillPage: boolean
 ): string {
-  if (shouldSuggestInterview) {
-    return basePrompt + INTERVIEW_SUGGESTION_PROMPT;
+  if (!isBillPage) {
+    return basePrompt;
   }
-  return basePrompt;
+  let prompt = basePrompt + INTERVIEW_AWARENESS_PROMPT;
+  if (shouldSuggestInterview) {
+    prompt += INTERVIEW_SUGGESTION_PROMPT;
+  }
+  return prompt;
 }
 
 /**
