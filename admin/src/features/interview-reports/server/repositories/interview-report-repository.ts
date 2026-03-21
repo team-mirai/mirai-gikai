@@ -210,6 +210,19 @@ export async function findReactionCountsByReportId(
   };
 }
 
+export async function findInterviewStatistics(configId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("get_interview_statistics", {
+    p_config_id: configId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to fetch interview statistics: ${error.message}`);
+  }
+
+  return data?.[0] ?? null;
+}
+
 export async function updateReportVisibility(
   reportId: string,
   isPublic: boolean
