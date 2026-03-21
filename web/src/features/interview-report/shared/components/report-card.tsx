@@ -24,9 +24,14 @@ export interface ReportCardData {
 interface ReportCardProps {
   report: ReportCardData;
   summaryMaxLength?: number;
+  children?: React.ReactNode;
 }
 
-export function ReportCard({ report, summaryMaxLength = 80 }: ReportCardProps) {
+export function ReportCard({
+  report,
+  summaryMaxLength = 80,
+  children,
+}: ReportCardProps) {
   const stanceLabel = report.stance
     ? stanceLabels[report.stance] || report.stance
     : null;
@@ -46,11 +51,13 @@ export function ReportCard({ report, summaryMaxLength = 80 }: ReportCardProps) {
       : summary;
 
   return (
-    <Link
-      href={getPublicReportLink(report.id) as Route}
-      className="block bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors"
-    >
-      <div className="flex items-center gap-2">
+    <article className="relative bg-white rounded-lg px-4 py-[18px] hover:bg-gray-50 transition-colors">
+      <Link
+        href={getPublicReportLink(report.id) as Route}
+        className="absolute inset-0 rounded-lg"
+        aria-label={stanceLabel || "レポートを見る"}
+      />
+      <div className="flex items-start gap-2.5">
         {report.stance && (
           <Image
             src={`/icons/stance-${report.stance}.png`}
@@ -60,31 +67,36 @@ export function ReportCard({ report, summaryMaxLength = 80 }: ReportCardProps) {
             className="rounded-full flex-shrink-0"
           />
         )}
-        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+        <div className="flex flex-col gap-2 min-w-0 flex-1">
           {stanceLabel && (
-            <span className={cn("text-base font-bold", stanceTextColor)}>
+            <span
+              className={cn(
+                "text-base font-bold leading-4 tracking-[0.01em]",
+                stanceTextColor
+              )}
+            >
               {stanceLabel}
             </span>
           )}
-          <div className="flex items-center gap-2">
-            {roleLabel && (
-              <div className="flex items-center gap-0.5 text-mirai-text-subtle">
-                {RoleIcon && <RoleIcon size={16} className="flex-shrink-0" />}
-                <span className="text-xs">{roleLabel}</span>
-              </div>
-            )}
-            <span className="text-[13px] text-mirai-text-muted leading-[1.2]">
-              {relativeTime}
-            </span>
-          </div>
+          {roleLabel && (
+            <div className="flex items-center gap-1 text-mirai-text-subtle">
+              {RoleIcon && <RoleIcon size={16} className="flex-shrink-0" />}
+              <span className="text-xs leading-3">{roleLabel}</span>
+            </div>
+          )}
         </div>
+        <span className="text-[13px] text-mirai-text-muted whitespace-nowrap flex-shrink-0">
+          {relativeTime}
+        </span>
       </div>
 
       {truncatedSummary && (
-        <p className="mt-2 text-[13px] leading-[1.692] text-black">
+        <p className="mt-2 text-[13px] leading-[22px] text-black">
           {truncatedSummary}
         </p>
       )}
-    </Link>
+
+      {children && <div className="relative z-10 mt-2">{children}</div>}
+    </article>
   );
 }

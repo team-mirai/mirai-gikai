@@ -50,17 +50,12 @@ export async function BillInterviewOpinionsSection({
       <AnonymousAuthProvider>
         <div className="flex flex-col gap-4">
           {reports.map((report) => (
-            <div key={report.id} className="flex flex-col">
-              <ReportCard report={report} />
-              <div className="bg-white rounded-b-lg px-4 pb-3 -mt-1">
-                <ReactionButtonsInline
-                  reportId={report.id}
-                  initialData={
-                    reactionsMap.get(report.id) ?? defaultReactionData
-                  }
-                />
-              </div>
-            </div>
+            <ReportCard key={report.id} report={report}>
+              <ReactionButtonsInline
+                reportId={report.id}
+                initialData={reactionsMap.get(report.id) ?? defaultReactionData}
+              />
+            </ReportCard>
           ))}
         </div>
       </AnonymousAuthProvider>
