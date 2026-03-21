@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Frown, Lightbulb } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useOptimistic, useTransition } from "react";
 import { toggleReaction } from "../../server/actions/toggle-reaction";
@@ -50,14 +50,6 @@ export function ReactionButtonsInline({
         disabled={isPending}
         onClick={(e) => handleClick(e, "helpful")}
       />
-      <InlineReactionButton
-        type="hmm"
-        label="うーん..."
-        count={optimistic.counts.hmm}
-        isActive={optimistic.userReaction === "hmm"}
-        disabled={isPending}
-        onClick={(e) => handleClick(e, "hmm")}
-      />
     </div>
   );
 }
@@ -79,7 +71,7 @@ function InlineReactionButton({
   disabled,
   onClick,
 }: InlineReactionButtonProps) {
-  const Icon = type === "helpful" ? Lightbulb : Frown;
+  const Icon = Lightbulb;
   const colorClass = isActive
     ? "text-mirai-reaction-active"
     : "text-mirai-reaction-inactive";
