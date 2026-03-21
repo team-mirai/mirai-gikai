@@ -2,7 +2,10 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { updateReportVisibility } from "../repositories/interview-report-repository";
+import {
+  findInterviewReportBySessionId,
+  updateReportVisibility,
+} from "../repositories/interview-report-repository";
 
 interface UpdateReportVisibilityParams {
   reportId: string;
@@ -31,6 +34,17 @@ export async function updateReportVisibilityAction(
   }
 
   try {
+    if (isPublic) {
+      const report = await findInterviewReportBySessionId(sessionId);
+      if (!report?.is_public_by_user) {
+        return {
+          success: false,
+          error:
+            "ユーザーが非公開に設定しているため、管理者公開に変更できません",
+        };
+      }
+    }
+
     await updateReportVisibility(reportId, isPublic);
 
     // Revalidate the detail page and list page
