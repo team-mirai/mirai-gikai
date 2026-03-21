@@ -57,20 +57,20 @@ export function ReactionButtons({
     <>
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white">
         <div className="border-t border-gray-400" />
-        <div className="flex items-center py-5 px-4">
+        <div className="flex items-stretch">
           {/* 参考になる */}
           <Button
             variant="ghost"
             onClick={() => handleClick("helpful")}
             disabled={isPending}
-            className="flex-1 flex items-center justify-center gap-2 h-auto px-0 py-0 hover:bg-transparent"
+            className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
           >
             <Lightbulb
               size={20}
               className={`transition-colors ${
                 isActive
                   ? "text-mirai-reaction-active fill-mirai-reaction-active"
-                  : "text-mirai-reaction-active"
+                  : "text-gray-800"
               }`}
             />
             <span className="text-[15px] font-bold text-gray-800">
@@ -86,13 +86,13 @@ export function ReactionButtons({
           {showShare && (
             <>
               {/* セパレーター */}
-              <div className="w-px h-6 bg-gray-400 shrink-0" />
+              <div className="w-px self-center h-6 bg-gray-400 shrink-0" />
 
               {/* 共有する */}
               <Button
                 variant="ghost"
                 onClick={() => setIsShareModalOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 h-auto px-0 py-0 hover:bg-transparent"
+                className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
               >
                 <Upload size={20} className="text-gray-800" />
                 <span className="text-[15px] font-bold text-gray-800">
