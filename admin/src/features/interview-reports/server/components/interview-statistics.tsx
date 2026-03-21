@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   CheckCircle2,
   Clock,
@@ -65,26 +67,32 @@ function StanceBar({
     <div className="space-y-2">
       <div className="flex h-3 overflow-hidden rounded-full">
         {forPct > 0 && (
-          <div className="bg-green-500" style={{ width: `${forPct}%` }} />
+          <div className="bg-stance-for" style={{ width: `${forPct}%` }} />
         )}
         {neutralPct > 0 && (
-          <div className="bg-gray-400" style={{ width: `${neutralPct}%` }} />
+          <div
+            className="bg-stance-neutral"
+            style={{ width: `${neutralPct}%` }}
+          />
         )}
         {againstPct > 0 && (
-          <div className="bg-red-500" style={{ width: `${againstPct}%` }} />
+          <div
+            className="bg-stance-against"
+            style={{ width: `${againstPct}%` }}
+          />
         )}
       </div>
       <div className="flex justify-between text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+          <span className="inline-block h-2 w-2 rounded-full bg-stance-for" />
           賛成 {forCount}件 ({forPct}%)
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-gray-400" />
+          <span className="inline-block h-2 w-2 rounded-full bg-stance-neutral" />
           中立 {neutralCount}件 ({neutralPct}%)
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
+          <span className="inline-block h-2 w-2 rounded-full bg-stance-against" />
           反対 {againstCount}件 ({againstPct}%)
         </span>
       </div>
@@ -104,10 +112,18 @@ function RoleDistribution({
   generalCitizen: number;
 }) {
   const roles = [
-    { label: "専門家", count: subjectExpert, color: "bg-blue-500" },
-    { label: "業務関連", count: workRelated, color: "bg-emerald-500" },
-    { label: "生活影響", count: dailyLifeAffected, color: "bg-amber-500" },
-    { label: "一般市民", count: generalCitizen, color: "bg-purple-500" },
+    { label: "専門家", count: subjectExpert, color: "bg-role-subject-expert" },
+    { label: "業務関連", count: workRelated, color: "bg-role-work-related" },
+    {
+      label: "生活影響",
+      count: dailyLifeAffected,
+      color: "bg-role-daily-life-affected",
+    },
+    {
+      label: "一般市民",
+      count: generalCitizen,
+      color: "bg-role-general-citizen",
+    },
   ];
 
   const total = roles.reduce((sum, r) => sum + r.count, 0);

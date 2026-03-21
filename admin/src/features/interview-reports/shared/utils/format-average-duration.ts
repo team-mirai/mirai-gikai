@@ -5,7 +5,7 @@ export function formatAverageDuration(
     return "-";
   }
 
-  const totalSeconds = Math.round(avgDurationSeconds);
+  const totalSeconds = Math.max(1, Math.round(avgDurationSeconds));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 

@@ -29,4 +29,8 @@ describe("formatAverageDuration", () => {
   it("rounds to nearest second", () => {
     expect(formatAverageDuration(150.7)).toBe("2分31秒");
   });
+
+  it("rounds tiny positive value to 1 second", () => {
+    expect(formatAverageDuration(0.3)).toBe("1秒");
+  });
 });

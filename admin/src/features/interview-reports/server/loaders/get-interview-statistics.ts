@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { InterviewStatistics } from "../../shared/types";
 import { mapInterviewStatistics } from "../../shared/utils/map-interview-statistics";
 import {
