@@ -848,6 +848,17 @@ export type Database = {
           session_id: string
         }[]
       }
+      find_sessions_ordered_by_total_score: {
+        Args: {
+          p_ascending?: boolean
+          p_config_id: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+          session_id: string
+        }[]
+      }
       get_admin_users: {
         Args: never
         Returns: {
