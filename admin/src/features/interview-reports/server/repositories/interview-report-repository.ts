@@ -101,6 +101,32 @@ export async function findInterviewSessionsWithReportByIds(
   return sessionIds.map((id) => dataMap.get(id)).filter(Boolean) as typeof data;
 }
 
+export async function findSessionIdsOrderedByTotalScore(
+  configId: string,
+  ascending: boolean,
+  offset: number,
+  limit: number
+): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc(
+    "find_sessions_ordered_by_total_score",
+    {
+      p_config_id: configId,
+      p_ascending: ascending,
+      p_offset: offset,
+      p_limit: limit,
+    }
+  );
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch sessions ordered by total score: ${error.message}`
+    );
+  }
+
+  return (data || []).map((row) => row.session_id);
+}
+
 export async function findInterviewMessageCounts(sessionIds: string[]) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("get_interview_message_counts", {

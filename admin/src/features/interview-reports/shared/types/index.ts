@@ -27,11 +27,12 @@ export type InterviewSessionDetail = InterviewSession & {
 };
 
 // ソート関連の型定義
-export type SessionSortField = "started_at" | "message_count";
+export type SessionSortField = "started_at" | "message_count" | "total_score";
 
 export const SESSION_SORT_FIELDS: readonly SessionSortField[] = [
   "started_at",
   "message_count",
+  "total_score",
 ] as const;
 
 export type SessionSortConfig = SortConfig<SessionSortField>;

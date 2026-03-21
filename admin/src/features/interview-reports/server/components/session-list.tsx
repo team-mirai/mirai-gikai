@@ -3,7 +3,6 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { routes } from "@/lib/routes";
 import {
   Pagination,
   PaginationContent,
@@ -24,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { routes } from "@/lib/routes";
 import type {
   InterviewSessionWithDetails,
   SessionSortConfig,
@@ -112,7 +112,14 @@ export function SessionList({
               <TableHead className="w-28">スタンス</TableHead>
               <TableHead className="w-40">役割名</TableHead>
               <TableHead className="w-64">要約</TableHead>
-              <TableHead className="w-20 text-right">スコア</TableHead>
+              <SortableTableHead
+                field="total_score"
+                currentField={sort.field}
+                currentOrder={sort.order}
+                className="w-20 text-right"
+              >
+                スコア
+              </SortableTableHead>
               <TableHead className="w-24 text-center">満足度</TableHead>
               <SortableTableHead
                 field="started_at"
