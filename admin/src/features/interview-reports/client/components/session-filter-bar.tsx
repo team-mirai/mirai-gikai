@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Select,
@@ -60,7 +61,7 @@ export function SessionFilterBar({ currentFilters }: SessionFilterBarProps) {
     // フィルタ変更時はページを1にリセット
     params.delete("page");
 
-    router.replace(`${pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}` as Route);
   }
 
   return (
