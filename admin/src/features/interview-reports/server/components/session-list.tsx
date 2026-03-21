@@ -109,13 +109,15 @@ export function SessionList({
           条件に一致するセッションがありません
         </div>
       ) : (
-        <>
-          <div className="mb-4 flex items-center justify-end">
-            <div className="text-sm text-gray-600">
-              全 {totalCount} 件中 {startIndex + 1}〜{endIndex} 件を表示
-            </div>
+        <div className="mb-4 flex items-center justify-end">
+          <div className="text-sm text-gray-600">
+            全 {totalCount} 件中 {startIndex + 1}〜{endIndex} 件を表示
           </div>
+        </div>
+      )}
 
+      {sessions.length > 0 && (
+        <>
           <div className="rounded-lg border overflow-hidden">
             <Table>
               <TableHeader>
@@ -265,85 +267,85 @@ export function SessionList({
               </TableBody>
             </Table>
           </div>
-
-          {/* ページネーション */}
-          {totalPages > 1 && (
-            <Pagination className="mt-4">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationFirst
-                    href={buildPageUrl(billId, 1, sort, filters)}
-                    aria-disabled={currentPage <= 1}
-                    className={
-                      currentPage <= 1 ? "pointer-events-none opacity-50" : ""
-                    }
-                  />
-                </PaginationItem>
-
-                <PaginationItem>
-                  <PaginationPrevious
-                    href={buildPageUrl(
-                      billId,
-                      currentPage > 1 ? currentPage - 1 : 1,
-                      sort,
-                      filters
-                    )}
-                    aria-disabled={currentPage <= 1}
-                    className={
-                      currentPage <= 1 ? "pointer-events-none opacity-50" : ""
-                    }
-                  />
-                </PaginationItem>
-
-                {generatePageNumbers(totalPages, currentPage).map((page) =>
-                  typeof page === "string" ? (
-                    <PaginationItem key={page}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  ) : (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        href={buildPageUrl(billId, page, sort, filters)}
-                        isActive={page === currentPage}
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                )}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href={buildPageUrl(
-                      billId,
-                      currentPage < totalPages ? currentPage + 1 : totalPages,
-                      sort,
-                      filters
-                    )}
-                    aria-disabled={currentPage >= totalPages}
-                    className={
-                      currentPage >= totalPages
-                        ? "pointer-events-none opacity-50"
-                        : ""
-                    }
-                  />
-                </PaginationItem>
-
-                <PaginationItem>
-                  <PaginationLast
-                    href={buildPageUrl(billId, totalPages, sort, filters)}
-                    aria-disabled={currentPage >= totalPages}
-                    className={
-                      currentPage >= totalPages
-                        ? "pointer-events-none opacity-50"
-                        : ""
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
         </>
+      )}
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <Pagination className="mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationFirst
+                href={buildPageUrl(billId, 1, sort, filters)}
+                aria-disabled={currentPage <= 1}
+                className={
+                  currentPage <= 1 ? "pointer-events-none opacity-50" : ""
+                }
+              />
+            </PaginationItem>
+
+            <PaginationItem>
+              <PaginationPrevious
+                href={buildPageUrl(
+                  billId,
+                  currentPage > 1 ? currentPage - 1 : 1,
+                  sort,
+                  filters
+                )}
+                aria-disabled={currentPage <= 1}
+                className={
+                  currentPage <= 1 ? "pointer-events-none opacity-50" : ""
+                }
+              />
+            </PaginationItem>
+
+            {generatePageNumbers(totalPages, currentPage).map((page) =>
+              typeof page === "string" ? (
+                <PaginationItem key={page}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    href={buildPageUrl(billId, page, sort, filters)}
+                    isActive={page === currentPage}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
+
+            <PaginationItem>
+              <PaginationNext
+                href={buildPageUrl(
+                  billId,
+                  currentPage < totalPages ? currentPage + 1 : totalPages,
+                  sort,
+                  filters
+                )}
+                aria-disabled={currentPage >= totalPages}
+                className={
+                  currentPage >= totalPages
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
+              />
+            </PaginationItem>
+
+            <PaginationItem>
+              <PaginationLast
+                href={buildPageUrl(billId, totalPages, sort, filters)}
+                aria-disabled={currentPage >= totalPages}
+                className={
+                  currentPage >= totalPages
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   );

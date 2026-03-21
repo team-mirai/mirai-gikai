@@ -73,7 +73,7 @@ export function SessionFilterBar({ currentFilters }: SessionFilterBarProps) {
         onChange={(v) => handleFilterChange("status", v)}
       />
       <FilterSelect
-        label="公開状態"
+        label="管理者公開"
         value={currentFilters.visibility}
         options={VISIBILITY_OPTIONS}
         onChange={(v) => handleFilterChange("visibility", v)}
@@ -111,7 +111,7 @@ function FilterSelect({
         {label}
       </span>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-40 h-9">
+        <SelectTrigger aria-label={label} className="w-40 h-9">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
