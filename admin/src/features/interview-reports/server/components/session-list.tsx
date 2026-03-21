@@ -110,7 +110,8 @@ export function SessionList({
               <TableHead className="w-24 text-center">ユーザー公開</TableHead>
               <TableHead className="w-24 text-center">管理者公開</TableHead>
               <TableHead className="w-28">スタンス</TableHead>
-              <TableHead className="w-28">役割</TableHead>
+              <TableHead className="w-40">役割名</TableHead>
+              <TableHead className="w-64">要約</TableHead>
               <TableHead className="w-20 text-right">スコア</TableHead>
               <TableHead className="w-24 text-center">満足度</TableHead>
               <SortableTableHead
@@ -185,7 +186,12 @@ export function SessionList({
                     />
                   </TableCell>
                   <TableCell className="text-gray-600 text-sm">
-                    {session.interview_report?.role || "-"}
+                    {session.interview_report?.role_title || "-"}
+                  </TableCell>
+                  <TableCell className="text-gray-600 text-sm">
+                    <span className="line-clamp-2">
+                      {session.interview_report?.summary || "-"}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     {session.interview_report?.total_score != null
