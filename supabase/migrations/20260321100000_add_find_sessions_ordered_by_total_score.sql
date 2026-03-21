@@ -17,7 +17,8 @@ BEGIN
   ORDER BY
     CASE WHEN p_ascending THEN r.total_score END ASC NULLS LAST,
     CASE WHEN NOT p_ascending THEN r.total_score END DESC NULLS LAST,
-    s.started_at DESC
+    s.started_at DESC,
+    s.id DESC
   OFFSET p_offset
   LIMIT p_limit;
 END;
