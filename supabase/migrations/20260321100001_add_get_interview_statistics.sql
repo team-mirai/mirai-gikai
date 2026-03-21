@@ -64,8 +64,3 @@ BEGIN
   WHERE s.interview_config_id = p_config_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
-
-REVOKE EXECUTE ON FUNCTION public.get_interview_statistics(UUID) FROM public;
-REVOKE EXECUTE ON FUNCTION public.get_interview_statistics(UUID) FROM anon;
-REVOKE EXECUTE ON FUNCTION public.get_interview_statistics(UUID) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.get_interview_statistics(UUID) TO service_role;
