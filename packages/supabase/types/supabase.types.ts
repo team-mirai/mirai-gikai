@@ -878,11 +878,11 @@ export type Database = {
       get_interview_statistics: {
         Args: { p_config_id: string }
         Returns: {
-          avg_duration_seconds: number
           avg_message_count: number
           avg_rating: number
           avg_total_score: number
           completed_sessions: number
+          median_duration_seconds: number
           public_by_user_count: number
           role_daily_life_affected_count: number
           role_general_citizen_count: number

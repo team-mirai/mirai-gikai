@@ -1,8 +1,7 @@
-import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import {
   Pagination,
@@ -74,7 +73,6 @@ function buildPageUrl(
     params.set("sort", sort.field);
     params.set("order", sort.order);
   }
-  // フィルタパラメータ（デフォルト値以外のみ）
   if (filters.status !== DEFAULT_SESSION_FILTER.status) {
     params.set("status", filters.status);
   }
@@ -122,17 +120,14 @@ export function SessionList({
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-16">No.</TableHead>
                   <TableHead className="w-32">セッションID</TableHead>
                   <TableHead className="w-24">ステータス</TableHead>
-                  <TableHead className="w-20 text-center">レポート</TableHead>
                   <TableHead className="w-24 text-center">
                     ユーザー公開
                   </TableHead>
                   <TableHead className="w-24 text-center">管理者公開</TableHead>
                   <TableHead className="w-28">スタンス</TableHead>
                   <TableHead className="w-40">役割名</TableHead>
-                  <TableHead className="w-64">要約</TableHead>
                   <SortableTableHead
                     field="total_score"
                     currentField={sort.field}
@@ -159,32 +154,32 @@ export function SessionList({
                   >
                     メッセージ数
                   </SortableTableHead>
-                  <TableHead className="w-32">アクション</TableHead>
+                  <TableHead className="w-64">要約</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sessions.map((session, index) => {
+                {sessions.map((session) => {
                   const status = getSessionStatus(session);
                   const duration = formatDuration(
                     session.started_at,
                     session.completed_at
                   );
                   const hasReport = !!session.interview_report;
-                  const rowNumber = totalCount - startIndex - index;
 
                   return (
                     <TableRow key={session.id}>
-                      <TableCell className="font-medium text-blue-600">
-                        #{rowNumber}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-gray-600">
-                        {session.id.substring(0, 8)}...
+                      <TableCell className="font-mono text-sm">
+                        <Link
+                          href={
+                            routes.billReportDetail(billId, session.id) as Route
+                          }
+                          className="text-blue-600 hover:underline"
+                        >
+                          {session.id.substring(0, 8)}...
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <SessionStatusBadge status={status} />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <BooleanIcon value={hasReport} />
                       </TableCell>
                       <TableCell className="text-center">
                         {hasReport ? (
@@ -225,11 +220,6 @@ export function SessionList({
                       <TableCell className="text-gray-600 text-sm">
                         {session.interview_report?.role_title || "-"}
                       </TableCell>
-                      <TableCell className="text-gray-600 text-sm">
-                        <span className="line-clamp-2">
-                          {session.interview_report?.summary || "-"}
-                        </span>
-                      </TableCell>
                       <TableCell className="text-right font-medium">
                         {session.interview_report?.total_score != null
                           ? session.interview_report.total_score
@@ -264,21 +254,10 @@ export function SessionList({
                       <TableCell className="text-right font-medium">
                         {session.message_count}
                       </TableCell>
-                      <TableCell>
-                        <Link
-                          href={
-                            routes.billReportDetail(billId, session.id) as Route
-                          }
-                        >
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="text-blue-600"
-                          >
-                            詳細を見る
-                            <ExternalLink className="h-3 w-3 ml-1" />
-                          </Button>
-                        </Link>
+                      <TableCell className="text-gray-600 text-sm">
+                        <span className="line-clamp-2">
+                          {session.interview_report?.summary || "-"}
+                        </span>
                       </TableCell>
                     </TableRow>
                   );
@@ -316,7 +295,6 @@ export function SessionList({
                   />
                 </PaginationItem>
 
-                {/* ページ番号表示（最大5ページ表示、省略記号付き） */}
                 {generatePageNumbers(totalPages, currentPage).map((page) =>
                   typeof page === "string" ? (
                     <PaginationItem key={page}>
