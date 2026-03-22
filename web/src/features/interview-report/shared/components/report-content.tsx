@@ -23,6 +23,8 @@ interface ReportContentProps {
   characterCount: number;
   roleDescription: string | null;
   opinions: Opinion[];
+  /** 遷移元のコンテキスト。"complete" の場合、会話ログへのリンクに ?from=complete を付与 */
+  from?: "complete";
   /** 意見リストの後に差し込む追加セクション（有識者登録バナーなど） */
   children?: ReactNode;
 }
@@ -39,6 +41,7 @@ export function ReportContent({
   characterCount,
   roleDescription,
   opinions,
+  from,
   children,
 }: ReportContentProps) {
   return (
@@ -71,7 +74,7 @@ export function ReportContent({
         title="💬主な意見"
         footer={
           <Link
-            href={getInterviewChatLogLink(reportId) as Route}
+            href={getInterviewChatLogLink(reportId, from) as Route}
             className="flex items-center justify-center gap-2.5 px-6 py-3 border border-gray-800 rounded-full"
           >
             <MessageSquareMore className="w-6 h-6 text-gray-800" />

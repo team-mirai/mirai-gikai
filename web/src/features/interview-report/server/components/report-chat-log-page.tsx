@@ -25,9 +25,13 @@ import { getReportWithMessages } from "../loaders/get-report-with-messages";
 
 interface ReportChatLogPageProps {
   reportId: string;
+  from?: "complete";
 }
 
-export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
+export async function ReportChatLogPage({
+  reportId,
+  from,
+}: ReportChatLogPageProps) {
   const data = await getReportWithMessages(reportId);
 
   if (!data) {
@@ -43,10 +47,10 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
     getOrigin(),
   ]);
   const shareUrl = `${origin}${routes.publicReport(reportId)}`;
-  const isFullyPublic = report.is_public_by_user && report.is_public_by_admin;
-  const reportHref = isFullyPublic
-    ? getPublicReportLink(reportId)
-    : getInterviewReportCompleteLink(reportId);
+  const reportHref =
+    from === "complete"
+      ? getInterviewReportCompleteLink(reportId)
+      : getPublicReportLink(reportId);
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
