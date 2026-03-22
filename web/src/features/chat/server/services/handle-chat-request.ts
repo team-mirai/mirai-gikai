@@ -16,7 +16,6 @@ import {
 } from "@/features/chat/shared/constants";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
-import { findLatestNonArchivedSession } from "@/features/interview-session/server/repositories/interview-session-repository";
 import { env } from "@/lib/env";
 import {
   type CompiledPrompt,
@@ -103,17 +102,16 @@ export async function handleChatRequest({
   // Determine if interview suggestion should be enabled
   const shouldSuggestInterview = await determineShouldSuggestInterview(
     context,
-    messages,
-    userId
+    messages
   );
 
   // Build system prompt with interview suggestion instructions
-  const isBillPage =
-    context.pageContext?.type === "bill" || !!context.billContext;
+  const pageType =
+    context.pageContext?.type ?? (context.billContext ? "bill" : undefined);
   const systemPrompt = buildSystemPromptWithInterviewInstructions(
     promptResult.content,
     shouldSuggestInterview,
-    isBillPage
+    pageType
   );
 
   // Build tools configuration
@@ -272,12 +270,18 @@ function extractGatewayCost(event: {
   return Number.isFinite(numericCost) ? numericCost : undefined;
 }
 
-const INTERVIEW_AWARENESS_PROMPT = `
+const INTERVIEW_AWARENESS_BASE = `
 
 ## AIインタビュー機能について
 みらい議会には「AIインタビュー」機能があります。これは法案ごとに提供される機能で、ユーザーがAIインタビュアーと対話形式で法案に対する意見や知見を共有できる仕組みです。インタビュー結果は分析・レポート化され、政策議論に活用されます。
+`;
 
+const INTERVIEW_AWARENESS_PROMPT_BILL = `${INTERVIEW_AWARENESS_BASE}
 この法案のインタビュー機能が現在利用可能かどうかは状況によって異なります。インタビューについて質問された場合は、この機能の存在を説明した上で、法案詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
+`;
+
+const INTERVIEW_AWARENESS_PROMPT_HOME = `${INTERVIEW_AWARENESS_BASE}
+インタビューについて質問された場合は、この機能の存在を説明した上で、興味のある法案の詳細ページからAIインタビューに参加できることを案内してください。
 `;
 
 const INTERVIEW_SUGGESTION_PROMPT = `
@@ -305,12 +309,12 @@ const INTERVIEW_SUGGESTION_PROMPT = `
  * - 法案ページである
  * - サーバー側でインタビュー設定が公開状態であることを確認
  * - 会話中にまだsuggest_interviewツールが呼び出されていない
- * - ユーザーがこの法案のインタビューを受けたことがない
+ *
+ * NOTE: インタビュー回答済みでも導線を表示する（再回答の促進のため）
  */
 async function determineShouldSuggestInterview(
   context: ChatMessageMetadata,
-  messages: UIMessage<ChatMessageMetadata>[],
-  userId: string
+  messages: UIMessage<ChatMessageMetadata>[]
 ): Promise<boolean> {
   if (!context.billContext) {
     return false;
@@ -324,15 +328,7 @@ async function determineShouldSuggestInterview(
   const { data: interviewConfig } = await findPublicInterviewConfigByBillId(
     context.billContext.id
   );
-  if (!interviewConfig) {
-    return false;
-  }
-
-  const hasSession = await hasExistingInterviewSession(
-    interviewConfig.id,
-    userId
-  );
-  return !hasSession;
+  return !!interviewConfig;
 }
 
 /**
@@ -352,37 +348,20 @@ function hasExistingSuggestInterview(
 }
 
 /**
- * ユーザーがこのインタビュー設定に対するセッションを持っているか判定
- * fail-closed: エラー時はtrue（セッションあり）を返し、誤ったバナー表示を防ぐ
- */
-async function hasExistingInterviewSession(
-  interviewConfigId: string,
-  userId: string
-): Promise<boolean> {
-  try {
-    const session = await findLatestNonArchivedSession(
-      interviewConfigId,
-      userId
-    );
-    return session !== null;
-  } catch (error) {
-    console.error("Failed to check existing interview session:", error);
-    return true;
-  }
-}
-
-/**
  * インタビュー提案の指示をシステムプロンプトに追加
  */
 function buildSystemPromptWithInterviewInstructions(
   basePrompt: string,
   shouldSuggestInterview: boolean,
-  isBillPage: boolean
+  pageType: "home" | "bill" | undefined
 ): string {
-  if (!isBillPage) {
+  if (pageType === "home") {
+    return basePrompt + INTERVIEW_AWARENESS_PROMPT_HOME;
+  }
+  if (pageType !== "bill") {
     return basePrompt;
   }
-  let prompt = basePrompt + INTERVIEW_AWARENESS_PROMPT;
+  let prompt = basePrompt + INTERVIEW_AWARENESS_PROMPT_BILL;
   if (shouldSuggestInterview) {
     prompt += INTERVIEW_SUGGESTION_PROMPT;
   }
