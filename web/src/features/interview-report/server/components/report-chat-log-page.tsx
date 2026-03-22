@@ -1,14 +1,18 @@
 import "server-only";
 
-import type { Route } from "next";
 import { Bot, UserRound } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
+import {
+  getBillDetailLink,
+  getInterviewReportCompleteLink,
+  getPublicReportLink,
+} from "@/features/interview-config/shared/utils/interview-links";
 import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
 import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
-import { getOrigin } from "@/lib/utils/url";
 import { routes } from "@/lib/routes";
+import { getOrigin } from "@/lib/utils/url";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
 import { BackToReportButton } from "../../shared/components/back-to-report-button";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
@@ -39,6 +43,10 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
     getOrigin(),
   ]);
   const shareUrl = `${origin}${routes.publicReport(reportId)}`;
+  const isFullyPublic = report.is_public_by_user && report.is_public_by_admin;
+  const reportHref = isFullyPublic
+    ? getPublicReportLink(reportId)
+    : getInterviewReportCompleteLink(reportId);
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -97,14 +105,14 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
 
           {/* Back to Report / Bill Buttons */}
           <div className="flex flex-col gap-3">
-            <BackToReportButton reportId={reportId} />
+            <BackToReportButton href={reportHref} />
             <BackToBillButton billId={report.bill_id} />
           </div>
 
           {/* Breadcrumb Navigation */}
           <ReportBreadcrumb
             billId={report.bill_id}
-            reportId={reportId}
+            reportHref={reportHref}
             additionalItems={[{ label: "すべての会話ログ" }]}
           />
         </div>
