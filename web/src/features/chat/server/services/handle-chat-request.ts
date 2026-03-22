@@ -281,7 +281,7 @@ const INTERVIEW_AWARENESS_PROMPT_BILL = `${INTERVIEW_AWARENESS_BASE}
 `;
 
 const INTERVIEW_AWARENESS_PROMPT_HOME = `${INTERVIEW_AWARENESS_BASE}
-インタビューについて質問された場合は、この機能の存在を説明した上で、興味のある法案の詳細ページからAIインタビューに参加できることを案内してください。
+インタビューについて質問された場合は、この機能の存在を説明した上で、利用可否は法案ごとに異なるため、興味のある法案の詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
 `;
 
 const INTERVIEW_SUGGESTION_PROMPT = `
