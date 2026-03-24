@@ -128,7 +128,7 @@ export async function ReportChatLogPage({
         initialData={reactionData}
         billName={billName}
         shareUrl={shareUrl}
-        thumbnailUrl={bill.thumbnail_url}
+        summary={report.summary}
         shareMessage={report.summary}
         showShare={report.is_public_by_user && report.is_public_by_admin}
       />

@@ -90,7 +90,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
         initialData={reactionData}
         billName={billName}
         shareUrl={shareUrl}
-        thumbnailUrl={data.bill.thumbnail_url}
+        summary={data.summary}
         shareMessage={data.summary}
       />
     </div>
