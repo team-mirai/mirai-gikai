@@ -64,7 +64,10 @@ export async function completeInterviewSession({
     moderationStatus = moderation.status;
   } catch (error) {
     // モデレーション失敗はレポート保存をブロックしない
-    console.error("Moderation evaluation failed:", error);
+    console.error(
+      `Moderation evaluation failed for session ${sessionId}:`,
+      error
+    );
   }
 
   // レポートを保存（UPSERT）
