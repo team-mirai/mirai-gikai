@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import { PastReportsSection } from "@/features/interview-report/client/components/past-reports-section";
+import type { UserReportsResult } from "@/features/interview-report/server/loaders/get-user-reports-by-interview-config";
 import { InterviewStatusBadge } from "@/features/interview-session/client/components/interview-status-badge";
 import type { LatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import type { InterviewConfig } from "../../server/loaders/get-interview-config";
@@ -19,6 +21,7 @@ interface InterviewLPPageProps {
   interviewConfig: InterviewConfig;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  userReports?: UserReportsResult | null;
 }
 
 const FEATURES: {
@@ -303,6 +306,7 @@ export function InterviewLPPage({
   interviewConfig,
   sessionInfo,
   previewToken,
+  userReports,
 }: InterviewLPPageProps) {
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
@@ -314,6 +318,12 @@ export function InterviewLPPage({
           sessionInfo={sessionInfo}
           previewToken={previewToken}
         />
+        {userReports && userReports.reports.length > 0 && (
+          <PastReportsSection
+            reports={userReports.reports}
+            reactionsRecord={userReports.reactionsRecord}
+          />
+        )}
         <_InterviewOverviewSection
           billId={bill.id}
           billName={bill.bill_content?.title ?? bill.name}

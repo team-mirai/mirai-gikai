@@ -25,12 +25,14 @@ interface ReportCardProps {
   report: ReportCardData;
   summaryMaxLength?: number;
   children?: React.ReactNode;
+  href?: string;
 }
 
 export function ReportCard({
   report,
   summaryMaxLength = 80,
   children,
+  href,
 }: ReportCardProps) {
   const stanceLabel = report.stance
     ? stanceLabels[report.stance] || report.stance
@@ -53,7 +55,7 @@ export function ReportCard({
   return (
     <article className="relative bg-white rounded-lg px-4 py-[18px] hover:bg-gray-50 transition-colors">
       <Link
-        href={getPublicReportLink(report.id) as Route}
+        href={(href ?? getPublicReportLink(report.id)) as Route}
         className="absolute inset-0 rounded-lg"
         aria-label={
           [stanceLabel, roleLabel, truncatedSummary]

@@ -154,6 +154,30 @@ export async function findPublicReportWithSessionById(reportId: string) {
 }
 
 /**
+ * ユーザーの過去のインタビューレポートを取得（指定interview_config配下、新しい順）
+ */
+export async function findUserReportsByInterviewConfigId(
+  interviewConfigId: string,
+  userId: string
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_report")
+    .select(
+      "id, stance, role, role_title, summary, created_at, interview_sessions!inner(interview_config_id, user_id)"
+    )
+    .eq("interview_sessions.interview_config_id", interviewConfigId)
+    .eq("interview_sessions.user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch user interview reports: ${error.message}`);
+  }
+
+  return data;
+}
+
+/**
  * レポートの公開設定を更新
  */
 export async function updateReportPublicSetting(
