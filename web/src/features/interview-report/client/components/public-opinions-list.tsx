@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
@@ -15,6 +15,7 @@ import {
   stanceFilterLabels,
   stanceFilterOrder,
 } from "../../shared/utils/stance-filter";
+import { useInfiniteScroll } from "../hooks/use-infinite-scroll";
 
 function _FilterChip({
   label,
@@ -49,6 +50,10 @@ type ReactionsRecord = Record<
   { counts: { helpful: number; hmm: number }; userReaction: string | null }
 >;
 
+type ReportWithReactions = PublicInterviewReport & {
+  _reactions: ReactionsRecord;
+};
+
 interface PublicOpinionsListProps {
   billId: string;
   initialReports: PublicInterviewReport[];
@@ -65,80 +70,35 @@ export function PublicOpinionsList({
   initialHasMore,
 }: PublicOpinionsListProps) {
   useAnonymousSupabaseUser();
-  const [activeFilter, setActiveFilter] = useState<StanceFilter>("all");
-  const [reports, setReports] =
-    useState<PublicInterviewReport[]>(initialReports);
   const [reactionsRecord, setReactionsRecord] = useState<ReactionsRecord>(
     initialReactionsRecord
   );
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [isPending, startTransition] = useTransition();
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef(initialReports.length);
-  // stale response を防ぐためのバージョン管理
-  const filterVersionRef = useRef(0);
-  const isPendingRef = useRef(false);
-  isPendingRef.current = isPending;
 
-  const handleFilterChange = useCallback(
-    (filter: StanceFilter) => {
-      if (filter === activeFilter) return;
-      setActiveFilter(filter);
-      offsetRef.current = 0;
-      const version = ++filterVersionRef.current;
-
-      startTransition(async () => {
-        const result = await fetchMorePublicReports(billId, 0, filter);
-        // stale response を無視
-        if (filterVersionRef.current !== version) return;
-        setReports(result.reports);
-        setReactionsRecord(result.reactionsRecord);
-        setHasMore(result.hasMore);
-        offsetRef.current = result.reports.length;
-      });
-    },
-    [activeFilter, billId]
-  );
-
-  const loadMore = useCallback(() => {
-    if (isPendingRef.current || !hasMore) return;
-    const version = filterVersionRef.current;
-
-    startTransition(async () => {
-      const result = await fetchMorePublicReports(
-        billId,
-        offsetRef.current,
-        activeFilter
-      );
-      // stale response を無視
-      if (filterVersionRef.current !== version) return;
-      setReports((prev) => [...prev, ...result.reports]);
+  const fetchMore = useCallback(
+    async (offset: number, filter: StanceFilter) => {
+      const result = await fetchMorePublicReports(billId, offset, filter);
       setReactionsRecord((prev) => ({
         ...prev,
         ...result.reactionsRecord,
       }));
-      setHasMore(result.hasMore);
-      offsetRef.current += result.reports.length;
-    });
-  }, [hasMore, billId, activeFilter]);
+      return { items: result.reports, hasMore: result.hasMore };
+    },
+    [billId]
+  );
 
-  // IntersectionObserverでスクロールを検知して自動読み込み
-  useEffect(() => {
-    const el = loadMoreRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
-        }
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [loadMore]);
+  const {
+    items: reports,
+    hasMore,
+    isPending,
+    activeFilter,
+    sentinelRef,
+    changeFilter,
+  } = useInfiniteScroll<PublicInterviewReport, StanceFilter>({
+    initialItems: initialReports,
+    initialHasMore,
+    initialFilter: "all",
+    fetchMore,
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -160,7 +120,7 @@ export function PublicOpinionsList({
             label={stanceFilterLabels[filter]}
             count={stanceCounts[filter]}
             isActive={activeFilter === filter}
-            onClick={() => handleFilterChange(filter)}
+            onClick={() => changeFilter(filter)}
           />
         ))}
       </div>
@@ -190,7 +150,7 @@ export function PublicOpinionsList({
 
         {/* ローディング表示 & IntersectionObserver用sentinel */}
         {hasMore && (
-          <div ref={loadMoreRef} className="flex justify-center py-4">
+          <div ref={sentinelRef} className="flex justify-center py-4">
             {isPending && (
               <Loader2 className="h-6 w-6 animate-spin text-mirai-text-muted" />
             )}
