@@ -841,6 +841,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_public_reports_by_stance: {
+        Args: { p_bill_id: string }
+        Returns: {
+          count: number
+          stance: string
+        }[]
+      }
       count_reactions_by_report_ids: {
         Args: { report_ids: string[] }
         Returns: {
@@ -850,19 +857,20 @@ export type Database = {
         }[]
       }
       find_public_reports_by_bill_id_ordered_by_reactions: {
-        Args: { p_bill_id: string; p_limit?: number }
+        Args: {
+          p_bill_id: string
+          p_limit?: number
+          p_offset?: number
+          p_stance?: string
+        }
         Returns: {
-          id: string
-          stance:
-            | Database["public"]["Enums"]["stance_type_enum"]
-            | null
-          role:
-            | Database["public"]["Enums"]["interview_report_role_enum"]
-            | null
-          role_title: string | null
-          summary: string | null
-          total_content_richness: number | null
           created_at: string
+          id: string
+          role: Database["public"]["Enums"]["interview_report_role_enum"]
+          role_title: string
+          stance: Database["public"]["Enums"]["stance_type_enum"]
+          summary: string
+          total_content_richness: number
         }[]
       }
       find_sessions_ordered_by_helpful_count: {

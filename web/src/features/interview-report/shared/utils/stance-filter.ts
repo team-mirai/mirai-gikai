@@ -2,6 +2,8 @@ import type { ReportCardData } from "../components/report-card";
 
 export type StanceFilter = "all" | "for" | "against" | "neutral";
 
+export type StanceCounts = Record<StanceFilter, number>;
+
 export const stanceFilterLabels: Record<StanceFilter, string> = {
   all: "ALL",
   for: "期待",
