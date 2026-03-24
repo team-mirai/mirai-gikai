@@ -20,6 +20,7 @@ const STATUS_OPTIONS = [
   { value: "all", label: "すべて" },
   { value: "completed", label: "完了" },
   { value: "in_progress", label: "進行中" },
+  { value: "archived", label: "アーカイブ" },
 ] as const;
 
 const VISIBILITY_OPTIONS = [

@@ -28,7 +28,11 @@ export type InterviewSessionDetail = InterviewSession & {
 };
 
 // フィルタ関連の型定義
-export type SessionStatusFilter = "all" | "completed" | "in_progress";
+export type SessionStatusFilter =
+  | "all"
+  | "completed"
+  | "in_progress"
+  | "archived";
 export type VisibilityFilter = "all" | "public" | "private";
 export type StanceFilter = "all" | "for" | "against" | "neutral";
 export type RoleFilter =
@@ -49,6 +53,7 @@ export const SESSION_STATUS_FILTER_VALUES: readonly SessionStatusFilter[] = [
   "all",
   "completed",
   "in_progress",
+  "archived",
 ] as const;
 
 export const VISIBILITY_FILTER_VALUES: readonly VisibilityFilter[] = [

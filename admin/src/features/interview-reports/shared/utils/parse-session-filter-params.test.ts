@@ -52,6 +52,16 @@ describe("parseSessionFilterParams", () => {
     });
   });
 
+  it("archivedステータスを受け付ける", () => {
+    const result = parseSessionFilterParams("archived");
+    expect(result).toEqual({
+      status: "archived",
+      visibility: "all",
+      stance: "all",
+      role: "all",
+    });
+  });
+
   it("一部のみ指定した場合、残りはデフォルト", () => {
     const result = parseSessionFilterParams("all", undefined, "against");
     expect(result).toEqual({

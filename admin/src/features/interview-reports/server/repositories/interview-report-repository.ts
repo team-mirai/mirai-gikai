@@ -67,7 +67,9 @@ export async function findInterviewSessionsWithReport(
   if (filters.status === "completed") {
     query = query.not("completed_at", "is", null);
   } else if (filters.status === "in_progress") {
-    query = query.is("completed_at", null);
+    query = query.is("completed_at", null).is("archived_at", null);
+  } else if (filters.status === "archived") {
+    query = query.is("completed_at", null).not("archived_at", "is", null);
   }
 
   // レポートレベルフィルタ（inner join使用時のみ有効）
@@ -168,7 +170,13 @@ export async function findFilteredSessionIds(
         null
       );
     } else if (filters.status === "in_progress") {
-      reportQuery = reportQuery.is("interview_sessions.completed_at", null);
+      reportQuery = reportQuery
+        .is("interview_sessions.completed_at", null)
+        .is("interview_sessions.archived_at", null);
+    } else if (filters.status === "archived") {
+      reportQuery = reportQuery
+        .is("interview_sessions.completed_at", null)
+        .not("interview_sessions.archived_at", "is", null);
     }
 
     if (filters.visibility === "public") {
@@ -203,7 +211,9 @@ export async function findFilteredSessionIds(
   if (filters.status === "completed") {
     query = query.not("completed_at", "is", null);
   } else if (filters.status === "in_progress") {
-    query = query.is("completed_at", null);
+    query = query.is("completed_at", null).is("archived_at", null);
+  } else if (filters.status === "archived") {
+    query = query.is("completed_at", null).not("archived_at", "is", null);
   }
 
   const { data, error } = await query;
@@ -325,7 +335,9 @@ export async function countInterviewSessionsByConfigId(
   if (filters.status === "completed") {
     query = query.not("completed_at", "is", null);
   } else if (filters.status === "in_progress") {
-    query = query.is("completed_at", null);
+    query = query.is("completed_at", null).is("archived_at", null);
+  } else if (filters.status === "archived") {
+    query = query.is("completed_at", null).not("archived_at", "is", null);
   }
 
   // レポートレベルフィルタ
