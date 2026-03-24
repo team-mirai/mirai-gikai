@@ -6,12 +6,7 @@ const moderationScoreValueSchema = z
   .transform((v) => Math.round(v))
   .pipe(z.number().int().min(0).max(100));
 
-/**
- * モデレーション結果スキーマ（generateObject用）
- *
- * NOTE: web/src/features/interview-session/shared/schemas.ts の
- * moderationResultSchema と同一内容。変更時は両方を更新すること。
- */
+// モデレーション結果スキーマ（generateObject用）
 export const moderationResultSchema = z.object({
   score: moderationScoreValueSchema.describe(
     "モデレーションスコア（0-100の整数）: 0が最も適切、100が最も不適切"

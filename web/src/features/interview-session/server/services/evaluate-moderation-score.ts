@@ -2,12 +2,12 @@ import "server-only";
 
 import { generateObject, type LanguageModel } from "ai";
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
-import { moderationResultSchema } from "../../shared/schemas";
-import { buildModerationPrompt } from "../../shared/utils/build-moderation-prompt";
+import { moderationResultSchema } from "@mirai-gikai/shared/moderation/schemas";
+import { buildModerationPrompt } from "@mirai-gikai/shared/moderation/build-prompt";
 import {
   determineModerationStatus,
   type ModerationStatus,
-} from "../../shared/utils/moderation";
+} from "@mirai-gikai/shared/moderation/status";
 
 /** テスト時にモック注入するための外部依存 */
 export type ModerationDeps = {
