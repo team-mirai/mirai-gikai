@@ -35,7 +35,7 @@ BEGIN
   WHERE ir.is_public_by_admin = TRUE
     AND ir.is_public_by_user = TRUE
     AND c.bill_id = p_bill_id
-  ORDER BY (COALESCE(rc.helpful_count, 0) * 5 + COALESCE(ir.total_content_richness, 0)) DESC, ir.created_at DESC
+  ORDER BY (COALESCE(rc.helpful_count, 0) * 5 + COALESCE(ir.total_content_richness, 0)) DESC, ir.created_at DESC, ir.id DESC
   LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql STABLE;
