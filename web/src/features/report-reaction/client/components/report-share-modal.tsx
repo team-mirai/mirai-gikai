@@ -16,8 +16,8 @@ interface ReportShareModalProps {
   onClose: () => void;
   billName: string;
   shareUrl: string;
-  /** OGPプレビューに表示するレポートサマリー */
-  summary?: string | null;
+  /** OGP画像のURL */
+  ogImageUrl: string;
   /** シェア時のメッセージ（レポートのsummary等） */
   shareMessage?: string | null;
 }
@@ -27,7 +27,7 @@ export function ReportShareModal({
   onClose,
   billName,
   shareUrl,
-  summary,
+  ogImageUrl,
   shareMessage: shareMessageProp,
 }: ReportShareModalProps) {
   if (!isOpen) return null;
@@ -84,8 +84,8 @@ export function ReportShareModal({
           {/* タイトル */}
           <h2 className="text-2xl font-bold text-gray-800">意見をシェアする</h2>
 
-          {/* OGPプレビューカード */}
-          <OgpPreviewCard summary={summary ?? null} billName={billName} />
+          {/* OGPプレビュー画像 */}
+          <OgpPreviewCard ogImageUrl={ogImageUrl} billName={billName} />
 
           {/* シェアセクション */}
           <div className="flex w-full flex-col items-center gap-4">

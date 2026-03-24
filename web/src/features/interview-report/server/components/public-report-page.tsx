@@ -37,6 +37,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
     getOrigin(),
   ]);
   const shareUrl = `${origin}${routes.publicReport(reportId)}`;
+  const ogImageUrl = `${origin}/api/og/report?id=${reportId}`;
 
   return (
     <div className="min-h-dvh bg-mirai-surface pb-20">
@@ -90,7 +91,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
         initialData={reactionData}
         billName={billName}
         shareUrl={shareUrl}
-        summary={data.summary}
+        ogImageUrl={ogImageUrl}
         shareMessage={data.summary}
       />
     </div>

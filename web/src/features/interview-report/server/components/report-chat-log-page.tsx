@@ -128,7 +128,7 @@ export async function ReportChatLogPage({
         initialData={reactionData}
         billName={billName}
         shareUrl={shareUrl}
-        summary={report.summary}
+        ogImageUrl={`${origin}/api/og/report?id=${reportId}`}
         shareMessage={report.summary}
         showShare={report.is_public_by_user && report.is_public_by_admin}
       />

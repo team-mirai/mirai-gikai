@@ -1,8 +1,6 @@
 import { ImageResponse } from "next/og";
-import {
-  findPublicReportWithSessionById,
-  findBillWithContentById,
-} from "@/features/interview-report/server/repositories/interview-report-repository";
+import { getReportOgData } from "@/features/interview-report/server/loaders/get-report-og-data";
+import { truncateText } from "@/features/interview-report/shared/utils/truncate-text";
 
 /**
  * OGP画像のテキスト制限
@@ -40,43 +38,16 @@ export async function GET(request: Request) {
     return new Response("Missing id parameter", { status: 400 });
   }
 
-  let summary = "";
-  let billName = "";
-
-  try {
-    const report = await findPublicReportWithSessionById(reportId);
-    const session = report.interview_sessions as {
-      started_at: string;
-      completed_at: string | null;
-      interview_configs: { bill_id: string } | null;
-    } | null;
-
-    if (session?.interview_configs) {
-      const bill = await findBillWithContentById(
-        session.interview_configs.bill_id
-      );
-      const billContent = bill.bill_contents
-        ? Array.isArray(bill.bill_contents)
-          ? bill.bill_contents[0]
-          : bill.bill_contents
-        : null;
-      billName = billContent?.title || bill.name;
-    }
-
-    summary = report.summary || "";
-  } catch {
+  const data = await getReportOgData(reportId);
+  if (!data) {
     return new Response("Report not found", { status: 404 });
   }
 
-  const truncatedSummary =
-    summary.length > OG_SUMMARY_MAX_LENGTH
-      ? `${summary.slice(0, OG_SUMMARY_MAX_LENGTH)}...`
-      : summary;
-
-  const truncatedBillName =
-    billName.length > OG_BILL_NAME_MAX_LENGTH
-      ? `${billName.slice(0, OG_BILL_NAME_MAX_LENGTH)}...`
-      : billName;
+  const truncatedSummary = truncateText(data.summary, OG_SUMMARY_MAX_LENGTH);
+  const truncatedBillName = truncateText(
+    data.billName,
+    OG_BILL_NAME_MAX_LENGTH
+  );
 
   const fontData = await loadFont();
   const fonts: {
