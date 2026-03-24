@@ -12,7 +12,6 @@ Linear の issue ステータスを作業フェーズに応じて自動更新す
 ```
 /linear start <issue-id>   # 着手開始 → In Progress に移動
 /linear review <issue-id>  # PR作成済み → In Review に移動
-/linear done <issue-id>    # 完了 → Done に移動
 ```
 
 - `<issue-id>` は Linear の識別子（例: `MIR-123`）
@@ -31,12 +30,6 @@ Linear の issue ステータスを作業フェーズに応じて自動更新す
 2. `mcp__linear__update_issue` で state を `In Review` に更新
 3. issue のタイトルと更新結果をユーザーに報告
 
-### `/linear done <issue-id>`
-
-1. `mcp__linear__get_issue` で issue の現在のステータスを確認
-2. `mcp__linear__update_issue` で state を `Done` に更新
-3. issue のタイトルと更新結果をユーザーに報告
-
 ## 既存ワークフローとの連携
 
 ### 作業着手時
@@ -49,8 +42,8 @@ Linear の issue ステータスを作業フェーズに応じて自動更新す
 mcp__linear__update_issue で links パラメータに PR の URL を追加
 ```
 
-### 完了時
-PR がマージされた後に `/linear done MIR-123` を実行する。
+### 完了時（自動）
+PRマージ時は Linear 側の設定により自動で QA ステータスに遷移するため、手動操作は不要。
 
 ## MCP ツール参照
 
