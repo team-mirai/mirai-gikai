@@ -12,6 +12,21 @@ const OG_BILL_NAME_MAX_LENGTH = 40;
 
 const GOOGLE_FONTS_URL =
   "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap";
+const FONT_FETCH_TIMEOUT_MS = 3000;
+
+/** タイムアウト付きfetch */
+async function fetchWithTimeout(
+  url: string,
+  timeoutMs = FONT_FETCH_TIMEOUT_MS
+) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 /** フォントデータをモジュールレベルでキャッシュ */
 let cachedFontData: ArrayBuffer | null = null;
@@ -20,10 +35,14 @@ async function loadFont(): Promise<ArrayBuffer | null> {
   if (cachedFontData) return cachedFontData;
 
   try {
-    const css = await fetch(GOOGLE_FONTS_URL).then((res) => res.text());
+    const css = await fetchWithTimeout(GOOGLE_FONTS_URL).then((res) =>
+      res.text()
+    );
     const fontUrl = css.match(/src: url\(([^)]+)\) format\('woff2'\)/)?.[1];
     if (!fontUrl) return null;
-    cachedFontData = await fetch(fontUrl).then((r) => r.arrayBuffer());
+    cachedFontData = await fetchWithTimeout(fontUrl).then((r) =>
+      r.arrayBuffer()
+    );
     return cachedFontData;
   } catch {
     return null;
@@ -38,7 +57,12 @@ export async function GET(request: Request) {
     return new Response("Missing id parameter", { status: 400 });
   }
 
-  const data = await getReportOgData(reportId);
+  let data: Awaited<ReturnType<typeof getReportOgData>>;
+  try {
+    data = await getReportOgData(reportId);
+  } catch {
+    return new Response("Internal server error", { status: 500 });
+  }
   if (!data) {
     return new Response("Report not found", { status: 404 });
   }
