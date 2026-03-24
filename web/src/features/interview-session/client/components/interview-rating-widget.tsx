@@ -33,19 +33,21 @@ export function InterviewRatingWidget({
   const [selectedTags, setSelectedTags] = useState<Set<FeedbackTag>>(new Set());
 
   const handleRate = useCallback(
-    (rating: number) => {
+    async (rating: number) => {
       if (selectedRating !== null) return;
       setSelectedRating(rating);
+
+      try {
+        await submitInterviewRating(sessionId, rating);
+      } catch {
+        // 評価の保存失敗はサイレントに無視（UXを妨げない）
+      }
 
       if (rating <= FEEDBACK_RATING_THRESHOLD) {
         setPhase("feedback");
       } else {
         setPhase("thankyou");
       }
-
-      submitInterviewRating(sessionId, rating).catch(() => {
-        // 評価の保存失敗はサイレントに無視（UXを妨げない）
-      });
     },
     [sessionId, selectedRating]
   );
@@ -97,16 +99,22 @@ export function InterviewRatingWidget({
             </p>
             <div className="flex justify-center gap-[15px]">
               {[1, 2, 3, 4, 5].map((star) => (
-                <Star
+                <Button
                   key={star}
-                  size={24}
+                  variant="ghost"
                   onClick={() => handleRate(star)}
-                  className={
-                    selectedRating !== null && star <= selectedRating
-                      ? "fill-mirai-star text-mirai-star"
-                      : "fill-white text-mirai-text-muted stroke-[0.5]"
-                  }
-                />
+                  className="h-auto p-0 hover:bg-transparent"
+                  aria-label={`${star}つ星`}
+                >
+                  <Star
+                    size={24}
+                    className={
+                      selectedRating !== null && star <= selectedRating
+                        ? "fill-mirai-star text-mirai-star"
+                        : "fill-white text-mirai-text-muted stroke-[0.5]"
+                    }
+                  />
+                </Button>
               ))}
             </div>
           </>

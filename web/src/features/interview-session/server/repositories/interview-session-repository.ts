@@ -284,7 +284,7 @@ export async function findSessionRatingById(
 // ========================================
 
 /**
- * 低評価フィードバックタグを保存（複数タグ一括）
+ * 低評価フィードバックタグを保存（複数タグ一括、冪等）
  */
 export async function insertInterviewRatingFeedbacks(
   sessionId: string,
@@ -293,14 +293,18 @@ export async function insertInterviewRatingFeedbacks(
   if (tags.length === 0) return;
 
   const supabase = createAdminClient();
-  const rows = tags.map((tag) => ({
+  const uniqueTags = [...new Set(tags)];
+  const rows = uniqueTags.map((tag) => ({
     interview_session_id: sessionId,
     tag: tag as Database["public"]["Enums"]["interview_feedback_tag_enum"],
   }));
 
   const { error } = await supabase
     .from("interview_rating_feedbacks")
-    .insert(rows);
+    .upsert(rows, {
+      onConflict: "interview_session_id,tag",
+      ignoreDuplicates: true,
+    });
 
   if (error) {
     throw new Error(

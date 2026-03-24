@@ -39,12 +39,12 @@ export async function submitInterviewFeedback(
     return { success: false, error: ownershipResult.error };
   }
 
-  const rating = await findSessionRatingById(sessionId);
-  if (rating === null || rating > FEEDBACK_RATING_THRESHOLD) {
-    return { success: false, error: "フィードバック対象外の評価です" };
-  }
-
   try {
+    const rating = await findSessionRatingById(sessionId);
+    if (rating === null || rating > FEEDBACK_RATING_THRESHOLD) {
+      return { success: false, error: "フィードバック対象外の評価です" };
+    }
+
     await insertInterviewRatingFeedbacks(sessionId, tags);
   } catch (error) {
     console.error("Failed to save interview feedback:", error);
