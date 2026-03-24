@@ -19,7 +19,7 @@ import {
   findInterviewSessionsWithReportByIds,
   findSessionIdsOrderedByHelpfulCount,
   findSessionIdsOrderedByMessageCount,
-  findSessionIdsOrderedByTotalScore,
+  findSessionIdsOrderedByTotalContentRichness,
 } from "../repositories/interview-report-repository";
 
 export const SESSIONS_PER_PAGE = 30;
@@ -42,12 +42,12 @@ export async function getInterviewSessions(
 
   // RPC経由ソート用のディスパッチテーブル
   const rpcSortFetchers = {
-    total_score: findSessionIdsOrderedByTotalScore,
+    total_content_richness: findSessionIdsOrderedByTotalContentRichness,
     helpful_count: findSessionIdsOrderedByHelpfulCount,
     message_count: findSessionIdsOrderedByMessageCount,
   } as const;
 
-  // message_count/total_score/helpful_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
+  // message_count/total_content_richness/helpful_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
     const rpcFetcher =

@@ -52,7 +52,7 @@ async function createTestReport(
     stance?: string;
     role?: string;
     is_public_by_admin?: boolean;
-    total_score?: number;
+    total_content_richness?: number;
   } = {}
 ) {
   const { data, error } = await adminClient
@@ -62,7 +62,7 @@ async function createTestReport(
       stance: overrides.stance ?? "for",
       role: overrides.role ?? "general_citizen",
       is_public_by_admin: overrides.is_public_by_admin ?? false,
-      scores: { total: overrides.total_score ?? 50 },
+      content_richness: { total: overrides.total_content_richness ?? 50 },
     })
     .select()
     .single();

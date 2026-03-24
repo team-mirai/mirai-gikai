@@ -39,18 +39,19 @@ async function createTestSession(configId: string, userId: string) {
 async function createTestReport(
   sessionId: string,
   overrides: Partial<{
-    total_score: number | null;
+    total_content_richness: number | null;
     is_public_by_admin: boolean;
     is_public_by_user: boolean;
   }> = {}
 ) {
-  const totalScore = overrides.total_score ?? null;
-  const scores = totalScore != null ? { total: totalScore, clarity: 80 } : null;
+  const totalRichness = overrides.total_content_richness ?? null;
+  const content_richness =
+    totalRichness != null ? { total: totalRichness, clarity: 80 } : null;
   const { data, error } = await adminClient
     .from("interview_report")
     .insert({
       interview_session_id: sessionId,
-      scores,
+      content_richness,
       is_public_by_admin: overrides.is_public_by_admin ?? true,
       is_public_by_user: overrides.is_public_by_user ?? true,
     })
@@ -94,22 +95,28 @@ describe("find_public_reports_by_bill_id_ordered_by_reactions() 関数", () => {
     }
   });
 
-  it("helpful×5+total_scoreの重み付きスコア降順でレポートを返す", async () => {
+  it("helpful×5+total_content_richnessの重み付きスコア降順でレポートを返す", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
 
-    // report1: helpful x0, total_score=90 → weighted=90
+    // report1: helpful x0, total_content_richness=90 → weighted=90
     const session1 = await createTestSession(config.id, testUsers[0].id);
-    const report1 = await createTestReport(session1.id, { total_score: 90 });
+    const report1 = await createTestReport(session1.id, {
+      total_content_richness: 90,
+    });
 
-    // report2: helpful x2, total_score=80 → weighted=10+80=90
+    // report2: helpful x2, total_content_richness=80 → weighted=10+80=90
     const session2 = await createTestSession(config.id, testUsers[1].id);
-    const report2 = await createTestReport(session2.id, { total_score: 80 });
+    const report2 = await createTestReport(session2.id, {
+      total_content_richness: 80,
+    });
 
-    // report3: helpful x3, total_score=70 → weighted=15+70=85
+    // report3: helpful x3, total_content_richness=70 → weighted=15+70=85
     const session3 = await createTestSession(config.id, testUsers[2].id);
-    const report3 = await createTestReport(session3.id, { total_score: 70 });
+    const report3 = await createTestReport(session3.id, {
+      total_content_richness: 70,
+    });
 
     await createTestReaction(report2.id, testUsers[0].id, "helpful");
     await createTestReaction(report2.id, testUsers[2].id, "helpful");
@@ -136,13 +143,17 @@ describe("find_public_reports_by_bill_id_ordered_by_reactions() 関数", () => {
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
 
-    // report1: hmm x2, helpful x0, total_score=80 → weighted=80
+    // report1: hmm x2, helpful x0, total_content_richness=80 → weighted=80
     const session1 = await createTestSession(config.id, testUsers[0].id);
-    const report1 = await createTestReport(session1.id, { total_score: 80 });
+    const report1 = await createTestReport(session1.id, {
+      total_content_richness: 80,
+    });
 
-    // report2: helpful x1, total_score=70 → weighted=5+70=75
+    // report2: helpful x1, total_content_richness=70 → weighted=5+70=75
     const session2 = await createTestSession(config.id, testUsers[1].id);
-    const report2 = await createTestReport(session2.id, { total_score: 70 });
+    const report2 = await createTestReport(session2.id, {
+      total_content_richness: 70,
+    });
 
     await createTestReaction(report1.id, testUsers[1].id, "hmm");
     await createTestReaction(report1.id, testUsers[2].id, "hmm");
@@ -159,18 +170,22 @@ describe("find_public_reports_by_bill_id_ordered_by_reactions() 関数", () => {
     expect(data![1].id).toBe(report2.id); // weighted=75
   });
 
-  it("helpfulが同数の場合はtotal_scoreの差で順序が決まる", async () => {
+  it("helpfulが同数の場合はtotal_content_richnessの差で順序が決まる", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
 
-    // report1: helpful x0, total_score=70 → weighted=70
+    // report1: helpful x0, total_content_richness=70 → weighted=70
     const session1 = await createTestSession(config.id, testUsers[0].id);
-    const report1 = await createTestReport(session1.id, { total_score: 70 });
+    const report1 = await createTestReport(session1.id, {
+      total_content_richness: 70,
+    });
 
-    // report2: helpful x0, total_score=90 → weighted=90
+    // report2: helpful x0, total_content_richness=90 → weighted=90
     const session2 = await createTestSession(config.id, testUsers[1].id);
-    const report2 = await createTestReport(session2.id, { total_score: 90 });
+    const report2 = await createTestReport(session2.id, {
+      total_content_richness: 90,
+    });
 
     const { data, error } = await adminClient.rpc(
       "find_public_reports_by_bill_id_ordered_by_reactions",

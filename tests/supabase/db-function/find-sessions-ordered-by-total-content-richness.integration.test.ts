@@ -52,7 +52,7 @@ async function createTestReport(
     stance?: string;
     role?: string;
     is_public_by_admin?: boolean;
-    total_score?: number;
+    total_content_richness?: number;
   } = {}
 ) {
   const { data, error } = await adminClient
@@ -62,7 +62,7 @@ async function createTestReport(
       stance: overrides.stance ?? "for",
       role: overrides.role ?? "general_citizen",
       is_public_by_admin: overrides.is_public_by_admin ?? false,
-      scores: { total: overrides.total_score ?? 50 },
+      content_richness: { total: overrides.total_content_richness ?? 50 },
     })
     .select()
     .single();
@@ -70,7 +70,7 @@ async function createTestReport(
   return data;
 }
 
-describe("find_sessions_ordered_by_total_score() 関数", () => {
+describe("find_sessions_ordered_by_total_content_richness() 関数", () => {
   let testUser: TestUser;
   const billIds: string[] = [];
 
@@ -86,22 +86,22 @@ describe("find_sessions_ordered_by_total_score() 関数", () => {
     await cleanupTestUser(testUser.id);
   });
 
-  it("スコアの降順でセッションIDを返す", async () => {
+  it("充実度の降順でセッションIDを返す", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
 
     const s1 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s1.id, { total_score: 30 });
+    await createTestReport(s1.id, { total_content_richness: 30 });
 
     const s2 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s2.id, { total_score: 80 });
+    await createTestReport(s2.id, { total_content_richness: 80 });
 
     const s3 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s3.id, { total_score: 50 });
+    await createTestReport(s3.id, { total_content_richness: 50 });
 
     const { data, error } = await adminClient.rpc(
-      "find_sessions_ordered_by_total_score",
+      "find_sessions_ordered_by_total_content_richness",
       {
         p_config_id: config.id,
         p_ascending: false,
@@ -117,19 +117,19 @@ describe("find_sessions_ordered_by_total_score() 関数", () => {
     expect(data![2].session_id).toBe(s1.id);
   });
 
-  it("スコアの昇順でセッションIDを返す", async () => {
+  it("充実度の昇順でセッションIDを返す", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
 
     const s1 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s1.id, { total_score: 70 });
+    await createTestReport(s1.id, { total_content_richness: 70 });
 
     const s2 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s2.id, { total_score: 20 });
+    await createTestReport(s2.id, { total_content_richness: 20 });
 
     const { data, error } = await adminClient.rpc(
-      "find_sessions_ordered_by_total_score",
+      "find_sessions_ordered_by_total_content_richness",
       {
         p_config_id: config.id,
         p_ascending: true,
@@ -154,13 +154,13 @@ describe("find_sessions_ordered_by_total_score() 関数", () => {
       testUser.id,
       new Date().toISOString()
     );
-    await createTestReport(completed.id, { total_score: 60 });
+    await createTestReport(completed.id, { total_content_richness: 60 });
 
     const inProgress = await createTestSession(config.id, testUser.id);
-    await createTestReport(inProgress.id, { total_score: 90 });
+    await createTestReport(inProgress.id, { total_content_richness: 90 });
 
     const { data, error } = await adminClient.rpc(
-      "find_sessions_ordered_by_total_score",
+      "find_sessions_ordered_by_total_content_richness",
       {
         p_config_id: config.id,
         p_ascending: false,
@@ -181,13 +181,19 @@ describe("find_sessions_ordered_by_total_score() 関数", () => {
     const config = await createTestInterviewConfig(bill.id);
 
     const s1 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s1.id, { total_score: 40, stance: "neutral" });
+    await createTestReport(s1.id, {
+      total_content_richness: 40,
+      stance: "neutral",
+    });
 
     const s2 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s2.id, { total_score: 80, stance: "for" });
+    await createTestReport(s2.id, {
+      total_content_richness: 80,
+      stance: "for",
+    });
 
     const { data, error } = await adminClient.rpc(
-      "find_sessions_ordered_by_total_score",
+      "find_sessions_ordered_by_total_content_richness",
       {
         p_config_id: config.id,
         p_ascending: false,
@@ -210,13 +216,13 @@ describe("find_sessions_ordered_by_total_score() 関数", () => {
     const sessions = [];
     for (let i = 0; i < 5; i++) {
       const s = await createTestSession(config.id, testUser.id);
-      await createTestReport(s.id, { total_score: (i + 1) * 20 });
+      await createTestReport(s.id, { total_content_richness: (i + 1) * 20 });
       sessions.push(s);
     }
 
     // 降順: 100, 80, 60, 40, 20 → offset=1, limit=2 → 80, 60
     const { data, error } = await adminClient.rpc(
-      "find_sessions_ordered_by_total_score",
+      "find_sessions_ordered_by_total_content_richness",
       {
         p_config_id: config.id,
         p_ascending: false,
@@ -227,8 +233,8 @@ describe("find_sessions_ordered_by_total_score() 関数", () => {
 
     expect(error).toBeNull();
     expect(data).toHaveLength(2);
-    expect(data![0].session_id).toBe(sessions[3].id); // score 80
-    expect(data![1].session_id).toBe(sessions[2].id); // score 60
+    expect(data![0].session_id).toBe(sessions[3].id); // content_richness 80
+    expect(data![1].session_id).toBe(sessions[2].id); // content_richness 60
   });
 
   it("レポートなしセッションはNULLS LASTで末尾に来る", async () => {
@@ -237,13 +243,13 @@ describe("find_sessions_ordered_by_total_score() 関数", () => {
     const config = await createTestInterviewConfig(bill.id);
 
     const withReport = await createTestSession(config.id, testUser.id);
-    await createTestReport(withReport.id, { total_score: 50 });
+    await createTestReport(withReport.id, { total_content_richness: 50 });
 
     const withoutReport = await createTestSession(config.id, testUser.id);
     // レポートなし
 
     const { data, error } = await adminClient.rpc(
-      "find_sessions_ordered_by_total_score",
+      "find_sessions_ordered_by_total_content_richness",
       {
         p_config_id: config.id,
         p_ascending: false,

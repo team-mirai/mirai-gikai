@@ -10,31 +10,33 @@ const opinionSchema = z.object({
     .describe("この意見の根拠となるユーザー発言のメッセージID"),
 });
 
-// 0-100のスコア（LLMが小数点を返す可能性があるため丸める）
-const scoreValueSchema = z
+// 0-100の情報充実度値（LLMが小数点を返す可能性があるため丸める）
+const contentRichnessValueSchema = z
   .number()
   .transform((v) => Math.round(v))
   .pipe(z.number().int().min(0).max(100));
 
-// スコアリングスキーマ
-const scoresSchema = z.object({
-  total: scoreValueSchema.describe("総合スコア（0-100の整数）"),
-  clarity: scoreValueSchema.describe(
-    "主張の明確さ（0-100）- 意見や立場が明確に表現されているか"
+// 情報充実度スキーマ
+const contentRichnessSchema = z.object({
+  total: contentRichnessValueSchema.describe(
+    "総合的な情報充実度（0-100の整数）"
   ),
-  specificity: scoreValueSchema.describe(
-    "具体性（0-100）- 実務経験に基づく具体的な事例や数値が含まれているか"
+  clarity: contentRichnessValueSchema.describe(
+    "論点の明確さ（0-100）— 議論のポイントがはっきり浮かび上がっているか"
   ),
-  impact: scoreValueSchema.describe(
-    "影響度（0-100）- 法案が与える社会的影響や関係者への影響について言及があるか"
+  specificity: contentRichnessValueSchema.describe(
+    "具体性（0-100）— 現場の実感や具体的な事例・数値が得られたか"
   ),
-  constructiveness: scoreValueSchema.describe(
-    "建設性（0-100）- 問題点の指摘だけでなく、改善案や代替案の提示があるか"
+  impact: contentRichnessValueSchema.describe(
+    "影響への言及（0-100）— 社会的影響や関係者への影響について情報が得られたか"
   ),
-  reasoning: z.string().describe("スコアの根拠を簡潔に説明（100文字以内）"),
+  constructiveness: contentRichnessValueSchema.describe(
+    "提案の広がり（0-100）— 課題の指摘に加え、改善の方向性や代替案が含まれているか"
+  ),
+  reasoning: z.string().describe("上記の根拠を簡潔に説明（100文字以内）"),
 });
 
-export type InterviewScores = z.infer<typeof scoresSchema>;
+export type InterviewContentRichness = z.infer<typeof contentRichnessSchema>;
 
 // レポート生成結果のバリデーション
 export const interviewReportSchema = z
@@ -79,16 +81,19 @@ export const interviewReportSchema = z
       .describe(
         "ユーザーの具体的な主張（最大3件）。メインの主張を補強する内容を最低1つは含める。元の対話ログにないことは記載しない"
       ),
-    scores: scoresSchema.describe(
-      "インタビューを「法案検討の参考資料」として評価したスコア"
+    content_richness: contentRichnessSchema.describe(
+      "インタビューの情報充実度評価"
     ),
   })
   .strict();
 
 export type InterviewReportData = z.infer<typeof interviewReportSchema>;
 
-// クライアント表示用の型（scoresはユーザーには表示しない）
-export type InterviewReportViewData = Omit<InterviewReportData, "scores">;
+// クライアント表示用の型（content_richnessはユーザーには表示しない）
+export type InterviewReportViewData = Omit<
+  InterviewReportData,
+  "content_richness"
+>;
 
 // ステージ遷移の型
 export const interviewStageSchema = z.enum([

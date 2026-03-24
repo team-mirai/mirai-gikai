@@ -87,7 +87,7 @@ export type InterviewStatistics = {
   stanceFor: number;
   stanceAgainst: number;
   stanceNeutral: number;
-  avgTotalScore: number | null;
+  avgTotalContentRichness: number | null;
   roleSubjectExpert: number;
   roleWorkRelated: number;
   roleDailyLifeAffected: number;
@@ -102,13 +102,13 @@ export type InterviewStatistics = {
 export type SessionSortField =
   | "started_at"
   | "message_count"
-  | "total_score"
+  | "total_content_richness"
   | "helpful_count";
 
 export const SESSION_SORT_FIELDS: readonly SessionSortField[] = [
   "started_at",
   "message_count",
-  "total_score",
+  "total_content_richness",
   "helpful_count",
 ] as const;
 

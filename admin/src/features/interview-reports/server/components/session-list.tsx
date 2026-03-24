@@ -131,12 +131,12 @@ export function SessionList({
                   <TableHead className="w-28">スタンス</TableHead>
                   <TableHead className="w-40">役割名</TableHead>
                   <SortableTableHead
-                    field="total_score"
+                    field="total_content_richness"
                     currentField={sort.field}
                     currentOrder={sort.order}
                     className="w-20 text-right"
                   >
-                    スコア
+                    充実度
                   </SortableTableHead>
                   <TableHead className="w-24 text-center">満足度</TableHead>
                   <SortableTableHead
@@ -231,8 +231,9 @@ export function SessionList({
                         {session.interview_report?.role_title || "-"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {session.interview_report?.total_score != null
-                          ? session.interview_report.total_score
+                        {session.interview_report?.total_content_richness !=
+                        null
+                          ? session.interview_report.total_content_richness
                           : "-"}
                       </TableCell>
                       <TableCell className="text-center">

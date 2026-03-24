@@ -7,8 +7,8 @@ import {
   interviewStageSchema,
 } from "./schemas";
 
-// テスト用の有効なscoresデータ
-const validScores = {
+// テスト用の有効なcontent_richnessデータ
+const validContentRichness = {
   total: 80,
   clarity: 70,
   specificity: 60,
@@ -27,51 +27,51 @@ const validReport = {
   opinions: [
     { title: "テスト意見", content: "テスト内容", source_message_id: null },
   ],
-  scores: validScores,
+  content_richness: validContentRichness,
 };
 
-describe("scoreValueSchema (via interviewReportSchema)", () => {
+describe("contentRichnessValueSchema (via interviewReportSchema)", () => {
   it("正常な整数値をそのまま受け入れる", () => {
     const result = interviewReportSchema.parse(validReport);
-    expect(result.scores.total).toBe(80);
+    expect(result.content_richness.total).toBe(80);
   });
 
   it("小数を四捨五入する (50.7 → 51)", () => {
     const result = interviewReportSchema.parse({
       ...validReport,
-      scores: { ...validScores, total: 50.7 },
+      content_richness: { ...validContentRichness, total: 50.7 },
     });
-    expect(result.scores.total).toBe(51);
+    expect(result.content_richness.total).toBe(51);
   });
 
   it("小数を四捨五入する (50.3 → 50)", () => {
     const result = interviewReportSchema.parse({
       ...validReport,
-      scores: { ...validScores, total: 50.3 },
+      content_richness: { ...validContentRichness, total: 50.3 },
     });
-    expect(result.scores.total).toBe(50);
+    expect(result.content_richness.total).toBe(50);
   });
 
   it("境界値 0 を受け入れる", () => {
     const result = interviewReportSchema.parse({
       ...validReport,
-      scores: { ...validScores, total: 0 },
+      content_richness: { ...validContentRichness, total: 0 },
     });
-    expect(result.scores.total).toBe(0);
+    expect(result.content_richness.total).toBe(0);
   });
 
   it("境界値 100 を受け入れる", () => {
     const result = interviewReportSchema.parse({
       ...validReport,
-      scores: { ...validScores, total: 100 },
+      content_richness: { ...validContentRichness, total: 100 },
     });
-    expect(result.scores.total).toBe(100);
+    expect(result.content_richness.total).toBe(100);
   });
 
   it("範囲外の値 -1 を拒否する", () => {
     const result = interviewReportSchema.safeParse({
       ...validReport,
-      scores: { ...validScores, total: -1 },
+      content_richness: { ...validContentRichness, total: -1 },
     });
     expect(result.success).toBe(false);
   });
@@ -79,7 +79,7 @@ describe("scoreValueSchema (via interviewReportSchema)", () => {
   it("範囲外の値 101 を拒否する", () => {
     const result = interviewReportSchema.safeParse({
       ...validReport,
-      scores: { ...validScores, total: 101 },
+      content_richness: { ...validContentRichness, total: 101 },
     });
     expect(result.success).toBe(false);
   });
@@ -87,15 +87,15 @@ describe("scoreValueSchema (via interviewReportSchema)", () => {
   it("非数値を拒否する", () => {
     const result = interviewReportSchema.safeParse({
       ...validReport,
-      scores: { ...validScores, total: "fifty" },
+      content_richness: { ...validContentRichness, total: "fifty" },
     });
     expect(result.success).toBe(false);
   });
 
-  it("全スコアフィールドで小数が丸められる", () => {
+  it("全フィールドで小数が丸められる", () => {
     const result = interviewReportSchema.parse({
       ...validReport,
-      scores: {
+      content_richness: {
         total: 80.6,
         clarity: 70.4,
         specificity: 60.5,
@@ -104,11 +104,11 @@ describe("scoreValueSchema (via interviewReportSchema)", () => {
         reasoning: "テスト",
       },
     });
-    expect(result.scores.total).toBe(81);
-    expect(result.scores.clarity).toBe(70);
-    expect(result.scores.specificity).toBe(61);
-    expect(result.scores.impact).toBe(50);
-    expect(result.scores.constructiveness).toBe(41);
+    expect(result.content_richness.total).toBe(81);
+    expect(result.content_richness.clarity).toBe(70);
+    expect(result.content_richness.specificity).toBe(61);
+    expect(result.content_richness.impact).toBe(50);
+    expect(result.content_richness.constructiveness).toBe(41);
   });
 });
 
@@ -278,11 +278,11 @@ describe("interviewReportSchema", () => {
     });
   });
 
-  describe("scores内のスコアに小数が入った場合", () => {
+  describe("content_richness内の値に小数が入った場合", () => {
     it("全フィールドが丸められてパースされる", () => {
       const result = interviewReportSchema.parse({
         ...validReport,
-        scores: {
+        content_richness: {
           total: 85.4,
           clarity: 72.6,
           specificity: 65.5,
@@ -291,12 +291,12 @@ describe("interviewReportSchema", () => {
           reasoning: "小数テスト",
         },
       });
-      expect(result.scores.total).toBe(85);
-      expect(result.scores.clarity).toBe(73);
-      expect(result.scores.specificity).toBe(66);
-      expect(result.scores.impact).toBe(55);
-      expect(result.scores.constructiveness).toBe(46);
-      expect(result.scores.reasoning).toBe("小数テスト");
+      expect(result.content_richness.total).toBe(85);
+      expect(result.content_richness.clarity).toBe(73);
+      expect(result.content_richness.specificity).toBe(66);
+      expect(result.content_richness.impact).toBe(55);
+      expect(result.content_richness.constructiveness).toBe(46);
+      expect(result.content_richness.reasoning).toBe("小数テスト");
     });
   });
 
