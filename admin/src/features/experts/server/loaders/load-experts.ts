@@ -8,5 +8,5 @@ export async function loadExperts(): Promise<Expert[]> {
 
   const data = await findExpertRegistrations();
 
-  return (data ?? []) as Expert[];
+  return data ?? [];
 }

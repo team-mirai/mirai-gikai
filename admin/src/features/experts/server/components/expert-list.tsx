@@ -40,7 +40,9 @@ export function ExpertList({ experts }: ExpertListProps) {
                   <TableCell>{expert.email}</TableCell>
                   <TableCell>{expert.affiliation}</TableCell>
                   <TableCell>
-                    {new Date(expert.created_at).toLocaleDateString("ja-JP")}
+                    {new Date(expert.created_at).toLocaleDateString("ja-JP", {
+                      timeZone: "Asia/Tokyo",
+                    })}
                   </TableCell>
                 </TableRow>
               ))}
