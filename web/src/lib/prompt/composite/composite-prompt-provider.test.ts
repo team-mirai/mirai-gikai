@@ -21,6 +21,7 @@ describe("CompositePromptProvider", () => {
   const sourceCodeNames = new Set([
     "top-chat-system",
     "bill-chat-system-normal",
+    "bill-chat-system-hard",
   ]);
 
   const composite = new CompositePromptProvider(
@@ -46,9 +47,19 @@ describe("CompositePromptProvider", () => {
     expect(result.content).toBe("source-code:bill-chat-system-normal");
   });
 
-  it("bill-chat-system-hard はfallbackにルーティングされる", async () => {
-    const result = await composite.getPrompt("bill-chat-system-hard");
-    expect(result.content).toBe("langfuse:bill-chat-system-hard");
+  it("bill-chat-system-hard もsourceCodeProviderにルーティングされる", async () => {
+    const result = await composite.getPrompt("bill-chat-system-hard", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
+    });
+    expect(result.content).toBe("source-code:bill-chat-system-hard");
+  });
+
+  it("未知のプロンプト名はfallbackにルーティングされる", async () => {
+    const result = await composite.getPrompt("unknown-prompt");
+    expect(result.content).toBe("langfuse:unknown-prompt");
   });
 
   it("ソースコードプロンプトのみ使用時はfallbackファクトリが呼ばれない", async () => {
@@ -59,13 +70,23 @@ describe("CompositePromptProvider", () => {
         factoryCalled = true;
         return createFakeProvider("langfuse");
       },
-      new Set(["top-chat-system", "bill-chat-system-normal"])
+      new Set([
+        "top-chat-system",
+        "bill-chat-system-normal",
+        "bill-chat-system-hard",
+      ])
     );
 
     await lazyComposite.getPrompt("top-chat-system", {
       billSummary: "test",
     });
     await lazyComposite.getPrompt("bill-chat-system-normal", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
+    });
+    await lazyComposite.getPrompt("bill-chat-system-hard", {
       billName: "test",
       billTitle: "test",
       billSummary: "test",
