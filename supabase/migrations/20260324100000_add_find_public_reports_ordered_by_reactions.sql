@@ -1,4 +1,4 @@
--- 公開レポートをhelpfulリアクション数の降順で取得するRPC関数
+-- 公開レポートをhelpfulリアクション数×5 + total_scoreの重み付きスコア降順で取得するRPC関数
 -- 議案詳細ページ・ご意見一覧ページのソートに使用
 CREATE OR REPLACE FUNCTION find_public_reports_by_bill_id_ordered_by_reactions(
   p_bill_id UUID,
@@ -35,7 +35,7 @@ BEGIN
   WHERE ir.is_public_by_admin = TRUE
     AND ir.is_public_by_user = TRUE
     AND c.bill_id = p_bill_id
-  ORDER BY COALESCE(rc.helpful_count, 0) DESC, ir.total_score DESC NULLS LAST, ir.created_at DESC
+  ORDER BY (COALESCE(rc.helpful_count, 0) * 5 + COALESCE(ir.total_score, 0)) DESC, ir.created_at DESC
   LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql STABLE;

@@ -79,7 +79,7 @@ export async function findBillWithContentById(billId: string) {
 }
 
 /**
- * 議案IDから公開インタビューレポートを取得（helpfulリアクション数降順、件数制限あり）
+ * 議案IDから公開インタビューレポートを取得（helpful×5+total_scoreの重み付きスコア降順、件数制限あり）
  * 公開条件: is_public_by_admin = true AND is_public_by_user = true
  */
 export async function findPublicReportsByBillId(

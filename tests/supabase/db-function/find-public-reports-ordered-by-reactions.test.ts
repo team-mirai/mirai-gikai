@@ -94,25 +94,28 @@ describe("find_public_reports_by_bill_id_ordered_by_reactions() 関数", () => {
     }
   });
 
-  it("helpfulリアクション数の降順でレポートを返す", async () => {
+  it("helpful×5+total_scoreの重み付きスコア降順でレポートを返す", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
 
-    // レポート3件作成（全て公開）
+    // report1: helpful x0, total_score=90 → weighted=90
     const session1 = await createTestSession(config.id, testUsers[0].id);
     const report1 = await createTestReport(session1.id, { total_score: 90 });
 
+    // report2: helpful x2, total_score=80 → weighted=10+80=90
     const session2 = await createTestSession(config.id, testUsers[1].id);
     const report2 = await createTestReport(session2.id, { total_score: 80 });
 
+    // report3: helpful x3, total_score=70 → weighted=15+70=85
     const session3 = await createTestSession(config.id, testUsers[2].id);
     const report3 = await createTestReport(session3.id, { total_score: 70 });
 
-    // report2: helpful x2, report3: helpful x1, report1: helpful x0
     await createTestReaction(report2.id, testUsers[0].id, "helpful");
     await createTestReaction(report2.id, testUsers[2].id, "helpful");
     await createTestReaction(report3.id, testUsers[0].id, "helpful");
+    await createTestReaction(report3.id, testUsers[1].id, "helpful");
+    await createTestReaction(report3.id, testUsers[2].id, "helpful");
 
     const { data, error } = await adminClient.rpc(
       "find_public_reports_by_bill_id_ordered_by_reactions",
@@ -121,23 +124,26 @@ describe("find_public_reports_by_bill_id_ordered_by_reactions() 関数", () => {
 
     expect(error).toBeNull();
     expect(data).toHaveLength(3);
-    expect(data![0].id).toBe(report2.id); // helpful x2
-    expect(data![1].id).toBe(report3.id); // helpful x1
-    expect(data![2].id).toBe(report1.id); // helpful x0
+    // weighted: report1=90, report2=90, report3=85
+    // report1とreport2は同スコア → created_at降順（後に作られたreport2が先）
+    expect(data![0].id).toBe(report2.id); // weighted=90 (created later)
+    expect(data![1].id).toBe(report1.id); // weighted=90 (created earlier)
+    expect(data![2].id).toBe(report3.id); // weighted=85
   });
 
-  it("hmmリアクションはソート順に影響しない", async () => {
+  it("hmmリアクションは重み付きスコアに影響しない", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
 
+    // report1: hmm x2, helpful x0, total_score=80 → weighted=80
     const session1 = await createTestSession(config.id, testUsers[0].id);
     const report1 = await createTestReport(session1.id, { total_score: 80 });
 
+    // report2: helpful x1, total_score=70 → weighted=5+70=75
     const session2 = await createTestSession(config.id, testUsers[1].id);
-    const report2 = await createTestReport(session2.id, { total_score: 90 });
+    const report2 = await createTestReport(session2.id, { total_score: 70 });
 
-    // report1: hmm x2 (helpfulは0), report2: helpful x1
     await createTestReaction(report1.id, testUsers[1].id, "hmm");
     await createTestReaction(report1.id, testUsers[2].id, "hmm");
     await createTestReaction(report2.id, testUsers[0].id, "helpful");
@@ -149,22 +155,23 @@ describe("find_public_reports_by_bill_id_ordered_by_reactions() 関数", () => {
 
     expect(error).toBeNull();
     expect(data).toHaveLength(2);
-    expect(data![0].id).toBe(report2.id); // helpful x1
-    expect(data![1].id).toBe(report1.id); // helpful x0 (hmm無視)
+    expect(data![0].id).toBe(report1.id); // weighted=80 (hmmはスコアに寄与しない)
+    expect(data![1].id).toBe(report2.id); // weighted=75
   });
 
-  it("helpfulが同数の場合はtotal_score降順でソートされる", async () => {
+  it("helpfulが同数の場合はtotal_scoreの差で順序が決まる", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
 
+    // report1: helpful x0, total_score=70 → weighted=70
     const session1 = await createTestSession(config.id, testUsers[0].id);
     const report1 = await createTestReport(session1.id, { total_score: 70 });
 
+    // report2: helpful x0, total_score=90 → weighted=90
     const session2 = await createTestSession(config.id, testUsers[1].id);
     const report2 = await createTestReport(session2.id, { total_score: 90 });
 
-    // 両方ともhelpful x0
     const { data, error } = await adminClient.rpc(
       "find_public_reports_by_bill_id_ordered_by_reactions",
       { p_bill_id: bill.id }
@@ -172,8 +179,8 @@ describe("find_public_reports_by_bill_id_ordered_by_reactions() 関数", () => {
 
     expect(error).toBeNull();
     expect(data).toHaveLength(2);
-    expect(data![0].id).toBe(report2.id); // total_score: 90
-    expect(data![1].id).toBe(report1.id); // total_score: 70
+    expect(data![0].id).toBe(report2.id); // weighted=90
+    expect(data![1].id).toBe(report1.id); // weighted=70
   });
 
   it("非公開レポートは返さない", async () => {
