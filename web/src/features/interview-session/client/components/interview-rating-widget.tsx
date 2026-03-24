@@ -14,6 +14,103 @@ import { submitInterviewRating } from "../../server/actions/submit-interview-rat
 
 type WidgetPhase = "rating" | "feedback" | "thankyou";
 
+// ========================================
+// Phase Components
+// ========================================
+
+function RatingPhase({
+  selectedRating,
+  onRate,
+}: {
+  selectedRating: number | null;
+  onRate: (rating: number) => void;
+}) {
+  return (
+    <>
+      <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
+        AIはあなたの考えを十分に引き出せていますか
+      </p>
+      <div className="flex justify-center gap-[15px]">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Button
+            key={star}
+            variant="ghost"
+            onClick={() => onRate(star)}
+            className="h-auto p-0 hover:bg-transparent"
+            aria-label={`${star}つ星`}
+          >
+            <Star
+              size={24}
+              className={
+                selectedRating !== null && star <= selectedRating
+                  ? "fill-mirai-star text-mirai-star"
+                  : "fill-white text-mirai-text-muted stroke-[0.5]"
+              }
+            />
+          </Button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function FeedbackPhase({
+  selectedTags,
+  onToggleTag,
+  onSubmit,
+}: {
+  selectedTags: Set<FeedbackTag>;
+  onToggleTag: (tag: FeedbackTag) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <>
+      <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
+        気になった点を教えてください
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {FEEDBACK_TAGS.map((tag) => (
+          <Button
+            key={tag}
+            variant="ghost"
+            onClick={() => onToggleTag(tag)}
+            className={`h-auto rounded-full border px-4 py-1 text-sm font-medium ${
+              selectedTags.has(tag)
+                ? "border-primary bg-gradient-to-r from-mirai-gradient-start to-mirai-gradient-end text-mirai-text"
+                : "border-primary bg-white text-primary-accent"
+            }`}
+          >
+            {FEEDBACK_TAG_LABELS[tag]}
+          </Button>
+        ))}
+      </div>
+      <div className="flex justify-end">
+        <Button
+          variant="ghost"
+          onClick={onSubmit}
+          disabled={selectedTags.size === 0}
+          className="h-auto p-0 text-[13px] font-medium text-primary-accent hover:bg-transparent disabled:opacity-40"
+        >
+          送信
+          <ArrowRight size={14} />
+        </Button>
+      </div>
+    </>
+  );
+}
+
+function ThankYouPhase() {
+  return (
+    <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
+      回答ありがとうございました！
+    </p>
+  );
+}
+
+// ========================================
+// Main Widget
+// ========================================
+
 interface InterviewRatingWidgetProps {
   sessionId: string;
   onDismiss: () => void;
@@ -93,73 +190,16 @@ export function InterviewRatingWidget({
     <div className="relative mx-4 rounded-xl bg-gray-100 px-6 py-4">
       <div className="flex flex-col gap-3">
         {phase === "rating" && (
-          <>
-            <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
-              AIはあなたの考えを十分に引き出せていますか
-            </p>
-            <div className="flex justify-center gap-[15px]">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Button
-                  key={star}
-                  variant="ghost"
-                  onClick={() => handleRate(star)}
-                  className="h-auto p-0 hover:bg-transparent"
-                  aria-label={`${star}つ星`}
-                >
-                  <Star
-                    size={24}
-                    className={
-                      selectedRating !== null && star <= selectedRating
-                        ? "fill-mirai-star text-mirai-star"
-                        : "fill-white text-mirai-text-muted stroke-[0.5]"
-                    }
-                  />
-                </Button>
-              ))}
-            </div>
-          </>
+          <RatingPhase selectedRating={selectedRating} onRate={handleRate} />
         )}
-
         {phase === "feedback" && (
-          <>
-            <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
-              気になった点を教えてください
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {FEEDBACK_TAGS.map((tag) => (
-                <Button
-                  key={tag}
-                  variant="ghost"
-                  onClick={() => toggleTag(tag)}
-                  className={`h-auto rounded-full border px-4 py-1 text-sm font-medium ${
-                    selectedTags.has(tag)
-                      ? "border-primary bg-gradient-to-r from-mirai-gradient-start to-mirai-gradient-end text-mirai-text"
-                      : "border-primary bg-white text-primary-accent"
-                  }`}
-                >
-                  {FEEDBACK_TAG_LABELS[tag]}
-                </Button>
-              ))}
-            </div>
-            <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                onClick={handleFeedbackSubmit}
-                disabled={selectedTags.size === 0}
-                className="h-auto p-0 text-[13px] font-medium text-primary-accent hover:bg-transparent disabled:opacity-40"
-              >
-                送信
-                <ArrowRight size={14} />
-              </Button>
-            </div>
-          </>
+          <FeedbackPhase
+            selectedTags={selectedTags}
+            onToggleTag={toggleTag}
+            onSubmit={handleFeedbackSubmit}
+          />
         )}
-
-        {phase === "thankyou" && (
-          <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
-            回答ありがとうございました！
-          </p>
-        )}
+        {phase === "thankyou" && <ThankYouPhase />}
       </div>
       <Button
         variant="ghost"
