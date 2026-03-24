@@ -58,7 +58,7 @@ export async function ReportChatLogPage({
       <div className="fixed top-0 left-0 right-0 z-10 bg-mirai-surface/90 backdrop-blur-sm px-4 py-3">
         <Link
           href={reportHref as Route}
-          className="inline-flex items-center gap-1 text-sm font-medium text-mirai-text-secondary"
+          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600"
         >
           <ChevronLeft size={20} />
           レポートに戻る
