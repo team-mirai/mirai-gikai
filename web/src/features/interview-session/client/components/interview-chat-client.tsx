@@ -1,10 +1,13 @@
 "use client";
 
+import { SquareArrowOutUpRight } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import {
   Conversation,
   ConversationContent,
 } from "@/components/ai-elements/conversation";
+import { routes } from "@/lib/routes";
 import { useInterviewChat } from "../hooks/use-interview-chat";
 import { useInterviewRating } from "../hooks/use-interview-rating";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
@@ -20,6 +23,7 @@ import { TimeUpPrompt } from "./time-up-prompt";
 
 interface InterviewChatClientProps {
   billId: string;
+  billTitle: string;
   sessionId: string;
   initialMessages: Array<{
     id: string;
@@ -37,6 +41,7 @@ interface InterviewChatClientProps {
 
 export function InterviewChatClient({
   billId,
+  billTitle,
   sessionId,
   initialMessages,
   mode,
@@ -160,6 +165,26 @@ export function InterviewChatClient({
         )}
         <Conversation className="min-h-0 flex-1 overflow-y-auto">
           <ConversationContent className="flex flex-col gap-4">
+            {/* 法案リンク */}
+            <div className="flex flex-col">
+              <Link
+                href={
+                  previewToken
+                    ? routes.previewBillDetail(billId, previewToken)
+                    : routes.billDetail(billId)
+                }
+                className="inline-flex items-center gap-1"
+              >
+                <span className="text-sm font-medium leading-[1.8] text-primary underline">
+                  {billTitle}
+                </span>
+                <SquareArrowOutUpRight className="size-3.5 text-primary" />
+              </Link>
+              <p className="text-sm font-medium leading-[1.8] text-mirai-text">
+                についてのインタビュー
+              </p>
+            </div>
+
             {/* 初期表示メッセージ */}
             {messages.length === 0 && !object && (
               <div className="flex flex-col gap-4">
