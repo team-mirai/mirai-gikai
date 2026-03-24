@@ -35,7 +35,7 @@ export function BatchModerationButton() {
       disabled={isPending}
     >
       <ShieldCheck className="h-4 w-4 mr-1" />
-      {isPending ? "評価中..." : "全レポート一括評価"}
+      {isPending ? "モデレーション評価中..." : "モデレーション一括評価"}
     </Button>
   );
 }
