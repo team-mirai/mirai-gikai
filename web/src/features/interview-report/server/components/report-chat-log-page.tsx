@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Bot, UserRound } from "lucide-react";
+import { Bot, ChevronLeft, UserRound } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -54,6 +54,17 @@ export async function ReportChatLogPage({
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
+      {/* Back to Report Link - Fixed at top */}
+      <div className="fixed top-0 left-0 right-0 z-10 bg-mirai-surface/90 backdrop-blur-sm px-4 py-3">
+        <Link
+          href={reportHref as Route}
+          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600"
+        >
+          <ChevronLeft size={20} />
+          レポートに戻る
+        </Link>
+      </div>
+
       {/* Header Section */}
       <div className="px-4 pt-24 pb-8">
         <div className="flex flex-col items-center">
