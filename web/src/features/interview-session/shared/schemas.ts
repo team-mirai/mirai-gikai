@@ -43,7 +43,7 @@ export const interviewReportSchema = z
       .string()
       .nullable()
       .describe(
-        "ユーザーの主張を40文字以内でまとめたもの。「」書きで書けるようなテキスト（ただし「」は記載しない）"
+        "ユーザーの主張を100文字程度でまとめたもの。「」書きで書けるようなテキスト（ただし「」は記載しない）"
       ),
     stance: z
       .enum(["for", "against", "neutral"])
