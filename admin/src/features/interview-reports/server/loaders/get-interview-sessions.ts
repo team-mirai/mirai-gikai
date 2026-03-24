@@ -48,7 +48,8 @@ export async function getInterviewSessions(
   } as const;
 
   // message_count/total_content_richness/helpful_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
-  // ただしRPC関数はmoderationフィルタ未対応のため、moderation指定時はRPCソートをスキップ
+  // ただしRPC関数はmoderationフィルタ未対応のため、moderation指定時はRPCソートをスキップし
+  // started_atソートにフォールバック（計算カラムはSupabaseクエリビルダーで直接ソートできないため）
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
     const rpcFetcher =
@@ -65,14 +66,16 @@ export async function getInterviewSessions(
       );
       sessions = await findInterviewSessionsWithReportByIds(orderedIds);
     } else {
+      // RPC専用ソートフィールドの場合はstarted_atにフォールバック
+      const isRpcOnlyField = sort.field in rpcSortFetchers;
+      const fallbackSort = isRpcOnlyField
+        ? { column: "started_at" as const, ascending: false }
+        : { column: sort.field, ascending: sort.order === "asc" };
       sessions = await findInterviewSessionsWithReport(
         config.id,
         from,
         to,
-        {
-          column: sort.field,
-          ascending: sort.order === "asc",
-        },
+        fallbackSort,
         filters
       );
     }
