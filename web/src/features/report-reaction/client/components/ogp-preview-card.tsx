@@ -1,6 +1,7 @@
 "use client";
 
 const PREVIEW_SUMMARY_MAX_LENGTH = 100;
+const PREVIEW_BILL_NAME_MAX_LENGTH = 30;
 
 interface OgpPreviewCardProps {
   summary: string | null;
@@ -12,6 +13,11 @@ export function OgpPreviewCard({ summary, billName }: OgpPreviewCardProps) {
     summary && summary.length > PREVIEW_SUMMARY_MAX_LENGTH
       ? `${summary.slice(0, PREVIEW_SUMMARY_MAX_LENGTH)}...`
       : summary;
+
+  const truncatedBillName =
+    billName.length > PREVIEW_BILL_NAME_MAX_LENGTH
+      ? `${billName.slice(0, PREVIEW_BILL_NAME_MAX_LENGTH)}...`
+      : billName;
 
   return (
     <div
@@ -31,7 +37,7 @@ export function OgpPreviewCard({ summary, billName }: OgpPreviewCardProps) {
 
         {/* 法案名 */}
         <p className="mt-2 text-[10px] font-bold leading-relaxed text-primary-accent">
-          {billName}
+          {truncatedBillName}
         </p>
 
         {/* みらい議会バッジ */}

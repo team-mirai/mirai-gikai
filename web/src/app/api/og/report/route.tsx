@@ -4,7 +4,13 @@ import {
   findBillWithContentById,
 } from "@/features/interview-report/server/repositories/interview-report-repository";
 
-const OG_SUMMARY_MAX_LENGTH = 120;
+/**
+ * OGP画像のテキスト制限
+ * カード: 1080x530px, padding 48px, font 38px × lineHeight 1.8 = 68.4px/行
+ * 幅700pxで日本語約18文字/行 → 5行 = 約90文字が上限
+ */
+const OG_SUMMARY_MAX_LENGTH = 80;
+const OG_BILL_NAME_MAX_LENGTH = 40;
 
 const GOOGLE_FONTS_URL =
   "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap";
@@ -67,6 +73,11 @@ export async function GET(request: Request) {
       ? `${summary.slice(0, OG_SUMMARY_MAX_LENGTH)}...`
       : summary;
 
+  const truncatedBillName =
+    billName.length > OG_BILL_NAME_MAX_LENGTH
+      ? `${billName.slice(0, OG_BILL_NAME_MAX_LENGTH)}...`
+      : billName;
+
   const fontData = await loadFont();
   const fonts: {
     name: string;
@@ -112,6 +123,7 @@ export async function GET(request: Request) {
             lineHeight: 1.8,
             flex: 1,
             width: 700,
+            overflow: "hidden",
           }}
         >
           {truncatedSummary}
@@ -127,7 +139,7 @@ export async function GET(request: Request) {
             lineHeight: 1.5,
           }}
         >
-          {billName}
+          {truncatedBillName}
         </div>
 
         {/* みらい議会バッジ */}
