@@ -837,6 +837,22 @@ export type Database = {
           reaction_type: string
         }[]
       }
+      find_public_reports_by_bill_id_ordered_by_reactions: {
+        Args: { p_bill_id: string; p_limit?: number }
+        Returns: {
+          id: string
+          stance:
+            | Database["public"]["Enums"]["stance_type_enum"]
+            | null
+          role:
+            | Database["public"]["Enums"]["interview_report_role_enum"]
+            | null
+          role_title: string | null
+          summary: string | null
+          total_score: number | null
+          created_at: string
+        }[]
+      }
       find_sessions_ordered_by_message_count: {
         Args: {
           p_ascending?: boolean
