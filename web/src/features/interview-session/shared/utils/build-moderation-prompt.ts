@@ -1,7 +1,13 @@
+type Message = {
+  role: string;
+  content: string;
+};
+
 type BuildModerationPromptParams = {
   summary: string | null;
   opinions: Array<{ title: string; content: string }> | null;
   roleDescription: string | null;
+  messages: Message[];
 };
 
 /**
@@ -11,6 +17,13 @@ export function buildModerationPrompt(
   params: BuildModerationPromptParams
 ): string {
   const parts: string[] = [];
+
+  if (params.messages.length > 0) {
+    const messagesText = params.messages
+      .map((m) => `[${m.role}] ${m.content}`)
+      .join("\n");
+    parts.push(`## 会話ログ\n${messagesText}`);
+  }
 
   if (params.summary) {
     parts.push(`## レポート要約\n${params.summary}`);
@@ -32,7 +45,7 @@ export function buildModerationPrompt(
 
   return `あなたはAIインタビューで収集された市民意見のモデレーション評価を行う専門家です。
 
-以下のインタビューレポートの内容を評価し、公開に適さない内容が含まれていないか確認してください。
+以下のインタビューの会話ログおよびレポート内容を評価し、公開に適さない内容が含まれていないか確認してください。
 
 ## 評価対象コンテンツ
 ${contentToEvaluate}

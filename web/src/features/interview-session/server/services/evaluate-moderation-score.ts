@@ -18,6 +18,7 @@ type ModerationInput = {
   summary: string | null;
   opinions: Array<{ title: string; content: string }> | null;
   roleDescription: string | null;
+  messages: Array<{ role: string; content: string }>;
 };
 
 type ModerationOutput = {

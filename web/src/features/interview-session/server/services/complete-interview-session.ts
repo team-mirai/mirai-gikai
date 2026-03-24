@@ -59,6 +59,10 @@ export async function completeInterviewSession({
         summary: reportData.summary,
         opinions: reportData.opinions,
         roleDescription: reportData.role_description,
+        messages: [...messages].reverse().map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
       }),
       new Promise<never>((_, reject) =>
         setTimeout(
