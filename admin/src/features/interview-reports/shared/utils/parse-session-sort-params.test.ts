@@ -16,6 +16,10 @@ describe("parseSessionSortParams", () => {
       field: "message_count",
       order: "desc",
     });
+    expect(parseSessionSortParams("helpful_count", "desc")).toEqual({
+      field: "helpful_count",
+      order: "desc",
+    });
   });
 
   it("無効なフィールドはデフォルトにフォールバックする", () => {

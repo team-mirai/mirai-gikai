@@ -12,6 +12,7 @@ export type InterviewMessage =
 
 export type InterviewSessionWithDetails = InterviewSession & {
   message_count: number;
+  helpful_count: number;
   interview_report: InterviewReport | null;
 };
 
@@ -101,12 +102,14 @@ export type InterviewStatistics = {
 export type SessionSortField =
   | "started_at"
   | "message_count"
-  | "total_content_richness";
+  | "total_content_richness"
+  | "helpful_count";
 
 export const SESSION_SORT_FIELDS: readonly SessionSortField[] = [
   "started_at",
   "message_count",
   "total_content_richness",
+  "helpful_count",
 ] as const;
 
 export type SessionSortConfig = SortConfig<SessionSortField>;

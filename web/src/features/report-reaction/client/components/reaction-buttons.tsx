@@ -16,6 +16,8 @@ interface ReactionButtonsProps {
   billName: string;
   shareUrl: string;
   thumbnailUrl?: string | null;
+  /** シェア時のメッセージ（レポートのsummary等） */
+  shareMessage?: string | null;
   /** 共有ボタンを表示するかどうか（非公開レポートでは非表示） */
   showShare?: boolean;
 }
@@ -26,6 +28,7 @@ export function ReactionButtons({
   billName,
   shareUrl,
   thumbnailUrl,
+  shareMessage,
   showShare = true,
 }: ReactionButtonsProps) {
   useAnonymousSupabaseUser();
@@ -55,52 +58,54 @@ export function ReactionButtons({
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white">
-        <div className="border-t border-gray-400" />
-        <div className="flex items-center py-5 px-4">
-          {/* 参考になる */}
-          <Button
-            variant="ghost"
-            onClick={() => handleClick("helpful")}
-            disabled={isPending}
-            className="flex-1 flex items-center justify-center gap-2 h-auto px-0 py-0 hover:bg-transparent"
-          >
-            <Lightbulb
-              size={20}
-              className={`transition-colors ${
-                isActive
-                  ? "text-mirai-reaction-active fill-mirai-reaction-active"
-                  : "text-mirai-reaction-active"
-              }`}
-            />
-            <span className="text-[15px] font-bold text-gray-800">
-              参考になる
-            </span>
-            {optimistic.counts.helpful > 0 && (
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="max-w-[700px] mx-auto bg-white">
+          <div className="border-t border-gray-400" />
+          <div className="flex items-stretch">
+            {/* 参考になる */}
+            <Button
+              variant="ghost"
+              onClick={() => handleClick("helpful")}
+              disabled={isPending}
+              className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
+            >
+              <Lightbulb
+                size={20}
+                className={`transition-colors ${
+                  isActive
+                    ? "text-mirai-reaction-active fill-mirai-reaction-active"
+                    : "text-gray-800"
+                }`}
+              />
               <span className="text-[15px] font-bold text-gray-800">
-                {optimistic.counts.helpful}
+                参考になる
               </span>
-            )}
-          </Button>
-
-          {showShare && (
-            <>
-              {/* セパレーター */}
-              <div className="w-px h-6 bg-gray-400 shrink-0" />
-
-              {/* 共有する */}
-              <Button
-                variant="ghost"
-                onClick={() => setIsShareModalOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 h-auto px-0 py-0 hover:bg-transparent"
-              >
-                <Upload size={20} className="text-gray-800" />
+              {optimistic.counts.helpful > 0 && (
                 <span className="text-[15px] font-bold text-gray-800">
-                  共有する
+                  {optimistic.counts.helpful}
                 </span>
-              </Button>
-            </>
-          )}
+              )}
+            </Button>
+
+            {showShare && (
+              <>
+                {/* セパレーター */}
+                <div className="w-px self-center h-6 bg-gray-400 shrink-0" />
+
+                {/* 共有する */}
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
+                >
+                  <Upload size={20} className="text-gray-800" />
+                  <span className="text-[15px] font-bold text-gray-800">
+                    共有する
+                  </span>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -110,6 +115,7 @@ export function ReactionButtons({
         billName={billName}
         shareUrl={shareUrl}
         thumbnailUrl={thumbnailUrl}
+        shareMessage={shareMessage}
       />
     </>
   );

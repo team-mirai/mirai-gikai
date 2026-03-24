@@ -68,7 +68,15 @@ export function getPublicReportLink(reportId: string): string {
 
 /**
  * インタビュー会話ログページへのリンクを取得
+ * @param from - 遷移元のコンテキスト。"complete" の場合、戻りリンクが /complete を指す
  */
-export function getInterviewChatLogLink(reportId: string): string {
-  return routes.reportChatLog(reportId);
+export function getInterviewChatLogLink(
+  reportId: string,
+  from?: "complete"
+): string {
+  const base = routes.reportChatLog(reportId);
+  if (from) {
+    return `${base}?from=${from}`;
+  }
+  return base;
 }
