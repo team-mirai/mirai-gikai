@@ -432,6 +432,22 @@ export async function findReactionCountsByReportId(
   };
 }
 
+export async function findFeedbackTagsBySessionId(
+  sessionId: string
+): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_rating_feedbacks")
+    .select("tag")
+    .eq("interview_session_id", sessionId);
+
+  if (error) {
+    throw new Error(`Failed to fetch feedback tags: ${error.message}`);
+  }
+
+  return (data || []).map((row) => row.tag);
+}
+
 export async function findInterviewStatistics(configId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("get_interview_statistics", {

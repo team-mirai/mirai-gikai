@@ -17,6 +17,11 @@ describe("mapInterviewStatistics", () => {
     avg_message_count: 12.3,
     median_duration_seconds: 345,
     public_by_user_count: 60,
+    feedback_irrelevant_questions: 5,
+    feedback_not_aligned: 3,
+    feedback_misunderstood: 7,
+    feedback_too_many_questions: 2,
+    feedback_other: 1,
   };
 
   it("maps raw DB result to InterviewStatistics", () => {
@@ -38,6 +43,11 @@ describe("mapInterviewStatistics", () => {
     expect(result.medianDurationSeconds).toBe(345);
     expect(result.publicByUserCount).toBe(60);
     expect(result.publicRate).toBe(75);
+    expect(result.feedbackIrrelevantQuestions).toBe(5);
+    expect(result.feedbackNotAligned).toBe(3);
+    expect(result.feedbackMisunderstood).toBe(7);
+    expect(result.feedbackTooManyQuestions).toBe(2);
+    expect(result.feedbackOther).toBe(1);
   });
 
   it("handles zero total sessions", () => {
@@ -50,6 +60,23 @@ describe("mapInterviewStatistics", () => {
 
     expect(result.completionRate).toBe(0);
     expect(result.publicRate).toBe(0);
+  });
+
+  it("handles zero feedback counts", () => {
+    const result = mapInterviewStatistics({
+      ...baseRaw,
+      feedback_irrelevant_questions: 0,
+      feedback_not_aligned: 0,
+      feedback_misunderstood: 0,
+      feedback_too_many_questions: 0,
+      feedback_other: 0,
+    });
+
+    expect(result.feedbackIrrelevantQuestions).toBe(0);
+    expect(result.feedbackNotAligned).toBe(0);
+    expect(result.feedbackMisunderstood).toBe(0);
+    expect(result.feedbackTooManyQuestions).toBe(0);
+    expect(result.feedbackOther).toBe(0);
   });
 
   it("handles null averages", () => {

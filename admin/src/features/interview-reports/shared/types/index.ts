@@ -25,6 +25,7 @@ export type InterviewSessionDetail = InterviewSession & {
   interview_report: InterviewReport | null;
   interview_messages: InterviewMessage[];
   reaction_counts: ReactionCounts | null;
+  feedback_tags: string[];
 };
 
 // フィルタ関連の型定義
@@ -96,6 +97,11 @@ export type InterviewStatistics = {
   medianDurationSeconds: number | null;
   publicByUserCount: number;
   publicRate: number;
+  feedbackIrrelevantQuestions: number;
+  feedbackNotAligned: number;
+  feedbackMisunderstood: number;
+  feedbackTooManyQuestions: number;
+  feedbackOther: number;
 };
 
 // ソート関連の型定義

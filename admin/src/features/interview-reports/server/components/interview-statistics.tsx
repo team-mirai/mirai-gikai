@@ -157,6 +157,59 @@ function RoleDistribution({
   );
 }
 
+function FeedbackDistribution({
+  irrelevantQuestions,
+  notAligned,
+  misunderstood,
+  tooManyQuestions,
+  other,
+}: {
+  irrelevantQuestions: number;
+  notAligned: number;
+  misunderstood: number;
+  tooManyQuestions: number;
+  other: number;
+}) {
+  const items = [
+    { label: "質問が的外れ", count: irrelevantQuestions },
+    { label: "話が噛み合わない", count: notAligned },
+    { label: "言いたいことと違う", count: misunderstood },
+    { label: "質問が多い", count: tooManyQuestions },
+    { label: "その他", count: other },
+  ];
+
+  const maxCount = Math.max(...items.map((i) => i.count), 1);
+  const total = items.reduce((sum, i) => sum + i.count, 0);
+
+  if (total === 0) {
+    return <p className="text-sm text-muted-foreground">データなし</p>;
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {items.map((item) => {
+        const pct = Math.round((item.count / maxCount) * 100);
+        return (
+          <div key={item.label} className="flex items-center gap-2 text-sm">
+            <span className="w-28 text-muted-foreground shrink-0">
+              {item.label}
+            </span>
+            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-amber-400 rounded-full"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="w-12 text-right text-muted-foreground">
+              {item.count}件
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function InterviewStatistics({
   statistics: stats,
 }: InterviewStatisticsProps) {
@@ -236,6 +289,21 @@ export function InterviewStatistics({
               workRelated={stats.roleWorkRelated}
               dailyLifeAffected={stats.roleDailyLifeAffected}
               generalCitizen={stats.roleGeneralCitizen}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card className="py-4">
+          <CardContent className="space-y-3">
+            <p className="text-sm font-semibold">低評価フィードバック分布</p>
+            <FeedbackDistribution
+              irrelevantQuestions={stats.feedbackIrrelevantQuestions}
+              notAligned={stats.feedbackNotAligned}
+              misunderstood={stats.feedbackMisunderstood}
+              tooManyQuestions={stats.feedbackTooManyQuestions}
+              other={stats.feedbackOther}
             />
           </CardContent>
         </Card>

@@ -3,6 +3,7 @@ import type {
   ReactionCounts,
 } from "../../shared/types";
 import {
+  findFeedbackTagsBySessionId,
   findInterviewMessagesBySessionId,
   findInterviewReportBySessionId,
   findInterviewSessionById,
@@ -48,10 +49,19 @@ export async function getInterviewSessionDetail(
     }
   }
 
+  // フィードバックタグを取得
+  let feedbackTags: string[] = [];
+  try {
+    feedbackTags = await findFeedbackTagsBySessionId(sessionId);
+  } catch (error) {
+    console.error("Failed to fetch feedback tags:", error);
+  }
+
   return {
     ...session,
     interview_report: report || null,
     interview_messages: messages || [],
     reaction_counts: reactionCounts,
+    feedback_tags: feedbackTags,
   };
 }

@@ -15,6 +15,11 @@ type RawStatistics = {
   avg_message_count: number | null;
   median_duration_seconds: number | null;
   public_by_user_count: number;
+  feedback_irrelevant_questions: number;
+  feedback_not_aligned: number;
+  feedback_misunderstood: number;
+  feedback_too_many_questions: number;
+  feedback_other: number;
 };
 
 export function mapInterviewStatistics(
@@ -41,5 +46,10 @@ export function mapInterviewStatistics(
       raw.completed_sessions > 0
         ? (raw.public_by_user_count / raw.completed_sessions) * 100
         : 0,
+    feedbackIrrelevantQuestions: raw.feedback_irrelevant_questions,
+    feedbackNotAligned: raw.feedback_not_aligned,
+    feedbackMisunderstood: raw.feedback_misunderstood,
+    feedbackTooManyQuestions: raw.feedback_too_many_questions,
+    feedbackOther: raw.feedback_other,
   };
 }

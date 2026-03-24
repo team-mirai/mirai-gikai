@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
+import { createAdminClient, type Database } from "@mirai-gikai/supabase";
 import type {
   InterviewMessage,
   InterviewReport,
@@ -255,6 +255,36 @@ export async function updateInterviewSessionRating(
   if (error) {
     throw new Error(
       `Failed to save interview session rating: ${error.message}`
+    );
+  }
+}
+
+// ========================================
+// Interview Rating Feedbacks
+// ========================================
+
+/**
+ * 低評価フィードバックタグを保存（複数タグ一括）
+ */
+export async function insertInterviewRatingFeedbacks(
+  sessionId: string,
+  tags: string[]
+): Promise<void> {
+  if (tags.length === 0) return;
+
+  const supabase = createAdminClient();
+  const rows = tags.map((tag) => ({
+    interview_session_id: sessionId,
+    tag: tag as Database["public"]["Enums"]["interview_feedback_tag_enum"],
+  }));
+
+  const { error } = await supabase
+    .from("interview_rating_feedbacks")
+    .insert(rows);
+
+  if (error) {
+    throw new Error(
+      `Failed to save interview rating feedbacks: ${error.message}`
     );
   }
 }

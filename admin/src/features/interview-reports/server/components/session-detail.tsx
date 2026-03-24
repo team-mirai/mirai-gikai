@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
 import { formatRoleLabel } from "../../shared/constants";
+import { FEEDBACK_TAG_LABELS } from "../../shared/constants/feedback-tags";
 import type { InterviewSessionDetail } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
 import { getMessageDisplayText } from "../../shared/utils/get-message-display-text";
@@ -120,6 +121,18 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                 )}
               </div>
             </div>
+            {session.feedback_tags.length > 0 && (
+              <div>
+                <div className="text-sm text-gray-500">フィードバック</div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {session.feedback_tags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {FEEDBACK_TAG_LABELS[tag] ?? tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

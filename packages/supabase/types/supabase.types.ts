@@ -445,6 +445,35 @@ export type Database = {
           },
         ]
       }
+      interview_rating_feedbacks: {
+        Row: {
+          created_at: string
+          id: string
+          interview_session_id: string
+          tag: Database["public"]["Enums"]["interview_feedback_tag_enum"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interview_session_id: string
+          tag: Database["public"]["Enums"]["interview_feedback_tag_enum"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interview_session_id?: string
+          tag?: Database["public"]["Enums"]["interview_feedback_tag_enum"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_rating_feedbacks_interview_session_id_fkey"
+            columns: ["interview_session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_report: {
         Row: {
           content_richness: Json | null
@@ -852,17 +881,13 @@ export type Database = {
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: { p_bill_id: string; p_limit?: number }
         Returns: {
-          id: string
-          stance:
-            | Database["public"]["Enums"]["stance_type_enum"]
-            | null
-          role:
-            | Database["public"]["Enums"]["interview_report_role_enum"]
-            | null
-          role_title: string | null
-          summary: string | null
-          total_content_richness: number | null
           created_at: string
+          id: string
+          role: Database["public"]["Enums"]["interview_report_role_enum"]
+          role_title: string
+          stance: Database["public"]["Enums"]["stance_type_enum"]
+          summary: string
+          total_content_richness: number
         }[]
       }
       find_sessions_ordered_by_helpful_count: {
@@ -933,6 +958,11 @@ export type Database = {
           avg_rating: number
           avg_total_content_richness: number
           completed_sessions: number
+          feedback_irrelevant_questions: number
+          feedback_misunderstood: number
+          feedback_not_aligned: number
+          feedback_other: number
+          feedback_too_many_questions: number
           median_duration_seconds: number
           public_by_user_count: number
           role_daily_life_affected_count: number
@@ -964,6 +994,12 @@ export type Database = {
       difficulty_level_enum: "normal" | "hard"
       house_enum: "HR" | "HC"
       interview_config_status_enum: "public" | "closed"
+      interview_feedback_tag_enum:
+        | "irrelevant_questions"
+        | "not_aligned"
+        | "misunderstood"
+        | "too_many_questions"
+        | "other"
       interview_mode_enum: "loop" | "bulk"
       interview_report_role_enum:
         | "subject_expert"
@@ -1123,6 +1159,13 @@ export const Constants = {
       difficulty_level_enum: ["normal", "hard"],
       house_enum: ["HR", "HC"],
       interview_config_status_enum: ["public", "closed"],
+      interview_feedback_tag_enum: [
+        "irrelevant_questions",
+        "not_aligned",
+        "misunderstood",
+        "too_many_questions",
+        "other",
+      ],
       interview_mode_enum: ["loop", "bulk"],
       interview_report_role_enum: [
         "subject_expert",
