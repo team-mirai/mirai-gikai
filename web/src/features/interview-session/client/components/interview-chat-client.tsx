@@ -118,14 +118,8 @@ export function InterviewChatClient({
     [dismissTimeUpIfNeeded, handleQuickReply]
   );
 
-  const handleSkipToNext = () => {
-    handleSubmit({ text: "次のテーマに進みたいです" });
-  };
-
-  const handleEndInterviewVoluntary = () => {
-    handleSubmit({
-      text: "インタビューを終了してレポートを作成してください。",
-    });
+  const handleSkipAction = (text: string) => {
+    handleSubmit({ text });
   };
 
   const handleEndInterviewTimeUp = () => {
@@ -203,8 +197,7 @@ export function InterviewChatClient({
                   footer={
                     showSkipFooter ? (
                       <SkipActionPopover
-                        onSkipToNext={handleSkipToNext}
-                        onEndInterview={handleEndInterviewVoluntary}
+                        onSelect={handleSkipAction}
                         disabled={isLoading}
                       />
                     ) : undefined

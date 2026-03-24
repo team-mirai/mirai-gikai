@@ -14,27 +14,36 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+const SKIP_ACTIONS = [
+  {
+    label: "次の質問に進む",
+    icon: CircleArrowRight,
+  },
+  {
+    label: "他に言いたいことがある",
+    icon: MessageCircleMore,
+  },
+] as const;
+
+const END_ACTION = {
+  label: "インタビューを終了する",
+  icon: LogOut,
+} as const;
+
 interface SkipActionPopoverProps {
-  onSkipToNext: () => void;
-  onEndInterview: () => void;
+  onSelect: (text: string) => void;
   disabled?: boolean;
 }
 
 export function SkipActionPopover({
-  onSkipToNext,
-  onEndInterview,
+  onSelect,
   disabled = false,
 }: SkipActionPopoverProps) {
   const [open, setOpen] = useState(false);
 
-  const handleSkipToNext = () => {
+  const handleSelect = (text: string) => {
     setOpen(false);
-    onSkipToNext();
-  };
-
-  const handleEndInterview = () => {
-    setOpen(false);
-    onEndInterview();
+    onSelect(text);
   };
 
   return (
@@ -57,32 +66,27 @@ export function SkipActionPopover({
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 px-4">
-            <Button
-              variant="ghost"
-              onClick={handleSkipToNext}
-              className="h-auto justify-start gap-2 p-0 text-xs font-medium leading-[1.8] text-mirai-text hover:bg-transparent hover:opacity-70"
-            >
-              <CircleArrowRight className="size-5 shrink-0" />
-              次の質問に進む
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setOpen(false)}
-              className="h-auto justify-start gap-2 p-0 text-xs font-medium leading-[1.8] text-mirai-text hover:bg-transparent hover:opacity-70"
-            >
-              <MessageCircleMore className="size-5 shrink-0" />
-              他に言いたいことがある
-            </Button>
+            {SKIP_ACTIONS.map((action) => (
+              <Button
+                key={action.label}
+                variant="ghost"
+                onClick={() => handleSelect(action.label)}
+                className="h-auto justify-start gap-2 p-0 text-xs font-medium leading-[1.8] text-mirai-text hover:bg-transparent hover:opacity-70"
+              >
+                <action.icon className="size-5 shrink-0" />
+                {action.label}
+              </Button>
+            ))}
           </div>
           <div className="border-t border-gray-200" />
           <div className="px-4">
             <Button
               variant="ghost"
-              onClick={handleEndInterview}
+              onClick={() => handleSelect(END_ACTION.label)}
               className="h-auto justify-start gap-2 p-0 text-xs font-medium leading-[1.8] text-mirai-text hover:bg-transparent hover:opacity-70"
             >
-              <LogOut className="size-5 shrink-0" />
-              インタビューを終了する
+              <END_ACTION.icon className="size-5 shrink-0" />
+              {END_ACTION.label}
             </Button>
           </div>
         </div>
