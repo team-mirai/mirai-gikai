@@ -5,8 +5,20 @@ import { buildTopChatSystemPrompt } from "./templates/top-chat-system";
 /** プロンプト名からビルド関数へのマップ */
 const PROMPT_BUILDERS: Record<string, (variables: PromptVariables) => string> =
   {
-    "top-chat-system": (v) => buildTopChatSystemPrompt(v.billSummary ?? ""),
+    "top-chat-system": (v) => {
+      if (!v.billSummary) {
+        throw new Error(
+          'Missing required variable "billSummary" for prompt "top-chat-system"'
+        );
+      }
+      return buildTopChatSystemPrompt(v.billSummary);
+    },
   };
+
+/** ソースコードで管理するプロンプト名の一覧 */
+export const SOURCE_CODE_PROMPT_NAMES: ReadonlySet<string> = new Set(
+  Object.keys(PROMPT_BUILDERS)
+);
 
 /**
  * ソースコードに定義されたプロンプトテンプレートを返すプロバイダー

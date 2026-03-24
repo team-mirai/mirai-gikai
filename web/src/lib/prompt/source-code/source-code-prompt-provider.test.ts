@@ -29,9 +29,9 @@ describe("SourceCodePromptProvider", () => {
     );
   });
 
-  it("変数なしでも呼び出せる", async () => {
-    const result = await provider.getPrompt("top-chat-system");
-
-    expect(result.content).toContain("みらい議会");
+  it("billSummary が未指定の場合にエラーをスローする", async () => {
+    await expect(provider.getPrompt("top-chat-system")).rejects.toThrow(
+      'Missing required variable "billSummary"'
+    );
   });
 });

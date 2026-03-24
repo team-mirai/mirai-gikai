@@ -3,10 +3,10 @@ import { CompositePromptProvider } from "./composite/composite-prompt-provider";
 import type { PromptProvider } from "./interface/prompt-provider";
 import { getLangfuseClient } from "./langfuse/client";
 import { LangfusePromptProvider } from "./langfuse/langfuse-prompt-provider";
-import { SourceCodePromptProvider } from "./source-code/source-code-prompt-provider";
-
-/** ソースコードで管理するプロンプト名の一覧 */
-const SOURCE_CODE_PROMPT_NAMES = new Set(["top-chat-system"]);
+import {
+  SOURCE_CODE_PROMPT_NAMES,
+  SourceCodePromptProvider,
+} from "./source-code/source-code-prompt-provider";
 
 /**
  * プロンプトプロバイダーの作成処理
