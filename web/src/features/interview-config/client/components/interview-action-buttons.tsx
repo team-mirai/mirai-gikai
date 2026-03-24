@@ -29,13 +29,7 @@ export function InterviewActionButtons({
 
   // 完了済みの場合：「もう一度新たに回答する」ボタン（確認ダイアログなし）
   if (isCompleted && sessionInfo?.reportId) {
-    return (
-      <NewInterviewButton
-        sessionId={sessionInfo.id}
-        billId={billId}
-        previewToken={previewToken}
-      />
-    );
+    return <NewInterviewButton billId={billId} previewToken={previewToken} />;
   }
 
   // 進行中の場合は直接遷移
