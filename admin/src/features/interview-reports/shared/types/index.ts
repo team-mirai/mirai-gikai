@@ -37,12 +37,14 @@ export type RoleFilter =
   | "work_related"
   | "daily_life_affected"
   | "general_citizen";
+export type ModerationFilter = "all" | "ok" | "warning" | "ng" | "unscored";
 
 export interface SessionFilterConfig {
   status: SessionStatusFilter;
   visibility: VisibilityFilter;
   stance: StanceFilter;
   role: RoleFilter;
+  moderation: ModerationFilter;
 }
 
 export const SESSION_STATUS_FILTER_VALUES: readonly SessionStatusFilter[] = [
@@ -72,11 +74,20 @@ export const ROLE_FILTER_VALUES: readonly RoleFilter[] = [
   "general_citizen",
 ] as const;
 
+export const MODERATION_FILTER_VALUES: readonly ModerationFilter[] = [
+  "all",
+  "ok",
+  "warning",
+  "ng",
+  "unscored",
+] as const;
+
 export const DEFAULT_SESSION_FILTER: SessionFilterConfig = {
   status: "completed",
   visibility: "all",
   stance: "all",
   role: "all",
+  moderation: "all",
 };
 
 export type InterviewStatistics = {

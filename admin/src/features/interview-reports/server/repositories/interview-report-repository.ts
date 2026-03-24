@@ -18,7 +18,8 @@ function hasReportLevelFilters(filters: SessionFilterConfig): boolean {
   return (
     filters.visibility !== "all" ||
     filters.stance !== "all" ||
-    filters.role !== "all"
+    filters.role !== "all" ||
+    filters.moderation !== "all"
   );
 }
 
@@ -83,6 +84,12 @@ export async function findInterviewSessionsWithReport(
 
   if (filters.role !== "all") {
     query = query.eq("interview_report.role", filters.role);
+  }
+
+  if (filters.moderation === "unscored") {
+    query = query.is("interview_report.moderation_score", null);
+  } else if (filters.moderation !== "all") {
+    query = query.eq("interview_report.moderation_status", filters.moderation);
   }
 
   const { data, error } = await query
@@ -183,6 +190,12 @@ export async function findFilteredSessionIds(
 
     if (filters.role !== "all") {
       reportQuery = reportQuery.eq("role", filters.role);
+    }
+
+    if (filters.moderation === "unscored") {
+      reportQuery = reportQuery.is("moderation_score", null);
+    } else if (filters.moderation !== "all") {
+      reportQuery = reportQuery.eq("moderation_status", filters.moderation);
     }
 
     const { data, error } = await reportQuery;
@@ -341,6 +354,12 @@ export async function countInterviewSessionsByConfigId(
 
   if (filters.role !== "all") {
     query = query.eq("interview_report.role", filters.role);
+  }
+
+  if (filters.moderation === "unscored") {
+    query = query.is("interview_report.moderation_score", null);
+  } else if (filters.moderation !== "all") {
+    query = query.eq("interview_report.moderation_status", filters.moderation);
   }
 
   const { count, error } = await query;

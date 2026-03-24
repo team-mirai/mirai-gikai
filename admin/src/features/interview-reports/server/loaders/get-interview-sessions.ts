@@ -48,10 +48,13 @@ export async function getInterviewSessions(
   } as const;
 
   // message_count/total_content_richness/helpful_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
+  // ただしRPC関数はmoderationフィルタ未対応のため、moderation指定時はRPCソートをスキップ
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
     const rpcFetcher =
-      rpcSortFetchers[sort.field as keyof typeof rpcSortFetchers];
+      filters.moderation === "all"
+        ? rpcSortFetchers[sort.field as keyof typeof rpcSortFetchers]
+        : undefined;
     if (rpcFetcher) {
       const orderedIds = await rpcFetcher(
         config.id,

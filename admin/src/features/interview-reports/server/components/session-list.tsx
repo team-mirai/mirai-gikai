@@ -38,6 +38,7 @@ import {
 } from "../../shared/types";
 import { generatePageNumbers } from "../../shared/utils/pagination-utils";
 import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
+import { ModerationBadge } from "./moderation-badge";
 import { RatingStars } from "./rating-stars";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
@@ -84,6 +85,9 @@ function buildPageUrl(
   }
   if (filters.role !== DEFAULT_SESSION_FILTER.role) {
     params.set("role", filters.role);
+  }
+  if (filters.moderation !== DEFAULT_SESSION_FILTER.moderation) {
+    params.set("moderation", filters.moderation);
   }
   return `${routes.billReports(billId)}?${params.toString()}` as Route;
 }
@@ -138,6 +142,7 @@ export function SessionList({
                   >
                     充実度
                   </SortableTableHead>
+                  <TableHead className="w-32">モデレーション</TableHead>
                   <TableHead className="w-24 text-center">満足度</TableHead>
                   <SortableTableHead
                     field="started_at"
@@ -235,6 +240,16 @@ export function SessionList({
                         null
                           ? session.interview_report.total_content_richness
                           : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <ModerationBadge
+                          status={
+                            session.interview_report?.moderation_status ?? null
+                          }
+                          score={
+                            session.interview_report?.moderation_score ?? null
+                          }
+                        />
                       </TableCell>
                       <TableCell className="text-center">
                         {session.rating != null ? (
