@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { InterviewLPPage } from "@/features/interview-config/client/components/interview-lp-page";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
+import { getUserReportsByInterviewConfig } from "@/features/interview-report/server/loaders/get-user-reports-by-interview-config";
 import { getLatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import { env } from "@/lib/env";
 
@@ -73,14 +74,18 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
     notFound();
   }
 
-  // 最新のセッション情報を取得
-  const latestSession = await getLatestInterviewSession(interviewConfig.id);
+  // 最新のセッション情報とユーザーの過去レポートを取得
+  const [latestSession, userReports] = await Promise.all([
+    getLatestInterviewSession(interviewConfig.id),
+    getUserReportsByInterviewConfig(interviewConfig.id),
+  ]);
 
   return (
     <InterviewLPPage
       bill={bill}
       interviewConfig={interviewConfig}
       sessionInfo={latestSession}
+      userReports={userReports}
     />
   );
 }
