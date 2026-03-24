@@ -25,7 +25,7 @@ interface ChatButtonProps {
   hasInterviewConfig?: boolean;
   difficultyLevel: string;
   pageContext?: {
-    type: "home" | "bill";
+    type: "home" | "bill" | "report";
     bills?: Array<{
       name: string;
       summary?: string;
@@ -33,6 +33,7 @@ interface ChatButtonProps {
       isFeatured?: boolean;
     }>;
   };
+  mobileBottomClass?: string;
 }
 
 export interface ChatButtonRef {
@@ -40,7 +41,16 @@ export interface ChatButtonRef {
 }
 
 export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
-  ({ billContext, hasInterviewConfig, difficultyLevel, pageContext }, ref) => {
+  (
+    {
+      billContext,
+      hasInterviewConfig,
+      difficultyLevel,
+      pageContext,
+      mobileBottomClass,
+    },
+    ref
+  ) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isCompact, setIsCompact] = useState(false);
     const [showText, setShowText] = useState(true);
@@ -110,7 +120,9 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
 
     return (
       <>
-        <div className="fixed max-w-[460px] mx-auto left-6 right-6 bottom-4 z-50 md:bottom-8 flex justify-center pc:hidden">
+        <div
+          className={`fixed max-w-[460px] mx-auto left-6 right-6 ${mobileBottomClass ?? "bottom-4"} z-50 md:bottom-8 flex justify-center pc:hidden`}
+        >
           <div
             className="relative rounded-[50px] bg-gradient-to-tr from-mirai-gradient-start to-mirai-gradient-end p-[2px] shadow-[2px_2px_2px_0px_rgba(0,0,0,0.25)] origin-center flex transition-[flex-basis] ease-in-out"
             style={{

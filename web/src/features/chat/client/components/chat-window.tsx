@@ -33,7 +33,7 @@ interface ChatWindowProps {
   isOpen: boolean;
   onClose: () => void;
   pageContext?: {
-    type: "home" | "bill";
+    type: "home" | "bill" | "report";
     bills?: Array<{
       name: string;
       summary?: string;
@@ -43,6 +43,27 @@ interface ChatWindowProps {
   };
   disableAutoFocus?: boolean;
   sessionId: string;
+}
+
+function getSampleQuestions(
+  billContext?: BillWithContent,
+  pageContext?: { type: "home" | "bill" | "report" }
+): string[] {
+  if (pageContext?.type === "report") {
+    return [
+      "この法案のポイントは？",
+      "この法案は私にどんな影響がある？",
+      "私もインタビューを受けたい",
+    ];
+  }
+  if (billContext) {
+    return ["この法案のポイントは？", "この法案は私にどんな影響がある？"];
+  }
+  return [
+    "みらい議会って何？",
+    "国会って何をするところ？",
+    "注目の法案について教えて",
+  ];
 }
 
 /**
@@ -87,7 +108,7 @@ function ChatMessages({
           <p className="text-sm font-bold leading-[1.8] text-mirai-text">
             国会や法案について、気になることをAIに質問してください。
           </p>
-          {billContext && (
+          {billContext && pageContext?.type !== "report" && (
             <p className="text-sm font-bold leading-[1.8] text-mirai-text">
               本文中のテキストを選択すると簡単にAIに質問できます
             </p>
@@ -96,14 +117,7 @@ function ChatMessages({
 
         {/* サンプル質問チップ */}
         <div className="flex flex-wrap gap-3">
-          {(billContext
-            ? [`この法案のポイントは？`, "この法案は私にどんな影響がある？"]
-            : [
-                "みらい議会って何？",
-                "国会って何をするところ？",
-                "注目の法案について教えて",
-              ]
-          ).map((question) => {
+          {getSampleQuestions(billContext, pageContext).map((question) => {
             return (
               <button
                 key={question}
