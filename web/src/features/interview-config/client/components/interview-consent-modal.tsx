@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Markdown from "react-markdown";
@@ -103,7 +104,7 @@ export function InterviewConsentModal({
   const handleAgree = () => {
     setIsLoading(true);
     const destination = getInterviewChatLink(billId, previewToken);
-    router.push(destination);
+    router.push(destination as Route);
   };
 
   return (

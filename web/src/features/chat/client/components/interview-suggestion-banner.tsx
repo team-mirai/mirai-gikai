@@ -1,5 +1,5 @@
-import { ArrowRight, Check } from "lucide-react";
-import Image from "next/image";
+import type { Route } from "next";
+import { ArrowRight, BotMessageSquare, Check } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
@@ -16,12 +16,7 @@ export function InterviewSuggestionBanner({
   return (
     <div className="flex gap-3 rounded-2xl bg-mirai-surface-light p-4">
       <div className="flex-shrink-0 size-10 rounded-lg bg-mirai-gradient flex items-center justify-center">
-        <Image
-          src="/icons/chat-button-icon.svg"
-          alt=""
-          width={32}
-          height={32}
-        />
+        <BotMessageSquare className="size-8 text-black" />
       </div>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-2">
@@ -60,7 +55,7 @@ export function InterviewSuggestionBanner({
           asChild
           className="bg-mirai-gradient text-black border border-black rounded-3xl h-9 px-4 font-medium text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2.5"
         >
-          <Link href={getInterviewLPLink(billId)}>
+          <Link href={getInterviewLPLink(billId) as Route}>
             <span>AIインタビューを受ける</span>
             <ArrowRight className="size-3" />
           </Link>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Route } from "next";
 import { MessageSquareMore } from "lucide-react";
 import Link from "next/link";
 import { SpeechBubble } from "@/components/ui/speech-bubble";
@@ -16,11 +17,14 @@ interface ReportContentProps {
   summary: string | null;
   stance: string | null;
   role: string | null;
+  roleTitle?: string | null;
   sessionStartedAt: string | null;
   duration?: string;
   characterCount: number;
   roleDescription: string | null;
   opinions: Opinion[];
+  /** 遷移元のコンテキスト。"complete" の場合、会話ログへのリンクに ?from=complete を付与 */
+  from?: "complete";
   /** 意見リストの後に差し込む追加セクション（有識者登録バナーなど） */
   children?: ReactNode;
 }
@@ -31,19 +35,21 @@ export function ReportContent({
   summary,
   stance,
   role,
+  roleTitle,
   sessionStartedAt,
   duration,
   characterCount,
   roleDescription,
   opinions,
+  from,
   children,
 }: ReportContentProps) {
   return (
-    <div className="flex flex-col gap-9">
+    <div className="flex flex-col gap-12">
       {/* 要約カード */}
-      <div className="flex flex-col items-center gap-9">
-        <SpeechBubble>
-          <p className="text-lg font-bold text-gray-800 leading-relaxed relative z-10 text-center">
+      <div className="flex flex-col items-center gap-12">
+        <SpeechBubble className="px-7 py-8">
+          <p className="text-[22px] font-bold text-black leading-[36px] relative z-10">
             {summary}
           </p>
         </SpeechBubble>
@@ -52,6 +58,7 @@ export function ReportContent({
         <ReportMetaInfo
           stance={stance}
           role={role}
+          roleTitle={roleTitle}
           sessionStartedAt={sessionStartedAt}
           duration={duration}
           characterCount={characterCount}
@@ -67,7 +74,7 @@ export function ReportContent({
         title="💬主な意見"
         footer={
           <Link
-            href={getInterviewChatLogLink(reportId)}
+            href={getInterviewChatLogLink(reportId, from) as Route}
             className="flex items-center justify-center gap-2.5 px-6 py-3 border border-gray-800 rounded-full"
           >
             <MessageSquareMore className="w-6 h-6 text-gray-800" />

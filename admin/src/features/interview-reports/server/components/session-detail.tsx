@@ -1,18 +1,21 @@
-import { Clock, MessageCircle, User } from "lucide-react";
+import "server-only";
+import {
+  Bot,
+  Clock,
+  Frown,
+  Lightbulb,
+  MessageCircle,
+  User,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
 import { formatRoleLabel } from "../../shared/constants";
 import type { InterviewSessionDetail } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
+import { getMessageDisplayText } from "../../shared/utils/get-message-display-text";
+import { parseOpinions } from "../../shared/utils/parse-opinions";
+import { RatingStars } from "./rating-stars";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
 
@@ -21,11 +24,46 @@ interface SessionDetailProps {
   billId: string;
 }
 
+const contentRichnessLabels: Record<string, string> = {
+  total: "総合",
+  clarity: "明確さ",
+  specificity: "具体性",
+  impact: "影響への言及",
+  constructiveness: "提案の広がり",
+};
+
+function ContentRichnessBar({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-20 text-sm text-gray-500 shrink-0">{label}</div>
+      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-blue-500 rounded-full"
+          style={{ width: `${value}%` }}
+        />
+      </div>
+      <div className="w-8 text-sm font-medium text-right">{value}</div>
+    </div>
+  );
+}
+
 export function SessionDetail({ session, billId }: SessionDetailProps) {
   const status = getSessionStatus(session);
   const duration = formatDuration(session.started_at, session.completed_at);
   const report = session.interview_report;
   const messages = session.interview_messages;
+  const reactionCounts = session.reaction_counts;
+
+  const contentRichness = report?.content_richness as Record<
+    string,
+    unknown
+  > | null;
 
   return (
     <div className="space-y-6">
@@ -72,6 +110,16 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                 {messages.length}
               </div>
             </div>
+            <div>
+              <div className="text-sm text-gray-500">ユーザー評価</div>
+              <div className="mt-1">
+                {session.rating ? (
+                  <RatingStars rating={session.rating} showLabel />
+                ) : (
+                  <span className="text-sm text-gray-400">未評価</span>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -86,6 +134,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
               sessionId={session.id}
               billId={billId}
               isPublic={report.is_public_by_admin ?? false}
+              isPublicByUser={report.is_public_by_user ?? false}
             />
           )}
         </CardHeader>
@@ -119,13 +168,28 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                   {report.summary || "-"}
                 </div>
               </div>
-              {report.opinions && (
+              {report.opinions && parseOpinions(report.opinions).length > 0 && (
                 <div>
                   <div className="text-sm text-gray-500 mb-1">意見</div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <pre className="text-sm whitespace-pre-wrap">
-                      {JSON.stringify(report.opinions, null, 2)}
-                    </pre>
+                  <div className="space-y-3">
+                    {parseOpinions(report.opinions).map((opinion, index) => (
+                      <div
+                        key={`opinion-${index}-${opinion.title.slice(0, 20)}`}
+                        className="bg-gray-50 p-3 rounded-lg"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-xs">
+                            意見{index + 1}
+                          </Badge>
+                          <span className="text-sm font-medium">
+                            {opinion.title}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {opinion.content}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -138,49 +202,130 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
         </CardContent>
       </Card>
 
-      {/* チャット生データ */}
+      {/* 情報充実度・リアクション */}
+      {report && (contentRichness || reactionCounts) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">情報充実度・リアクション</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 情報充実度 */}
+              {contentRichness && (
+                <div>
+                  <div className="text-sm text-gray-500 mb-3">情報充実度</div>
+                  <div className="space-y-2.5">
+                    {Object.entries(contentRichnessLabels).map(
+                      ([key, label]) => {
+                        const value = contentRichness[key];
+                        if (typeof value !== "number") return null;
+                        return (
+                          <ContentRichnessBar
+                            key={key}
+                            label={label}
+                            value={value}
+                          />
+                        );
+                      }
+                    )}
+                  </div>
+                  {typeof contentRichness.reasoning === "string" && (
+                    <div className="mt-3">
+                      <div className="text-sm text-gray-500 mb-1">評価根拠</div>
+                      <div className="text-sm bg-gray-50 p-3 rounded-lg">
+                        {contentRichness.reasoning}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* リアクション */}
+              {reactionCounts && (
+                <div>
+                  <div className="text-sm text-gray-500 mb-3">
+                    ユーザーリアクション
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                        <Lightbulb className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">参考になる</div>
+                        <div className="text-lg font-semibold">
+                          {reactionCounts.helpful}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
+                        <Frown className="h-5 w-5 text-orange-500" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">うーん...</div>
+                        <div className="text-lg font-semibold">
+                          {reactionCounts.hmm}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* チャット履歴 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">チャット履歴</CardTitle>
         </CardHeader>
         <CardContent>
           {messages.length > 0 ? (
-            <div className="rounded-lg border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="w-24">役割</TableHead>
-                    <TableHead>内容</TableHead>
-                    <TableHead className="w-44">時刻</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {messages.map((message) => (
-                    <TableRow key={message.id}>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            message.role === "assistant"
-                              ? "bg-blue-50 text-blue-700 border-blue-200"
-                              : "bg-gray-50 text-gray-700 border-gray-200"
-                          }
-                        >
-                          {message.role === "assistant" ? "AI" : "ユーザー"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="whitespace-pre-wrap">
-                        {message.content}
-                      </TableCell>
-                      <TableCell className="text-gray-500 text-sm">
+            <div className="space-y-4">
+              {messages.map((message) => {
+                const isAssistant = message.role === "assistant";
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${isAssistant ? "" : "flex-row-reverse"}`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        isAssistant
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {isAssistant ? (
+                        <Bot className="h-4 w-4" />
+                      ) : (
+                        <User className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div
+                      className={`max-w-[75%] ${isAssistant ? "" : "text-right"}`}
+                    >
+                      <div
+                        className={`inline-block rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap text-left ${
+                          isAssistant
+                            ? "bg-blue-50 text-gray-800 rounded-tl-sm"
+                            : "bg-gray-100 text-gray-800 rounded-tr-sm"
+                        }`}
+                      >
+                        {getMessageDisplayText(message.content)}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1 px-1">
                         {new Date(message.created_at).toLocaleString("ja-JP", {
                           timeZone: "Asia/Tokyo",
                         })}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-gray-500 text-sm">メッセージはありません</div>

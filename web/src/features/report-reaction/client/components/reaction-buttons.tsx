@@ -2,25 +2,39 @@
 
 import { Button } from "@/components/ui/button";
 import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
-import { Frown, Lightbulb } from "lucide-react";
+import { Lightbulb, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { toggleReaction } from "../../server/actions/toggle-reaction";
 import type { ReactionType, ReportReactionData } from "../../shared/types";
 import { computeOptimisticState } from "../../shared/utils/compute-optimistic-state";
+import { ReportShareModal } from "./report-share-modal";
 
 interface ReactionButtonsProps {
   reportId: string;
   initialData: ReportReactionData;
+  billName: string;
+  shareUrl: string;
+  thumbnailUrl?: string | null;
+  /** シェア時のメッセージ（レポートのsummary等） */
+  shareMessage?: string | null;
+  /** 共有ボタンを表示するかどうか（非公開レポートでは非表示） */
+  showShare?: boolean;
 }
 
 export function ReactionButtons({
   reportId,
   initialData,
+  billName,
+  shareUrl,
+  thumbnailUrl,
+  shareMessage,
+  showShare = true,
 }: ReactionButtonsProps) {
   useAnonymousSupabaseUser();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [optimistic, setOptimistic] = useOptimistic(
     initialData,
     computeOptimisticState
@@ -32,7 +46,6 @@ export function ReactionButtons({
       try {
         const result = await toggleReaction(reportId, reactionType);
         if (!result.success) {
-          // 失敗時はサーバーデータで再描画して不整合を解消
           router.refresh();
         }
       } catch {
@@ -41,78 +54,69 @@ export function ReactionButtons({
     });
   };
 
+  const isActive = optimistic.userReaction === "helpful";
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-      <div className="flex justify-center pb-6 pt-10 bg-gradient-to-t from-mirai-surface from-40% to-transparent pointer-events-auto">
-        <div className="flex items-center gap-6">
-          <ReactionButton
-            type="helpful"
-            label="参考になる"
-            count={optimistic.counts.helpful}
-            isActive={optimistic.userReaction === "helpful"}
-            disabled={isPending}
-            onClick={() => handleClick("helpful")}
-          />
-          <ReactionButton
-            type="hmm"
-            label="うーん..."
-            count={optimistic.counts.hmm}
-            isActive={optimistic.userReaction === "hmm"}
-            disabled={isPending}
-            onClick={() => handleClick("hmm")}
-          />
+    <>
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="max-w-[700px] mx-auto bg-white">
+          <div className="border-t border-gray-400" />
+          <div className="flex items-stretch">
+            {/* 参考になる */}
+            <Button
+              variant="ghost"
+              onClick={() => handleClick("helpful")}
+              disabled={isPending}
+              className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
+            >
+              <Lightbulb
+                size={20}
+                className={`transition-colors ${
+                  isActive
+                    ? "text-mirai-reaction-active fill-mirai-reaction-active"
+                    : "text-gray-800"
+                }`}
+              />
+              <span className="text-[15px] font-bold text-gray-800">
+                参考になる
+              </span>
+              {optimistic.counts.helpful > 0 && (
+                <span className="text-[15px] font-bold text-gray-800">
+                  {optimistic.counts.helpful}
+                </span>
+              )}
+            </Button>
+
+            {showShare && (
+              <>
+                {/* セパレーター */}
+                <div className="w-px self-center h-6 bg-gray-400 shrink-0" />
+
+                {/* 共有する */}
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
+                >
+                  <Upload size={20} className="text-gray-800" />
+                  <span className="text-[15px] font-bold text-gray-800">
+                    共有する
+                  </span>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-interface ReactionButtonProps {
-  type: ReactionType;
-  label: string;
-  count: number;
-  isActive: boolean;
-  disabled: boolean;
-  onClick: () => void;
-}
-
-function ReactionButton({
-  type,
-  label,
-  count,
-  isActive,
-  disabled,
-  onClick,
-}: ReactionButtonProps) {
-  const Icon = type === "helpful" ? Lightbulb : Frown;
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={onClick}
-      disabled={disabled}
-      className="flex items-center gap-2 h-auto px-0 py-0 hover:bg-transparent"
-    >
-      <div
-        className={`w-14 h-14 rounded-full bg-white flex items-center justify-center border-2 transition-colors ${
-          isActive
-            ? "border-mirai-reaction-active"
-            : "border-mirai-reaction-inactive"
-        }`}
-      >
-        <Icon
-          size={24}
-          className={`transition-colors ${
-            isActive
-              ? "text-mirai-reaction-active"
-              : "text-mirai-reaction-inactive"
-          }`}
-        />
-      </div>
-      <span className="text-[15px] font-medium text-mirai-text">{label}</span>
-      {count > 0 && (
-        <span className="text-[15px] font-medium text-black">{count}</span>
-      )}
-    </Button>
+      <ReportShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        billName={billName}
+        shareUrl={shareUrl}
+        thumbnailUrl={thumbnailUrl}
+        shareMessage={shareMessage}
+      />
+    </>
   );
 }

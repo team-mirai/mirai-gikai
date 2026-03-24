@@ -25,7 +25,7 @@ const validReportMessage = JSON.stringify({
         source_message_id: null,
       },
     ],
-    scores: {
+    content_richness: {
       total: 70,
       clarity: 80,
       specificity: 60,

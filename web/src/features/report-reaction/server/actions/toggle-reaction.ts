@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
+import { routes } from "@/lib/routes";
 import type { ReactionType } from "../../shared/types";
 import {
   deleteReaction,
@@ -54,20 +55,20 @@ export async function toggleReaction(
     if (currentReaction === reactionType) {
       // 同じリアクション → 解除
       await deleteReaction(reportId, userId);
-      revalidatePath(`/report/${reportId}/chat-log`);
+      revalidatePath(routes.reportChatLog(reportId));
       if (billId) {
-        revalidatePath(`/bills/${billId}`);
-        revalidatePath(`/bills/${billId}/opinions`);
+        revalidatePath(routes.billDetail(billId));
+        revalidatePath(routes.billOpinions(billId));
       }
       return { success: true, newReaction: null };
     }
 
     // 新規 or 切り替え → upsert
     await upsertReaction(reportId, userId, reactionType);
-    revalidatePath(`/report/${reportId}/chat-log`);
+    revalidatePath(routes.reportChatLog(reportId));
     if (billId) {
-      revalidatePath(`/bills/${billId}`);
-      revalidatePath(`/bills/${billId}/opinions`);
+      revalidatePath(routes.billDetail(billId));
+      revalidatePath(routes.billOpinions(billId));
     }
     return { success: true, newReaction: reactionType };
   } catch {

@@ -1,6 +1,8 @@
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { routes } from "@/lib/routes";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { isNextRedirectError } from "@/lib/utils/redirect";
 
@@ -32,7 +34,7 @@ export function useBillForm() {
   };
 
   const handleCancel = () => {
-    router.push("/bills");
+    router.push(routes.bills() as Route);
   };
 
   return {

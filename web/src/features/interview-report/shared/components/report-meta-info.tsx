@@ -5,6 +5,7 @@ import { StanceDisplay } from "./stance-display";
 interface ReportMetaInfoProps {
   stance?: string | null;
   role?: string | null;
+  roleTitle?: string | null;
   sessionStartedAt: string | null;
   duration?: string;
   characterCount: number;
@@ -14,6 +15,7 @@ interface ReportMetaInfoProps {
 export function ReportMetaInfo({
   stance,
   role,
+  roleTitle,
   sessionStartedAt,
   duration,
   characterCount,
@@ -22,14 +24,16 @@ export function ReportMetaInfo({
   const isChatLog = variant === "chat-log";
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-4">
       <div
         className={`flex flex-col items-center ${isChatLog ? "gap-1" : "gap-3"}`}
       >
         {/* スタンス */}
         {stance && <StanceDisplay stance={stance} />}
         {/* 役割 */}
-        {role && <RoleDisplay role={role} />}
+        {(role || roleTitle) && (
+          <RoleDisplay role={role} roleTitle={roleTitle} />
+        )}
       </div>
 
       {/* 日時・時間・文字数 */}
@@ -45,10 +49,10 @@ export function ReportMetaInfo({
         </div>
       ) : (
         <div className="flex flex-col items-center gap-1 font-medium">
-          <p className="text-sm text-gray-800">
+          <p className="text-[15px] text-black">
             {formatDateTime(sessionStartedAt)}
           </p>
-          <p className="text-sm text-gray-800">
+          <p className="text-[15px] text-black">
             {duration
               ? `${duration} / ${characterCount} 文字`
               : `${characterCount} 文字`}

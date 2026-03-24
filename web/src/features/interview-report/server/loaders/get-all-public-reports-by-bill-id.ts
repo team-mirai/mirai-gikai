@@ -23,7 +23,7 @@ export async function getAllPublicReportsByBillId(
         role: r.role,
         role_title: r.role_title,
         summary: r.summary,
-        total_score: r.total_score,
+        total_content_richness: r.total_content_richness,
         created_at: r.created_at,
       }));
     },

@@ -1,9 +1,11 @@
 "use client";
 
 import { Loader2, Play } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import { ANALYSIS_STEPS, ANALYSIS_TOTAL_STEPS } from "../../shared/constants";
 import { formatDurationMs } from "../../shared/utils/format-analysis-duration";
 
@@ -78,7 +80,9 @@ export function RunAnalysisButton({ billId }: RunAnalysisButtonProps) {
       if (data.status === "completed") {
         stopPolling();
         setIsRunning(false);
-        router.push(`/bills/${billId}/topic-analysis/${versionIdRef.current}`);
+        router.push(
+          routes.billTopicAnalysisDetail(billId, versionIdRef.current!) as Route
+        );
         router.refresh();
       } else if (data.status === "failed") {
         stopPolling();

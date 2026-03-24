@@ -180,7 +180,7 @@ describe("parseMessageContent", () => {
     expect(result.text).toBe("レポートです");
   });
 
-  it("reportのscoresフィールドは除外される", () => {
+  it("reportのcontent_richnessフィールドは除外される", () => {
     const content = JSON.stringify({
       text: "テスト",
       report: {
@@ -190,12 +190,12 @@ describe("parseMessageContent", () => {
         role_description: null,
         role_title: null,
         opinions: [],
-        scores: { total: 80, clarity: 70 },
+        content_richness: { total: 80, clarity: 70 },
       },
     });
     const result = parseMessageContent(content);
     expect(result.report).not.toBeNull();
-    expect(result.report).not.toHaveProperty("scores");
+    expect(result.report).not.toHaveProperty("content_richness");
   });
 
   it("reportが無効（全てnull/空）ならnullを返す", () => {
@@ -250,17 +250,17 @@ describe("parseMessageContent", () => {
     expect(result.questionId).toBe("q-snake");
   });
 
-  it("question_idがない場合はquick_repliesが空配列になる", () => {
+  it("question_idがなくてもquick_repliesが返される", () => {
     const content = JSON.stringify({
       text: "テスト",
       quick_replies: ["選択肢1", "選択肢2"],
     });
     const result = parseMessageContent(content);
-    expect(result.quickReplies).toEqual([]);
+    expect(result.quickReplies).toEqual(["選択肢1", "選択肢2"]);
     expect(result.questionId).toBeNull();
   });
 
-  it("question_idがある場合のみquick_repliesが返される", () => {
+  it("question_idがある場合もquick_repliesが返される", () => {
     const content = JSON.stringify({
       text: "テスト",
       question_id: "q1",

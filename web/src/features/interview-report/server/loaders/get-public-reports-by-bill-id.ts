@@ -15,7 +15,7 @@ export type PublicInterviewReport = {
   role: string | null;
   role_title: string | null;
   summary: string | null;
-  total_score: number | null;
+  total_content_richness: number | null;
   created_at: string;
 };
 
@@ -43,7 +43,7 @@ export async function getPublicReportsByBillId(
         role: r.role,
         role_title: r.role_title,
         summary: r.summary,
-        total_score: r.total_score,
+        total_content_richness: r.total_content_richness,
         created_at: r.created_at,
       }));
 

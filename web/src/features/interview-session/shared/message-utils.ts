@@ -37,17 +37,18 @@ export function parseMessageContent(content: string): {
             ? parsed.questionId
             : null;
       const rawReport = parsed.report;
-      const quickReplies =
-        questionId && Array.isArray(parsed.quick_replies)
-          ? parsed.quick_replies
-          : [];
+      const quickReplies = Array.isArray(parsed.quick_replies)
+        ? parsed.quick_replies.filter(
+            (r: unknown): r is string => typeof r === "string" && r.length > 0
+          )
+        : [];
       const topicTitle =
         typeof parsed.topic_title === "string" && parsed.topic_title
           ? parsed.topic_title
           : null;
 
       if (rawReport) {
-        // opinionsがnullの場合は空配列に変換（scoresは除外）
+        // opinionsがnullの場合は空配列に変換（content_richnessは除外）
         const report: InterviewReportViewData = {
           summary: rawReport.summary ?? null,
           stance: rawReport.stance ?? null,

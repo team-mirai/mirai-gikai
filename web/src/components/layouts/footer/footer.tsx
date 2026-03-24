@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isInterviewPage } from "@/lib/page-layout-utils";
+import { routes } from "@/lib/routes";
 import { policyLinks, primaryLinks } from "./footer.config";
 
 export function Footer() {
@@ -28,7 +30,7 @@ export function Footer() {
 function FooterLogoSection() {
   return (
     <div className="flex flex-col items-center text-center mb-9">
-      <Link href="/" aria-label="みらい議会 トップページ">
+      <Link href={routes.home()} aria-label="みらい議会 トップページ">
         <Image
           src="/img/logo.svg"
           alt="みらい議会"
@@ -53,7 +55,7 @@ function FooterPrimaryLinks() {
         {primaryLinks.map((link) => (
           <li key={link.label}>
             <Link
-              href={link.href}
+              href={link.href as Route}
               target={link.external ? "_blank" : undefined}
               rel={link.external ? "noreferrer" : undefined}
               className="transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
@@ -74,7 +76,7 @@ function FooterPolicies() {
         {policyLinks.map((policy, index) => (
           <li key={policy.label} className="flex items-center gap-2">
             <Link
-              href={policy.href}
+              href={policy.href as Route}
               target={policy.external ? "_blank" : undefined}
               rel={policy.external ? "noreferrer" : undefined}
               className="transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"

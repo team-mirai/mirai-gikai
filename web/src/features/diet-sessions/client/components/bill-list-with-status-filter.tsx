@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { CompactBillCard } from "@/features/bills/client/components/bill-list/compact-bill-card";
+import { routes } from "@/lib/routes";
 
 type FilterType = "all" | "enacted" | "rejected" | "other";
 
@@ -78,7 +80,7 @@ export function BillListWithStatusFilter({ bills }: Props) {
       ) : (
         <div className="flex flex-col gap-3">
           {filteredBills.map((bill) => (
-            <Link key={bill.id} href={`/bills/${bill.id}`}>
+            <Link key={bill.id} href={routes.billDetail(bill.id) as Route}>
               <CompactBillCard bill={bill} />
             </Link>
           ))}

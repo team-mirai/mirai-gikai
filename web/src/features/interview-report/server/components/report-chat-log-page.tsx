@@ -1,11 +1,18 @@
 import "server-only";
 
 import { Bot, UserRound } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
+import {
+  getBillDetailLink,
+  getInterviewReportCompleteLink,
+  getPublicReportLink,
+} from "@/features/interview-config/shared/utils/interview-links";
 import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
 import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
+import { routes } from "@/lib/routes";
+import { getOrigin } from "@/lib/utils/url";
 import { BackToBillButton } from "../../shared/components/back-to-bill-button";
 import { BackToReportButton } from "../../shared/components/back-to-report-button";
 import { IntervieweeInfo } from "../../shared/components/interviewee-info";
@@ -18,9 +25,13 @@ import { getReportWithMessages } from "../loaders/get-report-with-messages";
 
 interface ReportChatLogPageProps {
   reportId: string;
+  from?: "complete";
 }
 
-export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
+export async function ReportChatLogPage({
+  reportId,
+  from,
+}: ReportChatLogPageProps) {
   const data = await getReportWithMessages(reportId);
 
   if (!data) {
@@ -31,7 +42,15 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
   const billName = bill.bill_content?.title || bill.name;
   const characterCount = countCharacters(messages);
   const opinions = parseOpinions(report.opinions);
-  const reactionData = await getReportReactions(reportId);
+  const [reactionData, origin] = await Promise.all([
+    getReportReactions(reportId),
+    getOrigin(),
+  ]);
+  const shareUrl = `${origin}${routes.publicReport(reportId)}`;
+  const reportHref =
+    from === "complete"
+      ? getInterviewReportCompleteLink(reportId)
+      : getPublicReportLink(reportId);
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -45,7 +64,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
 
           {/* Bill Name */}
           <Link
-            href={getBillDetailLink(report.bill_id)}
+            href={getBillDetailLink(report.bill_id) as Route}
             className="text-sm text-black underline mt-2"
           >
             {billName}
@@ -56,6 +75,7 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
             <ReportMetaInfo
               stance={report.stance}
               role={report.role}
+              roleTitle={report.role_title}
               sessionStartedAt={report.session_started_at}
               characterCount={characterCount}
               variant="chat-log"
@@ -89,21 +109,29 @@ export async function ReportChatLogPage({ reportId }: ReportChatLogPageProps) {
 
           {/* Back to Report / Bill Buttons */}
           <div className="flex flex-col gap-3">
-            <BackToReportButton reportId={reportId} />
+            <BackToReportButton href={reportHref} />
             <BackToBillButton billId={report.bill_id} />
           </div>
 
           {/* Breadcrumb Navigation */}
           <ReportBreadcrumb
             billId={report.bill_id}
-            reportId={reportId}
+            reportHref={reportHref}
             additionalItems={[{ label: "すべての会話ログ" }]}
           />
         </div>
       </div>
 
       {/* Reaction Buttons - Fixed at bottom */}
-      <ReactionButtons reportId={reportId} initialData={reactionData} />
+      <ReactionButtons
+        reportId={reportId}
+        initialData={reactionData}
+        billName={billName}
+        shareUrl={shareUrl}
+        thumbnailUrl={bill.thumbnail_url}
+        shareMessage={report.summary}
+        showShare={report.is_public_by_user && report.is_public_by_admin}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
+import { routes } from "@/lib/routes";
 import { saveInterviewQuestions } from "../../server/actions/save-interview-questions";
 import {
   createInterviewConfig,
@@ -82,7 +83,7 @@ export function InterviewConfigEditClient({
           window.history.replaceState(
             null,
             "",
-            `/bills/${billId}/interview/${result.data.id}/edit`
+            routes.billInterviewEdit(billId, result.data.id)
           );
         } else {
           toast.error(result.error || "設定の作成に失敗しました");

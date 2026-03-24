@@ -16,7 +16,6 @@ import {
 } from "@/features/chat/shared/constants";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
-import { findLatestNonArchivedSession } from "@/features/interview-session/server/repositories/interview-session-repository";
 import { env } from "@/lib/env";
 import {
   type CompiledPrompt,
@@ -24,7 +23,11 @@ import {
   type PromptProvider,
 } from "@/lib/prompt";
 import { AI_MODELS } from "@/lib/ai/models";
-import { getUsageCostUsd, recordChatUsage } from "./cost-tracker";
+import { isWithinDailyCostLimit, recordChatUsage } from "./cost-tracker";
+import {
+  checkSystemDailyCostLimit,
+  checkSystemMonthlyCostLimit,
+} from "./system-cost-guard";
 
 export type ChatMessageMetadata = {
   billContext?: BillWithContent;
@@ -66,11 +69,18 @@ export async function handleChatRequest({
   const context = extractChatContext(messages);
 
   try {
-    // Check cost limit before processing
-    const isWithinLimit = await isWithinCostLimit(userId);
+    // Check per-user cost limit before processing
+    const isWithinLimit = await isWithinDailyCostLimit(
+      userId,
+      env.chat.dailyUserCostLimitUsd
+    );
     if (!isWithinLimit) {
       throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
     }
+
+    // Check system-wide cost limits before processing
+    await checkSystemDailyCostLimit();
+    await checkSystemMonthlyCostLimit();
   } catch (error) {
     if (error instanceof ChatError) {
       throw error;
@@ -92,14 +102,16 @@ export async function handleChatRequest({
   // Determine if interview suggestion should be enabled
   const shouldSuggestInterview = await determineShouldSuggestInterview(
     context,
-    messages,
-    userId
+    messages
   );
 
   // Build system prompt with interview suggestion instructions
+  const pageType =
+    context.pageContext?.type ?? (context.billContext ? "bill" : undefined);
   const systemPrompt = buildSystemPromptWithInterviewInstructions(
     promptResult.content,
-    shouldSuggestInterview
+    shouldSuggestInterview,
+    pageType
   );
 
   // Build tools configuration
@@ -164,21 +176,6 @@ function extractChatContext(
 }
 
 /**
- * ユーザーがコストリミット内かどうかを判定
- */
-async function isWithinCostLimit(userId: string): Promise<boolean> {
-  const jstDayRange = getJstDayRange();
-  const usedCost = await getUsageCostUsd(
-    userId,
-    jstDayRange.from,
-    jstDayRange.to
-  );
-  const limitCost = env.chat.dailyCostLimitUsd;
-
-  return usedCost < limitCost;
-}
-
-/**
  * コンテキストに基づいてプロンプトを組み立てる
  */
 async function buildPrompt(
@@ -213,35 +210,6 @@ async function buildPrompt(
       error instanceof Error ? error.message : String(error)
     );
   }
-}
-
-/**
- * JST基準の1日の時間範囲を取得（UTC形式で返す）
- */
-function getJstDayRange(): { from: string; to: string } {
-  const now = new Date();
-  const jstOffsetMs = 9 * 60 * 60 * 1000;
-  const jstNow = new Date(now.getTime() + jstOffsetMs);
-
-  const startOfJstDay = new Date(
-    Date.UTC(
-      jstNow.getUTCFullYear(),
-      jstNow.getUTCMonth(),
-      jstNow.getUTCDate(),
-      0,
-      0,
-      0,
-      0
-    )
-  );
-
-  const startUtc = new Date(startOfJstDay.getTime() - jstOffsetMs);
-  const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000);
-
-  return {
-    from: startUtc.toISOString(),
-    to: endUtc.toISOString(),
-  };
 }
 
 /**
@@ -302,6 +270,20 @@ function extractGatewayCost(event: {
   return Number.isFinite(numericCost) ? numericCost : undefined;
 }
 
+const INTERVIEW_AWARENESS_BASE = `
+
+## AIインタビュー機能について
+みらい議会には「AIインタビュー」機能があります。これは法案ごとに提供される機能で、ユーザーがAIインタビュアーと対話形式で法案に対する意見や知見を共有できる仕組みです。インタビュー結果は分析・レポート化され、政策議論に活用されます。
+`;
+
+const INTERVIEW_AWARENESS_PROMPT_BILL = `${INTERVIEW_AWARENESS_BASE}
+この法案のインタビュー機能が現在利用可能かどうかは状況によって異なります。インタビューについて質問された場合は、この機能の存在を説明した上で、法案詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
+`;
+
+const INTERVIEW_AWARENESS_PROMPT_HOME = `${INTERVIEW_AWARENESS_BASE}
+インタビューについて質問された場合は、この機能の存在を説明した上で、利用可否は法案ごとに異なるため、興味のある法案の詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
+`;
+
 const INTERVIEW_SUGGESTION_PROMPT = `
 
 ## AIインタビュー提案について
@@ -327,12 +309,12 @@ const INTERVIEW_SUGGESTION_PROMPT = `
  * - 法案ページである
  * - サーバー側でインタビュー設定が公開状態であることを確認
  * - 会話中にまだsuggest_interviewツールが呼び出されていない
- * - ユーザーがこの法案のインタビューを受けたことがない
+ *
+ * NOTE: インタビュー回答済みでも導線を表示する（再回答の促進のため）
  */
 async function determineShouldSuggestInterview(
   context: ChatMessageMetadata,
-  messages: UIMessage<ChatMessageMetadata>[],
-  userId: string
+  messages: UIMessage<ChatMessageMetadata>[]
 ): Promise<boolean> {
   if (!context.billContext) {
     return false;
@@ -346,15 +328,7 @@ async function determineShouldSuggestInterview(
   const { data: interviewConfig } = await findPublicInterviewConfigByBillId(
     context.billContext.id
   );
-  if (!interviewConfig) {
-    return false;
-  }
-
-  const hasSession = await hasExistingInterviewSession(
-    interviewConfig.id,
-    userId
-  );
-  return !hasSession;
+  return !!interviewConfig;
 }
 
 /**
@@ -374,36 +348,24 @@ function hasExistingSuggestInterview(
 }
 
 /**
- * ユーザーがこのインタビュー設定に対するセッションを持っているか判定
- * fail-closed: エラー時はtrue（セッションあり）を返し、誤ったバナー表示を防ぐ
- */
-async function hasExistingInterviewSession(
-  interviewConfigId: string,
-  userId: string
-): Promise<boolean> {
-  try {
-    const session = await findLatestNonArchivedSession(
-      interviewConfigId,
-      userId
-    );
-    return session !== null;
-  } catch (error) {
-    console.error("Failed to check existing interview session:", error);
-    return true;
-  }
-}
-
-/**
  * インタビュー提案の指示をシステムプロンプトに追加
  */
 function buildSystemPromptWithInterviewInstructions(
   basePrompt: string,
-  shouldSuggestInterview: boolean
+  shouldSuggestInterview: boolean,
+  pageType: "home" | "bill" | undefined
 ): string {
-  if (shouldSuggestInterview) {
-    return basePrompt + INTERVIEW_SUGGESTION_PROMPT;
+  if (pageType === "home") {
+    return basePrompt + INTERVIEW_AWARENESS_PROMPT_HOME;
   }
-  return basePrompt;
+  if (pageType !== "bill") {
+    return basePrompt;
+  }
+  let prompt = basePrompt + INTERVIEW_AWARENESS_PROMPT_BILL;
+  if (shouldSuggestInterview) {
+    prompt += INTERVIEW_SUGGESTION_PROMPT;
+  }
+  return prompt;
 }
 
 /**

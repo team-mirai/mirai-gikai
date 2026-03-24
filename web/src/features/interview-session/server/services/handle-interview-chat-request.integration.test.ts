@@ -54,7 +54,7 @@ const validSummaryResponse = JSON.stringify({
         content: "社会全体の利益になると考える",
       },
     ],
-    scores: {
+    content_richness: {
       total: 70,
       clarity: 80,
       specificity: 60,
@@ -97,6 +97,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
         ],
         billId,
         currentStage: "chat",
+        userId: testUser.id,
         deps: {
           chatModel: mockModel,
           getBill: async () => null,
@@ -129,6 +130,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
         messages: [{ role: "user", content: "   " }],
         billId,
         currentStage: "chat",
+        userId: testUser.id,
         deps: {
           chatModel: mockModel,
           getBill: async () => null,
@@ -166,6 +168,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
         billId,
         currentStage: "chat",
         isRetry: true,
+        userId: testUser.id,
         deps: {
           chatModel: mockModel,
           getBill: async () => null,
@@ -195,6 +198,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
         messages: [{ role: "user", content: "まとめてください" }],
         billId,
         currentStage: "summary",
+        userId: testUser.id,
         deps: {
           summaryModel: mockModel,
           getBill: async () => null,
@@ -229,6 +233,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
         messages: [{ role: "user", content: "まとめてください" }],
         billId,
         currentStage: "summary",
+        userId: testUser.id,
         deps: {
           summaryModel: summaryMock,
           chatModel: chatMock,

@@ -1,14 +1,17 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const navigationLinks = [
-  { href: "/bills", label: "議案管理" },
-  { href: "/diet-sessions", label: "国会会期管理" },
-  { href: "/tags", label: "タグ管理" },
-  { href: "/admins", label: "管理者" },
+  { href: routes.bills(), label: "議案管理" },
+  { href: routes.dietSessions(), label: "国会会期管理" },
+  { href: routes.tags(), label: "タグ管理" },
+  { href: routes.experts(), label: "有識者" },
+  { href: routes.admins(), label: "管理者" },
 ];
 
 export function NavigationLinks() {
@@ -23,7 +26,7 @@ export function NavigationLinks() {
           return (
             <Link
               key={link.href}
-              href={link.href}
+              href={link.href as Route}
               className={cn(
                 "inline-flex items-center gap-2 px-1 py-4 text-sm border-b-2 transition-colors",
                 isActive
