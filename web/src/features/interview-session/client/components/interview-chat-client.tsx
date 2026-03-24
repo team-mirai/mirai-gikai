@@ -1,13 +1,14 @@
 "use client";
 
 import { SquareArrowOutUpRight } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import {
   Conversation,
   ConversationContent,
 } from "@/components/ai-elements/conversation";
-import { routes } from "@/lib/routes";
+import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { useInterviewChat } from "../hooks/use-interview-chat";
 import { useInterviewRating } from "../hooks/use-interview-rating";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
@@ -168,11 +169,7 @@ export function InterviewChatClient({
             {/* 法案リンク */}
             <div className="flex flex-col">
               <Link
-                href={
-                  previewToken
-                    ? routes.previewBillDetail(billId, previewToken)
-                    : routes.billDetail(billId)
-                }
+                href={getBillDetailLink(billId, previewToken) as Route}
                 className="inline-flex items-center gap-1"
               >
                 <span className="text-sm font-medium leading-[1.8] text-primary underline">
