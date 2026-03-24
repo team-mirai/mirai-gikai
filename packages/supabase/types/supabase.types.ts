@@ -992,6 +992,10 @@ export type Database = {
         Args: { target_session_id: string }
         Returns: undefined
       }
+      sum_chat_usage_cost: {
+        Args: { from_iso: string; to_iso: string }
+        Returns: number
+      }
     }
     Enums: {
       bill_publish_status: "draft" | "published" | "coming_soon"
