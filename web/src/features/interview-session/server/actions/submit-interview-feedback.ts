@@ -1,10 +1,14 @@
 "use server";
 
 import {
+  FEEDBACK_RATING_THRESHOLD,
   FEEDBACK_TAGS,
   type FeedbackTag,
 } from "../../shared/constants/feedback-tags";
-import { insertInterviewRatingFeedbacks } from "../repositories/interview-session-repository";
+import {
+  findSessionRatingById,
+  insertInterviewRatingFeedbacks,
+} from "../repositories/interview-session-repository";
 import { verifySessionOwnership } from "../utils/verify-session-ownership";
 
 interface SubmitInterviewFeedbackResult {
@@ -33,6 +37,11 @@ export async function submitInterviewFeedback(
   const ownershipResult = await verifySessionOwnership(sessionId);
   if (!ownershipResult.authorized) {
     return { success: false, error: ownershipResult.error };
+  }
+
+  const rating = await findSessionRatingById(sessionId);
+  if (rating === null || rating > FEEDBACK_RATING_THRESHOLD) {
+    return { success: false, error: "フィードバック対象外の評価です" };
   }
 
   try {

@@ -33,22 +33,21 @@ export function InterviewRatingWidget({
   const [selectedTags, setSelectedTags] = useState<Set<FeedbackTag>>(new Set());
 
   const handleRate = useCallback(
-    async (rating: number) => {
+    (rating: number) => {
+      if (selectedRating !== null) return;
       setSelectedRating(rating);
-
-      try {
-        await submitInterviewRating(sessionId, rating);
-      } catch {
-        // 評価の保存失敗はサイレントに無視（UXを妨げない）
-      }
 
       if (rating <= FEEDBACK_RATING_THRESHOLD) {
         setPhase("feedback");
       } else {
         setPhase("thankyou");
       }
+
+      submitInterviewRating(sessionId, rating).catch(() => {
+        // 評価の保存失敗はサイレントに無視（UXを妨げない）
+      });
     },
-    [sessionId]
+    [sessionId, selectedRating]
   );
 
   const toggleTag = useCallback((tag: FeedbackTag) => {

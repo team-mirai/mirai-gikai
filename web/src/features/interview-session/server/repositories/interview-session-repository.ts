@@ -259,6 +259,26 @@ export async function updateInterviewSessionRating(
   }
 }
 
+/**
+ * セッションの星評価を取得
+ */
+export async function findSessionRatingById(
+  sessionId: string
+): Promise<number | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_sessions")
+    .select("rating")
+    .eq("id", sessionId)
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to fetch session rating: ${error.message}`);
+  }
+
+  return data.rating;
+}
+
 // ========================================
 // Interview Rating Feedbacks
 // ========================================

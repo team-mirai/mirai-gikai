@@ -127,7 +127,8 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                 <div className="flex flex-wrap gap-1 mt-1">
                   {session.feedback_tags.map((tag) => (
                     <Badge key={tag} variant="secondary" className="text-xs">
-                      {FEEDBACK_TAG_LABELS[tag] ?? tag}
+                      {(FEEDBACK_TAG_LABELS as Record<string, string>)[tag] ??
+                        tag}
                     </Badge>
                   ))}
                 </div>

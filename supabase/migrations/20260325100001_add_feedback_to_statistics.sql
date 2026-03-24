@@ -48,27 +48,12 @@ begin
       )::numeric, 0
     ) as median_duration_seconds,
     count(case when r.is_public_by_user = true then 1 end) as public_by_user_count,
-    -- フィードバックタグ集計
-    (select count(*) from interview_rating_feedbacks f
-     join interview_sessions fs on fs.id = f.interview_session_id
-     where fs.interview_config_id = p_config_id
-       and f.tag = 'irrelevant_questions') as feedback_irrelevant_questions,
-    (select count(*) from interview_rating_feedbacks f
-     join interview_sessions fs on fs.id = f.interview_session_id
-     where fs.interview_config_id = p_config_id
-       and f.tag = 'not_aligned') as feedback_not_aligned,
-    (select count(*) from interview_rating_feedbacks f
-     join interview_sessions fs on fs.id = f.interview_session_id
-     where fs.interview_config_id = p_config_id
-       and f.tag = 'misunderstood') as feedback_misunderstood,
-    (select count(*) from interview_rating_feedbacks f
-     join interview_sessions fs on fs.id = f.interview_session_id
-     where fs.interview_config_id = p_config_id
-       and f.tag = 'too_many_questions') as feedback_too_many_questions,
-    (select count(*) from interview_rating_feedbacks f
-     join interview_sessions fs on fs.id = f.interview_session_id
-     where fs.interview_config_id = p_config_id
-       and f.tag = 'other') as feedback_other
+    -- フィードバックタグ集計（単一サブクエリで全タグを集計）
+    coalesce(max(fc.feedback_irrelevant_questions), 0) as feedback_irrelevant_questions,
+    coalesce(max(fc.feedback_not_aligned), 0) as feedback_not_aligned,
+    coalesce(max(fc.feedback_misunderstood), 0) as feedback_misunderstood,
+    coalesce(max(fc.feedback_too_many_questions), 0) as feedback_too_many_questions,
+    coalesce(max(fc.feedback_other), 0) as feedback_other
   from interview_sessions s
   left join interview_report r on r.interview_session_id = s.id
   left join (
@@ -76,6 +61,17 @@ begin
     from interview_messages im
     group by im.interview_session_id
   ) mc on mc.interview_session_id = s.id
+  left join (
+    select
+      count(*) filter (where f.tag = 'irrelevant_questions') as feedback_irrelevant_questions,
+      count(*) filter (where f.tag = 'not_aligned') as feedback_not_aligned,
+      count(*) filter (where f.tag = 'misunderstood') as feedback_misunderstood,
+      count(*) filter (where f.tag = 'too_many_questions') as feedback_too_many_questions,
+      count(*) filter (where f.tag = 'other') as feedback_other
+    from interview_rating_feedbacks f
+    join interview_sessions fs on fs.id = f.interview_session_id
+    where fs.interview_config_id = p_config_id
+  ) fc on true
   where s.interview_config_id = p_config_id;
 end;
 $$ language plpgsql stable;
