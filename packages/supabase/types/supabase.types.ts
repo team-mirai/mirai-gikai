@@ -452,6 +452,10 @@ export type Database = {
           interview_session_id: string
           is_public_by_admin: boolean
           is_public_by_user: boolean
+          moderation_score: number | null
+          moderation_status:
+            | Database["public"]["Enums"]["moderation_status_enum"]
+            | null
           opinions: Json | null
           role: Database["public"]["Enums"]["interview_report_role_enum"] | null
           role_description: string | null
@@ -468,6 +472,10 @@ export type Database = {
           interview_session_id: string
           is_public_by_admin?: boolean
           is_public_by_user?: boolean
+          moderation_score?: number | null
+          moderation_status?:
+            | Database["public"]["Enums"]["moderation_status_enum"]
+            | null
           opinions?: Json | null
           role?:
             | Database["public"]["Enums"]["interview_report_role_enum"]
@@ -486,6 +494,10 @@ export type Database = {
           interview_session_id?: string
           is_public_by_admin?: boolean
           is_public_by_user?: boolean
+          moderation_score?: number | null
+          moderation_status?:
+            | Database["public"]["Enums"]["moderation_status_enum"]
+            | null
           opinions?: Json | null
           role?:
             | Database["public"]["Enums"]["interview_report_role_enum"]
@@ -928,6 +940,7 @@ export type Database = {
         | "daily_life_affected"
         | "general_citizen"
       interview_role_enum: "assistant" | "user"
+      moderation_status_enum: "ok" | "warning" | "ng"
       stance_type_enum:
         | "for"
         | "against"
@@ -1087,6 +1100,7 @@ export const Constants = {
         "general_citizen",
       ],
       interview_role_enum: ["assistant", "user"],
+      moderation_status_enum: ["ok", "warning", "ng"],
       stance_type_enum: [
         "for",
         "against",

@@ -1,0 +1,54 @@
+import "server-only";
+
+import { generateObject, type LanguageModel } from "ai";
+import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import { moderationResultSchema } from "../../shared/schemas";
+import { buildModerationPrompt } from "../../shared/utils/build-moderation-prompt";
+import {
+  determineModerationStatus,
+  type ModerationStatus,
+} from "../../shared/utils/moderation";
+
+/** テスト時にモック注入するための外部依存 */
+export type ModerationDeps = {
+  model?: LanguageModel;
+};
+
+type ModerationInput = {
+  summary: string | null;
+  opinions: Array<{ title: string; content: string }> | null;
+  roleDescription: string | null;
+};
+
+type ModerationOutput = {
+  score: number;
+  status: ModerationStatus;
+};
+
+/**
+ * レポート内容のモデレーションスコアを評価する
+ */
+export async function evaluateModerationScore(
+  input: ModerationInput,
+  deps?: ModerationDeps
+): Promise<ModerationOutput> {
+  const prompt = buildModerationPrompt(input);
+  const model = deps?.model ?? DEFAULT_INTERVIEW_CHAT_MODEL;
+
+  const { object } = await generateObject({
+    model,
+    schema: moderationResultSchema,
+    prompt,
+  });
+
+  const status = determineModerationStatus(object.score);
+
+  console.log(
+    `Moderation result: score=${object.score}, status=${status}, categories=[${object.flagged_categories.join(",")}]`
+  );
+
+  return {
+    score: object.score,
+    status,
+  };
+}
