@@ -42,6 +42,7 @@ export function InterviewConsentModal({
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setAgreed(false);
+      setIsLoading(false);
     }
     onOpenChange(nextOpen);
   };
@@ -77,13 +78,19 @@ export function InterviewConsentModal({
               htmlFor="consent-agree"
               className="text-xs font-bold text-black"
             >
-              <Link href={routes.terms()} target="_blank" className="underline">
+              <Link
+                href={routes.terms()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
                 利用規約
               </Link>
               と
               <Link
                 href={routes.privacy()}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="underline"
               >
                 プライバシーポリシー
