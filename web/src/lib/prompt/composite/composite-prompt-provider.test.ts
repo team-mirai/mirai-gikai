@@ -18,7 +18,10 @@ function createFakeProvider(label: string): {
 
 describe("CompositePromptProvider", () => {
   const sourceCodeProvider = createFakeProvider("source-code");
-  const sourceCodeNames = new Set(["top-chat-system"]);
+  const sourceCodeNames = new Set([
+    "top-chat-system",
+    "bill-chat-system-normal",
+  ]);
 
   const composite = new CompositePromptProvider(
     sourceCodeProvider,
@@ -33,12 +36,17 @@ describe("CompositePromptProvider", () => {
     expect(result.content).toBe("source-code:top-chat-system");
   });
 
-  it("それ以外のプロンプト名はfallbackProviderにルーティングされる", async () => {
-    const result = await composite.getPrompt("bill-chat-system-normal");
-    expect(result.content).toBe("langfuse:bill-chat-system-normal");
+  it("bill-chat-system-normal もsourceCodeProviderにルーティングされる", async () => {
+    const result = await composite.getPrompt("bill-chat-system-normal", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
+    });
+    expect(result.content).toBe("source-code:bill-chat-system-normal");
   });
 
-  it("bill-chat-system-hard もfallbackにルーティングされる", async () => {
+  it("bill-chat-system-hard はfallbackにルーティングされる", async () => {
     const result = await composite.getPrompt("bill-chat-system-hard");
     expect(result.content).toBe("langfuse:bill-chat-system-hard");
   });
@@ -51,11 +59,17 @@ describe("CompositePromptProvider", () => {
         factoryCalled = true;
         return createFakeProvider("langfuse");
       },
-      new Set(["top-chat-system"])
+      new Set(["top-chat-system", "bill-chat-system-normal"])
     );
 
     await lazyComposite.getPrompt("top-chat-system", {
       billSummary: "test",
+    });
+    await lazyComposite.getPrompt("bill-chat-system-normal", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
     });
 
     expect(factoryCalled).toBe(false);

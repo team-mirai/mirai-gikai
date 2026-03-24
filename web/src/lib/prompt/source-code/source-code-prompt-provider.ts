@@ -1,5 +1,6 @@
 import type { PromptProvider } from "../interface/prompt-provider";
 import type { CompiledPrompt, PromptVariables } from "../interface/types";
+import { buildBillChatSystemNormalPrompt } from "./templates/bill-chat-system-normal";
 import { buildTopChatSystemPrompt } from "./templates/top-chat-system";
 
 /** プロンプト名からビルド関数へのマップ */
@@ -12,6 +13,26 @@ const PROMPT_BUILDERS: Record<string, (variables: PromptVariables) => string> =
         );
       }
       return buildTopChatSystemPrompt(v.billSummary);
+    },
+    "bill-chat-system-normal": (v) => {
+      const required = [
+        "billName",
+        "billTitle",
+        "billSummary",
+        "billContent",
+      ] as const;
+      const missing = required.filter((key) => !(key in v));
+      if (missing.length > 0) {
+        throw new Error(
+          `Missing required variables for prompt "bill-chat-system-normal": ${missing.join(", ")}`
+        );
+      }
+      return buildBillChatSystemNormalPrompt(
+        v.billName,
+        v.billTitle,
+        v.billSummary,
+        v.billContent
+      );
     },
   };
 
