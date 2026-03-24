@@ -11,16 +11,16 @@ import { getReportReactionsBatch } from "@/features/report-reaction/server/loade
 import { routes } from "@/lib/routes";
 import { OpinionsBreadcrumb } from "../../shared/components/opinions-breadcrumb";
 import { PublicOpinionsList } from "../../client/components/public-opinions-list";
-import { getAllPublicReportsByBillId } from "../loaders/get-all-public-reports-by-bill-id";
+import { getInitialPublicReportsByBillId } from "../loaders/get-all-public-reports-by-bill-id";
 
 interface PublicOpinionsPageProps {
   billId: string;
 }
 
 export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
-  const [bill, reports, interviewConfig] = await Promise.all([
+  const [bill, initialData, interviewConfig] = await Promise.all([
     getBillById(billId),
-    getAllPublicReportsByBillId(billId),
+    getInitialPublicReportsByBillId(billId),
     getInterviewConfig(billId),
   ]);
 
@@ -30,7 +30,7 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
 
   const billTitle = bill.bill_content?.title || bill.name;
 
-  const reportIds = reports.map((r) => r.id);
+  const reportIds = initialData.reports.map((r) => r.id);
   const reactionsMap = await getReportReactionsBatch(reportIds);
   const reactionsRecord: Record<
     string,
@@ -72,10 +72,13 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
           )}
         </div>
 
-        {/* 意見一覧（フィルター付き） */}
+        {/* 意見一覧（フィルター付き・スクロールページネーション） */}
         <PublicOpinionsList
-          reports={reports}
-          reactionsRecord={reactionsRecord}
+          billId={billId}
+          initialReports={initialData.reports}
+          initialReactionsRecord={reactionsRecord}
+          stanceCounts={initialData.stanceCounts}
+          initialHasMore={initialData.hasMore}
         />
 
         {/* AIインタビューCTAバナー */}

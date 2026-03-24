@@ -36,9 +36,11 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 - `web/` は公開用 Next.js アプリ。共通 UI は `src/components`、Vitest のテストは `src/**/*.test.ts` に配置します。
 - `admin/` はポート 3001 で動く管理用 Next.js。審議フローやダッシュボードはここに集約します。
 - `packages/supabase/` は共有 Supabase クライアントと型定義を提供し、生成結果は `types/` に保存します。
+- `packages/shared/` は `web` と `admin` の両方で使う共通ロジック（AI モデル定義、ストリーム処理等）を提供します。
 - `packages/seed/` はローカルデータ投入用の TypeScript スクリプト (`run.ts`, `data.ts`) を管理します。
 - `supabase/` はマイグレーションと設定ファイルを保持します。
 - 設計ドキュメントは `docs/` に格納し、ルートの設定ファイル（`biome.json`, `pnpm-workspace.yaml` など）は全体ポリシーとして扱います。
+- **web と admin でのコード共有**: 同一ロジックを `web/` と `admin/` の両方で使う場合は、`packages/` 配下の workspace パッケージに切り出すこと。同じコードを両アプリに重複配置するのは禁止。既存の `@mirai-gikai/shared` パッケージに追加するか、用途に応じて新しいパッケージを作成する。
 
 ## Next.js アーキテクチャ指針
 - Bulletproof React の feature ベース構成を採用します。

@@ -20,6 +20,7 @@ const STATUS_OPTIONS = [
   { value: "all", label: "すべて" },
   { value: "completed", label: "完了" },
   { value: "in_progress", label: "進行中" },
+  { value: "archived", label: "アーカイブ" },
 ] as const;
 
 const VISIBILITY_OPTIONS = [
@@ -41,6 +42,14 @@ const ROLE_OPTIONS = [
   { value: "work_related", label: "業務に関係" },
   { value: "daily_life_affected", label: "暮らしに影響" },
   { value: "general_citizen", label: "一般的な関心" },
+] as const;
+
+const MODERATION_OPTIONS = [
+  { value: "all", label: "すべて" },
+  { value: "ok", label: "OK" },
+  { value: "warning", label: "Warning" },
+  { value: "ng", label: "NG" },
+  { value: "unscored", label: "未評価" },
 ] as const;
 
 export function SessionFilterBar({ currentFilters }: SessionFilterBarProps) {
@@ -89,6 +98,12 @@ export function SessionFilterBar({ currentFilters }: SessionFilterBarProps) {
         value={currentFilters.role}
         options={ROLE_OPTIONS}
         onChange={(v) => handleFilterChange("role", v)}
+      />
+      <FilterSelect
+        label="モデレーション"
+        value={currentFilters.moderation}
+        options={MODERATION_OPTIONS}
+        onChange={(v) => handleFilterChange("moderation", v)}
       />
     </div>
   );

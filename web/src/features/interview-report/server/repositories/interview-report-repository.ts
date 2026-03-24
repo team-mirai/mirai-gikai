@@ -84,7 +84,9 @@ export async function findBillWithContentById(billId: string) {
  */
 export async function findPublicReportsByBillId(
   billId: string,
-  limit: number = 3
+  limit: number = 3,
+  offset: number = 0,
+  stance?: string
 ) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc(
@@ -92,12 +94,32 @@ export async function findPublicReportsByBillId(
     {
       p_bill_id: billId,
       p_limit: limit,
+      p_offset: offset,
+      p_stance: stance,
     }
   );
 
   if (error) {
     throw new Error(
       `Failed to fetch public interview reports: ${error.message}`
+    );
+  }
+
+  return data;
+}
+
+/**
+ * 議案IDからスタンスごとの公開レポート件数を取得
+ */
+export async function countPublicReportsByStance(billId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("count_public_reports_by_stance", {
+    p_bill_id: billId,
+  });
+
+  if (error) {
+    throw new Error(
+      `Failed to count public reports by stance: ${error.message}`
     );
   }
 

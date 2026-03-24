@@ -9,6 +9,7 @@ describe("parseSessionFilterParams", () => {
       visibility: "all",
       stance: "all",
       role: "all",
+      moderation: "all",
     });
   });
 
@@ -17,23 +18,26 @@ describe("parseSessionFilterParams", () => {
       "in_progress",
       "public",
       "for",
-      "subject_expert"
+      "subject_expert",
+      "warning"
     );
     expect(result).toEqual({
       status: "in_progress",
       visibility: "public",
       stance: "for",
       role: "subject_expert",
+      moderation: "warning",
     });
   });
 
   it("allを受け付ける", () => {
-    const result = parseSessionFilterParams("all", "all", "all", "all");
+    const result = parseSessionFilterParams("all", "all", "all", "all", "all");
     expect(result).toEqual({
       status: "all",
       visibility: "all",
       stance: "all",
       role: "all",
+      moderation: "all",
     });
   });
 
@@ -42,10 +46,22 @@ describe("parseSessionFilterParams", () => {
       "invalid",
       "invalid",
       "invalid",
+      "invalid",
       "invalid"
     );
     expect(result).toEqual({
       status: "completed",
+      visibility: "all",
+      stance: "all",
+      role: "all",
+      moderation: "all",
+    });
+  });
+
+  it("archivedステータスを受け付ける", () => {
+    const result = parseSessionFilterParams("archived");
+    expect(result).toEqual({
+      status: "archived",
       visibility: "all",
       stance: "all",
       role: "all",
@@ -59,6 +75,20 @@ describe("parseSessionFilterParams", () => {
       visibility: "all",
       stance: "against",
       role: "all",
+      moderation: "all",
     });
+  });
+
+  it("モデレーションフィルタの各値を受け付ける", () => {
+    for (const value of ["ok", "warning", "ng", "unscored"]) {
+      const result = parseSessionFilterParams(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        value
+      );
+      expect(result.moderation).toBe(value);
+    }
   });
 });

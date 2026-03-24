@@ -16,6 +16,16 @@ export function SessionStatusBadge({ status }: SessionStatusBadgeProps) {
       </Badge>
     );
   }
+  if (status === "archived") {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-gray-50 text-gray-700 border-gray-200"
+      >
+        アーカイブ
+      </Badge>
+    );
+  }
   return (
     <Badge
       variant="outline"

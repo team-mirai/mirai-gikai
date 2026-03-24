@@ -3,16 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
-import { routes } from "@/lib/routes";
+import { BatchModerationButton } from "@/features/interview-reports/client/components/batch-moderation-button";
 import { InterviewStatistics } from "@/features/interview-reports/server/components/interview-statistics";
 import { SessionList } from "@/features/interview-reports/server/components/session-list";
-import { getInterviewStatistics } from "@/features/interview-reports/server/loaders/get-interview-statistics";
 import {
   getInterviewSessions,
   getInterviewSessionsCount,
 } from "@/features/interview-reports/server/loaders/get-interview-sessions";
+import { getInterviewStatistics } from "@/features/interview-reports/server/loaders/get-interview-statistics";
 import { parseSessionFilterParams } from "@/features/interview-reports/shared/utils/parse-session-filter-params";
 import { parseSessionSortParams } from "@/features/interview-reports/shared/utils/parse-session-sort-params";
+import { routes } from "@/lib/routes";
 
 interface ReportsPageProps {
   params: Promise<{
@@ -26,6 +27,7 @@ interface ReportsPageProps {
     visibility?: string;
     stance?: string;
     role?: string;
+    moderation?: string;
   }>;
 }
 
@@ -34,7 +36,7 @@ export default async function ReportsPage({
   searchParams,
 }: ReportsPageProps) {
   const { id } = await params;
-  const { page, sort, order, status, visibility, stance, role } =
+  const { page, sort, order, status, visibility, stance, role, moderation } =
     await searchParams;
   const currentPage = Math.max(1, Number(page) || 1);
   const sortConfig = parseSessionSortParams(sort, order);
@@ -42,7 +44,8 @@ export default async function ReportsPage({
     status,
     visibility,
     stance,
-    role
+    role,
+    moderation
   );
 
   const [bill, sessions, totalCount, statistics] = await Promise.all([
@@ -68,11 +71,14 @@ export default async function ReportsPage({
         </Link>
       </div>
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          インタビューレポート一覧
-        </h1>
-        <p className="text-gray-600 mt-1">議案「{bill.name}」のレポート</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            インタビューレポート一覧
+          </h1>
+          <p className="text-gray-600 mt-1">議案「{bill.name}」のレポート</p>
+        </div>
+        <BatchModerationButton />
       </div>
 
       {statistics && (

@@ -7,7 +7,7 @@ interface OgpPreviewCardProps {
 
 export function OgpPreviewCard({ ogImageUrl, billName }: OgpPreviewCardProps) {
   return (
-    <div className="w-full overflow-hidden rounded-lg">
+    <div className="w-full overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={ogImageUrl}

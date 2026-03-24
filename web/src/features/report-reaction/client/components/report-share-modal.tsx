@@ -79,7 +79,7 @@ export function ReportShareModal({
       onKeyDown={handleBackgroundKeyDown}
       tabIndex={-1}
     >
-      <div className="flex w-[370px] max-w-full flex-col items-center gap-6 rounded-2xl bg-white px-3 py-9">
+      <div className="flex w-[500px] max-w-full flex-col items-center gap-6 rounded-2xl bg-white px-3 py-9">
         <div className="flex w-full flex-col items-center gap-6">
           {/* タイトル */}
           <h2 className="text-2xl font-bold text-gray-800">意見をシェアする</h2>

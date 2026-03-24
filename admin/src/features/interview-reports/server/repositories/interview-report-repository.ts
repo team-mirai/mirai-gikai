@@ -18,7 +18,8 @@ function hasReportLevelFilters(filters: SessionFilterConfig): boolean {
   return (
     filters.visibility !== "all" ||
     filters.stance !== "all" ||
-    filters.role !== "all"
+    filters.role !== "all" ||
+    filters.moderation !== "all"
   );
 }
 
@@ -67,7 +68,9 @@ export async function findInterviewSessionsWithReport(
   if (filters.status === "completed") {
     query = query.not("completed_at", "is", null);
   } else if (filters.status === "in_progress") {
-    query = query.is("completed_at", null);
+    query = query.is("completed_at", null).is("archived_at", null);
+  } else if (filters.status === "archived") {
+    query = query.is("completed_at", null).not("archived_at", "is", null);
   }
 
   // レポートレベルフィルタ（inner join使用時のみ有効）
@@ -83,6 +86,12 @@ export async function findInterviewSessionsWithReport(
 
   if (filters.role !== "all") {
     query = query.eq("interview_report.role", filters.role);
+  }
+
+  if (filters.moderation === "unscored") {
+    query = query.is("interview_report.moderation_score", null);
+  } else if (filters.moderation !== "all") {
+    query = query.eq("interview_report.moderation_status", filters.moderation);
   }
 
   const { data, error } = await query
@@ -168,7 +177,13 @@ export async function findFilteredSessionIds(
         null
       );
     } else if (filters.status === "in_progress") {
-      reportQuery = reportQuery.is("interview_sessions.completed_at", null);
+      reportQuery = reportQuery
+        .is("interview_sessions.completed_at", null)
+        .is("interview_sessions.archived_at", null);
+    } else if (filters.status === "archived") {
+      reportQuery = reportQuery
+        .is("interview_sessions.completed_at", null)
+        .not("interview_sessions.archived_at", "is", null);
     }
 
     if (filters.visibility === "public") {
@@ -183,6 +198,12 @@ export async function findFilteredSessionIds(
 
     if (filters.role !== "all") {
       reportQuery = reportQuery.eq("role", filters.role);
+    }
+
+    if (filters.moderation === "unscored") {
+      reportQuery = reportQuery.is("moderation_score", null);
+    } else if (filters.moderation !== "all") {
+      reportQuery = reportQuery.eq("moderation_status", filters.moderation);
     }
 
     const { data, error } = await reportQuery;
@@ -203,7 +224,9 @@ export async function findFilteredSessionIds(
   if (filters.status === "completed") {
     query = query.not("completed_at", "is", null);
   } else if (filters.status === "in_progress") {
-    query = query.is("completed_at", null);
+    query = query.is("completed_at", null).is("archived_at", null);
+  } else if (filters.status === "archived") {
+    query = query.is("completed_at", null).not("archived_at", "is", null);
   }
 
   const { data, error } = await query;
@@ -325,7 +348,9 @@ export async function countInterviewSessionsByConfigId(
   if (filters.status === "completed") {
     query = query.not("completed_at", "is", null);
   } else if (filters.status === "in_progress") {
-    query = query.is("completed_at", null);
+    query = query.is("completed_at", null).is("archived_at", null);
+  } else if (filters.status === "archived") {
+    query = query.is("completed_at", null).not("archived_at", "is", null);
   }
 
   // レポートレベルフィルタ
@@ -341,6 +366,12 @@ export async function countInterviewSessionsByConfigId(
 
   if (filters.role !== "all") {
     query = query.eq("interview_report.role", filters.role);
+  }
+
+  if (filters.moderation === "unscored") {
+    query = query.is("interview_report.moderation_score", null);
+  } else if (filters.moderation !== "all") {
+    query = query.eq("interview_report.moderation_status", filters.moderation);
   }
 
   const { count, error } = await query;
@@ -457,5 +488,57 @@ export async function updateReportVisibility(
 
   if (error) {
     throw new Error(`Failed to update report visibility: ${error.message}`);
+  }
+}
+
+export async function findReportsForModerationScoring() {
+  const supabase = createAdminClient();
+  const PAGE_SIZE = 500;
+  type ReportRow = {
+    id: string;
+    interview_session_id: string;
+    summary: string | null;
+    opinions: unknown;
+    role_description: string | null;
+  };
+  const allData: ReportRow[] = [];
+  let offset = 0;
+
+  // Supabase max_rows 制限を超えるデータに対応するためページネーション
+  while (true) {
+    const { data, error } = await supabase
+      .from("interview_report")
+      .select("id, interview_session_id, summary, opinions, role_description")
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(
+        `Failed to fetch reports for moderation scoring: ${error.message}`
+      );
+    }
+
+    allData.push(...data);
+
+    if (data.length < PAGE_SIZE) {
+      break;
+    }
+    offset += PAGE_SIZE;
+  }
+
+  return allData;
+}
+
+export async function updateModerationScore(
+  reportId: string,
+  score: number
+): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("interview_report")
+    .update({ moderation_score: score })
+    .eq("id", reportId);
+
+  if (error) {
+    throw new Error(`Failed to update moderation score: ${error.message}`);
   }
 }
