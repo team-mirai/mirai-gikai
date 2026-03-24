@@ -54,11 +54,11 @@ export async function ReportChatLogPage({
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
-      {/* Back to Report Link - Fixed at top */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-mirai-surface/90 backdrop-blur-sm px-4 py-3">
+      {/* Back to Report Link */}
+      <div className="px-4 pt-4">
         <Link
           href={reportHref as Route}
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600"
+          className="inline-flex items-center gap-1 text-sm font-medium text-mirai-text-secondary"
         >
           <ChevronLeft size={20} />
           レポートに戻る
@@ -66,7 +66,7 @@ export async function ReportChatLogPage({
       </div>
 
       {/* Header Section */}
-      <div className="px-4 pt-24 pb-8">
+      <div className="px-4 pt-8 pb-8">
         <div className="flex flex-col items-center">
           {/* Title */}
           <h1 className="text-2xl font-bold text-center text-gray-800">
