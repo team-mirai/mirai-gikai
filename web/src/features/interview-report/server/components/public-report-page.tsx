@@ -91,6 +91,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
         billName={billName}
         shareUrl={shareUrl}
         thumbnailUrl={data.bill.thumbnail_url}
+        shareMessage={data.summary}
       />
     </div>
   );

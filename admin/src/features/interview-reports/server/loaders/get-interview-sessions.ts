@@ -12,10 +12,12 @@ import {
 import { calculatePaginationRange } from "../../shared/utils/pagination-utils";
 import {
   countInterviewSessionsByConfigId,
+  findHelpfulCountsByReportIds,
   findInterviewConfigIdByBillId,
   findInterviewMessageCounts,
   findInterviewSessionsWithReport,
   findInterviewSessionsWithReportByIds,
+  findSessionIdsOrderedByHelpfulCount,
   findSessionIdsOrderedByMessageCount,
   findSessionIdsOrderedByTotalScore,
 } from "../repositories/interview-report-repository";
@@ -38,26 +40,26 @@ export async function getInterviewSessions(
   const { from, to } = calculatePaginationRange(page, SESSIONS_PER_PAGE);
   const limit = to - from + 1;
 
-  // message_count/total_scoreソートの場合はDB関数でソート済みIDを取得してからセッションを取得
+  // RPC経由ソート用のディスパッチテーブル
+  const rpcSortFetchers = {
+    total_score: findSessionIdsOrderedByTotalScore,
+    helpful_count: findSessionIdsOrderedByHelpfulCount,
+    message_count: findSessionIdsOrderedByMessageCount,
+  } as const;
+
+  // message_count/total_score/helpful_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
   try {
-    if (sort.field === "message_count" || sort.field === "total_score") {
-      const orderedIds =
-        sort.field === "total_score"
-          ? await findSessionIdsOrderedByTotalScore(
-              config.id,
-              sort.order === "asc",
-              from,
-              limit,
-              filters
-            )
-          : await findSessionIdsOrderedByMessageCount(
-              config.id,
-              sort.order === "asc",
-              from,
-              limit,
-              filters
-            );
+    const rpcFetcher =
+      rpcSortFetchers[sort.field as keyof typeof rpcSortFetchers];
+    if (rpcFetcher) {
+      const orderedIds = await rpcFetcher(
+        config.id,
+        sort.order === "asc",
+        from,
+        limit,
+        filters
+      );
       sessions = await findInterviewSessionsWithReportByIds(orderedIds);
     } else {
       sessions = await findInterviewSessionsWithReport(
@@ -76,40 +78,73 @@ export async function getInterviewSessions(
     return [];
   }
 
-  // 全セッションのメッセージ数を一括取得（RPCで1クエリ集計）
+  // 全セッションのメッセージ数・リアクション数を一括取得
   const sessionIds = sessions.map((s) => s.id);
+
+  // interview_reportは配列で返ってくるので最初の要素を取得するヘルパー
+  const normalizeReport = (
+    report: (typeof sessions)[number]["interview_report"]
+  ) => (Array.isArray(report) ? report[0] || null : report);
+
+  // レポートIDを収集
+  const reportIds = sessions
+    .map((s) => normalizeReport(s.interview_report)?.id)
+    .filter((id): id is string => id != null);
+
   let messageCounts:
     | Awaited<ReturnType<typeof findInterviewMessageCounts>>
     | undefined;
-  try {
-    messageCounts = await findInterviewMessageCounts(sessionIds);
-  } catch (error) {
-    console.error("Failed to fetch message counts:", {
-      error,
-      sessionIds,
-    });
+  let helpfulCountsMap = new Map<string, number>();
+
+  // メッセージ数とリアクション数を並列取得（個別にエラーハンドリング）
+  const [messageCountsResult, helpfulCountsResult] = await Promise.allSettled([
+    findInterviewMessageCounts(sessionIds),
+    findHelpfulCountsByReportIds(reportIds),
+  ]);
+
+  if (messageCountsResult.status === "fulfilled") {
+    messageCounts = messageCountsResult.value;
+  } else {
+    if (sort.field === "message_count") {
+      throw messageCountsResult.reason;
+    }
+    console.error(
+      "Failed to fetch message counts:",
+      messageCountsResult.reason
+    );
+  }
+
+  if (helpfulCountsResult.status === "fulfilled") {
+    helpfulCountsMap = helpfulCountsResult.value;
+  } else {
+    if (sort.field === "helpful_count") {
+      throw helpfulCountsResult.reason;
+    }
+    console.error(
+      "Failed to fetch helpful counts:",
+      helpfulCountsResult.reason
+    );
   }
 
   // セッションIDごとのメッセージ数をマップに変換（missing sessions default to 0）
-  const countMap = new Map<string, number>();
+  const messageCountMap = new Map<string, number>();
   for (const id of sessionIds) {
-    countMap.set(id, 0);
+    messageCountMap.set(id, 0);
   }
   for (const row of messageCounts || []) {
-    countMap.set(row.interview_session_id, Number(row.message_count));
+    messageCountMap.set(row.interview_session_id, Number(row.message_count));
   }
 
-  // セッションにメッセージ数を付与
+  // セッションにメッセージ数・リアクション数を付与
   const sessionsWithDetails: InterviewSessionWithDetails[] = sessions.map(
     (session) => {
-      // interview_reportは配列で返ってくるので最初の要素を取得
-      const report = Array.isArray(session.interview_report)
-        ? session.interview_report[0] || null
-        : session.interview_report;
+      const report = normalizeReport(session.interview_report);
+      const helpfulCount = report ? (helpfulCountsMap.get(report.id) ?? 0) : 0;
 
       return {
         ...session,
-        message_count: countMap.get(session.id) || 0,
+        message_count: messageCountMap.get(session.id) || 0,
+        helpful_count: helpfulCount,
         interview_report: report,
       };
     }

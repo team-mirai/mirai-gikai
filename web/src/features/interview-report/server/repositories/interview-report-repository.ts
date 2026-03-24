@@ -65,7 +65,9 @@ export async function findBillWithContentById(billId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills")
-    .select("id, name, thumbnail_url, bill_contents(title)")
+    .select(
+      "id, name, thumbnail_url, share_thumbnail_url, bill_contents(title)"
+    )
     .eq("id", billId)
     .single();
 

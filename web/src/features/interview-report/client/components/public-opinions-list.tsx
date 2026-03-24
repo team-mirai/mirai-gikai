@@ -103,15 +103,12 @@ export function PublicOpinionsList({
             : { counts: { helpful: 0, hmm: 0 }, userReaction: null };
 
           return (
-            <div key={report.id} className="flex flex-col">
-              <ReportCard report={report} />
-              <div className="bg-white rounded-b-lg px-4 pb-3 -mt-1">
-                <ReactionButtonsInline
-                  reportId={report.id}
-                  initialData={reactionData}
-                />
-              </div>
-            </div>
+            <ReportCard key={report.id} report={report}>
+              <ReactionButtonsInline
+                reportId={report.id}
+                initialData={reactionData}
+              />
+            </ReportCard>
           );
         })}
         {filteredReports.length === 0 && (

@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Lightbulb, XCircle } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -156,6 +156,14 @@ export function SessionList({
                   >
                     メッセージ数
                   </SortableTableHead>
+                  <SortableTableHead
+                    field="helpful_count"
+                    currentField={sort.field}
+                    currentOrder={sort.order}
+                    className="w-24 text-right"
+                  >
+                    参考になる
+                  </SortableTableHead>
                   <TableHead className="w-64">要約</TableHead>
                 </TableRow>
               </TableHeader>
@@ -255,6 +263,16 @@ export function SessionList({
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {session.message_count}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {session.helpful_count > 0 ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Lightbulb className="h-4 w-4 text-blue-500" />
+                            {session.helpful_count}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">0</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-gray-600 text-sm">
                         <span className="line-clamp-2">
