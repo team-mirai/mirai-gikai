@@ -10,7 +10,7 @@ const moderationScoreValueSchema = z
  * モデレーション結果スキーマ（generateObject用）
  *
  * NOTE: web/src/features/interview-session/shared/schemas.ts の
- * moderationResultSchema と同一ロジック。
+ * moderationResultSchema と同一内容。変更時は両方を更新すること。
  */
 export const moderationResultSchema = z.object({
   score: moderationScoreValueSchema.describe(

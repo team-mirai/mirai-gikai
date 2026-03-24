@@ -15,7 +15,7 @@ export function BatchModerationButton() {
 
       if (result.success) {
         if (result.total === 0) {
-          toast.info("スコア未設定のレポートはありません");
+          toast.info("対象のレポートがありません");
         } else {
           toast.success(
             `モデレーション評価完了: ${result.processed}/${result.total}件処理${result.failed ? `（${result.failed}件失敗）` : ""}`
@@ -35,7 +35,7 @@ export function BatchModerationButton() {
       disabled={isPending}
     >
       <ShieldCheck className="h-4 w-4 mr-1" />
-      {isPending ? "評価中..." : "モデレーション一括評価"}
+      {isPending ? "評価中..." : "全レポート一括評価"}
     </Button>
   );
 }

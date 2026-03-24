@@ -13,8 +13,8 @@ type BuildModerationPromptParams = {
 /**
  * モデレーション評価用のプロンプトを構築する
  *
- * NOTE: web/src/features/interview-session/shared/utils/build-moderation-prompt.ts と同一ロジック。
- * admin から web を直接 import できないため複製している。
+ * NOTE: web/src/features/interview-session/shared/utils/build-moderation-prompt.ts と同一内容。
+ * admin から web を直接 import できないため複製している。変更時は両方を更新すること。
  */
 export function buildModerationPrompt(
   params: BuildModerationPromptParams

@@ -460,7 +460,7 @@ export async function updateReportVisibility(
   }
 }
 
-export async function findReportsWithoutModerationScore() {
+export async function findReportsForModerationScoring() {
   const supabase = createAdminClient();
   const PAGE_SIZE = 500;
   type ReportRow = {
@@ -478,12 +478,11 @@ export async function findReportsWithoutModerationScore() {
     const { data, error } = await supabase
       .from("interview_report")
       .select("id, interview_session_id, summary, opinions, role_description")
-      .is("moderation_score", null)
       .range(offset, offset + PAGE_SIZE - 1);
 
     if (error) {
       throw new Error(
-        `Failed to fetch reports without moderation score: ${error.message}`
+        `Failed to fetch reports for moderation scoring: ${error.message}`
       );
     }
 

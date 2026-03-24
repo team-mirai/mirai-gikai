@@ -7,7 +7,7 @@ import { buildModerationPrompt } from "../../shared/utils/build-moderation-promp
 import { parseOpinions } from "../../shared/utils/parse-opinions";
 import {
   findInterviewMessagesBySessionId,
-  findReportsWithoutModerationScore,
+  findReportsForModerationScoring,
   updateModerationScore,
 } from "../repositories/interview-report-repository";
 
@@ -18,10 +18,10 @@ type BatchModerationResult = {
 };
 
 /**
- * moderation_score が未設定の既存レポートに対してモデレーション評価を実行する
+ * 全レポートに対してモデレーション評価を一括実行する
  */
 export async function runBatchModerationScoring(): Promise<BatchModerationResult> {
-  const reports = await findReportsWithoutModerationScore();
+  const reports = await findReportsForModerationScoring();
   const result: BatchModerationResult = {
     total: reports.length,
     processed: 0,
