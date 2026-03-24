@@ -7,7 +7,7 @@ type RawStatistics = {
   stance_for_count: number;
   stance_against_count: number;
   stance_neutral_count: number;
-  avg_total_score: number | null;
+  avg_total_content_richness: number | null;
   role_subject_expert_count: number;
   role_work_related_count: number;
   role_daily_life_affected_count: number;
@@ -29,7 +29,7 @@ export function mapInterviewStatistics(
     stanceFor: raw.stance_for_count,
     stanceAgainst: raw.stance_against_count,
     stanceNeutral: raw.stance_neutral_count,
-    avgTotalScore: raw.avg_total_score,
+    avgTotalContentRichness: raw.avg_total_content_richness,
     roleSubjectExpert: raw.role_subject_expert_count,
     roleWorkRelated: raw.role_work_related_count,
     roleDailyLifeAffected: raw.role_daily_life_affected_count,

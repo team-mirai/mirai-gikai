@@ -121,6 +121,7 @@ export async function ReportCompletePage({
           <ReportContent
             reportId={reportId}
             billId={billId}
+            from="complete"
             summary={report.summary}
             stance={report.stance}
             role={report.role}

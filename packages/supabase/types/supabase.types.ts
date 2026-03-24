@@ -447,6 +447,7 @@ export type Database = {
       }
       interview_report: {
         Row: {
+          content_richness: Json | null
           created_at: string
           id: string
           interview_session_id: string
@@ -460,13 +461,13 @@ export type Database = {
           role: Database["public"]["Enums"]["interview_report_role_enum"] | null
           role_description: string | null
           role_title: string | null
-          scores: Json | null
           stance: Database["public"]["Enums"]["stance_type_enum"] | null
           summary: string | null
-          total_score: number | null
+          total_content_richness: number | null
           updated_at: string
         }
         Insert: {
+          content_richness?: Json | null
           created_at?: string
           id?: string
           interview_session_id: string
@@ -482,13 +483,13 @@ export type Database = {
             | null
           role_description?: string | null
           role_title?: string | null
-          scores?: Json | null
           stance?: Database["public"]["Enums"]["stance_type_enum"] | null
           summary?: string | null
-          total_score?: number | null
+          total_content_richness?: number | null
           updated_at?: string
         }
         Update: {
+          content_richness?: Json | null
           created_at?: string
           id?: string
           interview_session_id?: string
@@ -504,10 +505,9 @@ export type Database = {
             | null
           role_description?: string | null
           role_title?: string | null
-          scores?: Json | null
           stance?: Database["public"]["Enums"]["stance_type_enum"] | null
           summary?: string | null
-          total_score?: number | null
+          total_content_richness?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -849,6 +849,21 @@ export type Database = {
           reaction_type: string
         }[]
       }
+      find_sessions_ordered_by_helpful_count: {
+        Args: {
+          p_ascending?: boolean
+          p_config_id: string
+          p_limit?: number
+          p_offset?: number
+          p_role?: string
+          p_stance?: string
+          p_status?: string
+          p_visibility?: string
+        }
+        Returns: {
+          session_id: string
+        }[]
+      }
       find_sessions_ordered_by_message_count: {
         Args: {
           p_ascending?: boolean
@@ -864,7 +879,7 @@ export type Database = {
           session_id: string
         }[]
       }
-      find_sessions_ordered_by_total_score: {
+      find_sessions_ordered_by_total_content_richness: {
         Args: {
           p_ascending?: boolean
           p_config_id: string
@@ -900,7 +915,7 @@ export type Database = {
         Returns: {
           avg_message_count: number
           avg_rating: number
-          avg_total_score: number
+          avg_total_content_richness: number
           completed_sessions: number
           median_duration_seconds: number
           public_by_user_count: number

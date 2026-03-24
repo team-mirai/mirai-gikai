@@ -1,12 +1,15 @@
 import "server-only";
 
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layouts/container";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { InterviewLandingSection } from "@/features/interview-config/client/components/interview-landing-section";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
 import { getReportReactionsBatch } from "@/features/report-reaction/server/loaders/get-report-reactions";
+import { routes } from "@/lib/routes";
+import { OpinionsBreadcrumb } from "../../shared/components/opinions-breadcrumb";
 import { PublicOpinionsList } from "../../client/components/public-opinions-list";
 import { getAllPublicReportsByBillId } from "../loaders/get-all-public-reports-by-bill-id";
 
@@ -55,11 +58,13 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
       )}
 
       <Container>
-        {/* 法案タイトル */}
+        {/* 法案タイトル（法案詳細へのリンク） */}
         <div className="py-6">
-          <h1 className="text-2xl font-bold leading-[1.5] text-black">
-            {billTitle}
-          </h1>
+          <Link href={routes.billDetail(billId)}>
+            <h1 className="text-2xl font-bold leading-[1.5] text-black hover:underline">
+              {billTitle}
+            </h1>
+          </Link>
           {bill.name !== billTitle && (
             <p className="mt-2 text-xs font-medium leading-[1.67] text-mirai-text-muted">
               {bill.name}
@@ -82,6 +87,10 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
             />
           </div>
         )}
+        {/* パンくずリスト */}
+        <div className="pb-8">
+          <OpinionsBreadcrumb billId={billId} />
+        </div>
       </Container>
     </div>
   );

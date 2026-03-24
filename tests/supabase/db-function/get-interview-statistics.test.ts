@@ -54,7 +54,7 @@ async function createTestReport(
       | "work_related"
       | "daily_life_affected"
       | "general_citizen";
-    scores: { total: number };
+    content_richness: { total: number };
     is_public_by_user: boolean;
   }> = {}
 ) {
@@ -160,16 +160,16 @@ describe("get_interview_statistics() 関数", () => {
     const config = await createTestInterviewConfig(bill.id);
 
     const s1 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s1.id, { scores: { total: 80 } });
+    await createTestReport(s1.id, { content_richness: { total: 80 } });
     const s2 = await createTestSession(config.id, testUser.id);
-    await createTestReport(s2.id, { scores: { total: 60 } });
+    await createTestReport(s2.id, { content_richness: { total: 60 } });
 
     const { data, error } = await adminClient.rpc("get_interview_statistics", {
       p_config_id: config.id,
     });
 
     expect(error).toBeNull();
-    expect(Number(data?.[0].avg_total_score)).toBeCloseTo(70.0, 0);
+    expect(Number(data?.[0].avg_total_content_richness)).toBeCloseTo(70.0, 0);
   });
 
   it("役割分布を正しく集計する", async () => {

@@ -182,11 +182,13 @@ export function InterviewStatistics({
         />
         <StatCard
           icon={<Target className="h-5 w-5" />}
-          label="平均スコア"
+          label="平均充実度"
           value={
-            stats.avgTotalScore != null ? stats.avgTotalScore.toFixed(1) : "-"
+            stats.avgTotalContentRichness != null
+              ? stats.avgTotalContentRichness.toFixed(1)
+              : "-"
           }
-          sub={stats.avgTotalScore != null ? "100点満点" : undefined}
+          sub={stats.avgTotalContentRichness != null ? "100点満点" : undefined}
         />
       </div>
 

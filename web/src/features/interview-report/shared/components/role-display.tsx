@@ -13,7 +13,7 @@ export function RoleDisplay({ role, roleTitle }: RoleDisplayProps) {
   const RoleIcon = role ? roleIcons[role as InterviewReportRole] : undefined;
 
   return (
-    <p className="text-sm text-gray-600 flex items-center gap-1">
+    <p className="text-xs text-gray-600 flex items-center gap-1">
       {RoleIcon && <RoleIcon size={16} strokeWidth={1.5} />}
       {formatRoleLabel(role, roleTitle)}
     </p>

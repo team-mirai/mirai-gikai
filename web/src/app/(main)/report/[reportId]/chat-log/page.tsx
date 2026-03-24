@@ -5,6 +5,9 @@ interface ChatLogPageProps {
   params: Promise<{
     reportId: string;
   }>;
+  searchParams: Promise<{
+    from?: string;
+  }>;
 }
 
 export const metadata: Metadata = {
@@ -12,8 +15,17 @@ export const metadata: Metadata = {
   description: "AIインタビューの会話ログ",
 };
 
-export default async function ChatLogPage({ params }: ChatLogPageProps) {
+export default async function ChatLogPage({
+  params,
+  searchParams,
+}: ChatLogPageProps) {
   const { reportId } = await params;
+  const { from } = await searchParams;
 
-  return <ReportChatLogPage reportId={reportId} />;
+  return (
+    <ReportChatLogPage
+      reportId={reportId}
+      from={from === "complete" ? "complete" : undefined}
+    />
+  );
 }

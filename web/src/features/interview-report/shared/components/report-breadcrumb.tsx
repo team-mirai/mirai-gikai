@@ -1,20 +1,19 @@
 import { Breadcrumb, type BreadcrumbItem } from "@/components/ui/breadcrumb";
-import { routes } from "@/lib/routes";
 import {
   getBillDetailLink,
   getInterviewLPLink,
-  getInterviewReportCompleteLink,
 } from "@/features/interview-config/shared/utils/interview-links";
+import { routes } from "@/lib/routes";
 
 interface ReportBreadcrumbProps {
   billId: string;
-  reportId?: string;
+  reportHref?: string;
   additionalItems?: BreadcrumbItem[];
 }
 
 export function ReportBreadcrumb({
   billId,
-  reportId,
+  reportHref,
   additionalItems = [],
 }: ReportBreadcrumbProps) {
   const baseItems: BreadcrumbItem[] = [
@@ -23,7 +22,7 @@ export function ReportBreadcrumb({
     { label: "AIインタビュー", href: getInterviewLPLink(billId) },
     {
       label: "レポート",
-      href: reportId ? getInterviewReportCompleteLink(reportId) : undefined,
+      href: reportHref,
     },
   ];
 
