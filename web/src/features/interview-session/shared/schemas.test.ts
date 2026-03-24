@@ -409,14 +409,23 @@ describe("interviewChatWithReportSchema", () => {
     expect(result.next_stage).toBe("summary");
   });
 
-  it("report は optional（省略可能）", () => {
+  it("report は nullable（null許容）", () => {
     const result = interviewChatWithReportSchema.parse({
       text: "インタビューを再開します",
+      report: null,
       next_stage: "chat" as const,
     });
     expect(result.text).toBe("インタビューを再開します");
-    expect(result.report).toBeUndefined();
+    expect(result.report).toBeNull();
     expect(result.next_stage).toBe("chat");
+  });
+
+  it("report を省略した場合を拒否する", () => {
+    const result = interviewChatWithReportSchema.safeParse({
+      text: "インタビューを再開します",
+      next_stage: "chat" as const,
+    });
+    expect(result.success).toBe(false);
   });
 
   it("text が欠けている場合を拒否する", () => {
@@ -465,9 +474,17 @@ describe("interviewChatResponseSchema", () => {
     expect(result.next_stage).toBe("summary");
   });
 
-  it("report が optional であること", () => {
-    const result = interviewChatResponseSchema.parse({ text: "テスト" });
-    expect(result.report).toBeUndefined();
+  it("report が optional かつ nullable であること", () => {
+    const withNull = interviewChatResponseSchema.parse({
+      text: "テスト",
+      report: null,
+    });
+    expect(withNull.report).toBeNull();
+
+    const withoutField = interviewChatResponseSchema.parse({
+      text: "テスト",
+    });
+    expect(withoutField.report).toBeUndefined();
   });
 
   it("quick_replies が optional かつ nullable であること", () => {
