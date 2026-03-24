@@ -22,7 +22,7 @@ export default function TermsPage() {
     >
       <Container className="space-y-10">
         <LegalParagraph className="text-right">
-          最終更新日：2026年3月20日
+          最終更新日：2026年3月24日
         </LegalParagraph>
 
         <LegalParagraph>
