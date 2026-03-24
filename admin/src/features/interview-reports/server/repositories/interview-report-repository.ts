@@ -459,3 +459,56 @@ export async function updateReportVisibility(
     throw new Error(`Failed to update report visibility: ${error.message}`);
   }
 }
+
+export async function findReportsWithoutModerationScore() {
+  const supabase = createAdminClient();
+  const PAGE_SIZE = 500;
+  type ReportRow = {
+    id: string;
+    interview_session_id: string;
+    summary: string | null;
+    opinions: unknown;
+    role_description: string | null;
+  };
+  const allData: ReportRow[] = [];
+  let offset = 0;
+
+  // Supabase max_rows 制限を超えるデータに対応するためページネーション
+  while (true) {
+    const { data, error } = await supabase
+      .from("interview_report")
+      .select("id, interview_session_id, summary, opinions, role_description")
+      .is("moderation_score", null)
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(
+        `Failed to fetch reports without moderation score: ${error.message}`
+      );
+    }
+
+    allData.push(...data);
+
+    if (data.length < PAGE_SIZE) {
+      break;
+    }
+    offset += PAGE_SIZE;
+  }
+
+  return allData;
+}
+
+export async function updateModerationScore(
+  reportId: string,
+  score: number
+): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("interview_report")
+    .update({ moderation_score: score })
+    .eq("id", reportId);
+
+  if (error) {
+    throw new Error(`Failed to update moderation score: ${error.message}`);
+  }
+}
