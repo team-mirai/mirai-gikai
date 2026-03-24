@@ -51,6 +51,7 @@ export async function getInterviewSessions(
   // ただしRPC関数はmoderationフィルタ未対応のため、moderation指定時はRPCソートをスキップし
   // started_atソートにフォールバック（計算カラムはSupabaseクエリビルダーで直接ソートできないため）
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
+  let effectiveSortField = sort.field;
   try {
     const rpcFetcher =
       filters.moderation === "all"
@@ -68,14 +69,17 @@ export async function getInterviewSessions(
     } else {
       // RPC専用ソートフィールドの場合はstarted_atにフォールバック
       const isRpcOnlyField = sort.field in rpcSortFetchers;
-      const fallbackSort = isRpcOnlyField
-        ? { column: "started_at" as const, ascending: false }
-        : { column: sort.field, ascending: sort.order === "asc" };
+      if (isRpcOnlyField) {
+        effectiveSortField = "started_at";
+      }
       sessions = await findInterviewSessionsWithReport(
         config.id,
         from,
         to,
-        fallbackSort,
+        {
+          column: effectiveSortField,
+          ascending: isRpcOnlyField ? false : sort.order === "asc",
+        },
         filters
       );
     }
@@ -111,7 +115,7 @@ export async function getInterviewSessions(
   if (messageCountsResult.status === "fulfilled") {
     messageCounts = messageCountsResult.value;
   } else {
-    if (sort.field === "message_count") {
+    if (effectiveSortField === "message_count") {
       throw messageCountsResult.reason;
     }
     console.error(
@@ -123,7 +127,7 @@ export async function getInterviewSessions(
   if (helpfulCountsResult.status === "fulfilled") {
     helpfulCountsMap = helpfulCountsResult.value;
   } else {
-    if (sort.field === "helpful_count") {
+    if (effectiveSortField === "helpful_count") {
       throw helpfulCountsResult.reason;
     }
     console.error(
