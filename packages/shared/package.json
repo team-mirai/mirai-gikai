@@ -14,10 +14,26 @@
     "./stream/inject-json-fields": {
       "types": "./src/stream/inject-json-fields.ts",
       "default": "./src/stream/inject-json-fields.ts"
+    },
+    "./moderation/build-prompt": {
+      "types": "./src/moderation/build-moderation-prompt.ts",
+      "default": "./src/moderation/build-moderation-prompt.ts"
+    },
+    "./moderation/schemas": {
+      "types": "./src/moderation/schemas.ts",
+      "default": "./src/moderation/schemas.ts"
+    },
+    "./moderation/status": {
+      "types": "./src/moderation/moderation.ts",
+      "default": "./src/moderation/moderation.ts"
     }
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "typescript": "^5.6.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "zod": "^4.1.12"
   }
 }
