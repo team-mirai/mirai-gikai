@@ -65,6 +65,12 @@ describe("CompositePromptProvider", () => {
     await lazyComposite.getPrompt("top-chat-system", {
       billSummary: "test",
     });
+    await lazyComposite.getPrompt("bill-chat-system-normal", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
+    });
 
     expect(factoryCalled).toBe(false);
   });
