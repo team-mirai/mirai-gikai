@@ -50,20 +50,29 @@ export async function completeInterviewSession({
     };
   });
 
-  // モデレーションスコアを評価
+  // モデレーションスコアを評価（タイムアウト30秒）
+  const MODERATION_TIMEOUT_MS = 30_000;
   let moderationScore: number | null = null;
   try {
-    const moderation = await evaluateModerationScore({
-      summary: reportData.summary,
-      opinions: reportData.opinions,
-      roleDescription: reportData.role_description,
-    });
+    const moderation = await Promise.race([
+      evaluateModerationScore({
+        summary: reportData.summary,
+        opinions: reportData.opinions,
+        roleDescription: reportData.role_description,
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Moderation evaluation timed out")),
+          MODERATION_TIMEOUT_MS
+        )
+      ),
+    ]);
     moderationScore = moderation.score;
   } catch (error) {
     // モデレーション失敗はレポート保存をブロックしない
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error(
-      `Moderation evaluation failed for session ${sessionId}:`,
-      error
+      `Moderation evaluation failed for session ${sessionId}: ${message}`
     );
   }
 
