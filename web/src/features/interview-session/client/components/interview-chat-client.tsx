@@ -16,6 +16,7 @@ import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewRatingWidget } from "./interview-rating-widget";
 import { InterviewSummaryInput } from "./interview-summary-input";
 import { QuickReplyButtons } from "./quick-reply-buttons";
+import { SkipActionPopover } from "./skip-action-popover";
 import { TimeUpPrompt } from "./time-up-prompt";
 
 interface InterviewChatClientProps {
@@ -117,11 +118,17 @@ export function InterviewChatClient({
     [dismissTimeUpIfNeeded, handleQuickReply]
   );
 
-  const handleSkipTopic = () => {
+  const handleSkipToNext = () => {
     handleSubmit({ text: "次のテーマに進みたいです" });
   };
 
-  const handleEndInterview = () => {
+  const handleEndInterviewVoluntary = () => {
+    handleSubmit({
+      text: "インタビューを終了してレポートを作成してください。",
+    });
+  };
+
+  const handleEndInterviewTimeUp = () => {
     setTimeUpDismissed(true);
     handleSubmit({
       text: "目安時間になりました。レポート作成に進みたいです。",
@@ -143,6 +150,11 @@ export function InterviewChatClient({
   // メッセージ内にレポートが存在するかどうか
   const hasReport = messages.some((m) => m.report != null);
 
+  // 最後のAIメッセージのインデックスを事前計算
+  const lastAssistantIndex = messages.findLastIndex(
+    (m) => m.role === "assistant"
+  );
+
   return (
     <div className="h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light">
       <div className="flex flex-col h-full pt-24 md:pt-4 bg-white md:rounded-t-[36px] md:px-12">
@@ -151,9 +163,6 @@ export function InterviewChatClient({
             <InterviewProgressBar
               percentage={progress.percentage}
               currentTopic={progress.currentTopic}
-              showSkip={progress.showSkip}
-              onSkip={handleSkipTopic}
-              disabled={isLoading}
               remainingMinutes={timerMinutes}
             />
           </div>
@@ -173,18 +182,36 @@ export function InterviewChatClient({
             )}
 
             {/* メッセージ一覧を表示 */}
-            {messages.map((message) => (
-              <InterviewMessage
-                key={message.id}
-                message={{
-                  id: message.id,
-                  role: message.role,
-                  parts: [{ type: "text" as const, text: message.content }],
-                }}
-                isStreaming={false}
-                report={message.report}
-              />
-            ))}
+            {messages.map((message, index) => {
+              // 最後のAIメッセージかつストリーミング中でない場合にスキップボタンを表示
+              const showSkipFooter =
+                index === lastAssistantIndex &&
+                stage === "chat" &&
+                !isLoading &&
+                !showStreamingMessage;
+
+              return (
+                <InterviewMessage
+                  key={message.id}
+                  message={{
+                    id: message.id,
+                    role: message.role,
+                    parts: [{ type: "text" as const, text: message.content }],
+                  }}
+                  isStreaming={false}
+                  report={message.report}
+                  footer={
+                    showSkipFooter ? (
+                      <SkipActionPopover
+                        onSkipToNext={handleSkipToNext}
+                        onEndInterview={handleEndInterviewVoluntary}
+                        disabled={isLoading}
+                      />
+                    ) : undefined
+                  }
+                />
+              );
+            })}
 
             {/* ストリーミング中のAIレスポンスを表示 */}
             {showStreamingMessage && (
@@ -245,7 +272,7 @@ export function InterviewChatClient({
         {/* 時間超過プロンプト */}
         {showTimeUpPrompt && (
           <TimeUpPrompt
-            onEndInterview={handleEndInterview}
+            onEndInterview={handleEndInterviewTimeUp}
             onContinue={handleContinueInterview}
             disabled={isLoading}
           />
