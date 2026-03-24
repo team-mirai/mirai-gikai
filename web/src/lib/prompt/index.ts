@@ -1,3 +1,4 @@
+import "server-only";
 import { CompositePromptProvider } from "./composite/composite-prompt-provider";
 import type { PromptProvider } from "./interface/prompt-provider";
 import { getLangfuseClient } from "./langfuse/client";

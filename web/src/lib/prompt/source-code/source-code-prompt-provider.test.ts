@@ -29,4 +29,10 @@ describe("SourceCodePromptProvider", () => {
       'Source code prompt template not found: "nonexistent-prompt"'
     );
   });
+
+  it("必須変数が未指定の場合にエラーをスローする", async () => {
+    await expect(provider.getPrompt("top-chat-system")).rejects.toThrow(
+      'Missing prompt variables for "top-chat-system"'
+    );
+  });
 });

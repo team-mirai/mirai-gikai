@@ -24,6 +24,14 @@ export class SourceCodePromptProvider implements PromptProvider {
     }
 
     const content = compileTemplate(template, variables);
+
+    const unresolvedPlaceholders = content.match(/\{\{\w+\}\}/g);
+    if (unresolvedPlaceholders) {
+      throw new Error(
+        `Missing prompt variables for "${name}": ${unresolvedPlaceholders.join(", ")}`
+      );
+    }
+
     const metadata = JSON.stringify({ source: "source-code", name });
 
     return { content, metadata };
