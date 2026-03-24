@@ -7,6 +7,7 @@ import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { InterviewLandingSection } from "@/features/interview-config/client/components/interview-landing-section";
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
 import { getReportReactionsBatch } from "@/features/report-reaction/server/loaders/get-report-reactions";
+import { OpinionsBreadcrumb } from "../../shared/components/opinions-breadcrumb";
 import { PublicOpinionsList } from "../../client/components/public-opinions-list";
 import { getAllPublicReportsByBillId } from "../loaders/get-all-public-reports-by-bill-id";
 
@@ -55,6 +56,11 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
       )}
 
       <Container>
+        {/* パンくずリスト */}
+        <div className="pt-4">
+          <OpinionsBreadcrumb billId={billId} />
+        </div>
+
         {/* 法案タイトル */}
         <div className="py-6">
           <h1 className="text-2xl font-bold leading-[1.5] text-black">
