@@ -43,6 +43,14 @@ const ROLE_OPTIONS = [
   { value: "general_citizen", label: "一般的な関心" },
 ] as const;
 
+const MODERATION_OPTIONS = [
+  { value: "all", label: "すべて" },
+  { value: "ok", label: "OK" },
+  { value: "warning", label: "Warning" },
+  { value: "ng", label: "NG" },
+  { value: "unscored", label: "未評価" },
+] as const;
+
 export function SessionFilterBar({ currentFilters }: SessionFilterBarProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -89,6 +97,12 @@ export function SessionFilterBar({ currentFilters }: SessionFilterBarProps) {
         value={currentFilters.role}
         options={ROLE_OPTIONS}
         onChange={(v) => handleFilterChange("role", v)}
+      />
+      <FilterSelect
+        label="モデレーション"
+        value={currentFilters.moderation}
+        options={MODERATION_OPTIONS}
+        onChange={(v) => handleFilterChange("moderation", v)}
       />
     </div>
   );

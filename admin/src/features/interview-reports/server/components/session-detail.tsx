@@ -15,6 +15,7 @@ import type { InterviewSessionDetail } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
 import { getMessageDisplayText } from "../../shared/utils/get-message-display-text";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
+import { ModerationBadge } from "./moderation-badge";
 import { RatingStars } from "./rating-stars";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
@@ -141,7 +142,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
         <CardContent>
           {report ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <div className="text-sm text-gray-500">スタンス</div>
                   <div className="mt-1">
@@ -159,6 +160,15 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                   <div className="text-sm text-gray-500">役割の説明</div>
                   <div className="text-sm">
                     {report.role_description || "-"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">モデレーション</div>
+                  <div className="mt-1">
+                    <ModerationBadge
+                      status={report.moderation_status}
+                      score={report.moderation_score}
+                    />
                   </div>
                 </div>
               </div>
@@ -201,6 +211,44 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* モデレーションスコア */}
+      {report && report.moderation_score != null && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">モデレーション</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="text-sm text-gray-500 w-16 shrink-0">
+                  スコア
+                </div>
+                <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${
+                      report.moderation_status === "ok"
+                        ? "bg-green-500"
+                        : report.moderation_status === "warning"
+                          ? "bg-orange-500"
+                          : "bg-red-500"
+                    }`}
+                    style={{
+                      width: `${report.moderation_score}%`,
+                    }}
+                  />
+                </div>
+                <div className="w-12 text-sm font-medium text-right">
+                  {report.moderation_score} / 100
+                </div>
+              </div>
+              <div className="text-xs text-gray-400">
+                0-29: OK / 30-69: Warning / 70-100: NG
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 情報充実度・リアクション */}
       {report && (contentRichness || reactionCounts) && (

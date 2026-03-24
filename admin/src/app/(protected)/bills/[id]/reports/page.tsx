@@ -26,6 +26,7 @@ interface ReportsPageProps {
     visibility?: string;
     stance?: string;
     role?: string;
+    moderation?: string;
   }>;
 }
 
@@ -34,7 +35,7 @@ export default async function ReportsPage({
   searchParams,
 }: ReportsPageProps) {
   const { id } = await params;
-  const { page, sort, order, status, visibility, stance, role } =
+  const { page, sort, order, status, visibility, stance, role, moderation } =
     await searchParams;
   const currentPage = Math.max(1, Number(page) || 1);
   const sortConfig = parseSessionSortParams(sort, order);
@@ -42,7 +43,8 @@ export default async function ReportsPage({
     status,
     visibility,
     stance,
-    role
+    role,
+    moderation
   );
 
   const [bill, sessions, totalCount, statistics] = await Promise.all([
