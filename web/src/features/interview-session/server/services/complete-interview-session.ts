@@ -8,7 +8,6 @@ import {
   updateInterviewSessionCompleted,
   upsertInterviewReport,
 } from "../repositories/interview-session-repository";
-import type { ModerationStatus } from "../../shared/utils/moderation";
 import { evaluateModerationScore } from "./evaluate-moderation-score";
 
 type CompleteInterviewSessionParams = {
@@ -53,7 +52,6 @@ export async function completeInterviewSession({
 
   // モデレーションスコアを評価
   let moderationScore: number | null = null;
-  let moderationStatus: ModerationStatus | null = null;
   try {
     const moderation = await evaluateModerationScore({
       summary: reportData.summary,
@@ -61,7 +59,6 @@ export async function completeInterviewSession({
       roleDescription: reportData.role_description,
     });
     moderationScore = moderation.score;
-    moderationStatus = moderation.status;
   } catch (error) {
     // モデレーション失敗はレポート保存をブロックしない
     console.error(
@@ -72,6 +69,7 @@ export async function completeInterviewSession({
 
   // レポートを保存（UPSERT）
   // content_richnessはZodスキーマでバリデーション済み（totalは0-100の整数）
+  // moderation_statusはgenerated columnのためscoreのみ保存
   const report = await upsertInterviewReport({
     interview_session_id: sessionId,
     summary: reportData.summary,
@@ -82,7 +80,6 @@ export async function completeInterviewSession({
     opinions: enrichedOpinions,
     content_richness: reportData.content_richness,
     moderation_score: moderationScore,
-    moderation_status: moderationStatus,
   });
 
   // セッションを完了
