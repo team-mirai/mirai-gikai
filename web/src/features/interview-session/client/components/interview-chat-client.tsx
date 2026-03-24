@@ -170,6 +170,7 @@ export function InterviewChatClient({
             <div className="flex flex-col">
               <Link
                 href={getBillDetailLink(billId, previewToken) as Route}
+                target="_blank"
                 className="inline-flex items-center gap-1"
               >
                 <span className="text-sm font-medium leading-[1.8] text-primary underline">
