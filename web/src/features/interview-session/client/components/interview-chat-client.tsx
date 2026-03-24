@@ -1,10 +1,14 @@
 "use client";
 
+import { SquareArrowOutUpRight } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import {
   Conversation,
   ConversationContent,
 } from "@/components/ai-elements/conversation";
+import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { useInterviewChat } from "../hooks/use-interview-chat";
 import { useInterviewRating } from "../hooks/use-interview-rating";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
@@ -16,10 +20,12 @@ import { InterviewProgressBar } from "./interview-progress-bar";
 import { InterviewRatingWidget } from "./interview-rating-widget";
 import { InterviewSummaryInput } from "./interview-summary-input";
 import { QuickReplyButtons } from "./quick-reply-buttons";
+import { SkipActionPopover } from "./skip-action-popover";
 import { TimeUpPrompt } from "./time-up-prompt";
 
 interface InterviewChatClientProps {
   billId: string;
+  billTitle: string;
   sessionId: string;
   initialMessages: Array<{
     id: string;
@@ -37,6 +43,7 @@ interface InterviewChatClientProps {
 
 export function InterviewChatClient({
   billId,
+  billTitle,
   sessionId,
   initialMessages,
   mode,
@@ -117,11 +124,11 @@ export function InterviewChatClient({
     [dismissTimeUpIfNeeded, handleQuickReply]
   );
 
-  const handleSkipTopic = () => {
-    handleSubmit({ text: "次のテーマに進みたいです" });
+  const handleSkipAction = (text: string) => {
+    handleSubmit({ text });
   };
 
-  const handleEndInterview = () => {
+  const handleEndInterviewTimeUp = () => {
     setTimeUpDismissed(true);
     handleSubmit({
       text: "目安時間になりました。レポート作成に進みたいです。",
@@ -143,6 +150,11 @@ export function InterviewChatClient({
   // メッセージ内にレポートが存在するかどうか
   const hasReport = messages.some((m) => m.report != null);
 
+  // 最後のAIメッセージのインデックスを事前計算
+  const lastAssistantIndex = messages.findLastIndex(
+    (m) => m.role === "assistant"
+  );
+
   return (
     <div className="h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light">
       <div className="flex flex-col h-full pt-24 md:pt-4 bg-white md:rounded-t-[36px] md:px-12">
@@ -151,15 +163,29 @@ export function InterviewChatClient({
             <InterviewProgressBar
               percentage={progress.percentage}
               currentTopic={progress.currentTopic}
-              showSkip={progress.showSkip}
-              onSkip={handleSkipTopic}
-              disabled={isLoading}
               remainingMinutes={timerMinutes}
             />
           </div>
         )}
         <Conversation className="min-h-0 flex-1 overflow-y-auto">
           <ConversationContent className="flex flex-col gap-4">
+            {/* 法案リンク */}
+            <div className="flex flex-col">
+              <Link
+                href={getBillDetailLink(billId, previewToken) as Route}
+                target="_blank"
+                className="inline-flex items-center gap-1"
+              >
+                <span className="text-sm font-medium leading-[1.8] text-primary underline">
+                  {billTitle}
+                </span>
+                <SquareArrowOutUpRight className="size-3.5 text-primary" />
+              </Link>
+              <p className="text-sm font-medium leading-[1.8] text-mirai-text">
+                についてのインタビュー
+              </p>
+            </div>
+
             {/* 初期表示メッセージ */}
             {messages.length === 0 && !object && (
               <div className="flex flex-col gap-4">
@@ -173,18 +199,35 @@ export function InterviewChatClient({
             )}
 
             {/* メッセージ一覧を表示 */}
-            {messages.map((message) => (
-              <InterviewMessage
-                key={message.id}
-                message={{
-                  id: message.id,
-                  role: message.role,
-                  parts: [{ type: "text" as const, text: message.content }],
-                }}
-                isStreaming={false}
-                report={message.report}
-              />
-            ))}
+            {messages.map((message, index) => {
+              // 最後のAIメッセージかつストリーミング中でない場合にスキップボタンを表示
+              const showSkipFooter =
+                index === lastAssistantIndex &&
+                stage === "chat" &&
+                !isLoading &&
+                !showStreamingMessage;
+
+              return (
+                <InterviewMessage
+                  key={message.id}
+                  message={{
+                    id: message.id,
+                    role: message.role,
+                    parts: [{ type: "text" as const, text: message.content }],
+                  }}
+                  isStreaming={false}
+                  report={message.report}
+                  footer={
+                    showSkipFooter ? (
+                      <SkipActionPopover
+                        onSelect={handleSkipAction}
+                        disabled={isLoading}
+                      />
+                    ) : undefined
+                  }
+                />
+              );
+            })}
 
             {/* ストリーミング中のAIレスポンスを表示 */}
             {showStreamingMessage && (
@@ -245,7 +288,7 @@ export function InterviewChatClient({
         {/* 時間超過プロンプト */}
         {showTimeUpPrompt && (
           <TimeUpPrompt
-            onEndInterview={handleEndInterview}
+            onEndInterview={handleEndInterviewTimeUp}
             onContinue={handleContinueInterview}
             disabled={isLoading}
           />

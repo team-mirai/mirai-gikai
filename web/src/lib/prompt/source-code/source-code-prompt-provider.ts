@@ -1,7 +1,25 @@
 import type { PromptProvider } from "../interface/prompt-provider";
 import type { CompiledPrompt, PromptVariables } from "../interface/types";
+import { buildBillChatSystemHardPrompt } from "./templates/bill-chat-system-hard";
 import { buildBillChatSystemNormalPrompt } from "./templates/bill-chat-system-normal";
 import { buildTopChatSystemPrompt } from "./templates/top-chat-system";
+
+const BILL_REQUIRED_KEYS = [
+  "billName",
+  "billTitle",
+  "billSummary",
+  "billContent",
+] as const;
+
+/** 法案チャットプロンプトの必須変数を検証する */
+function validateBillVariables(v: PromptVariables, promptName: string): void {
+  const missing = BILL_REQUIRED_KEYS.filter((key) => !(key in v));
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required variables for prompt "${promptName}": ${missing.join(", ")}`
+    );
+  }
+}
 
 /** プロンプト名からビルド関数へのマップ */
 const PROMPT_BUILDERS: Record<string, (variables: PromptVariables) => string> =
@@ -15,19 +33,17 @@ const PROMPT_BUILDERS: Record<string, (variables: PromptVariables) => string> =
       return buildTopChatSystemPrompt(v.billSummary);
     },
     "bill-chat-system-normal": (v) => {
-      const required = [
-        "billName",
-        "billTitle",
-        "billSummary",
-        "billContent",
-      ] as const;
-      const missing = required.filter((key) => !(key in v));
-      if (missing.length > 0) {
-        throw new Error(
-          `Missing required variables for prompt "bill-chat-system-normal": ${missing.join(", ")}`
-        );
-      }
+      validateBillVariables(v, "bill-chat-system-normal");
       return buildBillChatSystemNormalPrompt(
+        v.billName,
+        v.billTitle,
+        v.billSummary,
+        v.billContent
+      );
+    },
+    "bill-chat-system-hard": (v) => {
+      validateBillVariables(v, "bill-chat-system-hard");
+      return buildBillChatSystemHardPrompt(
         v.billName,
         v.billTitle,
         v.billSummary,

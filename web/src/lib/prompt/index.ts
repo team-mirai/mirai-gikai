@@ -11,8 +11,9 @@ import {
 /**
  * プロンプトプロバイダーの作成処理
  *
- * ソースコード管理のプロンプト（top-chat-system）はSourceCodePromptProviderから、
- * それ以外（bill-chat-system-*）はLangfusePromptProviderから取得する。
+ * 全チャットプロンプト（top-chat-system, bill-chat-system-normal, bill-chat-system-hard）は
+ * SourceCodePromptProviderから取得する。
+ * それ以外のプロンプトはLangfusePromptProviderにフォールバックする。
  */
 export function createPromptProvider(): PromptProvider {
   const sourceCodeProvider = new SourceCodePromptProvider();
