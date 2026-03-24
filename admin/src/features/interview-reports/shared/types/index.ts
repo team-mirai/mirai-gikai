@@ -86,7 +86,7 @@ export type InterviewStatistics = {
   stanceFor: number;
   stanceAgainst: number;
   stanceNeutral: number;
-  avgTotalScore: number | null;
+  avgTotalContentRichness: number | null;
   roleSubjectExpert: number;
   roleWorkRelated: number;
   roleDailyLifeAffected: number;
@@ -98,12 +98,15 @@ export type InterviewStatistics = {
 };
 
 // ソート関連の型定義
-export type SessionSortField = "started_at" | "message_count" | "total_score";
+export type SessionSortField =
+  | "started_at"
+  | "message_count"
+  | "total_content_richness";
 
 export const SESSION_SORT_FIELDS: readonly SessionSortField[] = [
   "started_at",
   "message_count",
-  "total_score",
+  "total_content_richness",
 ] as const;
 
 export type SessionSortConfig = SortConfig<SessionSortField>;

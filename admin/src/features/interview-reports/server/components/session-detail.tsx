@@ -24,15 +24,21 @@ interface SessionDetailProps {
   billId: string;
 }
 
-const scoreLabels: Record<string, string> = {
+const contentRichnessLabels: Record<string, string> = {
   total: "総合",
   clarity: "明確さ",
   specificity: "具体性",
-  impact: "影響度",
-  constructiveness: "建設性",
+  impact: "影響への言及",
+  constructiveness: "提案の広がり",
 };
 
-function ScoreBar({ label, value }: { label: string; value: number }) {
+function ContentRichnessBar({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="w-20 text-sm text-gray-500 shrink-0">{label}</div>
@@ -54,7 +60,10 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
   const messages = session.interview_messages;
   const reactionCounts = session.reaction_counts;
 
-  const scores = report?.scores as Record<string, unknown> | null;
+  const contentRichness = report?.content_richness as Record<
+    string,
+    unknown
+  > | null;
 
   return (
     <div className="space-y-6">
@@ -193,34 +202,38 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
         </CardContent>
       </Card>
 
-      {/* スコア・リアクション */}
-      {report && (scores || reactionCounts) && (
+      {/* 情報充実度・リアクション */}
+      {report && (contentRichness || reactionCounts) && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">評価・リアクション</CardTitle>
+            <CardTitle className="text-lg">情報充実度・リアクション</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* スコア */}
-              {scores && (
+              {/* 情報充実度 */}
+              {contentRichness && (
                 <div>
-                  <div className="text-sm text-gray-500 mb-3">
-                    レポートスコア
-                  </div>
+                  <div className="text-sm text-gray-500 mb-3">情報充実度</div>
                   <div className="space-y-2.5">
-                    {Object.entries(scoreLabels).map(([key, label]) => {
-                      const value = scores[key];
-                      if (typeof value !== "number") return null;
-                      return <ScoreBar key={key} label={label} value={value} />;
-                    })}
+                    {Object.entries(contentRichnessLabels).map(
+                      ([key, label]) => {
+                        const value = contentRichness[key];
+                        if (typeof value !== "number") return null;
+                        return (
+                          <ContentRichnessBar
+                            key={key}
+                            label={label}
+                            value={value}
+                          />
+                        );
+                      }
+                    )}
                   </div>
-                  {typeof scores.reasoning === "string" && (
+                  {typeof contentRichness.reasoning === "string" && (
                     <div className="mt-3">
-                      <div className="text-sm text-gray-500 mb-1">
-                        スコア根拠
-                      </div>
+                      <div className="text-sm text-gray-500 mb-1">評価根拠</div>
                       <div className="text-sm bg-gray-50 p-3 rounded-lg">
-                        {scores.reasoning}
+                        {contentRichness.reasoning}
                       </div>
                     </div>
                   )}

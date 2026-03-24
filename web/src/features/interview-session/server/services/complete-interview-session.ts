@@ -50,7 +50,7 @@ export async function completeInterviewSession({
   });
 
   // レポートを保存（UPSERT）
-  // scoresはZodスキーマでバリデーション済み（totalは0-100の整数）
+  // content_richnessはZodスキーマでバリデーション済み（totalは0-100の整数）
   const report = await upsertInterviewReport({
     interview_session_id: sessionId,
     summary: reportData.summary,
@@ -59,7 +59,7 @@ export async function completeInterviewSession({
     role_description: reportData.role_description,
     role_title: reportData.role_title,
     opinions: enrichedOpinions,
-    scores: reportData.scores,
+    content_richness: reportData.content_richness,
   });
 
   // セッションを完了

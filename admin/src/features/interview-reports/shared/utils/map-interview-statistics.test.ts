@@ -9,7 +9,7 @@ describe("mapInterviewStatistics", () => {
     stance_for_count: 30,
     stance_against_count: 20,
     stance_neutral_count: 10,
-    avg_total_score: 72.5,
+    avg_total_content_richness: 72.5,
     role_subject_expert_count: 10,
     role_work_related_count: 20,
     role_daily_life_affected_count: 15,
@@ -29,7 +29,7 @@ describe("mapInterviewStatistics", () => {
     expect(result.stanceFor).toBe(30);
     expect(result.stanceAgainst).toBe(20);
     expect(result.stanceNeutral).toBe(10);
-    expect(result.avgTotalScore).toBe(72.5);
+    expect(result.avgTotalContentRichness).toBe(72.5);
     expect(result.roleSubjectExpert).toBe(10);
     expect(result.roleWorkRelated).toBe(20);
     expect(result.roleDailyLifeAffected).toBe(15);
@@ -56,13 +56,13 @@ describe("mapInterviewStatistics", () => {
     const result = mapInterviewStatistics({
       ...baseRaw,
       avg_rating: null,
-      avg_total_score: null,
+      avg_total_content_richness: null,
       avg_message_count: null,
       median_duration_seconds: null,
     });
 
     expect(result.avgRating).toBeNull();
-    expect(result.avgTotalScore).toBeNull();
+    expect(result.avgTotalContentRichness).toBeNull();
     expect(result.avgMessageCount).toBeNull();
     expect(result.medianDurationSeconds).toBeNull();
   });

@@ -54,7 +54,7 @@ const validSummaryResponse = JSON.stringify({
         content: "社会全体の利益になると考える",
       },
     ],
-    scores: {
+    content_richness: {
       total: 70,
       clarity: 80,
       specificity: 60,

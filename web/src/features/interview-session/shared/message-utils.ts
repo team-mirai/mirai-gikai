@@ -48,7 +48,7 @@ export function parseMessageContent(content: string): {
           : null;
 
       if (rawReport) {
-        // opinionsがnullの場合は空配列に変換（scoresは除外）
+        // opinionsがnullの場合は空配列に変換（content_richnessは除外）
         const report: InterviewReportViewData = {
           summary: rawReport.summary ?? null,
           stance: rawReport.stance ?? null,

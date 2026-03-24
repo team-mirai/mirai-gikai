@@ -180,7 +180,7 @@ describe("parseMessageContent", () => {
     expect(result.text).toBe("レポートです");
   });
 
-  it("reportのscoresフィールドは除外される", () => {
+  it("reportのcontent_richnessフィールドは除外される", () => {
     const content = JSON.stringify({
       text: "テスト",
       report: {
@@ -190,12 +190,12 @@ describe("parseMessageContent", () => {
         role_description: null,
         role_title: null,
         opinions: [],
-        scores: { total: 80, clarity: 70 },
+        content_richness: { total: 80, clarity: 70 },
       },
     });
     const result = parseMessageContent(content);
     expect(result.report).not.toBeNull();
-    expect(result.report).not.toHaveProperty("scores");
+    expect(result.report).not.toHaveProperty("content_richness");
   });
 
   it("reportが無効（全てnull/空）ならnullを返す", () => {

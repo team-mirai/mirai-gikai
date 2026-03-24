@@ -77,7 +77,7 @@ export async function findBillWithContentById(billId: string) {
 }
 
 /**
- * 議案IDから公開インタビューレポートを取得（total_score降順、件数制限あり）
+ * 議案IDから公開インタビューレポートを取得（total_content_richness降順、件数制限あり）
  * 公開条件: is_public_by_admin = true AND is_public_by_user = true
  */
 export async function findPublicReportsByBillId(
@@ -88,12 +88,12 @@ export async function findPublicReportsByBillId(
   const { data, error } = await supabase
     .from("interview_report")
     .select(
-      "id, stance, role, role_title, summary, total_score, created_at, interview_sessions!inner(interview_configs!inner(bill_id))"
+      "id, stance, role, role_title, summary, total_content_richness, created_at, interview_sessions!inner(interview_configs!inner(bill_id))"
     )
     .eq("is_public_by_admin", true)
     .eq("is_public_by_user", true)
     .eq("interview_sessions.interview_configs.bill_id", billId)
-    .order("total_score", { ascending: false, nullsFirst: false })
+    .order("total_content_richness", { ascending: false, nullsFirst: false })
     .limit(limit);
 
   if (error) {

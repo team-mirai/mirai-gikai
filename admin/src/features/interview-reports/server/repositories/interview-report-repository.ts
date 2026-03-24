@@ -215,7 +215,7 @@ export async function findFilteredSessionIds(
   return (data || []).map((row) => row.id);
 }
 
-export async function findSessionIdsOrderedByTotalScore(
+export async function findSessionIdsOrderedByTotalContentRichness(
   configId: string,
   ascending: boolean,
   offset: number,
@@ -224,7 +224,7 @@ export async function findSessionIdsOrderedByTotalScore(
 ): Promise<string[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc(
-    "find_sessions_ordered_by_total_score",
+    "find_sessions_ordered_by_total_content_richness",
     {
       p_config_id: configId,
       p_ascending: ascending,
@@ -236,7 +236,7 @@ export async function findSessionIdsOrderedByTotalScore(
 
   if (error) {
     throw new Error(
-      `Failed to fetch sessions ordered by total score: ${error.message}`
+      `Failed to fetch sessions ordered by total content richness: ${error.message}`
     );
   }
 
