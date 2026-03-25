@@ -17,12 +17,13 @@ const FONT_FETCH_TIMEOUT_MS = 3000;
 /** タイムアウト付きfetch */
 async function fetchWithTimeout(
   url: string,
+  init?: RequestInit,
   timeoutMs = FONT_FETCH_TIMEOUT_MS
 ) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { signal: controller.signal });
+    return await fetch(url, { ...init, signal: controller.signal });
   } finally {
     clearTimeout(timeoutId);
   }
@@ -35,10 +36,15 @@ async function loadFont(): Promise<ArrayBuffer | null> {
   if (cachedFontData) return cachedFontData;
 
   try {
-    const css = await fetchWithTimeout(GOOGLE_FONTS_URL).then((res) =>
-      res.text()
-    );
-    const fontUrl = css.match(/src: url\(([^)]+)\) format\('woff2'\)/)?.[1];
+    // Google Fontsはwoff2を返すためにブラウザ相当のUser-Agentが必要
+    const css = await fetchWithTimeout(GOOGLE_FONTS_URL, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+      },
+    }).then((res) => res.text());
+    const fontUrl = (css.match(/src: url\(([^)]+)\) format\('woff2'\)/) ??
+      css.match(/src: url\(([^)]+)\) format\('[^']+'\)/))?.[1];
     if (!fontUrl) return null;
     cachedFontData = await fetchWithTimeout(fontUrl).then((r) =>
       r.arrayBuffer()
@@ -74,14 +80,19 @@ export async function GET(request: Request) {
   );
 
   const fontData = await loadFont();
-  const fonts: {
-    name: string;
-    data: ArrayBuffer;
-    style: "normal";
-    weight: 400;
-  }[] = fontData
-    ? [{ name: "Noto Sans JP", data: fontData, style: "normal", weight: 400 }]
-    : [];
+  // フォント取得失敗時はプロパティ自体を省略し、デフォルトフォントにフォールバック
+  const fontOptions = fontData
+    ? {
+        fonts: [
+          {
+            name: "Noto Sans JP",
+            data: fontData,
+            style: "normal" as const,
+            weight: 400 as const,
+          },
+        ],
+      }
+    : {};
 
   return new ImageResponse(
     <div
@@ -206,7 +217,7 @@ export async function GET(request: Request) {
     {
       width: 1200,
       height: 630,
-      fonts,
+      ...fontOptions,
       headers: {
         "Cache-Control": "public, max-age=3600, s-maxage=86400",
       },
