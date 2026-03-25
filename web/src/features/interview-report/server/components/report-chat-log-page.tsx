@@ -2,6 +2,7 @@ import "server-only";
 
 import { Bot, ChevronLeft, UserRound } from "lucide-react";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -54,6 +55,18 @@ export async function ReportChatLogPage({
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
+      {/* 法案サムネイル画像 */}
+      {bill.thumbnail_url && (
+        <div className="relative w-full h-[320px]">
+          <Image
+            src={bill.thumbnail_url}
+            alt={billName}
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+
       {/* Back to Report Link */}
       <div className="px-4 pt-4">
         <Link
@@ -90,7 +103,7 @@ export async function ReportChatLogPage({
               roleTitle={report.role_title}
               sessionStartedAt={report.session_started_at}
               characterCount={characterCount}
-              variant="chat-log"
+              disableLink
             />
           </div>
         </div>

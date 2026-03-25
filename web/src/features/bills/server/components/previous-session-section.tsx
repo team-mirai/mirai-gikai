@@ -59,7 +59,7 @@ export function PreviousSessionSection({
             <span className="flex items-center gap-4">
               {new Date(session.start_date).getFullYear()}年 {session.name}
               の提出法案
-              <span>{totalBillCount}件</span>
+              <span className="shrink-0">{totalBillCount}件</span>
             </span>
             <ChevronRight className="h-6 w-6 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
           </h3>

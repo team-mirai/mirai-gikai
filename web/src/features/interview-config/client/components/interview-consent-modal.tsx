@@ -49,7 +49,7 @@ export function InterviewConsentModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md px-8 py-12">
+      <DialogContent className="px-8 py-12">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-primary text-center">
             AIインタビュー同意事項
@@ -58,7 +58,7 @@ export function InterviewConsentModal({
         </DialogHeader>
 
         <div className="flex flex-col gap-6 mt-6">
-          <ul className="flex flex-col gap-3 list-disc pl-5 text-xs font-bold text-gray-800 leading-[22px]">
+          <ul className="flex flex-col gap-3 list-disc pl-5 text-sm font-bold text-gray-800 leading-[22px]">
             <li>回答データは党内での政策検討に利用します。</li>
             <li>
               インタビューの回答内容の公開を許可した場合、のちにみらい議会上に掲載される場合があります。
@@ -76,7 +76,7 @@ export function InterviewConsentModal({
             />
             <label
               htmlFor="consent-agree"
-              className="text-xs font-bold text-black"
+              className="text-sm font-bold text-black"
             >
               <Link
                 href={routes.terms()}
@@ -100,7 +100,7 @@ export function InterviewConsentModal({
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 mt-9">
+        <div className="flex flex-col gap-4 mt-6">
           <Button
             onClick={handleAgree}
             disabled={isLoading || !agreed}

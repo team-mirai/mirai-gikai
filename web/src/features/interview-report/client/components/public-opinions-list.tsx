@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useCallback, useState } from "react";
 import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
 import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
 import type { ReportReactionData } from "@/features/report-reaction/shared/types";
+import { cn } from "@/lib/utils";
 import { fetchMorePublicReports } from "../../server/actions/fetch-more-public-reports";
-import { ReportCard } from "../../shared/components/report-card";
 import type { PublicInterviewReport } from "../../server/loaders/get-public-reports-by-bill-id";
+import { ReportCard } from "../../shared/components/report-card";
 import {
   type StanceCounts,
   type StanceFilter,
@@ -105,7 +105,7 @@ export function PublicOpinionsList({
       {/* セクションヘッダー */}
       <div className="flex items-center gap-4">
         <h2 className="text-[22px] font-bold leading-[1.636] text-mirai-text">
-          <span className="mr-1">💬</span>法案に対する当事者の意見
+          <span className="mr-1">💬</span>法案に寄せられた意見
         </h2>
         <span className="text-[22px] font-bold leading-[1.636] text-mirai-text">
           {stanceCounts.all}件

@@ -56,7 +56,7 @@ async function loadFont(): Promise<ArrayBuffer | null> {
 
   try {
     const url =
-      "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap";
+      "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@800&display=swap";
     const cssRes = await fetchWithTimeout(url);
     if (!cssRes.ok) return null;
     const css = await cssRes.text();
@@ -106,7 +106,7 @@ export async function GET(request: Request) {
             name: "Noto Sans JP",
             data: fontData,
             style: "normal" as const,
-            weight: 400 as const,
+            weight: 800 as const,
           },
         ],
       }
@@ -142,7 +142,7 @@ export async function GET(request: Request) {
           style={{
             display: "flex",
             fontSize: 38,
-            fontWeight: 400,
+            fontWeight: 800,
             color: "#1f2937",
             lineHeight: 1.8,
             flex: 1,
@@ -158,7 +158,7 @@ export async function GET(request: Request) {
           style={{
             display: "flex",
             fontSize: 32,
-            fontWeight: 700,
+            fontWeight: 800,
             color: "#0f8472",
             lineHeight: 1.5,
           }}
@@ -170,7 +170,7 @@ export async function GET(request: Request) {
         <div
           style={{
             position: "absolute",
-            top: 32,
+            top: 0,
             right: 0,
             display: "flex",
             alignItems: "center",
@@ -188,7 +188,7 @@ export async function GET(request: Request) {
           <span
             style={{
               fontSize: 28,
-              fontWeight: 700,
+              fontWeight: 800,
               color: "#1f2937",
               letterSpacing: "0.03em",
             }}

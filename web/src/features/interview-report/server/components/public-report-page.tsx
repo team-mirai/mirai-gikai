@@ -7,11 +7,10 @@ import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
 import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
-import { getOrigin } from "@/lib/utils/url";
 import { routes } from "@/lib/routes";
+import { getOrigin } from "@/lib/utils/url";
 import { ReportContent } from "../../shared/components/report-content";
 import { parseOpinions } from "../../shared/utils/format-utils";
-import { calculateDuration } from "../../shared/utils/report-utils";
 import { getPublicReportById } from "../loaders/get-public-report-by-id";
 
 interface PublicReportPageProps {
@@ -27,10 +26,6 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
 
   const billName = data.bill.bill_content?.title || data.bill.name;
   const opinions = parseOpinions(data.opinions);
-  const duration = calculateDuration(
-    data.session_started_at,
-    data.session_completed_at
-  );
 
   const [reactionData, origin] = await Promise.all([
     getReportReactions(reportId),
@@ -40,7 +35,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
   const ogImageUrl = `${origin}/api/og/report?id=${reportId}`;
 
   return (
-    <div className="min-h-dvh bg-mirai-surface pb-20">
+    <div className="min-h-dvh bg-mirai-surface pb-15">
       {/* 法案サムネイル画像 */}
       {data.bill.thumbnail_url && (
         <div className="relative w-full h-[320px]">
@@ -69,7 +64,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
       </div>
 
       {/* レポート本体（共通コンポーネント） */}
-      <div className="px-4 pt-8 pb-28">
+      <div className="px-4 pt-8">
         <ReportContent
           reportId={reportId}
           billId={data.bill_id}
@@ -78,7 +73,6 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
           role={data.role}
           roleTitle={data.role_title}
           sessionStartedAt={data.session_started_at}
-          duration={duration}
           characterCount={data.characterCount}
           roleDescription={data.role_description}
           opinions={opinions}
