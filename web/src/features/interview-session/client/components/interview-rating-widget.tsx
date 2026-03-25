@@ -3,14 +3,14 @@
 import { ArrowRight, Star, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  FEEDBACK_RATING_THRESHOLD,
-  FEEDBACK_TAGS,
-  FEEDBACK_TAG_LABELS,
-  type FeedbackTag,
-} from "../../shared/constants/feedback-tags";
 import { submitInterviewFeedback } from "../../server/actions/submit-interview-feedback";
 import { submitInterviewRating } from "../../server/actions/submit-interview-rating";
+import {
+  FEEDBACK_RATING_THRESHOLD,
+  FEEDBACK_TAG_LABELS,
+  FEEDBACK_TAGS,
+  type FeedbackTag,
+} from "../../shared/constants/feedback-tags";
 
 type WidgetPhase = "rating" | "feedback" | "thankyou";
 
@@ -33,7 +33,7 @@ function RatingPhase({
       <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
         AIはあなたの考えを十分に引き出せていますか
       </p>
-      <div className="flex justify-center gap-[15px]">
+      <div className="flex justify-center">
         {[1, 2, 3, 4, 5].map((star) => (
           <Button
             key={star}
