@@ -47,7 +47,11 @@ export async function runBatchModerationScoring(): Promise<BatchModerationResult
         prompt,
       });
 
-      await updateModerationScore(report.id, object.score);
+      await updateModerationScore(report.id, {
+        score: object.score,
+        reasoning: object.reasoning,
+        flaggedCategories: object.flagged_categories,
+      });
 
       console.log(
         `[BatchModeration] report=${report.id} score=${object.score} categories=[${object.flagged_categories.join(",")}]`

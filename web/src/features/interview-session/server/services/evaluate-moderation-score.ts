@@ -24,6 +24,8 @@ type ModerationInput = {
 type ModerationOutput = {
   score: number;
   status: ModerationStatus;
+  reasoning: string;
+  flaggedCategories: string[];
 };
 
 /**
@@ -51,5 +53,7 @@ export async function evaluateModerationScore(
   return {
     score: object.score,
     status,
+    reasoning: object.reasoning,
+    flaggedCategories: object.flagged_categories,
   };
 }
