@@ -179,7 +179,10 @@ function ChatMessage({ message }: ChatMessageProps) {
     const displayText = getMessageDisplayText(message.content);
     // AI message: icon on top left with gray background, then plain text below
     return (
-      <div className="flex flex-col items-start gap-2">
+      <div
+        id={`message-${message.id}`}
+        className="flex flex-col items-start gap-2 scroll-mt-4"
+      >
         <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
           <Bot size={24} className="text-gray-600" />
         </div>
@@ -192,7 +195,10 @@ function ChatMessage({ message }: ChatMessageProps) {
 
   // User message: icon on top right, then bubble below
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div
+      id={`message-${message.id}`}
+      className="flex flex-col items-end gap-2 scroll-mt-4"
+    >
       <div className="w-9 h-9 rounded-full bg-mirai-light-gradient flex items-center justify-center">
         <UserRound size={20} className="text-gray-600" />
       </div>

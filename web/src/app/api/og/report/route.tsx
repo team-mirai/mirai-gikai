@@ -10,8 +10,6 @@ import { truncateText } from "@/features/interview-report/shared/utils/truncate-
 const OG_SUMMARY_MAX_LENGTH = 80;
 const OG_BILL_NAME_MAX_LENGTH = 40;
 
-const GOOGLE_FONTS_URL =
-  "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap";
 const FONT_FETCH_TIMEOUT_MS = 3000;
 
 /** タイムアウト付きfetch */
@@ -32,23 +30,26 @@ async function fetchWithTimeout(
 /** フォントデータをモジュールレベルでキャッシュ */
 let cachedFontData: ArrayBuffer | null = null;
 
+/**
+ * Google Fontsからフォントデータを取得する。
+ * User-Agentを送らないことでTTF形式を取得する（Satoriはwoff2非対応）。
+ */
 async function loadFont(): Promise<ArrayBuffer | null> {
   if (cachedFontData) return cachedFontData;
 
   try {
-    // Google Fontsはwoff2を返すためにブラウザ相当のUser-Agentが必要
-    const css = await fetchWithTimeout(GOOGLE_FONTS_URL, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-      },
-    }).then((res) => res.text());
-    const fontUrl = (css.match(/src: url\(([^)]+)\) format\('woff2'\)/) ??
-      css.match(/src: url\(([^)]+)\) format\('[^']+'\)/))?.[1];
+    const url =
+      "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap";
+    const cssRes = await fetchWithTimeout(url);
+    if (!cssRes.ok) return null;
+    const css = await cssRes.text();
+    const fontUrl = css
+      .match(/src:\s*url\(([^)]+)\)\s*format\('(opentype|truetype)'\)/)?.[1]
+      ?.replace(/^["']|["']$/g, "");
     if (!fontUrl) return null;
-    cachedFontData = await fetchWithTimeout(fontUrl).then((r) =>
-      r.arrayBuffer()
-    );
+    const fontRes = await fetchWithTimeout(fontUrl);
+    if (!fontRes.ok) return null;
+    cachedFontData = await fontRes.arrayBuffer();
     return cachedFontData;
   } catch {
     return null;

@@ -14,6 +14,7 @@ import {
   getInterviewDisclosureLink,
 } from "@/features/interview-config/shared/utils/interview-links";
 import { formatEstimatedDuration } from "@/features/interview-config/shared/utils/format-estimated-duration";
+import { NewInterviewButton } from "@/features/interview-session/client/components/new-interview-button";
 import { InterviewActionButtons } from "./interview-action-buttons";
 
 interface InterviewLPPageProps {
@@ -117,13 +118,15 @@ function _InterviewLPHero({
         ))}
       </div>
 
-      <div className="w-full max-w-[370px] mt-2 flex flex-col gap-3">
-        <InterviewActionButtons
-          billId={billId}
-          sessionInfo={sessionInfo}
-          previewToken={previewToken}
-        />
-      </div>
+      {sessionInfo?.status !== "completed" && (
+        <div className="w-full max-w-[370px] mt-2 flex flex-col gap-3">
+          <InterviewActionButtons
+            billId={billId}
+            sessionInfo={sessionInfo}
+            previewToken={previewToken}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -319,10 +322,12 @@ export function InterviewLPPage({
           previewToken={previewToken}
         />
         {userReports && userReports.reports.length > 0 && (
-          <PastReportsSection
-            reports={userReports.reports}
-            reactionsRecord={userReports.reactionsRecord}
-          />
+          <PastReportsSection reports={userReports.reports} />
+        )}
+        {sessionInfo?.status === "completed" && sessionInfo?.reportId && (
+          <div className="w-full max-w-[370px]">
+            <NewInterviewButton billId={bill.id} previewToken={previewToken} />
+          </div>
         )}
         <_InterviewOverviewSection
           billId={bill.id}

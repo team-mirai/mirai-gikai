@@ -566,12 +566,20 @@ export async function findReportsForModerationScoring() {
 
 export async function updateModerationScore(
   reportId: string,
-  score: number
+  params: {
+    score: number;
+    reasoning: string;
+    flaggedCategories: string[];
+  }
 ): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("interview_report")
-    .update({ moderation_score: score })
+    .update({
+      moderation_score: params.score,
+      moderation_reasoning: params.reasoning,
+      moderation_flagged_categories: params.flaggedCategories,
+    })
     .eq("id", reportId);
 
   if (error) {

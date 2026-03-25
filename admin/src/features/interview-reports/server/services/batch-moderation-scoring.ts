@@ -50,7 +50,11 @@ export async function runSingleModerationScoring(
     prompt,
   });
 
-  await updateModerationScore(reportId, object.score);
+  await updateModerationScore(reportId, {
+    score: object.score,
+    reasoning: object.reasoning,
+    flaggedCategories: object.flagged_categories,
+  });
 
   console.log(
     `[SingleModeration] report=${reportId} score=${object.score} categories=[${object.flagged_categories.join(",")}]`

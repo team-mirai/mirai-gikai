@@ -11,16 +11,20 @@ export function formatRoleDescriptionLines(text: string): string[] {
     .map((line) => (line.startsWith("・") ? line : `・${line}`));
 }
 
+export interface ParsedOpinion {
+  title: string;
+  content: string;
+  source_message_id?: string | null;
+}
+
 /**
  * Parse opinions from an unknown value (typically JSON from DB).
- * Returns a typed array of {title, content} objects, or an empty array
- * if the input is not an array.
+ * Returns a typed array of {title, content, source_message_id} objects,
+ * or an empty array if the input is not an array.
  */
-export function parseOpinions(
-  opinions: unknown
-): Array<{ title: string; content: string }> {
+export function parseOpinions(opinions: unknown): ParsedOpinion[] {
   if (!Array.isArray(opinions)) {
     return [];
   }
-  return opinions as Array<{ title: string; content: string }>;
+  return opinions as ParsedOpinion[];
 }

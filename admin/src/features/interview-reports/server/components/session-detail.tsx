@@ -266,6 +266,35 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                 <div className="text-xs text-gray-400">
                   0-29: OK / 30-69: Warning / 70-100: NG
                 </div>
+                {report.moderation_reasoning && (
+                  <div className="mt-3">
+                    <div className="text-sm text-gray-500 mb-1">根拠</div>
+                    <div className="text-sm bg-gray-50 p-3 rounded-lg">
+                      {report.moderation_reasoning}
+                    </div>
+                  </div>
+                )}
+                {report.moderation_flagged_categories &&
+                  report.moderation_flagged_categories.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-sm text-gray-500 mb-1">
+                        該当カテゴリ
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {report.moderation_flagged_categories.map(
+                          (category) => (
+                            <Badge
+                              key={category}
+                              variant="outline"
+                              className="text-xs bg-red-50 text-red-700 border-red-200"
+                            >
+                              {category}
+                            </Badge>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
               </div>
             ) : (
               <div className="text-gray-500 text-sm">
