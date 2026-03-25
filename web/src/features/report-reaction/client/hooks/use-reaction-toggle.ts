@@ -9,7 +9,8 @@ import { computeOptimisticState } from "../../shared/utils/compute-optimistic-st
  * リアクションの楽観的更新とサーバー同期を管理するカスタムhook
  *
  * - クリック時に即座にUIを更新（楽観的更新）
- * - サーバーアクション失敗時はロールバック
+ * - サーバーアクション成功時はnewReactionで確定
+ * - サーバーアクション失敗時はロールバック（props同期が割り込んだ場合はスキップ）
  * - 親から渡されるinitialDataが変わった場合（フィルタ切替等）は同期
  */
 export function useReactionToggle(
@@ -19,10 +20,12 @@ export function useReactionToggle(
   const [data, setData] = useState(initialData);
   const [isPending, setIsPending] = useState(false);
   const prevInitialDataRef = useRef(initialData);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     if (prevInitialDataRef.current !== initialData) {
       prevInitialDataRef.current = initialData;
+      requestIdRef.current += 1;
       setData(initialData);
     }
   }, [initialData]);
@@ -30,17 +33,27 @@ export function useReactionToggle(
   const toggle = async (reactionType: ReactionType) => {
     if (isPending) return;
 
+    const currentRequestId = ++requestIdRef.current;
     const previousData = data;
     setData(computeOptimisticState(data, reactionType));
     setIsPending(true);
 
     try {
       const result = await toggleReaction(reportId, reactionType);
-      if (!result.success) {
+      if (currentRequestId !== requestIdRef.current) return;
+
+      if (result.success) {
+        setData((current) => ({
+          ...current,
+          userReaction: result.newReaction,
+        }));
+      } else {
         setData(previousData);
       }
     } catch {
-      setData(previousData);
+      if (currentRequestId === requestIdRef.current) {
+        setData(previousData);
+      }
     } finally {
       setIsPending(false);
     }

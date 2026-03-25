@@ -18,7 +18,40 @@ const initialData: ReportReactionData = {
 };
 
 describe("useReactionToggle", () => {
-  it("楽観的にカウントとuserReactionを更新する", async () => {
+  it("サーバー応答前に楽観的にUIを更新する", async () => {
+    let resolve!: (value: {
+      success: boolean;
+      newReaction: "helpful" | null;
+    }) => void;
+    mockedToggleReaction.mockImplementation(
+      () =>
+        new Promise((r) => {
+          resolve = r;
+        })
+    );
+
+    const { result } = renderHook(() =>
+      useReactionToggle("report-1", initialData)
+    );
+
+    await act(async () => {
+      void result.current.toggle("helpful");
+    });
+
+    // サーバー応答前に楽観的更新が反映されている
+    expect(result.current.data.counts.helpful).toBe(4);
+    expect(result.current.data.userReaction).toBe("helpful");
+
+    // サーバー応答後も維持される
+    await act(async () => {
+      resolve({ success: true, newReaction: "helpful" });
+    });
+
+    expect(result.current.data.counts.helpful).toBe(4);
+    expect(result.current.data.userReaction).toBe("helpful");
+  });
+
+  it("成功時にサーバー確定値でuserReactionを更新する", async () => {
     mockedToggleReaction.mockResolvedValue({
       success: true,
       newReaction: "helpful",
@@ -85,5 +118,45 @@ describe("useReactionToggle", () => {
 
     expect(result.current.data.counts.helpful).toBe(3);
     expect(result.current.data.userReaction).toBeNull();
+  });
+
+  it("リクエスト中にinitialDataが変わった場合はロールバックをスキップする", async () => {
+    let resolve!: (value: {
+      success: boolean;
+      error: string;
+      newReaction: null;
+    }) => void;
+    mockedToggleReaction.mockImplementation(
+      () =>
+        new Promise((r) => {
+          resolve = r;
+        })
+    );
+
+    const { result, rerender } = renderHook(
+      ({ data }) => useReactionToggle("report-1", data),
+      { initialProps: { data: initialData } }
+    );
+
+    // リアクションを押す
+    await act(async () => {
+      void result.current.toggle("helpful");
+    });
+
+    // リクエスト中にinitialDataが変わる（フィルタ切替等）
+    const newData: ReportReactionData = {
+      counts: { helpful: 20, hmm: 5 },
+      userReaction: "helpful",
+    };
+    rerender({ data: newData });
+
+    // サーバーが失敗を返す
+    await act(async () => {
+      resolve({ success: false, error: "エラー", newReaction: null });
+    });
+
+    // initialData同期が優先され、古いpreviousDataにロールバックしない
+    expect(result.current.data.counts.helpful).toBe(20);
+    expect(result.current.data.userReaction).toBe("helpful");
   });
 });
