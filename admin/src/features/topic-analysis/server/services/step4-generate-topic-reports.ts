@@ -49,7 +49,9 @@ async function generateSingleTopicReport(
   billId: string
 ): Promise<TopicReportOutput> {
   const opinionsText = input.opinions
-    .map((o) => `[session:${o.session_id}] ${o.title}\n${o.content}`)
+    .map(
+      (o, i) => `[${i + 1}] [session:${o.session_id}] ${o.title}\n${o.content}`
+    )
     .join("\n\n");
 
   const sessionIds = [...new Set(input.opinions.map((o) => o.session_id))];
@@ -73,8 +75,7 @@ ${input.topicName}
 - description はmarkdown形式で記述してください
 - 意見を引用・参照する箇所には [ref:N] マーカーを付けてください（Nは references 配列のインデックス+1）
 - references には実際に参照した session_id を記載してください
-- representative_opinions には、このトピックを代表する意見を最大5件選んでください
-- representative_opinions の session_id, opinion_title, opinion_content は元の意見から正確にコピーしてください
+- representative_opinion_ids には、このトピックを代表する意見の番号（意見一覧の[番号]に対応）を最大5件選んでください
 
 ### 利用可能なセッションID
 ${sessionList}
@@ -101,23 +102,24 @@ ${opinionsText}`,
     billId
   );
 
-  // representative_opinions から無効な session_id を除去
-  const validRepresentatives = report.representative_opinions.filter((op) =>
-    validSessionIds.has(op.session_id)
-  );
-
-  // ソースメッセージ内容と ref_id をenrich
-  const enrichedRepresentatives = validRepresentatives.map((rep) => {
-    const source = input.opinions.find(
-      (o) => o.session_id === rep.session_id && o.title === rep.opinion_title
-    );
-    const ref = validReferences.find((r) => r.session_id === rep.session_id);
-    return {
-      ...rep,
-      source_message_content: source?.source_message_content ?? null,
-      ref_id: ref?.ref_id ?? null,
-    };
-  });
+  // LLMが返した意見番号から元データを直接参照して代表意見を構築
+  const enrichedRepresentatives: RepresentativeOpinion[] =
+    report.representative_opinion_ids
+      .filter((id) => id >= 1 && id <= input.opinions.length)
+      .map((id) => {
+        const opinion = input.opinions[id - 1];
+        const ref = validReferences.find(
+          (r) => r.session_id === opinion.session_id
+        );
+        return {
+          session_id: opinion.session_id,
+          opinion_title: opinion.title,
+          opinion_content: opinion.content,
+          source_message_content: opinion.source_message_content ?? null,
+          ref_id: ref?.ref_id ?? null,
+        };
+      })
+      .filter((op) => validSessionIds.has(op.session_id));
 
   return {
     name: input.topicName,

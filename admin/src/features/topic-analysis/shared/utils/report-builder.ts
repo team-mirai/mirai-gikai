@@ -57,9 +57,10 @@ export function buildReportMarkdown(
       if (representatives.length > 0) {
         topicSection += "\n\n### 代表的な意見\n";
         for (const op of representatives) {
-          const refLabel = op.ref_id ? ` （インタビュー#${op.ref_id}）` : "";
-          const content = op.source_message_content || op.opinion_content;
-          topicSection += `\n> **${op.opinion_title}**${refLabel}\n>\n> ${content}\n`;
+          const refLabel = op.ref_id ? ` [${op.ref_id}]` : "";
+          const raw = op.source_message_content || op.opinion_content;
+          const content = raw.replace(/\n/g, "\n> ");
+          topicSection += `\n> "${content}"${refLabel}\n`;
         }
       }
 

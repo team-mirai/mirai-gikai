@@ -436,9 +436,60 @@ async function seedDatabase() {
             );
           }
 
-          // Reports (100件、各3 opinions)
-          const shippingReports =
-            createShippingBillReports(shippingSessionIds);
+          // ユーザーメッセージのIDを取得して source_message_id を紐付け
+          const { data: userMessages, error: umError } = await supabase
+            .from("interview_messages")
+            .select("id, interview_session_id, content")
+            .in("interview_session_id", shippingSessionIds)
+            .eq("role", "user")
+            .neq("content", "賛成です。")
+            .neq("content", "反対です。")
+            .neq("content", "条件付きで賛成です。")
+            .neq("content", "判断が難しいです。")
+            .order("created_at", { ascending: true })
+            .order("id", { ascending: true });
+          if (umError) {
+            throw new Error(
+              `Failed to fetch user messages: ${umError.message}`
+            );
+          }
+
+          // セッションID → ユーザーメッセージIDリストのマップを構築
+          const sessionMessageMap = new Map<
+            string,
+            Array<{ id: string; content: string }>
+          >();
+          for (const msg of userMessages || []) {
+            const list = sessionMessageMap.get(msg.interview_session_id) || [];
+            list.push({ id: msg.id, content: msg.content });
+            sessionMessageMap.set(msg.interview_session_id, list);
+          }
+
+          // Reports (100件、各3 opinions) — source_message_id を含む
+          const shippingReports = createShippingBillReports(shippingSessionIds);
+          for (const report of shippingReports) {
+            const msgs = sessionMessageMap.get(
+              report.interview_session_id
+            );
+            if (msgs && Array.isArray(report.opinions)) {
+              const opinions = (
+                report.opinions as Array<{
+                  title: string;
+                  content: string;
+                  source_message_content?: string;
+                  source_message_id?: string;
+                }>
+              ).map((opinion) => ({ ...opinion }));
+              report.opinions = opinions;
+              for (let j = 0; j < opinions.length; j++) {
+                if (msgs[j]) {
+                  opinions[j].source_message_id = msgs[j].id;
+                  opinions[j].source_message_content = msgs[j].content;
+                }
+              }
+            }
+          }
+
           const { data: insertedShippingReports, error: srError } =
             await supabase
               .from("interview_report")
