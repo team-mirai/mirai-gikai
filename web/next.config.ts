@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverSourceMaps: true,
   typedRoutes: true,
   turbopack: {
     root: "../",
