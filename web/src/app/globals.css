@@ -92,7 +92,7 @@
 
   /* Reaction */
   --color-mirai-reaction-active: #dd425f;
-  --color-mirai-reaction-inactive: #9f9f9f;
+  --color-mirai-reaction-inactive: var(--color-mirai-text-muted);
 
   /* Accent */
   --color-mirai-star: #ff9500;

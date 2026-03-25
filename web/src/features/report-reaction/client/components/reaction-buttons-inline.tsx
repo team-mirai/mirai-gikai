@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Lightbulb } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { ReactionType, ReportReactionData } from "../../shared/types";
 import { useReactionToggle } from "../hooks/use-reaction-toggle";
 
@@ -61,11 +61,12 @@ function InlineReactionButton({
   return (
     <Button
       variant="ghost"
+      size="sm"
       onClick={onClick}
       disabled={disabled}
       aria-pressed={isActive}
       aria-label={`${label} ${count}`}
-      className="flex items-center gap-1 h-auto px-0 py-0 hover:bg-transparent"
+      className="flex items-center gap-1 h-auto !px-0 py-0 hover:bg-transparent"
     >
       <Icon size={24} className={`transition-colors ${colorClass}`} />
       <span className={`text-sm font-medium transition-colors ${colorClass}`}>
