@@ -13,6 +13,9 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 }
 
 export const env = {
+  adminUrl: process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.ADMIN_URL || "http://localhost:3001",
   webUrl: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000",
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import { env } from "@/lib/env";
 
 interface BatchModerationResult {
   success: boolean;
@@ -20,7 +21,7 @@ export async function runBatchModerationAction(): Promise<BatchModerationResult>
   await requireAdmin();
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
+    const baseUrl = env.adminUrl;
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
     const response = await fetch(`${baseUrl}/api/batch/moderation-scoring`, {
