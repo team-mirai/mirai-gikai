@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { getReportOgData } from "@/features/interview-report/server/loaders/get-report-og-data";
 import { truncateText } from "@/features/interview-report/shared/utils/truncate-text";
@@ -29,6 +31,21 @@ async function fetchWithTimeout(
 
 /** フォントデータをモジュールレベルでキャッシュ */
 let cachedFontData: ArrayBuffer | null = null;
+
+/** ロゴ画像のBase64データをモジュールレベルでキャッシュ */
+let cachedLogoDataUrl: string | null = null;
+
+async function loadLogo(): Promise<string | null> {
+  if (cachedLogoDataUrl) return cachedLogoDataUrl;
+  try {
+    const logoPath = join(process.cwd(), "public/img/ogp-logo.png");
+    const buf = await readFile(logoPath);
+    cachedLogoDataUrl = `data:image/png;base64,${buf.toString("base64")}`;
+    return cachedLogoDataUrl;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Google Fontsからフォントデータを取得する。
@@ -80,7 +97,7 @@ export async function GET(request: Request) {
     OG_BILL_NAME_MAX_LENGTH
   );
 
-  const fontData = await loadFont();
+  const [fontData, logoDataUrl] = await Promise.all([loadFont(), loadLogo()]);
   // フォント取得失敗時はプロパティ自体を省略し、デフォルトフォントにフォールバック
   const fontOptions = fontData
     ? {
@@ -180,39 +197,20 @@ export async function GET(request: Request) {
           </span>
         </div>
 
-        {/* ロゴテキスト */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 40,
-            right: 56,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: 2,
-          }}
-        >
-          <span
+        {/* ロゴ画像 */}
+        {logoDataUrl && (
+          <img
+            alt="チームみらいロゴ"
+            src={logoDataUrl}
+            width={109}
+            height={93}
             style={{
-              fontSize: 22,
-              fontWeight: 700,
-              color: "#0f8472",
-              letterSpacing: "0.08em",
+              position: "absolute",
+              bottom: 32,
+              right: 48,
             }}
-          >
-            チーム
-          </span>
-          <span
-            style={{
-              fontSize: 28,
-              fontWeight: 700,
-              color: "#0f8472",
-              letterSpacing: "0.08em",
-            }}
-          >
-            みらい
-          </span>
-        </div>
+          />
+        )}
       </div>
     </div>,
     {
