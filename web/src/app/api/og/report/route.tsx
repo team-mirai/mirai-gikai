@@ -40,14 +40,16 @@ async function loadFont(): Promise<ArrayBuffer | null> {
   try {
     const url =
       "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap";
-    const css = await fetchWithTimeout(url).then((res) => res.text());
-    const fontUrl = css.match(
-      /src:\s*url\(([^)]+)\)\s*format\('(opentype|truetype)'\)/
-    )?.[1];
+    const cssRes = await fetchWithTimeout(url);
+    if (!cssRes.ok) return null;
+    const css = await cssRes.text();
+    const fontUrl = css
+      .match(/src:\s*url\(([^)]+)\)\s*format\('(opentype|truetype)'\)/)?.[1]
+      ?.replace(/^["']|["']$/g, "");
     if (!fontUrl) return null;
-    cachedFontData = await fetchWithTimeout(fontUrl).then((r) =>
-      r.arrayBuffer()
-    );
+    const fontRes = await fetchWithTimeout(fontUrl);
+    if (!fontRes.ok) return null;
+    cachedFontData = await fontRes.arrayBuffer();
     return cachedFontData;
   } catch {
     return null;
