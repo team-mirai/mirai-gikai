@@ -41,7 +41,7 @@ export function MakePublicModal({
 }: MakePublicModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md py-9">
+      <DialogContent className="py-9">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-primary-accent text-center leading-relaxed">
             インタビュー内容を
