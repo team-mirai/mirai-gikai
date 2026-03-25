@@ -7,11 +7,9 @@ import { ComponentShowcase } from "../../../_components/component-showcase";
 import { PreviewSection } from "../../../_components/preview-section";
 
 export default function RatingWidgetPreview() {
-  const [visibleDefault, setVisibleDefault] = useState(true);
-  const [visibleMobile, setVisibleMobile] = useState(true);
+  const [visible, setVisible] = useState(true);
 
-  const resetDefault = useCallback(() => setVisibleDefault(true), []);
-  const resetMobile = useCallback(() => setVisibleMobile(true), []);
+  const reset = useCallback(() => setVisible(true), []);
 
   return (
     <>
@@ -25,31 +23,13 @@ export default function RatingWidgetPreview() {
       >
         <PreviewSection label="Rating Phase">
           <div className="w-full max-w-md">
-            {visibleDefault ? (
+            {visible ? (
               <InterviewRatingWidget
                 sessionId="mock-session-001"
-                onDismiss={() => setVisibleDefault(false)}
+                onDismiss={() => setVisible(false)}
               />
             ) : (
-              <Button onClick={resetDefault}>ウィジェットを再表示</Button>
-            )}
-          </div>
-        </PreviewSection>
-      </ComponentShowcase>
-
-      <ComponentShowcase
-        title="Mobile Width"
-        description="モバイル幅でのレイアウト確認"
-      >
-        <PreviewSection label="幅320px">
-          <div className="w-[320px]">
-            {visibleMobile ? (
-              <InterviewRatingWidget
-                sessionId="mock-session-002"
-                onDismiss={() => setVisibleMobile(false)}
-              />
-            ) : (
-              <Button onClick={resetMobile}>ウィジェットを再表示</Button>
+              <Button onClick={reset}>ウィジェットを再表示</Button>
             )}
           </div>
         </PreviewSection>
