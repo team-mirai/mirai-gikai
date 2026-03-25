@@ -81,6 +81,7 @@ const opinionPatterns: Array<{
     | "work_related"
     | "daily_life_affected"
     | "general_citizen";
+  role_title: string;
   role_description: string;
   opinions: Array<{ title: string; content: string }>;
 }> = [
@@ -90,6 +91,7 @@ const opinionPatterns: Array<{
     summary:
       "電子化により船荷証券の処理時間が大幅に短縮され、業務効率が向上する",
     role: "subject_expert",
+    role_title: "フォワーダー",
     role_description:
       "中国航路担当のフォワーダー実務者\n業界経験20年\nB/L手続きに日常的に関与",
     opinions: [
@@ -116,6 +118,7 @@ const opinionPatterns: Array<{
     summary:
       "電子化の方向性には賛同するが、中小企業の導入コスト支援が不可欠",
     role: "work_related",
+    role_title: "船会社経営者",
     role_description:
       "内航船会社の経営者\n従業員30名\nアジア近距離航路を主に運航",
     opinions: [
@@ -142,6 +145,7 @@ const opinionPatterns: Array<{
     summary:
       "電子化のメリットは理解するが、セキュリティと法的効力の担保が最優先",
     role: "subject_expert",
+    role_title: "リスクアナリスト",
     role_description:
       "貿易保険会社のリスクアナリスト\n海上保険・貿易リスク専門\n法務部門との連携業務",
     opinions: [
@@ -168,6 +172,7 @@ const opinionPatterns: Array<{
     summary:
       "電子化により港湾事務職の雇用が失われることを懸念",
     role: "work_related",
+    role_title: "港湾事務職員",
     role_description:
       "港湾事務職員\n通関・書類処理業務を担当\n勤続15年",
     opinions: [
@@ -194,6 +199,7 @@ const opinionPatterns: Array<{
     summary:
       "MLETR準拠の国内法整備は国際競争力維持のために不可欠",
     role: "subject_expert",
+    role_title: "大学教授",
     role_description:
       "海商法・国際取引法の大学教授\nUNCITRAL関連研究\n政府審議会委員",
     opinions: [
@@ -220,6 +226,7 @@ const opinionPatterns: Array<{
     summary:
       "技術的には十分実現可能。標準化とAPI連携が鍵",
     role: "work_related",
+    role_title: "物流テックCTO",
     role_description:
       "物流テック企業のCTO\n電子B/Lプラットフォーム開発経験\nブロックチェーン技術専門",
     opinions: [
@@ -245,6 +252,7 @@ const opinionPatterns: Array<{
     stance: "for",
     summary: "物流の効率化により商品の価格低下が期待できる",
     role: "general_citizen",
+    role_title: "会社員",
     role_description:
       "会社員\nECサイトでの海外通販を月数回利用\n物流効率化に関心あり",
     opinions: [
@@ -271,6 +279,7 @@ const opinionPatterns: Array<{
     summary:
       "L/C決済との連携が円滑にできれば電子化は歓迎",
     role: "subject_expert",
+    role_title: "貿易金融担当",
     role_description:
       "メガバンク貿易金融部門\nL/C（信用状）審査担当\n国際決済業務20年",
     opinions: [
@@ -297,6 +306,7 @@ const opinionPatterns: Array<{
     summary:
       "通関手続きの効率化は期待できるが、システム連携に課題がある",
     role: "work_related",
+    role_title: "税関職員",
     role_description:
       "財務省税関職員\n輸出入通関業務担当\nNACCS運用経験",
     opinions: [
@@ -322,6 +332,7 @@ const opinionPatterns: Array<{
     stance: "for",
     summary: "サプライチェーン全体の可視化・効率化に期待",
     role: "work_related",
+    role_title: "SCM部門長",
     role_description:
       "製造業大手のSCM部門長\n年間数千TEUの海上輸送を管理\nDX推進担当",
     opinions: [
@@ -445,9 +456,11 @@ export function createShippingBillReports(
       stance: pattern.stance,
       summary: pattern.summary,
       role: pattern.role,
+      role_title: pattern.role_title,
       role_description: pattern.role_description,
       opinions: pattern.opinions,
       is_public_by_user: true,
+      is_public_by_admin: index < 30, // 最初の30件は管理者承認済み
     };
   });
 }

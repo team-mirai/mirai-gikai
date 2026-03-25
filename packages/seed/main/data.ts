@@ -66,6 +66,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-08-01T09:00:00+09:00",
     publish_status: "published",
     is_featured: true,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   {
     name: "こども家庭庁予算大幅増額法案",
@@ -75,6 +76,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-01-20T10:00:00+09:00",
     publish_status: "published",
     is_featured: true,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   {
     name: "18歳選挙権完全実施法案",
@@ -84,6 +86,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-02-01T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   {
     name: "学校給食無償化促進法案",
@@ -93,6 +96,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-01-10T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   // 第218回国会用の追加法案（デザイン確認用）- ループで生成
   ...Array.from({ length: 4 }, (_, i) => ({
@@ -105,6 +109,7 @@ export const bills: BillInsert[] = [
     published_at: `2025-08-0${i + 1}T09:00:00+09:00`,
     publish_status: "published" as const,
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   })),
   {
     name: "船荷証券の電子化に関する法律案",
@@ -114,6 +119,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-09-15T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   {
     name: "中学生・高校生向けプログラミング教育必修化法案",
@@ -123,6 +129,7 @@ export const bills: BillInsert[] = [
     published_at: "2024-11-15T10:00:00+09:00",
     publish_status: "published",
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   },
 ];
 
@@ -407,6 +414,7 @@ export function createInterviewReports(
       stance: "for" as const,
       summary: "この法案に賛成。国民のためになると考えている。",
       role: "general_citizen" as const,
+      role_title: "一般市民",
       role_description: "法案の内容に賛同する市民",
       opinions: [{ title: "賛成理由", content: "国民のためになる" }],
     },
@@ -414,6 +422,7 @@ export function createInterviewReports(
       stance: "against" as const,
       summary: "財源の不明確さを理由に反対。",
       role: "work_related" as const,
+      role_title: "会社員",
       role_description: "財政面を懸念する市民",
       opinions: [{ title: "反対理由", content: "財源が不明確" }],
     },
@@ -421,6 +430,7 @@ export function createInterviewReports(
       stance: "neutral" as const,
       summary: "判断するにはより多くの情報が必要と考えている。",
       role: "subject_expert" as const,
+      role_title: "専門家",
       role_description: "慎重な判断を求める市民",
       opinions: [{ title: "態度保留理由", content: "情報不足" }],
     },
@@ -442,6 +452,7 @@ export function createInterviewReports(
         interview_session_id: sessionId,
         ...reportTemplates[patternIndex],
         is_public_by_user: loopIndex < 5, // 最初の5件は公開
+        is_public_by_admin: loopIndex < 3, // 最初の3ループ分は管理者承認済み
       });
     }
   });
@@ -520,6 +531,7 @@ export function createDemoReport(): InterviewReportInsert {
     stance: "neutral",
     summary: "期待と懸念両方がある",
     role: "subject_expert",
+    role_title: "フォワーダー",
     role_description:
       "中国航路担当のフォワーダー実務者\n業界経験20年\n船荷証券（B/L）手続きに日常的に関与",
     opinions: [
@@ -530,6 +542,7 @@ export function createDemoReport(): InterviewReportInsert {
       },
     ],
     is_public_by_user: true,
+    is_public_by_admin: true,
   };
 }
 
@@ -659,6 +672,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
       stance: "for",
       summary: "物流コスト削減のため賛成",
       role: "work_related",
+      role_title: "運送会社経営者",
       role_description:
         "運送会社経営者\n従業員50名規模\n燃料費高騰の影響を直接受けている",
       opinions: [
@@ -669,6 +683,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
         },
       ],
       is_public_by_user: true,
+      is_public_by_admin: true,
     },
     {
       id: DEMO_REPORT_ID_DAILY,
@@ -676,6 +691,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
       stance: "for",
       summary: "地方在住者として生活必需品のガソリン代軽減を期待",
       role: "daily_life_affected",
+      role_title: "主婦",
       role_description:
         "地方在住の主婦\n車が唯一の移動手段\n子育て中で送り迎えに車を使用",
       opinions: [
@@ -686,6 +702,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
         },
       ],
       is_public_by_user: true,
+      is_public_by_admin: true,
     },
     {
       id: DEMO_REPORT_ID_CITIZEN,
@@ -693,6 +710,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
       stance: "neutral",
       summary: "環境と経済のバランスを考慮して判断",
       role: "general_citizen",
+      role_title: "会社員",
       role_description: "会社員\n環境問題に関心あり\n電気自動車への乗り換えを検討中",
       opinions: [
         {
@@ -702,6 +720,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
         },
       ],
       is_public_by_user: true,
+      is_public_by_admin: true,
     },
   ];
 }
