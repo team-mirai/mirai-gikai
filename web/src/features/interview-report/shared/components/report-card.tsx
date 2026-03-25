@@ -1,8 +1,8 @@
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { getPublicReportLink } from "@/features/interview-config/shared/utils/interview-links";
+import { cn } from "@/lib/utils";
 import {
   type InterviewReportRole,
   roleIcons,
@@ -81,39 +81,35 @@ export function ReportCard({
           />
         )}
         <div className="flex flex-col gap-2 min-w-0 flex-1">
-          <div className="flex flex-col gap-2.5">
-            <div className="flex items-center gap-2">
-              <div className="flex flex-1 min-w-0 items-center gap-2.5">
-                {stanceLabel && (
-                  <span
-                    className={cn(
-                      "inline-flex items-center justify-center px-3 py-0.5 rounded-2xl text-xs font-medium leading-3 flex-shrink-0",
-                      stanceBadgeBg,
-                      stanceTextColor
-                    )}
-                  >
-                    {stanceLabel}
-                  </span>
-                )}
-                {roleLabel && (
-                  <div className="flex items-center gap-1 text-mirai-text-subtle flex-shrink-0">
-                    {RoleIcon && (
-                      <RoleIcon size={16} className="flex-shrink-0" />
-                    )}
-                    <span className="text-xs leading-3">{roleLabel}</span>
-                  </div>
-                )}
-              </div>
-              <span className="text-[13px] text-mirai-text-muted whitespace-nowrap flex-shrink-0">
-                {relativeTime}
-              </span>
-            </div>
-
+          <div className="flex flex-col gap-1.5">
             {report.role_title && (
               <p className="text-base font-bold leading-snug text-mirai-text">
                 {report.role_title}
               </p>
             )}
+
+            <div className="flex flex-1 min-w-0 items-center gap-3">
+              {stanceLabel && (
+                <span
+                  className={cn(
+                    "inline-flex items-center justify-center px-3 py-0.5 rounded-2xl text-xs font-medium leading-3 flex-shrink-0",
+                    stanceBadgeBg,
+                    stanceTextColor
+                  )}
+                >
+                  {stanceLabel}
+                </span>
+              )}
+              {roleLabel && (
+                <div className="flex items-center gap-1 text-mirai-text-subtle flex-shrink-0">
+                  {RoleIcon && <RoleIcon size={16} className="flex-shrink-0" />}
+                  <span className="text-xs leading-3">{roleLabel}</span>
+                </div>
+              )}
+              <span className="text-[13px] text-mirai-text-muted whitespace-nowrap flex-shrink-0">
+                {relativeTime}
+              </span>
+            </div>
 
             {truncatedSummary && (
               <p className="text-sm leading-6 text-black">{truncatedSummary}</p>
