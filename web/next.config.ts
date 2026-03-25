@@ -25,7 +25,14 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/bill-thumbnails/**",
       },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+      },
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 
