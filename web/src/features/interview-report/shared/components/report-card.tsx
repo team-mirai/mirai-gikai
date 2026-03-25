@@ -62,6 +62,7 @@ export function ReportCard({
     <article className="relative bg-white rounded-lg px-4 py-[18px] hover:bg-gray-50 transition-colors">
       <Link
         href={(href ?? getPublicReportLink(report.id)) as Route}
+        prefetch={false}
         className="absolute inset-0 rounded-lg"
         aria-label={
           [stanceLabel, report.role_title || roleLabel, truncatedSummary]
