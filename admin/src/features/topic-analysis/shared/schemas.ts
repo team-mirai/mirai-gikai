@@ -49,7 +49,13 @@ export const topicReportSchema = z.object({
     })
   ),
   representative_opinion_ids: z
-    .array(z.number().describe("代表的な意見の番号（意見一覧の番号に対応）"))
+    .array(
+      z
+        .number()
+        .int()
+        .min(1)
+        .describe("代表的な意見の番号（意見一覧の番号に対応）")
+    )
     .max(5)
     .describe("このトピックを代表する意見の番号を最大5件選択"),
 });

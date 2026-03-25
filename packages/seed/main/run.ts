@@ -446,7 +446,8 @@ async function seedDatabase() {
             .neq("content", "反対です。")
             .neq("content", "条件付きで賛成です。")
             .neq("content", "判断が難しいです。")
-            .order("created_at", { ascending: true });
+            .order("created_at", { ascending: true })
+            .order("id", { ascending: true });
           if (umError) {
             throw new Error(
               `Failed to fetch user messages: ${umError.message}`
@@ -471,12 +472,15 @@ async function seedDatabase() {
               report.interview_session_id
             );
             if (msgs && Array.isArray(report.opinions)) {
-              const opinions = report.opinions as Array<{
-                title: string;
-                content: string;
-                source_message_content?: string;
-                source_message_id?: string;
-              }>;
+              const opinions = (
+                report.opinions as Array<{
+                  title: string;
+                  content: string;
+                  source_message_content?: string;
+                  source_message_id?: string;
+                }>
+              ).map((opinion) => ({ ...opinion }));
+              report.opinions = opinions;
               for (let j = 0; j < opinions.length; j++) {
                 if (msgs[j]) {
                   opinions[j].source_message_id = msgs[j].id;
