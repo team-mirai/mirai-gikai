@@ -482,6 +482,8 @@ export type Database = {
           interview_session_id: string
           is_public_by_admin: boolean
           is_public_by_user: boolean
+          moderation_flagged_categories: string[] | null
+          moderation_reasoning: string | null
           moderation_score: number | null
           moderation_status:
             | Database["public"]["Enums"]["moderation_status_enum"]
@@ -502,6 +504,8 @@ export type Database = {
           interview_session_id: string
           is_public_by_admin?: boolean
           is_public_by_user?: boolean
+          moderation_flagged_categories?: string[] | null
+          moderation_reasoning?: string | null
           moderation_score?: number | null
           moderation_status?:
             | Database["public"]["Enums"]["moderation_status_enum"]
@@ -524,6 +528,8 @@ export type Database = {
           interview_session_id?: string
           is_public_by_admin?: boolean
           is_public_by_user?: boolean
+          moderation_flagged_categories?: string[] | null
+          moderation_reasoning?: string | null
           moderation_score?: number | null
           moderation_status?:
             | Database["public"]["Enums"]["moderation_status_enum"]
