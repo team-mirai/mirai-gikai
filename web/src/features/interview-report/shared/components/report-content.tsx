@@ -72,6 +72,8 @@ export function ReportContent({
       <OpinionsList
         opinions={opinions}
         title="💬主な意見"
+        reportId={reportId}
+        chatLogFrom={from}
         footer={
           <Link
             href={getInterviewChatLogLink(reportId, from) as Route}

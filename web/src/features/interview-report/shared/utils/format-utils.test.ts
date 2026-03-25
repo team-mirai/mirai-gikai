@@ -75,4 +75,12 @@ describe("parseOpinions", () => {
   it("returns empty array for an empty array", () => {
     expect(parseOpinions([])).toEqual([]);
   });
+
+  it("preserves source_message_id when present", () => {
+    const opinions = [
+      { title: "Title", content: "Content", source_message_id: "msg-123" },
+      { title: "Title 2", content: "Content 2", source_message_id: null },
+    ];
+    expect(parseOpinions(opinions)).toEqual(opinions);
+  });
 });
