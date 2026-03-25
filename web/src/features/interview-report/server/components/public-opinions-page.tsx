@@ -9,8 +9,8 @@ import { InterviewLandingSection } from "@/features/interview-config/client/comp
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
 import { getReportReactionsBatch } from "@/features/report-reaction/server/loaders/get-report-reactions";
 import { routes } from "@/lib/routes";
-import { OpinionsBreadcrumb } from "../../shared/components/opinions-breadcrumb";
 import { PublicOpinionsList } from "../../client/components/public-opinions-list";
+import { OpinionsBreadcrumb } from "../../shared/components/opinions-breadcrumb";
 import { getInitialPublicReportsByBillId } from "../loaders/get-all-public-reports-by-bill-id";
 
 interface PublicOpinionsPageProps {
@@ -84,10 +84,7 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
         {/* AIインタビューCTAバナー */}
         {interviewConfig != null && (
           <div className="my-8">
-            <InterviewLandingSection
-              billId={billId}
-              estimatedDuration={interviewConfig.estimated_duration}
-            />
+            <InterviewLandingSection billId={billId} />
           </div>
         )}
         {/* パンくずリスト */}
