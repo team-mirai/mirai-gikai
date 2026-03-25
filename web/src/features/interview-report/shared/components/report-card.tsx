@@ -59,7 +59,7 @@ export function ReportCard({
       : summary;
 
   return (
-    <article className="relative bg-white rounded-lg px-4 py-[18px] hover:bg-gray-50 transition-colors">
+    <article className="relative bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors">
       <Link
         href={(href ?? getPublicReportLink(report.id)) as Route}
         className="absolute inset-0 rounded-lg"
@@ -74,58 +74,58 @@ export function ReportCard({
           <Image
             src={`/icons/stance-${report.stance}.png`}
             alt={stanceLabel || ""}
-            width={42}
-            height={42}
+            width={34}
+            height={34}
             className="rounded-full flex-shrink-0"
           />
         )}
-        <div className="flex flex-col gap-2.5 min-w-0 flex-1">
-          <div className="flex items-start gap-2">
-            {stanceLabel && (
-              <div className="flex-1 min-w-0">
-                <span
-                  className={cn(
-                    "inline-flex items-center justify-center px-3 py-0.5 rounded-2xl text-xs font-medium leading-3",
-                    stanceBadgeBg,
-                    stanceTextColor
-                  )}
-                >
-                  {stanceLabel}
-                </span>
+        <div className="flex flex-col gap-2 min-w-0 flex-1">
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-center gap-2">
+              <div className="flex flex-1 min-w-0 items-center gap-2.5">
+                {stanceLabel && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center justify-center px-3 py-0.5 rounded-2xl text-xs font-medium leading-3 flex-shrink-0",
+                      stanceBadgeBg,
+                      stanceTextColor
+                    )}
+                  >
+                    {stanceLabel}
+                  </span>
+                )}
+                {roleLabel && (
+                  <div className="flex items-center gap-1 text-mirai-text-subtle flex-shrink-0">
+                    {RoleIcon && (
+                      <RoleIcon size={16} className="flex-shrink-0" />
+                    )}
+                    <span className="text-xs leading-3">{roleLabel}</span>
+                  </div>
+                )}
               </div>
-            )}
-            <span className="text-[13px] text-mirai-text-muted whitespace-nowrap flex-shrink-0">
-              {relativeTime}
-            </span>
-          </div>
+              <span className="text-[13px] text-mirai-text-muted whitespace-nowrap flex-shrink-0">
+                {relativeTime}
+              </span>
+            </div>
 
-          <div className="flex flex-col gap-2">
             {report.role_title && (
               <p className="text-base font-bold leading-snug text-mirai-text">
                 {report.role_title}
               </p>
             )}
-            {roleLabel && (
-              <div className="flex items-center gap-1 text-mirai-text-subtle">
-                {RoleIcon && <RoleIcon size={16} className="flex-shrink-0" />}
-                <span className="text-xs leading-3">{roleLabel}</span>
-              </div>
+
+            {truncatedSummary && (
+              <p className="text-sm leading-6 text-black">{truncatedSummary}</p>
             )}
           </div>
+
+          {children && (
+            <div className="relative z-10 pointer-events-none [&_button]:pointer-events-auto [&_a]:pointer-events-auto">
+              {children}
+            </div>
+          )}
         </div>
       </div>
-
-      {truncatedSummary && (
-        <p className="mt-2.5 text-[13px] leading-[22px] text-black">
-          {truncatedSummary}
-        </p>
-      )}
-
-      {children && (
-        <div className="relative z-10 mt-2 pointer-events-none [&_button]:pointer-events-auto [&_a]:pointer-events-auto">
-          {children}
-        </div>
-      )}
     </article>
   );
 }

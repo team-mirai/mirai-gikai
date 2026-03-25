@@ -85,12 +85,14 @@ function InlineReactionButton({
       aria-label={`${label} ${count}`}
       className="flex items-center gap-1 h-auto px-0 py-0 hover:bg-transparent"
     >
-      <Icon size={16} className={`transition-colors ${colorClass}`} />
-      <span className={`text-xs font-medium transition-colors ${colorClass}`}>
+      <Icon size={24} className={`transition-colors ${colorClass}`} />
+      <span className={`text-sm font-medium transition-colors ${colorClass}`}>
         {label}
       </span>
       {count > 0 && (
-        <span className={`text-xs font-medium transition-colors ${colorClass}`}>
+        <span
+          className={`text-[13px] font-medium transition-colors ${colorClass} ml-1`}
+        >
           {count}
         </span>
       )}
