@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 
 interface BatchModerationResult {
@@ -20,7 +20,13 @@ export async function runBatchModerationAction(): Promise<BatchModerationResult>
   await requireAdmin();
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
+    const headersList = await headers();
+    const host = headersList.get("host");
+    if (!host) {
+      throw new Error("host ヘッダーが取得できませんでした");
+    }
+    const proto = headersList.get("x-forwarded-proto") || "http";
+    const baseUrl = `${proto}://${host}`;
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
     const response = await fetch(`${baseUrl}/api/batch/moderation-scoring`, {
