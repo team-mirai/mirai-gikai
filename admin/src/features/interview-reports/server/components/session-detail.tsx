@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RegenerateModerationButton } from "../../client/components/regenerate-moderation-button";
 import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
 import { formatRoleLabel } from "../../shared/constants";
 import { FEEDBACK_TAG_LABELS } from "../../shared/constants/feedback-tags";
@@ -227,39 +228,50 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
       </Card>
 
       {/* モデレーションスコア */}
-      {report && report.moderation_score != null && (
+      {report && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">モデレーション</CardTitle>
+            <RegenerateModerationButton
+              reportId={report.id}
+              sessionId={session.id}
+              billId={billId}
+            />
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="text-sm text-gray-500 w-16 shrink-0">
-                  スコア
+            {report.moderation_score != null ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-sm text-gray-500 w-16 shrink-0">
+                    スコア
+                  </div>
+                  <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        report.moderation_status === "ok"
+                          ? "bg-green-500"
+                          : report.moderation_status === "warning"
+                            ? "bg-orange-500"
+                            : "bg-red-500"
+                      }`}
+                      style={{
+                        width: `${report.moderation_score}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="w-12 text-sm font-medium text-right">
+                    {report.moderation_score} / 100
+                  </div>
                 </div>
-                <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${
-                      report.moderation_status === "ok"
-                        ? "bg-green-500"
-                        : report.moderation_status === "warning"
-                          ? "bg-orange-500"
-                          : "bg-red-500"
-                    }`}
-                    style={{
-                      width: `${report.moderation_score}%`,
-                    }}
-                  />
-                </div>
-                <div className="w-12 text-sm font-medium text-right">
-                  {report.moderation_score} / 100
+                <div className="text-xs text-gray-400">
+                  0-29: OK / 30-69: Warning / 70-100: NG
                 </div>
               </div>
-              <div className="text-xs text-gray-400">
-                0-29: OK / 30-69: Warning / 70-100: NG
+            ) : (
+              <div className="text-gray-500 text-sm">
+                モデレーション評価はまだ実行されていません
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       )}

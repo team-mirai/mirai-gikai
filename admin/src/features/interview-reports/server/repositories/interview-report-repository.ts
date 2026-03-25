@@ -507,6 +507,26 @@ export async function updateReportVisibility(
   }
 }
 
+export async function findReportForModerationScoringById(reportId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_report")
+    .select("id, interview_session_id, summary, opinions, role_description")
+    .eq("id", reportId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(
+      `Failed to fetch report for moderation scoring: ${error.message}`
+    );
+  }
+
+  return data;
+}
+
 export async function findReportsForModerationScoring() {
   const supabase = createAdminClient();
   const PAGE_SIZE = 500;
