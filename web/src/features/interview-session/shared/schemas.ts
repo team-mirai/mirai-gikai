@@ -117,13 +117,13 @@ export const interviewChatTextSchema = z.object({
 export type InterviewChatText = z.infer<typeof interviewChatTextSchema>;
 
 // summaryフェーズ用スキーマ（LLM出力用 - next_stageを含む）
-// chat遷移時はreportを省略できるようoptionalにしている
+// chat遷移時はreportをnullにする（OpenAI structured outputはoptionalを許容しないためnullableを使用）
 export const interviewChatWithReportSchema = z.object({
   text: z.string(),
   report: interviewReportSchema
-    .optional()
+    .nullable()
     .describe(
-      "インタビュー内容をまとめたレポート。next_stageがchatの場合は省略すること"
+      "インタビュー内容をまとめたレポート。next_stageがchatの場合はnullにすること"
     ),
   next_stage: interviewStageSchema.describe(
     "ステージ遷移判定。summary=レポート修正継続、summary_complete=レポート完了、chat=インタビュー再開"
@@ -137,7 +137,7 @@ export type InterviewChatWithReport = z.infer<
 // クライアント側で使う統一スキーマ（両方のレスポンスを受け取れる）
 export const interviewChatResponseSchema = z.object({
   text: z.string(),
-  report: interviewReportSchema.optional(),
+  report: interviewReportSchema.optional().nullable(),
   quick_replies: z.array(z.string()).optional().nullable(),
   question_id: z.string().optional().nullable(),
   topic_title: z.string().optional().nullable(),
