@@ -1,24 +1,32 @@
+import type { Route } from "next";
+import Link from "next/link";
+import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
 import { formatDateTime } from "../utils/report-utils";
 import { RoleDisplay } from "./role-display";
 import { StanceDisplay } from "./stance-display";
 
 interface ReportMetaInfoProps {
+  reportId: string;
   stance?: string | null;
   role?: string | null;
   roleTitle?: string | null;
   sessionStartedAt: string | null;
   duration?: string;
   characterCount: number;
+  /** 遷移元のコンテキスト */
+  from?: "complete";
   variant?: "default" | "chat-log";
 }
 
 export function ReportMetaInfo({
+  reportId,
   stance,
   role,
   roleTitle,
   sessionStartedAt,
   duration,
   characterCount,
+  from,
   variant = "default",
 }: ReportMetaInfoProps) {
   const isChatLog = variant === "chat-log";
@@ -43,8 +51,7 @@ export function ReportMetaInfo({
             {formatDateTime(sessionStartedAt)}
           </p>
           <p className="text-xs font-normal">
-            インタビューの分量{" "}
-            <span className="underline">{characterCount}文字</span>
+            インタビューの分量 <span>{characterCount}文字</span>
           </p>
         </div>
       ) : (
@@ -52,11 +59,13 @@ export function ReportMetaInfo({
           <p className="text-[15px] text-black">
             {formatDateTime(sessionStartedAt)}
           </p>
-          <p className="text-[15px] text-black">
-            {duration
-              ? `${duration} / ${characterCount} 文字`
-              : `${characterCount} 文字`}
-          </p>
+          <Link
+            href={getInterviewChatLogLink(reportId, from) as Route}
+            className="text-[15px] text-black"
+          >
+            {duration ? `${duration} / ` : ""}
+            <span className="underline">{characterCount} 文字</span>
+          </Link>
         </div>
       )}
     </div>

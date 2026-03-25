@@ -84,6 +84,7 @@ export async function ReportChatLogPage({
           {/* Stance and Meta Info */}
           <div className="mt-8">
             <ReportMetaInfo
+              reportId={report.id}
               stance={report.stance}
               role={report.role}
               roleTitle={report.role_title}

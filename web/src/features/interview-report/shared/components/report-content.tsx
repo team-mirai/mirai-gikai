@@ -56,12 +56,14 @@ export function ReportContent({
 
         {/* スタンスと日時情報 */}
         <ReportMetaInfo
+          reportId={reportId}
           stance={stance}
           role={role}
           roleTitle={roleTitle}
           sessionStartedAt={sessionStartedAt}
           duration={duration}
           characterCount={characterCount}
+          from={from}
         />
       </div>
 
