@@ -10,9 +10,10 @@ describe("formatRoleDescriptionLines", () => {
     ]);
   });
 
-  it("preserves existing bullet prefix", () => {
-    expect(formatRoleDescriptionLines("・Already bullet")).toEqual([
-      "・Already bullet",
+  it("preserves existing bullet prefix for multiple lines", () => {
+    expect(formatRoleDescriptionLines("・First\n・Second")).toEqual([
+      "・First",
+      "・Second",
     ]);
   });
 
@@ -24,9 +25,13 @@ describe("formatRoleDescriptionLines", () => {
     expect(formatRoleDescriptionLines("  A  \n  B  ")).toEqual(["・A", "・B"]);
   });
 
-  it("handles a single line without newlines", () => {
-    expect(formatRoleDescriptionLines("Single line")).toEqual([
-      "・Single line",
+  it("returns single line without bullet prefix", () => {
+    expect(formatRoleDescriptionLines("Single line")).toEqual(["Single line"]);
+  });
+
+  it("returns single line with existing bullet as-is", () => {
+    expect(formatRoleDescriptionLines("・Already bullet")).toEqual([
+      "・Already bullet",
     ]);
   });
 

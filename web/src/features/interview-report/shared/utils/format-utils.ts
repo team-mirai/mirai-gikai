@@ -1,14 +1,20 @@
 /**
- * Format a roleDescription string into an array of bullet-prefixed lines.
- * Splits by newlines, trims whitespace, removes empty lines,
- * and ensures each line starts with "・".
+ * Format a roleDescription string into an array of lines.
+ * Splits by newlines, trims whitespace, and removes empty lines.
+ * When there are multiple lines, ensures each starts with "・".
+ * A single line is returned as-is without bullet prefix.
  */
 export function formatRoleDescriptionLines(text: string): string[] {
-  return text
+  const lines = text
     .split("\n")
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .map((line) => (line.startsWith("・") ? line : `・${line}`));
+    .filter((line) => line.length > 0);
+
+  if (lines.length <= 1) {
+    return lines;
+  }
+
+  return lines.map((line) => (line.startsWith("・") ? line : `・${line}`));
 }
 
 export interface ParsedOpinion {
