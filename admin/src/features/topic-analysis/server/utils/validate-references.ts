@@ -4,9 +4,9 @@
  * 1. references内の全session_idが既知セッションIDセットに含まれるか検証
  * 2. 無効な参照を除去
  * 3. description_md内の無効な[ref:N]マーカーを除去
- * 4. 有効な[ref:N]を「(インタビュー#N)」形式（markdownリンク付き、丸括弧で囲む）に変換
- *    - 単独ref: `(インタビュー#1)`
- *    - 複数ref（カンマ区切りまたは連続）: `(インタビュー#1, インタビュー#4)`
+ * 4. 有効な[ref:N]を脚注リンク形式に変換
+ *    - 単独ref: `[[1]](url)`
+ *    - 複数ref（カンマ区切りまたは連続）: `[[1]](url)[[4]](url)`
  */
 export function validateAndReplaceReferences(
   descriptionMd: string,
@@ -36,13 +36,13 @@ export function validateAndReplaceReferences(
           if (!ref) {
             return null;
           }
-          return `[インタビュー#${refId}](/bills/${billId}/reports/${ref.session_id})`;
+          return `[[${refId}]](/bills/${billId}/reports/${ref.session_id})`;
         })
         .filter(Boolean);
       if (replaced.length === 0) {
         return "";
       }
-      return `(${replaced.join(", ")})`;
+      return replaced.join("");
     }
   );
 
