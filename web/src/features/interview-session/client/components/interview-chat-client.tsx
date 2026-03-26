@@ -157,7 +157,7 @@ export function InterviewChatClient({
 
   return (
     <div className="h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light">
-      <div className="flex flex-col h-full pt-23 md:pt-4 bg-white md:rounded-t-[36px] md:px-12">
+      <div className="flex flex-col h-full pt-23 md:pt-10 bg-white md:rounded-t-[36px] md:px-12">
         {showProgressBar && progress && (
           <div className="px-4 pb-1">
             <InterviewProgressBar
