@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import type { SortOrder } from "../../shared/utils/sort-order";
 
 /**
  * レポートIDからインタビューレポートとセッション情報を結合取得
@@ -86,7 +87,8 @@ export async function findPublicReportsByBillId(
   billId: string,
   limit: number = 3,
   offset: number = 0,
-  stance?: string
+  stance?: string,
+  sortOrder: SortOrder = "recommended"
 ) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc(
@@ -96,6 +98,7 @@ export async function findPublicReportsByBillId(
       p_limit: limit,
       p_offset: offset,
       p_stance: stance,
+      p_sort_order: sortOrder,
     }
   );
 

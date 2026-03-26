@@ -302,6 +302,74 @@ describe("find_public_reports_by_bill_id_ordered_by_reactions() 関数", () => {
     expect(ids).toContain(reportFor2.id);
   });
 
+  it("p_sort_order='newest'で作成日時降順にソートされる", async () => {
+    const bill = await createTestBill();
+    billIds.push(bill.id);
+    const config = await createTestInterviewConfig(bill.id);
+
+    // report1: oldest, high score (helpful x2, total_content_richness=90)
+    const session1 = await createTestSession(config.id, testUsers[0].id);
+    const report1 = await createTestReport(session1.id, {
+      total_content_richness: 90,
+    });
+
+    // report2: middle
+    const session2 = await createTestSession(config.id, testUsers[1].id);
+    const report2 = await createTestReport(session2.id, {
+      total_content_richness: 50,
+    });
+
+    // report3: newest, low score
+    const session3 = await createTestSession(config.id, testUsers[2].id);
+    const report3 = await createTestReport(session3.id, {
+      total_content_richness: 10,
+    });
+
+    await createTestReaction(report1.id, testUsers[1].id, "helpful");
+    await createTestReaction(report1.id, testUsers[2].id, "helpful");
+
+    // recommended順ではreport1が1位（weighted=92）だが、newest順ではreport3が1位
+    const { data, error } = await adminClient.rpc(
+      "find_public_reports_by_bill_id_ordered_by_reactions",
+      { p_bill_id: bill.id, p_sort_order: "newest" }
+    );
+
+    expect(error).toBeNull();
+    expect(data).toHaveLength(3);
+    // newest first: report3 > report2 > report1
+    expect(data![0].id).toBe(report3.id);
+    expect(data![1].id).toBe(report2.id);
+    expect(data![2].id).toBe(report1.id);
+  });
+
+  it("p_sort_order='recommended'（デフォルト）で重み付きスコア降順にソートされる", async () => {
+    const bill = await createTestBill();
+    billIds.push(bill.id);
+    const config = await createTestInterviewConfig(bill.id);
+
+    // report1: low score
+    const session1 = await createTestSession(config.id, testUsers[0].id);
+    const report1 = await createTestReport(session1.id, {
+      total_content_richness: 10,
+    });
+
+    // report2: high score (newest but should come first in recommended)
+    const session2 = await createTestSession(config.id, testUsers[1].id);
+    const report2 = await createTestReport(session2.id, {
+      total_content_richness: 90,
+    });
+
+    const { data, error } = await adminClient.rpc(
+      "find_public_reports_by_bill_id_ordered_by_reactions",
+      { p_bill_id: bill.id, p_sort_order: "recommended" }
+    );
+
+    expect(error).toBeNull();
+    expect(data).toHaveLength(2);
+    expect(data![0].id).toBe(report2.id); // higher score
+    expect(data![1].id).toBe(report1.id); // lower score
+  });
+
   it("p_offsetとp_stanceを組み合わせてページネーションできる", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
