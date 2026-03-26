@@ -47,7 +47,7 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
     <div className="min-h-dvh bg-mirai-surface">
       {/* ヒーロー画像 */}
       {bill.thumbnail_url && (
-        <div className="relative w-full h-[285px]">
+        <div className="relative w-full h-[200px] md:h-[320px]">
           <Image
             src={bill.thumbnail_url}
             alt={billTitle}

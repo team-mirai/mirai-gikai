@@ -9,7 +9,7 @@ import { truncateText } from "@/features/interview-report/shared/utils/truncate-
  * カード: 1080x530px, padding 48px, font 38px × lineHeight 1.8 = 68.4px/行
  * 幅700pxで日本語約18文字/行 → 5行 = 約90文字が上限
  */
-const OG_SUMMARY_MAX_LENGTH = 80;
+const OG_SUMMARY_MAX_LENGTH = 90;
 const OG_BILL_NAME_MAX_LENGTH = 40;
 
 const FONT_FETCH_TIMEOUT_MS = 3000;
@@ -131,8 +131,8 @@ export async function GET(request: Request) {
           width: 1080,
           height: 530,
           backgroundColor: "white",
-          borderRadius: 28,
-          border: "4px solid #bcecd3",
+          borderRadius: 30,
+          border: "8px solid #bcecd3",
           padding: "48px 56px",
           position: "relative",
         }}
@@ -176,11 +176,11 @@ export async function GET(request: Request) {
             alignItems: "center",
             justifyContent: "center",
             paddingLeft: 20,
-            paddingRight: 20,
+            paddingRight: 18,
             paddingTop: 10,
             paddingBottom: 10,
-            borderBottomLeftRadius: 28,
-            borderTopRightRadius: 28,
+            borderBottomLeftRadius: 20,
+            borderTopRightRadius: 20,
             backgroundImage:
               "linear-gradient(-30deg, rgb(188, 236, 211) 1%, rgb(100, 216, 198) 99%)",
           }}
@@ -199,15 +199,16 @@ export async function GET(request: Request) {
 
         {/* ロゴ画像 */}
         {logoDataUrl && (
+          // biome-ignore lint/performance/noImgElement: ignore
           <img
             alt="チームみらいロゴ"
             src={logoDataUrl}
-            width={109}
-            height={93}
+            width={189}
+            height={160}
             style={{
               position: "absolute",
-              bottom: 32,
-              right: 48,
+              bottom: -10,
+              right: -10,
             }}
           />
         )}
