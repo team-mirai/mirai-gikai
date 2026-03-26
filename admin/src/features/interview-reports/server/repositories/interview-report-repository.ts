@@ -571,7 +571,9 @@ async function fetchReportIdsPaginated(options?: {
       query = query.is("moderation_score", null);
     }
 
-    const { data, error } = await query.range(offset, offset + PAGE_SIZE - 1);
+    const { data, error } = await query
+      .order("id")
+      .range(offset, offset + PAGE_SIZE - 1);
 
     if (error) {
       throw new Error(`Failed to fetch report ids: ${error.message}`);

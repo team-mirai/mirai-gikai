@@ -41,7 +41,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await runBatchModerationScoringChunk(reportIds);
+    const validatedIds = reportIds as string[];
+    const result = await runBatchModerationScoringChunk(validatedIds);
 
     return new Response(JSON.stringify({ success: true, ...result }), {
       headers: { "Content-Type": "application/json" },
