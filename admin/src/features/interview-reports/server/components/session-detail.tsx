@@ -307,7 +307,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
       )}
 
       {/* 情報充実度・リアクション */}
-      {report && (contentRichness || reactionCounts) && (
+      {report && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">情報充実度・リアクション</CardTitle>

@@ -21,16 +21,20 @@ export function RegenerateContentRichnessButton({
 
   const handleClick = () => {
     startTransition(async () => {
-      const result = await runSingleContentRichnessAction(
-        reportId,
-        billId,
-        sessionId
-      );
+      try {
+        const result = await runSingleContentRichnessAction(
+          reportId,
+          billId,
+          sessionId
+        );
 
-      if (result.success) {
-        toast.success(`情報充実度の再評価完了: 総合スコア ${result.total}`);
-      } else {
-        toast.error(result.error || "情報充実度の再評価に失敗しました");
+        if (result.success) {
+          toast.success(`情報充実度の再評価完了: 総合スコア ${result.total}`);
+        } else {
+          toast.error(result.error || "情報充実度の再評価に失敗しました");
+        }
+      } catch {
+        toast.error("情報充実度の再評価に失敗しました");
       }
     });
   };
