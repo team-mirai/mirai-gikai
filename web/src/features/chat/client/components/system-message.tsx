@@ -1,4 +1,5 @@
 import type { UIMessage } from "@ai-sdk/react";
+import type { ComponentProps } from "react";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import {
   Reasoning,
@@ -9,11 +10,14 @@ import { Response } from "@/components/ai-elements/response";
 import { SUGGEST_INTERVIEW_TOOL_TYPE } from "@/features/chat/shared/constants";
 import { InterviewSuggestionBanner } from "./interview-suggestion-banner";
 
+type RehypePlugins = ComponentProps<typeof Response>["rehypePlugins"];
+
 interface SystemMessageProps {
   message: UIMessage;
   isStreaming: boolean;
   billId?: string;
   billName?: string;
+  rehypePlugins?: RehypePlugins;
 }
 
 export function SystemMessage({
@@ -21,6 +25,7 @@ export function SystemMessage({
   isStreaming,
   billId,
   billName,
+  rehypePlugins,
 }: SystemMessageProps) {
   return (
     <Message from="assistant" className="justify-start py-0">
@@ -31,7 +36,11 @@ export function SystemMessage({
         {message.parts.map((part, i: number) => {
           if (part.type === "text") {
             return (
-              <Response key={`${message.id}-${i}`} className="break-words">
+              <Response
+                key={`${message.id}-${i}`}
+                className="break-words"
+                rehypePlugins={rehypePlugins}
+              >
                 {part.text}
               </Response>
             );
