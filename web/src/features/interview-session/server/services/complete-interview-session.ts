@@ -54,7 +54,6 @@ export async function completeInterviewSession({
   const MODERATION_TIMEOUT_MS = 30_000;
   let moderationScore: number | null = null;
   let moderationReasoning: string | null = null;
-  let moderationFlaggedCategories: string[] | null = null;
   try {
     const moderation = await Promise.race([
       evaluateModerationScore({
@@ -75,7 +74,6 @@ export async function completeInterviewSession({
     ]);
     moderationScore = moderation.score;
     moderationReasoning = moderation.reasoning;
-    moderationFlaggedCategories = moderation.flaggedCategories;
   } catch (error) {
     // モデレーション失敗はレポート保存をブロックしない
     const message = error instanceof Error ? error.message : "Unknown error";
@@ -98,7 +96,6 @@ export async function completeInterviewSession({
     content_richness: reportData.content_richness,
     moderation_score: moderationScore,
     moderation_reasoning: moderationReasoning,
-    moderation_flagged_categories: moderationFlaggedCategories,
   });
 
   // セッションを完了

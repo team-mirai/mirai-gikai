@@ -12,9 +12,6 @@ export const moderationResultSchema = z.object({
     "モデレーションスコア（0-100の整数）: 0が最も適切、100が最も不適切"
   ),
   reasoning: z.string().describe("スコアの根拠を簡潔に説明（200文字以内）"),
-  flagged_categories: z
-    .array(z.string())
-    .describe("該当する評価カテゴリ名の配列（該当なしの場合は空配列）"),
 });
 
 export type ModerationResult = z.infer<typeof moderationResultSchema>;

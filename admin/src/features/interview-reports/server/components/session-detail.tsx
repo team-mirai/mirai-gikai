@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RegenerateContentRichnessButton } from "../../client/components/regenerate-content-richness-button";
 import { RegenerateModerationButton } from "../../client/components/regenerate-moderation-button";
 import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
 import { formatRoleLabel } from "../../shared/constants";
@@ -300,27 +301,6 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                       </div>
                     </div>
                   )}
-                  {report.moderation_flagged_categories &&
-                    report.moderation_flagged_categories.length > 0 && (
-                      <div className="mt-3">
-                        <div className="text-sm text-gray-500 mb-1">
-                          該当カテゴリ
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {report.moderation_flagged_categories.map(
-                            (category) => (
-                              <Badge
-                                key={category}
-                                variant="outline"
-                                className="text-xs bg-red-50 text-red-700 border-red-200"
-                              >
-                                {category}
-                              </Badge>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
                 </div>
               ) : (
                 <div className="text-gray-500 text-sm">
@@ -333,8 +313,13 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
           {/* 情報充実度 */}
           {contentRichness && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg">情報充実度</CardTitle>
+                <RegenerateContentRichnessButton
+                  reportId={report.id}
+                  sessionId={session.id}
+                  billId={billId}
+                />
               </CardHeader>
               <CardContent>
                 <div className="space-y-2.5">

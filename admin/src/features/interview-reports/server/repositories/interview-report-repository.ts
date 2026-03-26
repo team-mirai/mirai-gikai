@@ -569,7 +569,6 @@ export async function updateModerationScore(
   params: {
     score: number;
     reasoning: string;
-    flaggedCategories: string[];
   }
 ): Promise<void> {
   const supabase = createAdminClient();
@@ -578,11 +577,34 @@ export async function updateModerationScore(
     .update({
       moderation_score: params.score,
       moderation_reasoning: params.reasoning,
-      moderation_flagged_categories: params.flaggedCategories,
     })
     .eq("id", reportId);
 
   if (error) {
     throw new Error(`Failed to update moderation score: ${error.message}`);
+  }
+}
+
+export async function updateContentRichness(
+  reportId: string,
+  contentRichness: {
+    total: number;
+    clarity: number;
+    specificity: number;
+    impact: number;
+    constructiveness: number;
+    reasoning: string;
+  }
+): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("interview_report")
+    .update({
+      content_richness: contentRichness,
+    })
+    .eq("id", reportId);
+
+  if (error) {
+    throw new Error(`Failed to update content richness: ${error.message}`);
   }
 }

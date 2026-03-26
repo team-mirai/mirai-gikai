@@ -53,12 +53,9 @@ export async function runSingleModerationScoring(
   await updateModerationScore(reportId, {
     score: object.score,
     reasoning: object.reasoning,
-    flaggedCategories: object.flagged_categories,
   });
 
-  console.log(
-    `[SingleModeration] report=${reportId} score=${object.score} categories=[${object.flagged_categories.join(",")}]`
-  );
+  console.log(`[SingleModeration] report=${reportId} score=${object.score}`);
 
   return { score: object.score };
 }
