@@ -8,8 +8,8 @@ import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { PublicStatusSection } from "@/features/interview-report/client/components/public-status-section";
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
-import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
+import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
 import { ExpertRegistrationSection } from "../../client/components/expert-registration-section";
 import { ReportContent } from "../../shared/components/report-content";
 import { isExpertRegistrationTargetRole } from "../../shared/utils/expert-registration-validation";
@@ -56,7 +56,7 @@ export async function ReportCompletePage({
   return (
     <div className="min-h-dvh bg-mirai-surface">
       {/* ヘッダーセクション */}
-      <div className="bg-white rounded-b-[32px] px-4 pt-16 pb-8">
+      <div className="bg-white rounded-b-[32px] px-4 pt-30 md:pt-16 pb-8">
         <div className="flex flex-col items-center gap-4">
           {/* 完了イラスト */}
           <Image
