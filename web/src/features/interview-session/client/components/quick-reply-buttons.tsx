@@ -15,13 +15,14 @@ export function QuickReplyButtons({
     return null;
   }
 
-  const isHorizontal = replies.length >= 5;
+  // const isHorizontal = replies.length >= 5;
+  const isHorizontal = replies.length >= 2;
 
   return (
     <div
       className={
         isHorizontal
-          ? "flex flex-row flex-wrap justify-end gap-2 mt-2 ml-auto w-1/2"
+          ? "flex flex-row flex-wrap justify-end gap-2 mt-2 ml-auto w-[80%]"
           : "flex flex-col items-end gap-2 mt-2"
       }
     >
