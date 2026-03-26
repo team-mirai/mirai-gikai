@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import type { Route } from "next";
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
 import type { ParsedOpinion as Opinion } from "../utils/format-utils";
@@ -51,10 +50,9 @@ export function OpinionsList({
                 href={
                   `${getInterviewChatLogLink(reportId, chatLogFrom)}#message-${opinion.source_message_id}` as Route
                 }
-                className="inline-flex items-center gap-1 text-sm text-primary font-medium"
+                className="text-[15px] leading-6 text-mirai-text-muted underline"
               >
                 元の回答を見る
-                <ArrowRight size={14} />
               </Link>
             )}
           </div>
