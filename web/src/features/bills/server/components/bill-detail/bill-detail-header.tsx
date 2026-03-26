@@ -1,7 +1,9 @@
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
 import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
@@ -13,11 +15,13 @@ import type { BillWithContent } from "../../../shared/types";
 interface BillDetailHeaderProps {
   bill: BillWithContent;
   hasInterviewConfig?: boolean;
+  opinionCount?: number;
 }
 
 export async function BillDetailHeader({
   bill,
   hasInterviewConfig,
+  opinionCount,
 }: BillDetailHeaderProps) {
   const displayTitle = bill.bill_content?.title;
   const displaySummary = bill.bill_content?.summary;
@@ -72,6 +76,15 @@ export async function BillDetailHeader({
         <p className="text-sm text-muted-foreground font-medium mb-4">
           {bill.name}
         </p>
+        {opinionCount != null && opinionCount > 0 && (
+          <Link
+            href={routes.billOpinions(bill.id) as Route}
+            className="flex items-center gap-1.5 mb-4 text-sm font-medium text-mirai-text hover:underline"
+          >
+            <MessageSquare className="size-4" />
+            <span>{opinionCount} 件のご意見</span>
+          </Link>
+        )}
         <div className="flex items-center gap-2">
           {hasInterviewConfig && (
             <Button
