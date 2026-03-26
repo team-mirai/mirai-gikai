@@ -136,6 +136,28 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                 </div>
               </div>
             )}
+            {reactionCounts && (
+              <>
+                <div>
+                  <div className="text-sm text-gray-500">参考になる</div>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Lightbulb className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm font-semibold">
+                      {reactionCounts.helpful}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">うーん...</div>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Frown className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm font-semibold">
+                      {reactionCounts.hmm}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -227,157 +249,119 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
         </CardContent>
       </Card>
 
-      {/* モデレーションスコア */}
+      {/* モデレーション・情報充実度 */}
       {report && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">モデレーション</CardTitle>
-            <RegenerateModerationButton
-              reportId={report.id}
-              sessionId={session.id}
-              billId={billId}
-            />
-          </CardHeader>
-          <CardContent>
-            {report.moderation_score != null ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="text-sm text-gray-500 w-16 shrink-0">
-                    スコア
+        <div
+          className={`grid grid-cols-1 gap-6 ${contentRichness ? "md:grid-cols-2" : ""}`}
+        >
+          {/* モデレーションスコア */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">モデレーション</CardTitle>
+              <RegenerateModerationButton
+                reportId={report.id}
+                sessionId={session.id}
+                billId={billId}
+              />
+            </CardHeader>
+            <CardContent>
+              {report.moderation_score != null ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="text-sm text-gray-500 w-16 shrink-0">
+                      スコア
+                    </div>
+                    <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          report.moderation_status === "ok"
+                            ? "bg-green-500"
+                            : report.moderation_status === "warning"
+                              ? "bg-orange-500"
+                              : "bg-red-500"
+                        }`}
+                        style={{
+                          width: `${report.moderation_score}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="w-12 text-sm font-medium text-right">
+                      {report.moderation_score} / 100
+                    </div>
                   </div>
-                  <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        report.moderation_status === "ok"
-                          ? "bg-green-500"
-                          : report.moderation_status === "warning"
-                            ? "bg-orange-500"
-                            : "bg-red-500"
-                      }`}
-                      style={{
-                        width: `${report.moderation_score}%`,
-                      }}
-                    />
+                  <div className="text-xs text-gray-400">
+                    0-29: OK / 30-69: Warning / 70-100: NG
                   </div>
-                  <div className="w-12 text-sm font-medium text-right">
-                    {report.moderation_score} / 100
-                  </div>
+                  {report.moderation_reasoning && (
+                    <div className="mt-3">
+                      <div className="text-sm text-gray-500 mb-1">根拠</div>
+                      <div className="text-sm bg-gray-50 p-3 rounded-lg">
+                        {report.moderation_reasoning}
+                      </div>
+                    </div>
+                  )}
+                  {report.moderation_flagged_categories &&
+                    report.moderation_flagged_categories.length > 0 && (
+                      <div className="mt-3">
+                        <div className="text-sm text-gray-500 mb-1">
+                          該当カテゴリ
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {report.moderation_flagged_categories.map(
+                            (category) => (
+                              <Badge
+                                key={category}
+                                variant="outline"
+                                className="text-xs bg-red-50 text-red-700 border-red-200"
+                              >
+                                {category}
+                              </Badge>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
                 </div>
-                <div className="text-xs text-gray-400">
-                  0-29: OK / 30-69: Warning / 70-100: NG
+              ) : (
+                <div className="text-gray-500 text-sm">
+                  モデレーション評価はまだ実行されていません
                 </div>
-                {report.moderation_reasoning && (
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 情報充実度 */}
+          {contentRichness && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">情報充実度</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2.5">
+                  {Object.entries(contentRichnessLabels).map(([key, label]) => {
+                    const value = contentRichness[key];
+                    if (typeof value !== "number") return null;
+                    return (
+                      <ContentRichnessBar
+                        key={key}
+                        label={label}
+                        value={value}
+                      />
+                    );
+                  })}
+                </div>
+                {typeof contentRichness.reasoning === "string" && (
                   <div className="mt-3">
-                    <div className="text-sm text-gray-500 mb-1">根拠</div>
+                    <div className="text-sm text-gray-500 mb-1">評価根拠</div>
                     <div className="text-sm bg-gray-50 p-3 rounded-lg">
-                      {report.moderation_reasoning}
+                      {contentRichness.reasoning}
                     </div>
                   </div>
                 )}
-                {report.moderation_flagged_categories &&
-                  report.moderation_flagged_categories.length > 0 && (
-                    <div className="mt-3">
-                      <div className="text-sm text-gray-500 mb-1">
-                        該当カテゴリ
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {report.moderation_flagged_categories.map(
-                          (category) => (
-                            <Badge
-                              key={category}
-                              variant="outline"
-                              className="text-xs bg-red-50 text-red-700 border-red-200"
-                            >
-                              {category}
-                            </Badge>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-              </div>
-            ) : (
-              <div className="text-gray-500 text-sm">
-                モデレーション評価はまだ実行されていません
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 情報充実度・リアクション */}
-      {report && (contentRichness || reactionCounts) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">情報充実度・リアクション</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* 情報充実度 */}
-              {contentRichness && (
-                <div>
-                  <div className="text-sm text-gray-500 mb-3">情報充実度</div>
-                  <div className="space-y-2.5">
-                    {Object.entries(contentRichnessLabels).map(
-                      ([key, label]) => {
-                        const value = contentRichness[key];
-                        if (typeof value !== "number") return null;
-                        return (
-                          <ContentRichnessBar
-                            key={key}
-                            label={label}
-                            value={value}
-                          />
-                        );
-                      }
-                    )}
-                  </div>
-                  {typeof contentRichness.reasoning === "string" && (
-                    <div className="mt-3">
-                      <div className="text-sm text-gray-500 mb-1">評価根拠</div>
-                      <div className="text-sm bg-gray-50 p-3 rounded-lg">
-                        {contentRichness.reasoning}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* リアクション */}
-              {reactionCounts && (
-                <div>
-                  <div className="text-sm text-gray-500 mb-3">
-                    ユーザーリアクション
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                        <Lightbulb className="h-5 w-5 text-blue-500" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">参考になる</div>
-                        <div className="text-lg font-semibold">
-                          {reactionCounts.helpful}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
-                        <Frown className="h-5 w-5 text-orange-500" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">うーん...</div>
-                        <div className="text-lg font-semibold">
-                          {reactionCounts.hmm}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* チャット履歴 */}
