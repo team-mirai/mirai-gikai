@@ -75,16 +75,9 @@ export function ReportContent({
           roleTitle={roleTitle}
           sessionStartedAt={sessionStartedAt}
           characterCount={characterCount}
+          reactionData={reactionData}
           from={from === "complete" ? "complete" : undefined}
         />
-
-        {/* 参考になるボタン */}
-        {reactionData && (
-          <ReactionButtonsInline
-            reportId={reportId}
-            initialData={reactionData}
-          />
-        )}
       </div>
 
       {/* インタビューを受けた人 */}

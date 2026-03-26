@@ -25,7 +25,7 @@ export function ShareArticleButton({
       <Button
         type="button"
         onClick={() => setIsShareModalOpen(true)}
-        className="rounded-full px-6 py-3 h-auto font-bold text-base text-white bg-gradient-to-r from-mirai-gradient-start to-mirai-gradient-end hover:opacity-90"
+        className="w-full text-base"
       >
         <Upload className="w-5 h-5" />
         記事を共有する

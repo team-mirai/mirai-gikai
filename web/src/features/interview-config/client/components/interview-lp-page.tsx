@@ -119,7 +119,7 @@ function _InterviewLPHero({
       </div>
 
       {sessionInfo?.status !== "completed" && (
-        <div className="w-full max-w-[370px] mt-2 flex flex-col gap-3">
+        <div className="w-full max-w-[560px] mt-2 flex flex-col gap-3">
           <InterviewActionButtons
             billId={billId}
             sessionInfo={sessionInfo}
@@ -143,7 +143,7 @@ function _InterviewOverviewSection({
   const billLink = getBillDetailLink(billId, previewToken);
 
   return (
-    <div className="w-full max-w-[370px] mx-auto bg-white rounded-2xl p-6 space-y-4">
+    <div className="w-full max-w-[560px] mx-auto bg-white rounded-2xl p-6 space-y-4">
       <h2 className="text-[22px] font-bold text-black leading-[1.64]">
         インタビュー概要
       </h2>
@@ -189,7 +189,7 @@ function _InterviewDurationSection({
   }
 
   return (
-    <div className="w-full max-w-[370px] mx-auto bg-white rounded-2xl p-6 space-y-2">
+    <div className="w-full max-w-[560px] mx-auto bg-white rounded-2xl p-6 space-y-2">
       <h2 className="text-[22px] font-bold text-black leading-[1.64]">
         予定時間
       </h2>
@@ -210,7 +210,7 @@ function _InterviewThemesSection({
   }
 
   return (
-    <div className="w-full max-w-[370px] mx-auto bg-white rounded-2xl p-6 space-y-4">
+    <div className="w-full max-w-[560px] mx-auto bg-white rounded-2xl p-6 space-y-4">
       <h2 className="text-[22px] font-bold text-black leading-[1.64]">
         質問テーマ
       </h2>
@@ -238,7 +238,7 @@ function _InterviewThemesSection({
 
 function _InterviewNoticeSection() {
   return (
-    <div className="w-full max-w-[370px] mx-auto bg-white rounded-2xl p-6 space-y-4">
+    <div className="w-full max-w-[560px] mx-auto bg-white rounded-2xl p-6 space-y-4">
       <h2 className="text-[22px] font-bold text-black leading-[1.64]">
         注意事項
       </h2>
@@ -265,7 +265,7 @@ function _InterviewDisclosureLink({
   const disclosureLink = getInterviewDisclosureLink(billId, previewToken);
 
   return (
-    <div className="w-full max-w-[370px] mx-auto">
+    <div className="w-full max-w-[560px] mx-auto">
       <Link
         href={disclosureLink as Route}
         className="text-xs text-black leading-[1.83] underline underline-offset-2 hover:opacity-70 transition-opacity"
@@ -325,7 +325,7 @@ export function InterviewLPPage({
           <PastReportsSection reports={userReports.reports} />
         )}
         {sessionInfo?.status === "completed" && sessionInfo?.reportId && (
-          <div className="w-full max-w-[370px]">
+          <div className="w-full max-w-[560px]">
             <NewInterviewButton billId={bill.id} previewToken={previewToken} />
           </div>
         )}

@@ -1,6 +1,8 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
+import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
+import type { ReportReactionData } from "@/features/report-reaction/shared/types";
 import { formatDateTime } from "../utils/report-utils";
 import { RoleDisplay } from "./role-display";
 import { StanceDisplay } from "./stance-display";
@@ -12,6 +14,7 @@ interface ReportMetaInfoProps {
   roleTitle?: string | null;
   sessionStartedAt: string | null;
   characterCount: number;
+  reactionData?: ReportReactionData;
   /** 遷移元のコンテキスト */
   from?: "complete";
   /** trueの場合、会話ログへのリンクにしない */
@@ -25,6 +28,7 @@ export function ReportMetaInfo({
   roleTitle,
   sessionStartedAt,
   characterCount,
+  reactionData,
   from,
   disableLink,
 }: ReportMetaInfoProps) {
@@ -59,6 +63,11 @@ export function ReportMetaInfo({
           </Link>
         )}
       </div>
+
+      {/* 参考になるボタン */}
+      {reactionData && (
+        <ReactionButtonsInline reportId={reportId} initialData={reactionData} />
+      )}
     </div>
   );
 }
