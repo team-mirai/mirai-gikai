@@ -315,7 +315,7 @@ export function InterviewChatClient({
               input={input}
               onInputChange={setInput}
               onSubmit={handleChatSubmit}
-              placeholder="AIに質問に回答する"
+              placeholder="AIの質問に回答する"
               isResponding={isLoading}
             />
           )}
