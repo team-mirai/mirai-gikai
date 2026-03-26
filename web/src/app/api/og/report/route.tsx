@@ -6,10 +6,8 @@ import { truncateText } from "@/features/interview-report/shared/utils/truncate-
 
 /**
  * OGP画像のテキスト制限
- * カード: 1080x530px, padding 48px, font 38px × lineHeight 1.8 = 68.4px/行
- * 幅700pxで日本語約18文字/行 → 5行 = 約90文字が上限
  */
-const OG_SUMMARY_MAX_LENGTH = 90;
+const OG_SUMMARY_MAX_LENGTH = 100;
 const OG_BILL_NAME_MAX_LENGTH = 40;
 
 const FONT_FETCH_TIMEOUT_MS = 3000;
@@ -128,8 +126,8 @@ export async function GET(request: Request) {
         style={{
           display: "flex",
           flexDirection: "column",
-          width: 1080,
-          height: 530,
+          width: 1140,
+          height: 560,
           backgroundColor: "white",
           borderRadius: 30,
           border: "8px solid #bcecd3",
@@ -146,7 +144,7 @@ export async function GET(request: Request) {
             color: "#1f2937",
             lineHeight: 1.8,
             flex: 1,
-            width: 700,
+            width: 740,
             overflow: "hidden",
           }}
         >
@@ -207,8 +205,8 @@ export async function GET(request: Request) {
             height={160}
             style={{
               position: "absolute",
-              bottom: -10,
-              right: -10,
+              bottom: -24,
+              right: -18,
             }}
           />
         )}
