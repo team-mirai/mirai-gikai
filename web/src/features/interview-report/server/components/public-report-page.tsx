@@ -68,11 +68,6 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
         />
       </div>
 
-      {/* 問題報告ボタン */}
-      <div className="px-4 pt-8 pb-12 flex flex-col items-center">
-        <ReportProblemButton />
-      </div>
-
       {/* アクションバー - Fixed at bottom */}
       <ReactionButtons
         reportId={reportId}

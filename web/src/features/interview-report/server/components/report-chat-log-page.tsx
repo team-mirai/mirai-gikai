@@ -121,11 +121,6 @@ export async function ReportChatLogPage({
           {/* Back to Report / Bill Buttons */}
           <div className="flex flex-col gap-3">
             <BackToReportButton href={reportHref} />
-            <BackToBillButton billId={report.bill_id} />
-          </div>
-
-          {/* 問題報告ボタン */}
-          <div className="flex flex-col items-center">
             <ReportProblemButton />
           </div>
 

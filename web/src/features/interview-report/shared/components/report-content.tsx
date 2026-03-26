@@ -10,6 +10,7 @@ import type { Opinion } from "./opinions-list";
 import { OpinionsList } from "./opinions-list";
 import { ReportBreadcrumb } from "./report-breadcrumb";
 import { ReportMetaInfo } from "./report-meta-info";
+import { ReportProblemButton } from "./report-problem-button";
 
 interface ReportContentProps {
   reportId: string;
@@ -89,9 +90,12 @@ export function ReportContent({
       {/* 追加セクション（有識者登録バナーなど） */}
       {children}
 
-      {/* 法案の記事に戻るボタン */}
-      <div className="flex flex-col gap-3">
-        <BackToBillButton billId={billId} />
+      <div>
+        {/* 法案の記事に戻るボタン */}
+        <div className="flex flex-col gap-3">
+          <BackToBillButton billId={billId} />
+          <ReportProblemButton />
+        </div>
       </div>
 
       {/* パンくずリスト */}
