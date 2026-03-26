@@ -26,6 +26,14 @@
     "./moderation/status": {
       "types": "./src/moderation/moderation.ts",
       "default": "./src/moderation/moderation.ts"
+    },
+    "./content-richness/build-prompt": {
+      "types": "./src/content-richness/build-content-richness-prompt.ts",
+      "default": "./src/content-richness/build-content-richness-prompt.ts"
+    },
+    "./content-richness/schemas": {
+      "types": "./src/content-richness/schemas.ts",
+      "default": "./src/content-richness/schemas.ts"
     }
   },
   "peerDependencies": {

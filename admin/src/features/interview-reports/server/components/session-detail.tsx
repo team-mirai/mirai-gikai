@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RegenerateContentRichnessButton } from "../../client/components/regenerate-content-richness-button";
 import { RegenerateModerationButton } from "../../client/components/regenerate-moderation-button";
 import { ReportVisibilityToggle } from "../../client/components/report-visibility-toggle";
 import { formatRoleLabel } from "../../shared/constants";
@@ -308,8 +309,13 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
       {/* 情報充実度・リアクション */}
       {report && (contentRichness || reactionCounts) && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">情報充実度・リアクション</CardTitle>
+            <RegenerateContentRichnessButton
+              reportId={report.id}
+              sessionId={session.id}
+              billId={billId}
+            />
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
