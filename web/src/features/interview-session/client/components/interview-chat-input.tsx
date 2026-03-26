@@ -53,7 +53,7 @@ export function InterviewChatInput({
     <>
       <PromptInput
         onSubmit={onSubmit}
-        className="flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
+        className="flex items-end gap-2.5 py-1 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
       >
         <PromptInputBody className="flex-1">
           <PromptInputTextarea

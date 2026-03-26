@@ -21,8 +21,8 @@ export function QuickReplyButtons({
     <div
       className={
         isHorizontal
-          ? "flex flex-row flex-wrap justify-end gap-2 mt-2 ml-auto w-[80%]"
-          : "flex flex-col items-end gap-2 mt-2"
+          ? "flex flex-row flex-wrap justify-end gap-2 ml-auto w-[80%]"
+          : "flex flex-col items-end gap-2"
       }
     >
       {replies.map((reply) => (
@@ -31,7 +31,7 @@ export function QuickReplyButtons({
           type="button"
           onClick={() => onSelect(reply)}
           disabled={disabled}
-          className="px-4 py-2 text-sm font-medium text-primary-accent border border-primary-accent rounded-full hover:bg-primary-accent/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed animate-fade-in"
+          className="px-4 py-1.5 text-sm font-medium text-primary-accent border border-primary-accent rounded-full hover:bg-primary-accent/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed animate-fade-in"
         >
           {reply}
         </button>
