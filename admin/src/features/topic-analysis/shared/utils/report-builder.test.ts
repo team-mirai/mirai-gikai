@@ -254,7 +254,7 @@ describe("buildReportMarkdown", () => {
 // ---------------------------------------------------------------------------
 
 describe("fixCjkBold", () => {
-  it("inserts ZWS around ** so CJK bold renders correctly", () => {
+  it("inserts thin space around ** so CJK bold renders correctly", () => {
     const input = "のは**健康被害に関するトピック（76件）**であり";
     const result = fixCjkBold(input);
     expect(result).toContain(
