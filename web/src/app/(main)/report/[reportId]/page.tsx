@@ -8,6 +8,9 @@ interface PublicReportRouteProps {
   params: Promise<{
     reportId: string;
   }>;
+  searchParams: Promise<{
+    from?: string;
+  }>;
 }
 
 export async function generateMetadata({
@@ -64,7 +67,14 @@ export async function generateMetadata({
 
 export default async function PublicReportRoute({
   params,
+  searchParams,
 }: PublicReportRouteProps) {
   const { reportId } = await params;
-  return <PublicReportPage reportId={reportId} />;
+  const { from } = await searchParams;
+  return (
+    <PublicReportPage
+      reportId={reportId}
+      from={from === "opinions" ? "opinions" : undefined}
+    />
+  );
 }
