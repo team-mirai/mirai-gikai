@@ -9,6 +9,7 @@ import type { ReportReactionData } from "@/features/report-reaction/shared/types
 import { cn } from "@/lib/utils";
 import { fetchMorePublicReports } from "../../server/actions/fetch-more-public-reports";
 import type { PublicInterviewReport } from "../../server/loaders/get-public-reports-by-bill-id";
+import { getPublicReportLink } from "@/features/interview-config/shared/utils/interview-links";
 import { ReportCard } from "../../shared/components/report-card";
 import {
   type SortOrder,
@@ -180,7 +181,11 @@ export function PublicOpinionsList({
             : { counts: { helpful: 0, hmm: 0 }, userReaction: null };
 
           return (
-            <ReportCard key={report.id} report={report}>
+            <ReportCard
+              key={report.id}
+              report={report}
+              href={getPublicReportLink(report.id, "opinions")}
+            >
               <ReactionButtonsInline
                 reportId={report.id}
                 initialData={reactionData}

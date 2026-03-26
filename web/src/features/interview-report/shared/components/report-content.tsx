@@ -28,8 +28,8 @@ interface ReportContentProps {
   opinions: Opinion[];
   /** リアクションデータ（公開レポートで使用） */
   reactionData?: ReportReactionData;
-  /** 遷移元のコンテキスト。"complete" の場合、会話ログへのリンクに ?from=complete を付与 */
-  from?: "complete";
+  /** 遷移元のコンテキスト。"complete" の場合、会話ログへのリンクに ?from=complete を付与。"opinions" の場合、戻るボタンがレポート一覧を指す */
+  from?: "complete" | "opinions";
   /** 意見リストの後に差し込む追加セクション（有識者登録バナーなど） */
   children?: ReactNode;
   /** 共有ボタン用の情報 */
@@ -75,7 +75,7 @@ export function ReportContent({
           roleTitle={roleTitle}
           sessionStartedAt={sessionStartedAt}
           characterCount={characterCount}
-          from={from}
+          from={from === "complete" ? "complete" : undefined}
         />
 
         {/* 参考になるボタン */}
@@ -95,10 +95,15 @@ export function ReportContent({
         opinions={opinions}
         title="💬主な意見"
         reportId={reportId}
-        chatLogFrom={from}
+        chatLogFrom={from === "complete" ? "complete" : undefined}
         footer={
           <Link
-            href={getInterviewChatLogLink(reportId, from) as Route}
+            href={
+              getInterviewChatLogLink(
+                reportId,
+                from === "complete" ? "complete" : undefined
+              ) as Route
+            }
             className="flex items-center justify-center gap-2.5 px-6 py-3 border border-gray-800 rounded-full"
           >
             <MessageSquareMore className="w-6 h-6 text-gray-800" />
@@ -123,7 +128,7 @@ export function ReportContent({
           />
         )}
         {/* 法案の記事に戻るボタン */}
-        <BackToBillButton billId={billId} />
+        <BackToBillButton billId={billId} from={from} />
         {/* 問題を報告する */}
         <ReportProblemButton />
       </div>

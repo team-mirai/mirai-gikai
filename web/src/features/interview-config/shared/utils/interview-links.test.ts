@@ -59,6 +59,12 @@ describe("getPublicReportLink", () => {
   it("returns public report path", () => {
     expect(getPublicReportLink("report-456")).toBe("/report/report-456");
   });
+
+  it("returns public report path with from=opinions when from is specified", () => {
+    expect(getPublicReportLink("report-456", "opinions")).toBe(
+      "/report/report-456?from=opinions"
+    );
+  });
 });
 
 describe("getInterviewChatLogLink", () => {

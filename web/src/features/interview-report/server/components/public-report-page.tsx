@@ -14,9 +14,13 @@ import { getPublicReportById } from "../loaders/get-public-report-by-id";
 
 interface PublicReportPageProps {
   reportId: string;
+  from?: "opinions";
 }
 
-export async function PublicReportPage({ reportId }: PublicReportPageProps) {
+export async function PublicReportPage({
+  reportId,
+  from,
+}: PublicReportPageProps) {
   const data = await getPublicReportById(reportId);
 
   if (!data) {
@@ -63,6 +67,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
           characterCount={data.characterCount}
           roleDescription={data.role_description}
           opinions={opinions}
+          from={from}
           reactionData={reactionData}
           share={{
             billName,
