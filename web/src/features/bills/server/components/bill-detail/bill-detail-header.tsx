@@ -1,11 +1,11 @@
+import { MessageSquare } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
-import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
 import { BillStatusBadge } from "../../../client/components/bill-list/bill-status-badge";
 import { BillTag } from "../../../client/components/bill-list/bill-tag";
@@ -79,13 +79,11 @@ export async function BillDetailHeader({
         {opinionCount != null && opinionCount > 0 && (
           <Link
             href={routes.billOpinions(bill.id) as Route}
-            className="flex items-center gap-1 mb-4 text-primary-accent hover:underline"
+            className="flex items-center gap-1 mb-4 text-primary-accent hover:opacity-80"
           >
-            <MessageSquare className="size-[23px]" />
+            <MessageSquare className="size-4 relative top-[1px]" />
             <span className="text-[14px] font-bold leading-[14px] tracking-[0.14px]">
               {opinionCount}
-            </span>
-            <span className="text-[13px] font-medium leading-[13px] tracking-[0.13px]">
               件のご意見
             </span>
           </Link>
