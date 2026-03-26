@@ -63,6 +63,7 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
           characterCount={data.characterCount}
           roleDescription={data.role_description}
           opinions={opinions}
+          reactionData={reactionData}
           share={{
             billName,
             shareUrl,
