@@ -10,6 +10,7 @@ import { getReportReactions } from "@/features/report-reaction/server/loaders/ge
 import { routes } from "@/lib/routes";
 import { getOrigin } from "@/lib/utils/url";
 import { ReportContent } from "../../shared/components/report-content";
+import { ReportProblemButton } from "../../shared/components/report-problem-button";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import { getPublicReportById } from "../loaders/get-public-report-by-id";
 
@@ -65,6 +66,11 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
           roleDescription={data.role_description}
           opinions={opinions}
         />
+      </div>
+
+      {/* 問題報告ボタン */}
+      <div className="px-4 pt-8 pb-12 flex flex-col items-center">
+        <ReportProblemButton />
       </div>
 
       {/* アクションバー - Fixed at bottom */}

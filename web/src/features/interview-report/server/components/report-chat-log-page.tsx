@@ -20,6 +20,7 @@ import { IntervieweeInfo } from "../../shared/components/interviewee-info";
 import { OpinionsList } from "../../shared/components/opinions-list";
 import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
 import { ReportMetaInfo } from "../../shared/components/report-meta-info";
+import { ReportProblemButton } from "../../shared/components/report-problem-button";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import { countCharacters } from "../../shared/utils/report-utils";
 import { getReportWithMessages } from "../loaders/get-report-with-messages";
@@ -121,6 +122,11 @@ export async function ReportChatLogPage({
           <div className="flex flex-col gap-3">
             <BackToReportButton href={reportHref} />
             <BackToBillButton billId={report.bill_id} />
+          </div>
+
+          {/* 問題報告ボタン */}
+          <div className="flex flex-col items-center">
+            <ReportProblemButton />
           </div>
 
           {/* Breadcrumb Navigation */}
