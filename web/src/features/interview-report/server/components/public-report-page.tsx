@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
@@ -10,7 +9,6 @@ import { getReportReactions } from "@/features/report-reaction/server/loaders/ge
 import { routes } from "@/lib/routes";
 import { getOrigin } from "@/lib/utils/url";
 import { ReportContent } from "../../shared/components/report-content";
-import { ReportProblemButton } from "../../shared/components/report-problem-button";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import { getPublicReportById } from "../loaders/get-public-report-by-id";
 
@@ -65,6 +63,12 @@ export async function PublicReportPage({ reportId }: PublicReportPageProps) {
           characterCount={data.characterCount}
           roleDescription={data.role_description}
           opinions={opinions}
+          share={{
+            billName,
+            shareUrl,
+            ogImageUrl,
+            shareMessage: data.summary,
+          }}
         />
       </div>
 
