@@ -433,33 +433,22 @@ export async function findInterviewMessagesBySessionId(sessionId: string) {
 
 export async function findReactionCountsByReportId(
   reportId: string
-): Promise<{ helpful: number; hmm: number }> {
+): Promise<{ helpful: number }> {
   const supabase = createAdminClient();
-  const [helpfulResult, hmmResult] = await Promise.all([
-    supabase
-      .from("report_reactions")
-      .select("*", { count: "exact", head: true })
-      .eq("interview_report_id", reportId)
-      .eq("reaction_type", "helpful"),
-    supabase
-      .from("report_reactions")
-      .select("*", { count: "exact", head: true })
-      .eq("interview_report_id", reportId)
-      .eq("reaction_type", "hmm"),
-  ]);
+  const helpfulResult = await supabase
+    .from("report_reactions")
+    .select("*", { count: "exact", head: true })
+    .eq("interview_report_id", reportId)
+    .eq("reaction_type", "helpful");
 
   if (helpfulResult.error) {
     throw new Error(
       `Failed to fetch helpful count: ${helpfulResult.error.message}`
     );
   }
-  if (hmmResult.error) {
-    throw new Error(`Failed to fetch hmm count: ${hmmResult.error.message}`);
-  }
 
   return {
     helpful: helpfulResult.count ?? 0,
-    hmm: hmmResult.count ?? 0,
   };
 }
 
@@ -562,6 +551,57 @@ export async function findReportsForModerationScoring() {
   }
 
   return allData;
+}
+
+/**
+ * interview_report テーブルからIDをページネーション付きで取得するヘルパー
+ */
+async function fetchReportIdsPaginated(options?: {
+  unscoredOnly?: boolean;
+}): Promise<string[]> {
+  const supabase = createAdminClient();
+  const PAGE_SIZE = 500;
+  const allIds: string[] = [];
+  let offset = 0;
+
+  while (true) {
+    let query = supabase.from("interview_report").select("id");
+
+    if (options?.unscoredOnly) {
+      query = query.is("moderation_score", null);
+    }
+
+    const { data, error } = await query
+      .order("id")
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(`Failed to fetch report ids: ${error.message}`);
+    }
+
+    allIds.push(...data.map((r) => r.id));
+
+    if (data.length < PAGE_SIZE) {
+      break;
+    }
+    offset += PAGE_SIZE;
+  }
+
+  return allIds;
+}
+
+/**
+ * モデレーション未評価のレポートIDのみを取得する
+ */
+export async function findUnscoredReportIds(): Promise<string[]> {
+  return fetchReportIdsPaginated({ unscoredOnly: true });
+}
+
+/**
+ * 全レポートIDを取得する（再評価用）
+ */
+export async function findAllReportIds(): Promise<string[]> {
+  return fetchReportIdsPaginated();
 }
 
 export async function updateModerationScore(

@@ -61,9 +61,17 @@ export function getInterviewReportCompleteLink(reportId: string): string {
 
 /**
  * 公開レポートページへのリンクを取得
+ * @param from - 遷移元のコンテキスト。"opinions" の場合、戻るボタンがレポート一覧を指す
  */
-export function getPublicReportLink(reportId: string): string {
-  return routes.publicReport(reportId);
+export function getPublicReportLink(
+  reportId: string,
+  from?: "opinions"
+): string {
+  const base = routes.publicReport(reportId);
+  if (from) {
+    return `${base}?from=${from}`;
+  }
+  return base;
 }
 
 /**

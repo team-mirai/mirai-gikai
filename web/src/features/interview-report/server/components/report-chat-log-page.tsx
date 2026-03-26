@@ -20,6 +20,7 @@ import { IntervieweeInfo } from "../../shared/components/interviewee-info";
 import { OpinionsList } from "../../shared/components/opinions-list";
 import { ReportBreadcrumb } from "../../shared/components/report-breadcrumb";
 import { ReportMetaInfo } from "../../shared/components/report-meta-info";
+import { ReportProblemButton } from "../../shared/components/report-problem-button";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import { countCharacters } from "../../shared/utils/report-utils";
 import { getReportWithMessages } from "../loaders/get-report-with-messages";
@@ -54,19 +55,7 @@ export async function ReportChatLogPage({
       : getPublicReportLink(reportId);
 
   return (
-    <div className="min-h-dvh bg-mirai-surface">
-      {/* 法案サムネイル画像 */}
-      {bill.thumbnail_url && (
-        <div className="relative w-full h-[320px]">
-          <Image
-            src={bill.thumbnail_url}
-            alt={billName}
-            fill
-            className="object-cover"
-          />
-        </div>
-      )}
-
+    <div className="min-h-dvh bg-mirai-surface pt-20 md:pt-4">
       {/* Back to Report Link */}
       <div className="px-4 pt-4">
         <Link
@@ -83,7 +72,7 @@ export async function ReportChatLogPage({
         <div className="flex flex-col items-center">
           {/* Title */}
           <h1 className="text-2xl font-bold text-center text-gray-800">
-            インタビューレポート
+            実際のインタビュー
           </h1>
 
           {/* Bill Name */}
@@ -112,9 +101,6 @@ export async function ReportChatLogPage({
       {/* Content Sections */}
       <div className="px-4 py-8">
         <div className="flex flex-col gap-9">
-          {/* Interviewee Info */}
-          <IntervieweeInfo roleDescription={report.role_description} />
-
           {/* Chat Log Section */}
           <div className="flex flex-col gap-4">
             <h2 className="text-xl font-bold text-gray-800">
@@ -135,7 +121,7 @@ export async function ReportChatLogPage({
           {/* Back to Report / Bill Buttons */}
           <div className="flex flex-col gap-3">
             <BackToReportButton href={reportHref} />
-            <BackToBillButton billId={report.bill_id} />
+            <ReportProblemButton />
           </div>
 
           {/* Breadcrumb Navigation */}
@@ -156,6 +142,7 @@ export async function ReportChatLogPage({
         ogImageUrl={`${origin}/api/og/report?id=${reportId}`}
         shareMessage={report.summary}
         showShare={report.is_public_by_user && report.is_public_by_admin}
+        showReaction={from !== "complete"} // 完了ページからはリアクション非表示
       />
     </div>
   );
@@ -195,7 +182,7 @@ function ChatMessage({ message }: ChatMessageProps) {
     return (
       <div
         id={`message-${message.id}`}
-        className="flex flex-col items-start gap-2 scroll-mt-4"
+        className="flex flex-col items-start gap-2 scroll-mt-24"
       >
         <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
           <Bot size={24} className="text-gray-600" />
@@ -211,7 +198,7 @@ function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div
       id={`message-${message.id}`}
-      className="flex flex-col items-end gap-2 scroll-mt-4"
+      className="flex flex-col items-end gap-2 scroll-mt-24"
     >
       <div className="w-9 h-9 rounded-full bg-mirai-light-gradient flex items-center justify-center">
         <UserRound size={20} className="text-gray-600" />

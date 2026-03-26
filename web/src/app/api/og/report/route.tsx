@@ -6,10 +6,8 @@ import { truncateText } from "@/features/interview-report/shared/utils/truncate-
 
 /**
  * OGP画像のテキスト制限
- * カード: 1080x530px, padding 48px, font 38px × lineHeight 1.8 = 68.4px/行
- * 幅700pxで日本語約18文字/行 → 5行 = 約90文字が上限
  */
-const OG_SUMMARY_MAX_LENGTH = 80;
+const OG_SUMMARY_MAX_LENGTH = 100;
 const OG_BILL_NAME_MAX_LENGTH = 40;
 
 const FONT_FETCH_TIMEOUT_MS = 3000;
@@ -124,46 +122,58 @@ export async function GET(request: Request) {
           "linear-gradient(177deg, rgb(226, 246, 243) 0%, rgb(238, 246, 226) 100%)",
       }}
     >
+      {/* グラデーションborder用ラッパー */}
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
-          width: 1080,
-          height: 530,
-          backgroundColor: "white",
-          borderRadius: 28,
-          border: "4px solid #bcecd3",
-          padding: "48px 56px",
+          width: 1140,
+          height: 560,
+          borderRadius: 30,
+          backgroundImage:
+            "linear-gradient(-30deg, rgb(188, 236, 211) 1%, rgb(100, 216, 198) 99%)",
+          padding: 6,
           position: "relative",
         }}
       >
-        {/* サマリーテキスト */}
         <div
           style={{
             display: "flex",
-            fontSize: 38,
-            fontWeight: 800,
-            color: "#1f2937",
-            lineHeight: 1.8,
-            flex: 1,
-            width: 700,
-            overflow: "hidden",
+            flexDirection: "column",
+            width: "100%",
+            height: "100%",
+            backgroundColor: "white",
+            borderRadius: 24,
+            padding: "48px 56px",
           }}
         >
-          {truncatedSummary}
-        </div>
+          {/* サマリーテキスト */}
+          <div
+            style={{
+              display: "flex",
+              fontSize: 38,
+              fontWeight: 800,
+              color: "#1f2937",
+              lineHeight: 1.8,
+              flex: 1,
+              width: 740,
+              overflow: "hidden",
+            }}
+          >
+            {truncatedSummary}
+          </div>
 
-        {/* 法案名 */}
-        <div
-          style={{
-            display: "flex",
-            fontSize: 32,
-            fontWeight: 800,
-            color: "#0f8472",
-            lineHeight: 1.5,
-          }}
-        >
-          {truncatedBillName}
+          {/* 法案名 */}
+          <div
+            style={{
+              display: "flex",
+              fontSize: 32,
+              fontWeight: 800,
+              color: "#0f8472",
+              lineHeight: 1.5,
+            }}
+          >
+            {truncatedBillName}
+          </div>
         </div>
 
         {/* みらい議会バッジ */}
@@ -176,11 +186,11 @@ export async function GET(request: Request) {
             alignItems: "center",
             justifyContent: "center",
             paddingLeft: 20,
-            paddingRight: 20,
+            paddingRight: 18,
             paddingTop: 10,
             paddingBottom: 10,
-            borderBottomLeftRadius: 28,
-            borderTopRightRadius: 28,
+            borderBottomLeftRadius: 30,
+            borderTopRightRadius: 30,
             backgroundImage:
               "linear-gradient(-30deg, rgb(188, 236, 211) 1%, rgb(100, 216, 198) 99%)",
           }}
@@ -199,15 +209,16 @@ export async function GET(request: Request) {
 
         {/* ロゴ画像 */}
         {logoDataUrl && (
+          // biome-ignore lint/performance/noImgElement: ignore
           <img
             alt="チームみらいロゴ"
             src={logoDataUrl}
-            width={109}
-            height={93}
+            width={189}
+            height={160}
             style={{
               position: "absolute",
-              bottom: 32,
-              right: 48,
+              bottom: -24,
+              right: -18,
             }}
           />
         )}

@@ -44,6 +44,7 @@ export async function BillDetailLayout({
         <BillDetailHeader
           bill={bill}
           hasInterviewConfig={interviewConfig != null}
+          opinionCount={publicReportsResult.totalCount}
         />
         <Container>
           {/* 議案ステータス進捗 */}

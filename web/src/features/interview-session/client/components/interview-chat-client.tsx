@@ -1,8 +1,5 @@
 "use client";
 
-import { SquareArrowOutUpRight } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import {
   Conversation,
@@ -13,6 +10,7 @@ import { useInterviewChat } from "../hooks/use-interview-chat";
 import { useInterviewRating } from "../hooks/use-interview-rating";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
 import { calcInterviewProgress } from "../utils/calc-interview-progress";
+import { embedBillLink } from "../utils/embed-bill-link";
 import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
@@ -91,6 +89,8 @@ export function InterviewChatClient({
     hasRated,
   });
 
+  const billDetailLink = getBillDetailLink(billId, previewToken);
+
   const showProgressBar = mode === "loop" && progress !== null;
   const timerMinutes =
     remainingMinutes !== null && stage === "chat" && !timeUpDismissed
@@ -157,7 +157,7 @@ export function InterviewChatClient({
 
   return (
     <div className="h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light">
-      <div className="flex flex-col h-full pt-24 md:pt-4 bg-white md:rounded-t-[36px] md:px-12">
+      <div className="flex flex-col h-full pt-23 md:pt-4 bg-white md:rounded-t-[36px] md:px-12">
         {showProgressBar && progress && (
           <div className="px-4 pb-1">
             <InterviewProgressBar
@@ -169,23 +169,6 @@ export function InterviewChatClient({
         )}
         <Conversation className="min-h-0 flex-1 overflow-y-auto">
           <ConversationContent className="flex flex-col gap-4">
-            {/* 法案リンク */}
-            <div className="flex flex-col">
-              <Link
-                href={getBillDetailLink(billId, previewToken) as Route}
-                target="_blank"
-                className="inline-flex items-center gap-1"
-              >
-                <span className="text-sm font-medium leading-[1.8] text-primary underline">
-                  {billTitle}
-                </span>
-                <SquareArrowOutUpRight className="size-3.5 text-primary" />
-              </Link>
-              <p className="text-sm font-medium leading-[1.8] text-mirai-text">
-                についてのインタビュー
-              </p>
-            </div>
-
             {/* 初期表示メッセージ */}
             {messages.length === 0 && !object && (
               <div className="flex flex-col gap-4">
@@ -207,14 +190,21 @@ export function InterviewChatClient({
                 !isLoading &&
                 !showStreamingMessage;
 
+              // 最初のAIメッセージの法案名をリンクに変換
+              const content =
+                index === 0 && message.role === "assistant"
+                  ? embedBillLink(message.content, billTitle, billDetailLink)
+                  : message.content;
+
               return (
                 <InterviewMessage
                   key={message.id}
                   message={{
                     id: message.id,
                     role: message.role,
-                    parts: [{ type: "text" as const, text: message.content }],
+                    parts: [{ type: "text" as const, text: content }],
                   }}
+                  openLinksInNewTab={index === 0}
                   isStreaming={false}
                   report={message.report}
                   footer={
@@ -295,7 +285,7 @@ export function InterviewChatClient({
         )}
 
         {/* 入力エリア */}
-        <div className="px-6 pb-4 pt-2">
+        <div className="px-6 pt-2">
           {(stage === "summary" || stage === "summary_complete") && (
             <InterviewSummaryInput
               sessionId={sessionId}
@@ -315,7 +305,7 @@ export function InterviewChatClient({
               input={input}
               onInputChange={setInput}
               onSubmit={handleChatSubmit}
-              placeholder="AIに質問に回答する"
+              placeholder="AIの質問に回答する"
               isResponding={isLoading}
             />
           )}

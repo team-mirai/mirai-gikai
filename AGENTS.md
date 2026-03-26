@@ -32,6 +32,11 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 ### 並列PR作成
 複数の独立したPRを作成する場合は `/parallel-pr` スキルを使用すること。
 
+### Linearタスクのステータス管理
+Linear issue ID（例: `MIR-123`）を含むタスクを依頼された場合、以下のタイミングで `/linear` スキルを実行すること：
+- **作業着手時**: `/linear start <issue-id>` でステータスを `In Progress` に更新
+- **PR作成後**: `/linear review <issue-id>` でステータスを `In Review` に更新し、PR URLをissueにリンク
+
 ## Project Structure & Module Organization
 - `web/` は公開用 Next.js アプリ。共通 UI は `src/components`、Vitest のテストは `src/**/*.test.ts` に配置します。
 - `admin/` はポート 3001 で動く管理用 Next.js。審議フローやダッシュボードはここに集約します。

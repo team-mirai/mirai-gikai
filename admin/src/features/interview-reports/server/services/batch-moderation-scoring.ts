@@ -8,15 +8,16 @@ import { parseOpinions } from "../../shared/utils/parse-opinions";
 import {
   findInterviewMessagesBySessionId,
   findReportForModerationScoringById,
-  findReportsForModerationScoring,
   updateModerationScore,
 } from "../repositories/interview-report-repository";
 
-type BatchModerationResult = {
+export type BatchModerationResult = {
   total: number;
   processed: number;
   failed: number;
 };
+
+const MODERATION_MAX_CONCURRENCY = 20;
 
 /**
  * 単一レポートに対してモデレーション評価を実行する
@@ -61,31 +62,37 @@ export async function runSingleModerationScoring(
 }
 
 /**
- * 全レポートに対してモデレーション評価を一括実行する
+ * 指定されたレポートIDリストに対してモデレーション評価を並列実行する
+ *
+ * MODERATION_MAX_CONCURRENCY 件ずつ並列処理し、全件完了後に結果を返す。
  */
-export async function runBatchModerationScoring(): Promise<BatchModerationResult> {
-  const reports = await findReportsForModerationScoring();
+export async function runBatchModerationScoringChunk(
+  reportIds: string[]
+): Promise<BatchModerationResult> {
   const result: BatchModerationResult = {
-    total: reports.length,
+    total: reportIds.length,
     processed: 0,
     failed: 0,
   };
 
-  for (const report of reports) {
-    try {
-      await runSingleModerationScoring(report.id);
-      result.processed++;
-    } catch (error) {
-      console.error(
-        `[BatchModeration] Failed to process report ${report.id}:`,
-        error
-      );
-      result.failed++;
+  for (let i = 0; i < reportIds.length; i += MODERATION_MAX_CONCURRENCY) {
+    const concurrent = reportIds.slice(i, i + MODERATION_MAX_CONCURRENCY);
+    const results = await Promise.allSettled(
+      concurrent.map((id) => runSingleModerationScoring(id))
+    );
+
+    for (const r of results) {
+      if (r.status === "fulfilled") {
+        result.processed++;
+      } else {
+        result.failed++;
+        console.error("[BatchModeration] Failed:", r.reason);
+      }
     }
   }
 
   console.log(
-    `[BatchModeration] Complete: total=${result.total} processed=${result.processed} failed=${result.failed}`
+    `[BatchModeration] Chunk complete: total=${result.total} processed=${result.processed} failed=${result.failed}`
   );
 
   return result;

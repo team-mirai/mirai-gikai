@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -106,8 +106,17 @@ export function InterviewConsentModal({
             disabled={isLoading || !agreed}
             className="w-full"
           >
-            同意してはじめる
-            <ArrowRight className="ml-2 size-4" />
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                処理中...
+              </>
+            ) : (
+              <>
+                同意してはじめる
+                <ArrowRight className="ml-2 size-4" />
+              </>
+            )}
           </Button>
           <Button
             variant="outline"

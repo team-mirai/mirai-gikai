@@ -19,6 +19,8 @@ interface ReactionButtonsProps {
   shareMessage?: string | null;
   /** 共有ボタンを表示するかどうか（非公開レポートでは非表示） */
   showShare?: boolean;
+  /** 参考になるボタンを表示するかどうか */
+  showReaction?: boolean;
 }
 
 export function ReactionButtons({
@@ -29,12 +31,17 @@ export function ReactionButtons({
   ogImageUrl,
   shareMessage,
   showShare = true,
+  showReaction = true,
 }: ReactionButtonsProps) {
   useAnonymousSupabaseUser();
   const { data, isPending, toggle } = useReactionToggle(reportId, initialData);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const isActive = data.userReaction === "helpful";
+
+  if (!showReaction && !showShare) {
+    return null;
+  }
 
   return (
     <>
@@ -43,34 +50,46 @@ export function ReactionButtons({
           <div className="border-t border-gray-400" />
           <div className="flex items-stretch">
             {/* 参考になる */}
-            <Button
-              variant="ghost"
-              onClick={() => toggle("helpful")}
-              disabled={isPending}
-              className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
-            >
-              <Lightbulb
-                size={20}
-                className={`transition-colors ${
-                  isActive
-                    ? "text-mirai-reaction-active fill-mirai-reaction-active"
-                    : "text-gray-800"
-                }`}
-              />
-              <span className="text-[15px] font-bold text-gray-800">
-                参考になる
-              </span>
-              {data.counts.helpful > 0 && (
-                <span className="text-[15px] font-bold text-gray-800">
-                  {data.counts.helpful}
+            {showReaction && (
+              <Button
+                variant="ghost"
+                onClick={() => toggle("helpful")}
+                disabled={isPending}
+                className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
+              >
+                <Lightbulb
+                  size={20}
+                  className={`transition-colors ${
+                    isActive
+                      ? "text-mirai-reaction-active fill-mirai-reaction-active"
+                      : "text-gray-800"
+                  }`}
+                />
+                <span
+                  className={`text-[15px] font-bold transition-colors ${
+                    isActive ? "text-mirai-reaction-active" : "text-gray-800"
+                  }`}
+                >
+                  参考になる
                 </span>
-              )}
-            </Button>
+                {data.counts.helpful > 0 && (
+                  <span
+                    className={`text-[15px] font-bold transition-colors ${
+                      isActive ? "text-mirai-reaction-active" : "text-gray-800"
+                    }`}
+                  >
+                    {data.counts.helpful}
+                  </span>
+                )}
+              </Button>
+            )}
 
             {showShare && (
               <>
                 {/* セパレーター */}
-                <div className="w-px self-center h-6 bg-gray-400 shrink-0" />
+                {showReaction && (
+                  <div className="w-px self-center h-6 bg-gray-400 shrink-0" />
+                )}
 
                 {/* 共有する */}
                 <Button

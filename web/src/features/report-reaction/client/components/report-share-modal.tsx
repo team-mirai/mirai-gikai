@@ -32,8 +32,9 @@ export function ReportShareModal({
 }: ReportShareModalProps) {
   if (!isOpen) return null;
 
-  const shareMessage =
-    shareMessageProp || `${billName}に対する意見をチェック！`;
+  const shareMessage = shareMessageProp
+    ? `みらい議会AIインタビュー「${shareMessageProp}」`
+    : `みらい議会AIインタビュー「${billName}」`;
 
   const shareButtons = [
     {

@@ -66,7 +66,7 @@ export function InterviewSummaryInput({
           input={input}
           onInputChange={onInputChange}
           onSubmit={onSubmit}
-          placeholder="レポートの修正要望があれば入力してください"
+          placeholder="レポートの修正要望を入力する"
           isResponding={isLoading}
           error={error}
         />

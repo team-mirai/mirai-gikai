@@ -7,6 +7,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { StanceBadge } from "@/features/interview-reports/server/components/stance-badge";
+import { routes } from "@/lib/routes";
+import { FileText } from "lucide-react";
+import Link from "next/link";
 import type { Expert } from "../../shared/types";
 
 type ExpertListProps = {
@@ -31,6 +35,7 @@ export function ExpertList({ experts }: ExpertListProps) {
                 <TableHead>メールアドレス</TableHead>
                 <TableHead>所属</TableHead>
                 <TableHead>登録日</TableHead>
+                <TableHead>回答済みレポート</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -43,6 +48,30 @@ export function ExpertList({ experts }: ExpertListProps) {
                     {new Date(expert.created_at).toLocaleDateString("ja-JP", {
                       timeZone: "Asia/Tokyo",
                     })}
+                  </TableCell>
+                  <TableCell>
+                    {expert.reports.length === 0 ? (
+                      <span className="text-gray-400">-</span>
+                    ) : (
+                      <div className="flex flex-col gap-1.5">
+                        {expert.reports.map((report) => (
+                          <Link
+                            key={report.sessionId}
+                            href={routes.billReportDetail(
+                              report.billId,
+                              report.sessionId
+                            )}
+                            className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            <FileText className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate max-w-48">
+                              {report.billName}
+                            </span>
+                            <StanceBadge stance={report.stance} />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
