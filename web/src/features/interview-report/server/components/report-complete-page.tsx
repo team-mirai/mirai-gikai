@@ -52,20 +52,8 @@ export async function ReportCompletePage({
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
-      {/* 法案サムネイル画像 */}
-      {bill.thumbnail_url && (
-        <div className="relative w-full h-[320px]">
-          <Image
-            src={bill.thumbnail_url}
-            alt={bill.bill_content?.title || bill.name}
-            fill
-            className="object-cover"
-          />
-        </div>
-      )}
-
       {/* ヘッダーセクション */}
-      <div className="bg-white rounded-b-[32px] px-4 py-8">
+      <div className="bg-white rounded-b-[32px] px-4 pt-16 pb-8">
         <div className="flex flex-col items-center gap-4">
           {/* 完了イラスト */}
           <Image
