@@ -1,8 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { EXTERNAL_LINKS } from "@/config/external-links";
 import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
-import { Lightbulb, Upload } from "lucide-react";
+import { Flag, Lightbulb, Upload } from "lucide-react";
 import { useState } from "react";
 import type { ReportReactionData } from "../../shared/types";
 import { useReactionToggle } from "../hooks/use-reaction-toggle";
@@ -21,6 +22,8 @@ interface ReactionButtonsProps {
   showShare?: boolean;
   /** 参考になるボタンを表示するかどうか */
   showReaction?: boolean;
+  /** 問題を報告するボタンを表示するかどうか */
+  showReport?: boolean;
 }
 
 export function ReactionButtons({
@@ -32,6 +35,7 @@ export function ReactionButtons({
   shareMessage,
   showShare = true,
   showReaction = true,
+  showReport = true,
 }: ReactionButtonsProps) {
   useAnonymousSupabaseUser();
   const { data, isPending, toggle } = useReactionToggle(reportId, initialData);
@@ -39,7 +43,7 @@ export function ReactionButtons({
 
   const isActive = data.userReaction === "helpful";
 
-  if (!showReaction && !showShare) {
+  if (!showReaction && !showShare && !showReport) {
     return null;
   }
 
@@ -101,6 +105,33 @@ export function ReactionButtons({
                   <span className="text-[15px] font-bold text-gray-800">
                     共有する
                   </span>
+                </Button>
+              </>
+            )}
+
+            {showReport && (
+              <>
+                {/* セパレーター */}
+                {(showReaction || showShare) && (
+                  <div className="w-px self-center h-6 bg-gray-400 shrink-0" />
+                )}
+
+                {/* 問題を報告する */}
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
+                >
+                  <a
+                    href={EXTERNAL_LINKS.REPORT}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Flag size={20} className="text-gray-800" />
+                    <span className="text-[15px] font-bold text-gray-800">
+                      問題を報告
+                    </span>
+                  </a>
                 </Button>
               </>
             )}
