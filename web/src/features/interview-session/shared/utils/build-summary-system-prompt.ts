@@ -1,4 +1,5 @@
 import type { BillWithContent } from "@/features/bills/shared/types";
+import { buildContentRichnessInstructions } from "@mirai-gikai/shared/content-richness/instructions";
 
 type InterviewConfig = {
   themes?: string[] | null;
@@ -88,14 +89,7 @@ ${conversationLog}
 - 各主張のsource_message_id には、根拠となるユーザー発言の msg_id を指定する（該当なしの場合はnull）
 - **重要**: 元の対話ログに書かれていないことは記載しない
 
-### 7. content_richness（情報充実度）
-このインタビューでどれだけ法案検討に活かせる情報を引き出せたかを、以下の観点で整理する：
-- **total**: 総合的な情報充実度（0-100）
-- **clarity**: 論点の明確さ（0-100）— 議論のポイントがはっきり浮かび上がっているか
-- **specificity**: 具体性（0-100）— 現場の実感や具体的な事例・数値が得られたか
-- **impact**: 影響への言及（0-100）— 社会的影響や関係者への影響について情報が得られたか
-- **constructiveness**: 提案の広がり（0-100）— 課題の指摘に加え、改善の方向性や代替案が含まれているか
-- **reasoning**: 上記の根拠を簡潔に説明（100文字以内）
+### 7. ${buildContentRichnessInstructions()}
 
 ## ステージ遷移判定（next_stageフィールド）
 レスポンスの \`next_stage\` フィールドで、ステージ遷移を判定してください。

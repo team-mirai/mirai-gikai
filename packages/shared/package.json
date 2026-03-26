@@ -34,6 +34,10 @@
     "./content-richness/schemas": {
       "types": "./src/content-richness/schemas.ts",
       "default": "./src/content-richness/schemas.ts"
+    },
+    "./content-richness/instructions": {
+      "types": "./src/content-richness/content-richness-instructions.ts",
+      "default": "./src/content-richness/content-richness-instructions.ts"
     }
   },
   "peerDependencies": {

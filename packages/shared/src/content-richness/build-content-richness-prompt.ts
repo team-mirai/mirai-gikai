@@ -1,3 +1,5 @@
+import { buildContentRichnessInstructions } from "./content-richness-instructions";
+
 type Message = {
   role: string;
   content: string;
@@ -50,23 +52,5 @@ export function buildContentRichnessPrompt(
 ## 評価対象コンテンツ
 ${contentToEvaluate}
 
-## 評価観点
-
-以下の5つの観点でそれぞれ0-100の整数で評価してください：
-
-1. **total（総合）**: 総合的な情報充実度。以下4観点の重み付き総合評価
-2. **clarity（明確さ）**: 論点の明確さ — 議論のポイントがはっきり浮かび上がっているか
-3. **specificity（具体性）**: 現場の実感や具体的な事例・数値が得られたか
-4. **impact（影響への言及）**: 社会的影響や関係者への影響について情報が得られたか
-5. **constructiveness（提案の広がり）**: 課題の指摘に加え、改善の方向性や代替案が含まれているか
-
-## スコアリング基準
-- **80-100**: 非常に充実 — 具体的な事例・数値・影響分析・改善提案が豊富に含まれている
-- **60-79**: 充実 — 主要な論点が明確で、一定の具体性・提案がある
-- **40-59**: 普通 — 基本的な意見は述べられているが、具体性や深掘りが不足
-- **20-39**: やや不足 — 意見が抽象的で、法案検討に活用しづらい
-- **0-19**: 不足 — ほとんど有用な情報が得られていない
-
-## reasoning（評価根拠）
-上記スコアの根拠を100文字以内で簡潔に説明してください。`;
+${buildContentRichnessInstructions()}`;
 }

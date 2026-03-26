@@ -34,6 +34,23 @@ describe("buildContentRichnessPrompt", () => {
     expect(result).toContain("（内容なし）");
   });
 
+  it("共通の情報充実度評価基準が含まれる", () => {
+    const result = buildContentRichnessPrompt({
+      summary: "要約",
+      opinions: null,
+      roleDescription: null,
+      messages: [],
+    });
+
+    expect(result).toContain("content_richness（情報充実度）");
+    expect(result).toContain("**total**");
+    expect(result).toContain("**clarity**");
+    expect(result).toContain("**specificity**");
+    expect(result).toContain("**impact**");
+    expect(result).toContain("**constructiveness**");
+    expect(result).toContain("スコアリング基準");
+  });
+
   it("意見が空配列の場合は意見セクションを含まない", () => {
     const result = buildContentRichnessPrompt({
       summary: "要約",
