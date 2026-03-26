@@ -15,8 +15,7 @@ export function QuickReplyButtons({
     return null;
   }
 
-  // const isHorizontal = replies.length >= 5;
-  const isHorizontal = replies.length >= 2;
+  const isHorizontal = replies.length >= 5;
 
   return (
     <div
