@@ -127,6 +127,24 @@ export function useInterviewChat({
     },
   });
 
+  // 初回質問の自動生成: initialMessagesが空の場合、マウント時にAPIで初回質問をストリーミング取得
+  const initialQuestionTriggered = useRef(false);
+  useEffect(() => {
+    if (
+      parsedInitialMessages.length === 0 &&
+      !initialQuestionTriggered.current
+    ) {
+      initialQuestionTriggered.current = true;
+      const requestParams = {
+        messages: [],
+        billId,
+        currentStage: "chat" as InterviewStage,
+      };
+      retry.saveRequestParams(requestParams);
+      submit(requestParams);
+    }
+  }, [parsedInitialMessages.length, billId, retry.saveRequestParams, submit]);
+
   // chat→summary自動遷移: onFinishで予約されたリクエストをuseEffectで送信
   useEffect(() => {
     if (pendingSummaryRequest) {

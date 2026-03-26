@@ -37,6 +37,16 @@ import { useInterviewChat } from "./use-interview-chat";
 
 const DEFAULT_BILL_ID = "bill-123";
 
+// 初回質問APIの自動呼び出しを回避するための最小限の初期メッセージ
+const DEFAULT_INITIAL_MESSAGES = [
+  {
+    id: "msg-1",
+    role: "assistant" as const,
+    content: JSON.stringify({ text: "こんにちは" }),
+    created_at: "2024-01-01T00:00:00Z",
+  },
+];
+
 describe("useInterviewChat", () => {
   beforeEach(() => {
     mockSubmit.mockClear();
@@ -46,35 +56,39 @@ describe("useInterviewChat", () => {
   });
 
   describe("初期状態", () => {
-    it("初期メッセージなし: stageがchat・messagesが空・isLoadingがfalse・canRetryがfalse", () => {
+    it("初期メッセージなし: stageがchat・messagesが空・初回質問APIが自動呼び出しされる", () => {
       const { result } = renderHook(() =>
         useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
       );
 
       expect(result.current.stage).toBe("chat");
       expect(result.current.messages).toHaveLength(0);
-      expect(result.current.isLoading).toBe(false);
       expect(result.current.input).toBe("");
       expect(result.current.canRetry).toBe(false);
+      // 初回質問のAPIが自動的に呼び出されること
+      expect(mockSubmit).toHaveBeenCalledOnce();
+      expect(mockSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          messages: [],
+          billId: DEFAULT_BILL_ID,
+          currentStage: "chat",
+        })
+      );
     });
 
     it("テキストのみの初期メッセージ: messagesに反映されstageがchat", () => {
-      const initialMessages = [
-        {
-          id: "msg-1",
-          role: "assistant" as const,
-          content: JSON.stringify({ text: "こんにちは" }),
-          created_at: "2024-01-01T00:00:00Z",
-        },
-      ];
-
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       expect(result.current.messages).toHaveLength(1);
       expect(result.current.messages[0].content).toBe("こんにちは");
       expect(result.current.stage).toBe("chat");
+      // 初期メッセージがある場合は自動呼び出しされない
+      expect(mockSubmit).not.toHaveBeenCalled();
     });
 
     it("レポート付き初期メッセージ: stageがsummaryになる", () => {
@@ -127,7 +141,10 @@ describe("useInterviewChat", () => {
   describe("handleSubmit", () => {
     it("テキストが空: submitを呼ばずmessagesも変化しない", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -135,12 +152,15 @@ describe("useInterviewChat", () => {
       });
 
       expect(mockSubmit).not.toHaveBeenCalled();
-      expect(result.current.messages).toHaveLength(0);
+      expect(result.current.messages).toHaveLength(1);
     });
 
     it("テキストがundefined: submitを呼ばない", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -154,7 +174,10 @@ describe("useInterviewChat", () => {
       mockState.isLoading = true;
 
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -166,23 +189,29 @@ describe("useInterviewChat", () => {
 
     it("有効なテキスト: ユーザーメッセージを追加しinputをクリアしsubmitを呼ぶ", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
         result.current.handleSubmit({ text: "テスト入力" });
       });
 
-      expect(result.current.messages).toHaveLength(1);
-      expect(result.current.messages[0].role).toBe("user");
-      expect(result.current.messages[0].content).toBe("テスト入力");
+      expect(result.current.messages).toHaveLength(2);
+      expect(result.current.messages[1].role).toBe("user");
+      expect(result.current.messages[1].content).toBe("テスト入力");
       expect(result.current.input).toBe("");
       expect(mockSubmit).toHaveBeenCalledOnce();
     });
 
     it("有効なテキスト: submitにbillIdとcurrentStage=chatが渡される", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -199,7 +228,10 @@ describe("useInterviewChat", () => {
 
     it("有効なテキスト: submitのmessagesにユーザーメッセージが含まれる", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -217,16 +249,19 @@ describe("useInterviewChat", () => {
   describe("handleQuickReply", () => {
     it("クイックリプライ選択: handleSubmitが呼ばれユーザーメッセージが追加される", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
         result.current.handleQuickReply("賛成");
       });
 
-      expect(result.current.messages).toHaveLength(1);
-      expect(result.current.messages[0].role).toBe("user");
-      expect(result.current.messages[0].content).toBe("賛成");
+      expect(result.current.messages).toHaveLength(2);
+      expect(result.current.messages[1].role).toBe("user");
+      expect(result.current.messages[1].content).toBe("賛成");
       expect(mockSubmit).toHaveBeenCalledOnce();
     });
 
@@ -234,7 +269,10 @@ describe("useInterviewChat", () => {
       mockState.isLoading = true;
 
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -248,14 +286,17 @@ describe("useInterviewChat", () => {
   describe("onFinish コールバック", () => {
     it("成功レスポンス: assistantメッセージをmessagesに追加する", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
         result.current.handleSubmit({ text: "テスト" });
       });
 
-      expect(result.current.messages).toHaveLength(1);
+      expect(result.current.messages).toHaveLength(2);
 
       act(() => {
         mockState.onFinish?.({
@@ -264,14 +305,17 @@ describe("useInterviewChat", () => {
         });
       });
 
-      expect(result.current.messages).toHaveLength(2);
-      expect(result.current.messages[1].role).toBe("assistant");
-      expect(result.current.messages[1].content).toBe("AIの回答です");
+      expect(result.current.messages).toHaveLength(3);
+      expect(result.current.messages[2].role).toBe("assistant");
+      expect(result.current.messages[2].content).toBe("AIの回答です");
     });
 
     it("next_stageがsummary: stageがsummaryに更新される", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -290,7 +334,10 @@ describe("useInterviewChat", () => {
 
     it("next_stageがsummary_complete: stageがsummary_completeに更新される", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -309,7 +356,10 @@ describe("useInterviewChat", () => {
 
     it("summary_complete後: handleSubmitがno-opになる", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -334,7 +384,10 @@ describe("useInterviewChat", () => {
 
     it("エラーレスポンス（1回目）: 自動リトライが実行される", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -356,7 +409,10 @@ describe("useInterviewChat", () => {
 
     it("エラーレスポンス（2回目）: displayErrorが設定されcanRetryがtrueになる", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {
@@ -387,7 +443,10 @@ describe("useInterviewChat", () => {
   describe("handleRetry", () => {
     it("canRetryがfalse: submitを呼ばない", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       expect(result.current.canRetry).toBe(false);
@@ -401,7 +460,10 @@ describe("useInterviewChat", () => {
 
     it("canRetryがtrue: submitが呼ばれる", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       // エラーを2回発生させてcanRetry = trueにする
@@ -440,7 +502,10 @@ describe("useInterviewChat", () => {
       mockState.isLoading = true;
 
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       expect(result.current.currentQuickReplies).toEqual([]);
@@ -448,7 +513,10 @@ describe("useInterviewChat", () => {
 
     it("最後がユーザーメッセージ: currentQuickRepliesが空配列", () => {
       const { result } = renderHook(() =>
-        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: DEFAULT_INITIAL_MESSAGES,
+        })
       );
 
       act(() => {

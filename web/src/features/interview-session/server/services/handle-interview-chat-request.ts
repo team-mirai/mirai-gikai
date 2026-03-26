@@ -33,6 +33,7 @@ import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { mergeMessagesWithIds } from "../../shared/utils/merge-messages-with-ids";
+import { overrideInitialTopicTitle } from "../../shared/utils/override-initial-topic-title";
 import {
   buildInterviewSystemPrompt,
   buildSummarySystemPrompt,
@@ -166,22 +167,35 @@ export async function handleInterviewChatRequest({
     ? mergeMessagesWithIds(messages, dbMessages)
     : messages;
 
+  // 初回質問かどうかを判定（メッセージが空 = 新規セッション）
+  const isInitialQuestion = messages.length === 0 && currentStage === "chat";
+
   // システムプロンプトを構築（ステージ遷移ガイダンスを含む）
-  const systemPrompt = isSummaryPhase
-    ? buildSummarySystemPrompt({
-        bill,
-        interviewConfig,
-        messages: summaryMessages,
-      })
-    : buildInterviewSystemPrompt({
-        bill,
-        interviewConfig,
-        questions,
-        nextQuestionId: effectiveNextQuestionId,
-        currentStage,
-        askedQuestionIds,
-        remainingMinutes,
-      });
+  let systemPrompt: string;
+  if (isSummaryPhase) {
+    systemPrompt = buildSummarySystemPrompt({
+      bill,
+      interviewConfig,
+      messages: summaryMessages,
+    });
+  } else {
+    systemPrompt = buildInterviewSystemPrompt({
+      bill,
+      interviewConfig,
+      questions,
+      nextQuestionId: effectiveNextQuestionId,
+      currentStage,
+      askedQuestionIds,
+      remainingMinutes,
+    });
+
+    // 初回質問の場合、インタビュー開始の指示を追加
+    if (isInitialQuestion) {
+      const firstQuestionId = questions[0]?.id;
+      const billTitle = bill?.bill_content?.title ?? bill?.name ?? "この法案";
+      systemPrompt = `${systemPrompt}\n\n## 重要: これはインタビューの開始です。ユーザーからのメッセージはありません。事前定義質問の最初の質問から始めてください。挨拶は温かく丁寧に（2文程度）、「${billTitle}」についてのインタビューであることを明確に伝えた上で、すぐに最初の質問をしてください。最初の質問にクイックリプライが設定されている場合は、必ず quick_replies フィールドに含めてください。${firstQuestionId ? `最初の質問は ID: ${firstQuestionId} であり、レスポンスの question_id にこの値を含めてください。` : ""}`;
+    }
+  }
 
   logger.debug("System Prompt:", systemPrompt);
 
@@ -193,6 +207,7 @@ export async function handleInterviewChatRequest({
     userId,
     billId,
     isSummaryPhase,
+    isInitialQuestion,
     chatModel: deps?.chatModel,
     summaryModel: deps?.summaryModel,
     configChatModel: interviewConfig.chat_model,
@@ -200,7 +215,7 @@ export async function handleInterviewChatRequest({
       sessionId: session.id,
       billId,
       traceId,
-      stage: currentStage,
+      stage: isInitialQuestion ? "initial" : currentStage,
     },
   });
 }
@@ -218,6 +233,7 @@ async function generateStreamingResponse({
   userId,
   billId,
   isSummaryPhase,
+  isInitialQuestion = false,
   chatModel,
   summaryModel,
   configChatModel,
@@ -229,6 +245,7 @@ async function generateStreamingResponse({
   userId: string;
   billId: string;
   isSummaryPhase: boolean;
+  isInitialQuestion?: boolean;
   chatModel?: LanguageModel;
   summaryModel?: LanguageModel;
   configChatModel?: string | null;
@@ -261,10 +278,14 @@ async function generateStreamingResponse({
   }) => {
     try {
       if (event.text) {
+        // 初回メッセージのtopic_titleを「はじめに」に強制上書き
+        const content = isInitialQuestion
+          ? overrideInitialTopicTitle(event.text)
+          : event.text;
         await saveInterviewMessage({
           sessionId,
           role: "assistant",
-          content: event.text,
+          content,
         });
       }
     } catch (err) {
@@ -277,7 +298,11 @@ async function generateStreamingResponse({
       await recordChatUsage({
         userId,
         sessionId,
-        promptName: isSummaryPhase ? "interview-summary" : "interview-chat",
+        promptName: isInitialQuestion
+          ? "interview-initial-question"
+          : isSummaryPhase
+            ? "interview-summary"
+            : "interview-chat",
         model: modelName,
         usage: event.totalUsage,
         costUsd: providerCost,
@@ -298,27 +323,42 @@ async function generateStreamingResponse({
     parts: [{ type: "text" as const, text: message.content }],
   }));
 
-  const functionId = isSummaryPhase ? "interview-summary" : "interview-chat";
+  const functionId = isInitialQuestion
+    ? "interview-initial-question"
+    : isSummaryPhase
+      ? "interview-summary"
+      : "interview-chat";
 
-  const streamParams = {
-    model,
-    system: systemPrompt,
-    messages: await convertToModelMessages(uiMessages),
-    onError: handleError,
-    onFinish: handleFinish,
-    experimental_telemetry: telemetry
-      ? {
-          isEnabled: true as const,
-          functionId,
-          metadata: {
-            langfuseTraceId: telemetry.traceId,
-            sessionId: telemetry.sessionId,
-            billId: telemetry.billId,
-            stage: telemetry.stage,
-          },
-        }
-      : undefined,
-  } as const;
+  const telemetryConfig = telemetry
+    ? {
+        isEnabled: true as const,
+        functionId,
+        metadata: {
+          langfuseTraceId: telemetry.traceId,
+          sessionId: telemetry.sessionId,
+          billId: telemetry.billId,
+          stage: telemetry.stage,
+        },
+      }
+    : undefined;
+
+  // 初回質問はユーザーメッセージがないため prompt を使用
+  const streamParams = isInitialQuestion
+    ? ({
+        model,
+        prompt: systemPrompt,
+        onError: handleError,
+        onFinish: handleFinish,
+        experimental_telemetry: telemetryConfig,
+      } as const)
+    : ({
+        model,
+        system: systemPrompt,
+        messages: await convertToModelMessages(uiMessages),
+        onError: handleError,
+        onFinish: handleFinish,
+        experimental_telemetry: telemetryConfig,
+      } as const);
 
   try {
     let textStream: ReadableStream<string>;
