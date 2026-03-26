@@ -79,10 +79,15 @@ export async function BillDetailHeader({
         {opinionCount != null && opinionCount > 0 && (
           <Link
             href={routes.billOpinions(bill.id) as Route}
-            className="flex items-center gap-1.5 mb-4 text-sm font-medium text-mirai-text hover:underline"
+            className="flex items-center gap-1 mb-4 text-primary-accent hover:underline"
           >
-            <MessageSquare className="size-4" />
-            <span>{opinionCount} 件のご意見</span>
+            <MessageSquare className="size-[23px]" />
+            <span className="text-[14px] font-bold leading-[14px] tracking-[0.14px]">
+              {opinionCount}
+            </span>
+            <span className="text-[13px] font-medium leading-[13px] tracking-[0.13px]">
+              件のご意見
+            </span>
           </Link>
         )}
         <div className="flex items-center gap-2">
