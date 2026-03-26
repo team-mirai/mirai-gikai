@@ -1,41 +1,116 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
-import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { runBatchModerationAction } from "../../server/actions/run-batch-moderation-action";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  fetchModerationTargetIds,
+  runModerationChunkAction,
+} from "../../server/actions/run-batch-moderation-action";
+import { chunkArray } from "../../shared/utils/chunk-array";
+
+const CHUNK_SIZE = 50;
 
 export function BatchModerationButton() {
-  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const [isRunning, setIsRunning] = useState(false);
+  const [includeScored, setIncludeScored] = useState(false);
+  const [progress, setProgress] = useState<{
+    processed: number;
+    failed: number;
+    total: number;
+  } | null>(null);
 
-  const handleClick = () => {
-    startTransition(async () => {
-      const result = await runBatchModerationAction();
+  const handleClick = async () => {
+    setIsRunning(true);
+    setProgress(null);
 
-      if (result.success) {
-        if (result.total === 0) {
-          toast.info("対象のレポートがありません");
-        } else {
-          toast.success(
-            `モデレーション評価完了: ${result.processed}/${result.total}件処理${result.failed ? `（${result.failed}件失敗）` : ""}`
-          );
-        }
-      } else {
-        toast.error(result.error || "モデレーション一括評価に失敗しました");
+    try {
+      const mode = includeScored ? "all" : "unscored";
+      const targetResult = await fetchModerationTargetIds(mode);
+
+      if (!targetResult.success || !targetResult.reportIds) {
+        toast.error(targetResult.error || "対象レポートの取得に失敗しました");
+        return;
       }
-    });
+
+      const reportIds = targetResult.reportIds;
+
+      if (reportIds.length === 0) {
+        toast.info("対象のレポートがありません");
+        return;
+      }
+
+      const chunks = chunkArray(reportIds, CHUNK_SIZE);
+      let totalProcessed = 0;
+      let totalFailed = 0;
+      setProgress({ processed: 0, failed: 0, total: reportIds.length });
+
+      for (const chunk of chunks) {
+        const result = await runModerationChunkAction(chunk);
+
+        if (result.success) {
+          totalProcessed += result.processed ?? 0;
+          totalFailed += result.failed ?? 0;
+        } else {
+          totalFailed += chunk.length;
+        }
+
+        setProgress({
+          processed: totalProcessed,
+          failed: totalFailed,
+          total: reportIds.length,
+        });
+      }
+
+      if (totalFailed > 0) {
+        toast.warning(
+          `モデレーション評価完了: ${totalProcessed}/${reportIds.length}件処理（${totalFailed}件失敗）`
+        );
+      } else {
+        toast.success(
+          `モデレーション評価完了: ${totalProcessed}/${reportIds.length}件処理`
+        );
+      }
+
+      router.refresh();
+    } catch (error) {
+      console.error("Batch moderation failed:", error);
+      toast.error("モデレーション一括評価に失敗しました");
+    } finally {
+      setIsRunning(false);
+      setProgress(null);
+    }
   };
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleClick}
-      disabled={isPending}
-    >
-      <ShieldCheck className="h-4 w-4 mr-1" />
-      {isPending ? "モデレーション評価中..." : "モデレーション一括評価"}
-    </Button>
+    <div className="flex items-center gap-3">
+      <label
+        htmlFor="include-scored"
+        className="flex items-center gap-2 text-sm cursor-pointer"
+      >
+        <Checkbox
+          id="include-scored"
+          checked={includeScored}
+          onCheckedChange={(checked) => setIncludeScored(checked === true)}
+          disabled={isRunning}
+        />
+        評価済みも含める
+      </label>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleClick}
+        disabled={isRunning}
+      >
+        <ShieldCheck className="h-4 w-4 mr-1" />
+        {isRunning && progress
+          ? `評価中... ${progress.processed}/${progress.total}${progress.failed ? ` (${progress.failed}件失敗)` : ""}`
+          : "モデレーション一括評価"}
+      </Button>
+    </div>
   );
 }
