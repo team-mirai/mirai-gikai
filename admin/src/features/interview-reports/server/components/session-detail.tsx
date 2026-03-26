@@ -274,27 +274,6 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                     </div>
                   </div>
                 )}
-                {report.moderation_flagged_categories &&
-                  report.moderation_flagged_categories.length > 0 && (
-                    <div className="mt-3">
-                      <div className="text-sm text-gray-500 mb-1">
-                        該当カテゴリ
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {report.moderation_flagged_categories.map(
-                          (category) => (
-                            <Badge
-                              key={category}
-                              variant="outline"
-                              className="text-xs bg-red-50 text-red-700 border-red-200"
-                            >
-                              {category}
-                            </Badge>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
               </div>
             ) : (
               <div className="text-gray-500 text-sm">
