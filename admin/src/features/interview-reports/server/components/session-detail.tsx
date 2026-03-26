@@ -1,12 +1,5 @@
 import "server-only";
-import {
-  Bot,
-  Clock,
-  Frown,
-  Lightbulb,
-  MessageCircle,
-  User,
-} from "lucide-react";
+import { Bot, Clock, Lightbulb, MessageCircle, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RegenerateModerationButton } from "../../client/components/regenerate-moderation-button";
@@ -358,17 +351,6 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                         <div className="text-sm text-gray-500">参考になる</div>
                         <div className="text-lg font-semibold">
                           {reactionCounts.helpful}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
-                        <Frown className="h-5 w-5 text-orange-500" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">うーん...</div>
-                        <div className="text-lg font-semibold">
-                          {reactionCounts.hmm}
                         </div>
                       </div>
                     </div>

@@ -433,33 +433,22 @@ export async function findInterviewMessagesBySessionId(sessionId: string) {
 
 export async function findReactionCountsByReportId(
   reportId: string
-): Promise<{ helpful: number; hmm: number }> {
+): Promise<{ helpful: number }> {
   const supabase = createAdminClient();
-  const [helpfulResult, hmmResult] = await Promise.all([
-    supabase
-      .from("report_reactions")
-      .select("*", { count: "exact", head: true })
-      .eq("interview_report_id", reportId)
-      .eq("reaction_type", "helpful"),
-    supabase
-      .from("report_reactions")
-      .select("*", { count: "exact", head: true })
-      .eq("interview_report_id", reportId)
-      .eq("reaction_type", "hmm"),
-  ]);
+  const helpfulResult = await supabase
+    .from("report_reactions")
+    .select("*", { count: "exact", head: true })
+    .eq("interview_report_id", reportId)
+    .eq("reaction_type", "helpful");
 
   if (helpfulResult.error) {
     throw new Error(
       `Failed to fetch helpful count: ${helpfulResult.error.message}`
     );
   }
-  if (hmmResult.error) {
-    throw new Error(`Failed to fetch hmm count: ${hmmResult.error.message}`);
-  }
 
   return {
     helpful: helpfulResult.count ?? 0,
-    hmm: hmmResult.count ?? 0,
   };
 }
 

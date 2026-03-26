@@ -18,7 +18,6 @@ export type InterviewSessionWithDetails = InterviewSession & {
 
 export type ReactionCounts = {
   helpful: number;
-  hmm: number;
 };
 
 export type InterviewSessionDetail = InterviewSession & {
