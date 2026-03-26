@@ -45,6 +45,7 @@
   --color-role-work-related: var(--role-work-related);
   --color-role-daily-life-affected: var(--role-daily-life-affected);
   --color-role-general-citizen: var(--role-general-citizen);
+  --color-feedback-bar: var(--feedback-bar);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -91,6 +92,7 @@
   --role-work-related: #10b981;
   --role-daily-life-affected: #f59e0b;
   --role-general-citizen: #a855f7;
+  --feedback-bar: #f59e0b;
 }
 
 .dark {

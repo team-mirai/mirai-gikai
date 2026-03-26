@@ -1,12 +1,12 @@
-import type { ReactNode } from "react";
-import type { Route } from "next";
 import { MessageSquareMore } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { SpeechBubble } from "@/components/ui/speech-bubble";
 import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
-import type { Opinion } from "./opinions-list";
 import { BackToBillButton } from "./back-to-bill-button";
 import { IntervieweeInfo } from "./interviewee-info";
+import type { Opinion } from "./opinions-list";
 import { OpinionsList } from "./opinions-list";
 import { ReportBreadcrumb } from "./report-breadcrumb";
 import { ReportMetaInfo } from "./report-meta-info";
@@ -19,7 +19,6 @@ interface ReportContentProps {
   role: string | null;
   roleTitle?: string | null;
   sessionStartedAt: string | null;
-  duration?: string;
   characterCount: number;
   roleDescription: string | null;
   opinions: Opinion[];
@@ -37,7 +36,6 @@ export function ReportContent({
   role,
   roleTitle,
   sessionStartedAt,
-  duration,
   characterCount,
   roleDescription,
   opinions,
@@ -48,20 +46,21 @@ export function ReportContent({
     <div className="flex flex-col gap-12">
       {/* 要約カード */}
       <div className="flex flex-col items-center gap-12">
-        <SpeechBubble className="px-7 py-8">
-          <p className="text-[22px] font-bold text-black leading-[36px] relative z-10">
+        <SpeechBubble className="px-7 py-5">
+          <p className="text-[18px] font-bold text-black leading-[28px] relative">
             {summary}
           </p>
         </SpeechBubble>
 
         {/* スタンスと日時情報 */}
         <ReportMetaInfo
+          reportId={reportId}
           stance={stance}
           role={role}
           roleTitle={roleTitle}
           sessionStartedAt={sessionStartedAt}
-          duration={duration}
           characterCount={characterCount}
+          from={from}
         />
       </div>
 
@@ -72,6 +71,8 @@ export function ReportContent({
       <OpinionsList
         opinions={opinions}
         title="💬主な意見"
+        reportId={reportId}
+        chatLogFrom={from}
         footer={
           <Link
             href={getInterviewChatLogLink(reportId, from) as Route}

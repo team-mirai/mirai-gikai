@@ -41,7 +41,7 @@ export function MakePublicModal({
 }: MakePublicModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md py-9">
+      <DialogContent className="py-9">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-primary-accent text-center leading-relaxed">
             インタビュー内容を
@@ -52,10 +52,10 @@ export function MakePublicModal({
 
         <div className="space-y-4 mt-6">
           <CheckListItem>
-            公開を許可した場合、今後みらい議会にあなたのご意見が匿名で掲載されることがあります。
+            公開を許可した場合、今後みらい議会にあなたのご意見の要約とインタビュー原文が匿名で掲載されることがあります。
           </CheckListItem>
           <CheckListItem>
-            さまざまな当事者の意見が公開されることで、より深い法案議論が実現できます。
+            さまざまな意見が公開されることで、より深い法案議論が実現できます
           </CheckListItem>
           <p className="text-sm text-black">
             非公開で提出した場合でも、ご意見は党内での政策検討に活用させていただきます。

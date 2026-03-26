@@ -4,17 +4,20 @@ import { SystemMessage } from "@/features/chat/client/components/system-message"
 import { UserMessage } from "@/features/chat/client/components/user-message";
 import { InterviewSummary } from "@/features/interview-session/client/components/interview-summary";
 import type { InterviewReportViewData } from "../../shared/schemas";
+import type { ReactNode } from "react";
 
 interface InterviewMessageProps {
   message: UIMessage;
   isStreaming?: boolean;
   report?: InterviewReportViewData | null;
+  footer?: ReactNode;
 }
 
 export function InterviewMessage({
   message,
   isStreaming = false,
   report,
+  footer,
 }: InterviewMessageProps) {
   if (message.role === "user") {
     return <UserMessage message={message} />;
@@ -42,6 +45,7 @@ export function InterviewMessage({
           </div>
         )}
       </div>
+      {footer && <div className="flex justify-end">{footer}</div>}
     </div>
   );
 }

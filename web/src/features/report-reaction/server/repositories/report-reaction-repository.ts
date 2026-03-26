@@ -3,40 +3,25 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { ReactionCounts, ReactionType } from "../../shared/types";
 
-interface ReportPublicStatus {
-  isPublic: boolean;
-  billId: string | null;
-}
-
 /**
- * レポートが公開されているか確認し、紐づくbillIdもサーバー側で解決して返す
+ * レポートが公開されているか確認する
  * ユーザー公開設定(is_public_by_user)と管理者公開設定(is_public_by_admin)の両方がtrueの場合のみ公開
  */
 export async function getReportPublicStatus(
   reportId: string
-): Promise<ReportPublicStatus> {
+): Promise<boolean> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("interview_report")
-    .select(
-      "is_public_by_admin, is_public_by_user, interview_sessions(interview_configs(bill_id))"
-    )
+    .select("is_public_by_admin, is_public_by_user")
     .eq("id", reportId)
     .single();
 
   if (error || !data) {
-    return { isPublic: false, billId: null };
+    return false;
   }
 
-  const session = data.interview_sessions as {
-    interview_configs: { bill_id: string } | null;
-  } | null;
-  const billId = session?.interview_configs?.bill_id ?? null;
-
-  return {
-    isPublic: data.is_public_by_admin && data.is_public_by_user,
-    billId,
-  };
+  return data.is_public_by_admin && data.is_public_by_user;
 }
 
 /**

@@ -25,10 +25,15 @@ export type InterviewSessionDetail = InterviewSession & {
   interview_report: InterviewReport | null;
   interview_messages: InterviewMessage[];
   reaction_counts: ReactionCounts | null;
+  feedback_tags: string[];
 };
 
 // フィルタ関連の型定義
-export type SessionStatusFilter = "all" | "completed" | "in_progress";
+export type SessionStatusFilter =
+  | "all"
+  | "completed"
+  | "in_progress"
+  | "archived";
 export type VisibilityFilter = "all" | "public" | "private";
 export type StanceFilter = "all" | "for" | "against" | "neutral";
 export type RoleFilter =
@@ -37,18 +42,21 @@ export type RoleFilter =
   | "work_related"
   | "daily_life_affected"
   | "general_citizen";
+export type ModerationFilter = "all" | "ok" | "warning" | "ng" | "unscored";
 
 export interface SessionFilterConfig {
   status: SessionStatusFilter;
   visibility: VisibilityFilter;
   stance: StanceFilter;
   role: RoleFilter;
+  moderation: ModerationFilter;
 }
 
 export const SESSION_STATUS_FILTER_VALUES: readonly SessionStatusFilter[] = [
   "all",
   "completed",
   "in_progress",
+  "archived",
 ] as const;
 
 export const VISIBILITY_FILTER_VALUES: readonly VisibilityFilter[] = [
@@ -72,11 +80,20 @@ export const ROLE_FILTER_VALUES: readonly RoleFilter[] = [
   "general_citizen",
 ] as const;
 
+export const MODERATION_FILTER_VALUES: readonly ModerationFilter[] = [
+  "all",
+  "ok",
+  "warning",
+  "ng",
+  "unscored",
+] as const;
+
 export const DEFAULT_SESSION_FILTER: SessionFilterConfig = {
   status: "completed",
   visibility: "all",
   stance: "all",
   role: "all",
+  moderation: "all",
 };
 
 export type InterviewStatistics = {
@@ -96,6 +113,11 @@ export type InterviewStatistics = {
   medianDurationSeconds: number | null;
   publicByUserCount: number;
   publicRate: number;
+  feedbackIrrelevantQuestions: number;
+  feedbackNotAligned: number;
+  feedbackMisunderstood: number;
+  feedbackTooManyQuestions: number;
+  feedbackOther: number;
 };
 
 // ソート関連の型定義

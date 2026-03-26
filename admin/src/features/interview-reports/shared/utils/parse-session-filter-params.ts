@@ -1,9 +1,11 @@
 import {
   DEFAULT_SESSION_FILTER,
+  MODERATION_FILTER_VALUES,
   ROLE_FILTER_VALUES,
   SESSION_STATUS_FILTER_VALUES,
   STANCE_FILTER_VALUES,
   VISIBILITY_FILTER_VALUES,
+  type ModerationFilter,
   type RoleFilter,
   type SessionFilterConfig,
   type SessionStatusFilter,
@@ -26,7 +28,8 @@ export function parseSessionFilterParams(
   status?: string,
   visibility?: string,
   stance?: string,
-  role?: string
+  role?: string,
+  moderation?: string
 ): SessionFilterConfig {
   return {
     status: parseEnum<SessionStatusFilter>(
@@ -48,6 +51,11 @@ export function parseSessionFilterParams(
       role,
       ROLE_FILTER_VALUES,
       DEFAULT_SESSION_FILTER.role
+    ),
+    moderation: parseEnum<ModerationFilter>(
+      moderation,
+      MODERATION_FILTER_VALUES,
+      DEFAULT_SESSION_FILTER.moderation
     ),
   };
 }

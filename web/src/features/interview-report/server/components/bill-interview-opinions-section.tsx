@@ -3,10 +3,10 @@ import "server-only";
 import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { routes } from "@/lib/routes";
 import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
 import { AnonymousAuthProvider } from "@/features/report-reaction/client/components/report-card-with-reactions";
 import { getReportReactionsBatch } from "@/features/report-reaction/server/loaders/get-report-reactions";
+import { routes } from "@/lib/routes";
 import { ReportCard } from "../../shared/components/report-card";
 import type { PublicInterviewReport } from "../loaders/get-public-reports-by-bill-id";
 
@@ -38,7 +38,7 @@ export async function BillInterviewOpinionsSection({
       {/* セクションヘッダー */}
       <div className="flex items-center gap-4">
         <h2 className="text-[22px] font-bold leading-[1.636]">
-          <span className="mr-1">💬</span>法案が関係する方のご意見
+          <span className="mr-1">💬</span>法案に寄せられた意見
         </h2>
         <span className="text-[22px] font-bold leading-[1.636]">
           {totalCount}件
@@ -59,7 +59,7 @@ export async function BillInterviewOpinionsSection({
 
           {/* もっと読むリンク（グラデーションオーバーレイ付き） */}
           {totalCount > reports.length && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[164px] bg-mirai-white-fade rounded-b-2xl">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[164px] bg-mirai-white-fade rounded-b-2xl z-10">
               <div className="absolute inset-x-0 bottom-6 flex justify-center pointer-events-auto">
                 <Button
                   variant="outline"

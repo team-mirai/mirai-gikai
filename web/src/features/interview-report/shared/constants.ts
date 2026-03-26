@@ -5,9 +5,9 @@ import { Briefcase, GraduationCap, Home, User } from "lucide-react";
  * スタンスのラベルマッピング
  */
 export const stanceLabels: Record<string, string> = {
-  for: "期待している",
-  against: "懸念している",
-  neutral: "期待と懸念両方がある",
+  for: "期待",
+  against: "懸念",
+  neutral: "期待＆懸念",
 };
 
 /**
@@ -17,6 +17,15 @@ export const stanceTextColors: Record<string, string> = {
   for: "text-primary-accent",
   against: "text-stance-against-light",
   neutral: "text-stance-neutral",
+};
+
+/**
+ * スタンスバッジの背景スタイルマッピング
+ */
+export const stanceBadgeBgStyles: Record<string, string> = {
+  for: "bg-linear-to-b from-stance-for-badge-start to-stance-for-badge-end",
+  against: "bg-stance-against-badge-bg",
+  neutral: "bg-stance-neutral-badge-bg",
 };
 
 /**

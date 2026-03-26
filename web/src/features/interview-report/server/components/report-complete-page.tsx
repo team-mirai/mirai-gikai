@@ -11,10 +11,7 @@ import { ExpertRegistrationSection } from "../../client/components/expert-regist
 import { ReportContent } from "../../shared/components/report-content";
 import { isExpertRegistrationTargetRole } from "../../shared/utils/expert-registration-validation";
 import { parseOpinions } from "../../shared/utils/format-utils";
-import {
-  calculateDuration,
-  countCharacters,
-} from "../../shared/utils/report-utils";
+import { countCharacters } from "../../shared/utils/report-utils";
 import { getExpertRegistrationStatus } from "../loaders/get-expert-registration-status";
 
 interface ReportCompletePageProps {
@@ -51,10 +48,6 @@ export async function ReportCompletePage({
   }
 
   const opinions = parseOpinions(report.opinions);
-  const duration = calculateDuration(
-    report.session_started_at,
-    report.session_completed_at
-  );
   const characterCount = countCharacters(messages);
 
   return (
@@ -127,7 +120,6 @@ export async function ReportCompletePage({
             role={report.role}
             roleTitle={report.role_title}
             sessionStartedAt={report.session_started_at}
-            duration={duration}
             characterCount={characterCount}
             roleDescription={report.role_description}
             opinions={opinions}

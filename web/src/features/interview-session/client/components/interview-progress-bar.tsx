@@ -1,29 +1,22 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { InterviewTimer } from "./interview-timer";
 
 interface InterviewProgressBarProps {
   percentage: number;
   currentTopic: string | null;
-  showSkip: boolean;
-  onSkip: () => void;
-  disabled: boolean;
   remainingMinutes?: number | null;
 }
 
 export function InterviewProgressBar({
   percentage,
   currentTopic,
-  showSkip,
-  onSkip,
-  disabled,
   remainingMinutes,
 }: InterviewProgressBarProps) {
   return (
     <div className="rounded-[18px] bg-white py-[10px]">
-      {(currentTopic || showSkip || remainingMinutes != null) && (
+      {(currentTopic || remainingMinutes != null) && (
         <div className="mb-3 flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {currentTopic && (
@@ -32,16 +25,6 @@ export function InterviewProgressBar({
                   {currentTopic}
                 </p>
               </div>
-            )}
-            {showSkip && (
-              <Button
-                variant="link"
-                onClick={onSkip}
-                disabled={disabled}
-                className="ml-2 h-auto shrink-0 p-0 text-sm font-bold text-primary-accent no-underline hover:underline"
-              >
-                スキップする
-              </Button>
             )}
           </div>
           {remainingMinutes != null && (

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
+import { createAdminClient, type Database } from "@mirai-gikai/supabase";
 import type {
   InterviewMessage,
   InterviewReport,
@@ -255,6 +255,60 @@ export async function updateInterviewSessionRating(
   if (error) {
     throw new Error(
       `Failed to save interview session rating: ${error.message}`
+    );
+  }
+}
+
+/**
+ * セッションの星評価を取得
+ */
+export async function findSessionRatingById(
+  sessionId: string
+): Promise<number | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_sessions")
+    .select("rating")
+    .eq("id", sessionId)
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to fetch session rating: ${error.message}`);
+  }
+
+  return data.rating;
+}
+
+// ========================================
+// Interview Rating Feedbacks
+// ========================================
+
+/**
+ * 低評価フィードバックタグを保存（複数タグ一括、冪等）
+ */
+export async function insertInterviewRatingFeedbacks(
+  sessionId: string,
+  tags: string[]
+): Promise<void> {
+  if (tags.length === 0) return;
+
+  const supabase = createAdminClient();
+  const uniqueTags = [...new Set(tags)];
+  const rows = uniqueTags.map((tag) => ({
+    interview_session_id: sessionId,
+    tag: tag as Database["public"]["Enums"]["interview_feedback_tag_enum"],
+  }));
+
+  const { error } = await supabase
+    .from("interview_rating_feedbacks")
+    .upsert(rows, {
+      onConflict: "interview_session_id,tag",
+      ignoreDuplicates: true,
+    });
+
+  if (error) {
+    throw new Error(
+      `Failed to save interview rating feedbacks: ${error.message}`
     );
   }
 }

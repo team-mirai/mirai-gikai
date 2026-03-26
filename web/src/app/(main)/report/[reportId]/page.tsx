@@ -31,9 +31,10 @@ export async function generateMetadata({
   const ogTitle =
     data.summary || `${stanceText} - ${billName} インタビューレポート`;
   const ogDescription = `${billName}に対するインタビューレポート`;
-  const defaultOgpUrl = new URL("/ogp.jpg", env.webUrl).toString();
-  const shareImageUrl =
-    data.bill.share_thumbnail_url || data.bill.thumbnail_url || defaultOgpUrl;
+  const shareImageUrl = new URL(
+    `/api/og/report?id=${reportId}`,
+    env.webUrl
+  ).toString();
 
   return {
     title: ogTitle,

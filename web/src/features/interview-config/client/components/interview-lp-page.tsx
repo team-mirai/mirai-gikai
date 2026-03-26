@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import { PastReportsSection } from "@/features/interview-report/client/components/past-reports-section";
+import type { UserReportsResult } from "@/features/interview-report/server/loaders/get-user-reports-by-interview-config";
 import { InterviewStatusBadge } from "@/features/interview-session/client/components/interview-status-badge";
 import type { LatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import type { InterviewConfig } from "../../server/loaders/get-interview-config";
@@ -12,6 +14,7 @@ import {
   getInterviewDisclosureLink,
 } from "@/features/interview-config/shared/utils/interview-links";
 import { formatEstimatedDuration } from "@/features/interview-config/shared/utils/format-estimated-duration";
+import { NewInterviewButton } from "@/features/interview-session/client/components/new-interview-button";
 import { InterviewActionButtons } from "./interview-action-buttons";
 
 interface InterviewLPPageProps {
@@ -19,6 +22,7 @@ interface InterviewLPPageProps {
   interviewConfig: InterviewConfig;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  userReports?: UserReportsResult | null;
 }
 
 const FEATURES: {
@@ -114,13 +118,15 @@ function _InterviewLPHero({
         ))}
       </div>
 
-      <div className="w-full max-w-[370px] mt-2 flex flex-col gap-3">
-        <InterviewActionButtons
-          billId={billId}
-          sessionInfo={sessionInfo}
-          previewToken={previewToken}
-        />
-      </div>
+      {sessionInfo?.status !== "completed" && (
+        <div className="w-full max-w-[370px] mt-2 flex flex-col gap-3">
+          <InterviewActionButtons
+            billId={billId}
+            sessionInfo={sessionInfo}
+            previewToken={previewToken}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -303,6 +309,7 @@ export function InterviewLPPage({
   interviewConfig,
   sessionInfo,
   previewToken,
+  userReports,
 }: InterviewLPPageProps) {
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
@@ -314,6 +321,14 @@ export function InterviewLPPage({
           sessionInfo={sessionInfo}
           previewToken={previewToken}
         />
+        {userReports && userReports.reports.length > 0 && (
+          <PastReportsSection reports={userReports.reports} />
+        )}
+        {sessionInfo?.status === "completed" && sessionInfo?.reportId && (
+          <div className="w-full max-w-[370px]">
+            <NewInterviewButton billId={bill.id} previewToken={previewToken} />
+          </div>
+        )}
         <_InterviewOverviewSection
           billId={bill.id}
           billName={bill.bill_content?.title ?? bill.name}

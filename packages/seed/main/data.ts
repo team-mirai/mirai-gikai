@@ -66,6 +66,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-08-01T09:00:00+09:00",
     publish_status: "published",
     is_featured: true,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   {
     name: "こども家庭庁予算大幅増額法案",
@@ -75,6 +76,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-01-20T10:00:00+09:00",
     publish_status: "published",
     is_featured: true,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   {
     name: "18歳選挙権完全実施法案",
@@ -84,6 +86,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-02-01T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   {
     name: "学校給食無償化促進法案",
@@ -93,6 +96,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-01-10T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   // 第218回国会用の追加法案（デザイン確認用）- ループで生成
   ...Array.from({ length: 4 }, (_, i) => ({
@@ -105,6 +109,7 @@ export const bills: BillInsert[] = [
     published_at: `2025-08-0${i + 1}T09:00:00+09:00`,
     publish_status: "published" as const,
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   })),
   {
     name: "船荷証券の電子化に関する法律案",
@@ -114,6 +119,7 @@ export const bills: BillInsert[] = [
     published_at: "2025-09-15T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   },
   {
     name: "中学生・高校生向けプログラミング教育必修化法案",
@@ -123,6 +129,7 @@ export const bills: BillInsert[] = [
     published_at: "2024-11-15T10:00:00+09:00",
     publish_status: "published",
     is_featured: false,
+    thumbnail_url: "https://placehold.co/600x400",
   },
 ];
 
@@ -405,22 +412,28 @@ export function createInterviewReports(
   const reportTemplates = [
     {
       stance: "for" as const,
-      summary: "この法案に賛成。国民のためになると考えている。",
+      summary:
+        "この法案は国民生活の安定に寄与する重要な施策であり、賛成の立場をとる。特に物価高騰に苦しむ家庭への経済的支援効果が大きく、社会保障の充実と合わせて早期の成立を望む。",
       role: "general_citizen" as const,
+      role_title: "一般市民",
       role_description: "法案の内容に賛同する市民",
       opinions: [{ title: "賛成理由", content: "国民のためになる" }],
     },
     {
       stance: "against" as const,
-      summary: "財源の不明確さを理由に反対。",
+      summary:
+        "財源の確保が不透明であり、将来世代への負担増大が懸念されるため反対の立場をとる。歳出削減や他の財源確保策を十分に検討した上で、持続可能な制度設計を行うべきだと考える。",
       role: "work_related" as const,
+      role_title: "会社員",
       role_description: "財政面を懸念する市民",
       opinions: [{ title: "反対理由", content: "財源が不明確" }],
     },
     {
       stance: "neutral" as const,
-      summary: "判断するにはより多くの情報が必要と考えている。",
+      summary:
+        "現時点では法案の効果と副作用について十分な情報が開示されておらず、賛否を判断するには時期尚早と考える。特に地方経済への影響や長期的な財政見通しについてより詳細な分析が必要。",
       role: "subject_expert" as const,
+      role_title: "専門家",
       role_description: "慎重な判断を求める市民",
       opinions: [{ title: "態度保留理由", content: "情報不足" }],
     },
@@ -442,6 +455,7 @@ export function createInterviewReports(
         interview_session_id: sessionId,
         ...reportTemplates[patternIndex],
         is_public_by_user: loopIndex < 5, // 最初の5件は公開
+        is_public_by_admin: loopIndex < 3, // 最初の3ループ分は管理者承認済み
       });
     }
   });
@@ -518,8 +532,10 @@ export function createDemoReport(): InterviewReportInsert {
     id: DEMO_REPORT_ID,
     interview_session_id: DEMO_SESSION_ID,
     stance: "neutral",
-    summary: "期待と懸念両方がある",
+    summary:
+      "デジタル化推進による省庁の業務効率化や官僚の働き方改革には期待するが、システム移行時の混乱や中小フォワーダーへの対応コスト増大について懸念も大きい。慎重な段階的導入を求める。",
     role: "subject_expert",
+    role_title: "フォワーダー",
     role_description:
       "中国航路担当のフォワーダー実務者\n業界経験20年\n船荷証券（B/L）手続きに日常的に関与",
     opinions: [
@@ -530,6 +546,7 @@ export function createDemoReport(): InterviewReportInsert {
       },
     ],
     is_public_by_user: true,
+    is_public_by_admin: true,
   };
 }
 
@@ -657,8 +674,10 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
       id: DEMO_REPORT_ID_WORK,
       interview_session_id: DEMO_SESSION_ID_WORK,
       stance: "for",
-      summary: "物流コスト削減のため賛成",
+      summary:
+        "燃料費高騰が運送業界の経営を直撃しており、暫定税率の廃止による物流コスト削減は急務。トラック1台あたりの年間燃料費が数十万円単位で変わるため、経営の持続可能性に直結する重要な施策だ。",
       role: "work_related",
+      role_title: "運送会社経営者",
       role_description:
         "運送会社経営者\n従業員50名規模\n燃料費高騰の影響を直接受けている",
       opinions: [
@@ -669,13 +688,16 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
         },
       ],
       is_public_by_user: true,
+      is_public_by_admin: true,
     },
     {
       id: DEMO_REPORT_ID_DAILY,
       interview_session_id: DEMO_SESSION_ID_DAILY,
       stance: "for",
-      summary: "地方在住者として生活必需品のガソリン代軽減を期待",
+      summary:
+        "公共交通機関がほぼない地方では車は唯一の移動手段であり、ガソリン代の軽減は生活に直結する問題。子育て世帯として送迎や買い物で毎日車を使うため、家計への負担軽減を強く望んでいる。",
       role: "daily_life_affected",
+      role_title: "主婦",
       role_description:
         "地方在住の主婦\n車が唯一の移動手段\n子育て中で送り迎えに車を使用",
       opinions: [
@@ -686,13 +708,16 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
         },
       ],
       is_public_by_user: true,
+      is_public_by_admin: true,
     },
     {
       id: DEMO_REPORT_ID_CITIZEN,
       interview_session_id: DEMO_SESSION_ID_CITIZEN,
       stance: "neutral",
-      summary: "環境と経済のバランスを考慮して判断",
+      summary:
+        "ガソリン税減税は短期的な家計支援になるが、環境負荷の観点からは化石燃料への依存を長引かせる可能性もある。EV普及支援策と組み合わせた総合的なエネルギー政策として検討すべきだと考える。",
       role: "general_citizen",
+      role_title: "会社員",
       role_description: "会社員\n環境問題に関心あり\n電気自動車への乗り換えを検討中",
       opinions: [
         {
@@ -702,6 +727,7 @@ export function createAdditionalDemoReports(): InterviewReportInsert[] {
         },
       ],
       is_public_by_user: true,
+      is_public_by_admin: true,
     },
   ];
 }

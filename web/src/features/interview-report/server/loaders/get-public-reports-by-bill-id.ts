@@ -1,13 +1,9 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
-import { CACHE_TAGS } from "@/lib/cache-tags";
 import {
   countPublicReportsByBillId,
   findPublicReportsByBillId,
 } from "../repositories/interview-report-repository";
-
-const REVALIDATE_SECONDS = 600;
 
 export type PublicInterviewReport = {
   id: string;
@@ -30,29 +26,20 @@ export type PublicReportsResult = {
 export async function getPublicReportsByBillId(
   billId: string
 ): Promise<PublicReportsResult> {
-  return unstable_cache(
-    async () => {
-      const [rawReports, totalCount] = await Promise.all([
-        findPublicReportsByBillId(billId, 3),
-        countPublicReportsByBillId(billId),
-      ]);
+  const [rawReports, totalCount] = await Promise.all([
+    findPublicReportsByBillId(billId, 3),
+    countPublicReportsByBillId(billId),
+  ]);
 
-      const reports: PublicInterviewReport[] = rawReports.map((r) => ({
-        id: r.id,
-        stance: r.stance,
-        role: r.role,
-        role_title: r.role_title,
-        summary: r.summary,
-        total_content_richness: r.total_content_richness,
-        created_at: r.created_at,
-      }));
+  const reports: PublicInterviewReport[] = rawReports.map((r) => ({
+    id: r.id,
+    stance: r.stance,
+    role: r.role,
+    role_title: r.role_title,
+    summary: r.summary,
+    total_content_richness: r.total_content_richness,
+    created_at: r.created_at,
+  }));
 
-      return { reports, totalCount };
-    },
-    [`public-reports-${billId}`],
-    {
-      tags: [CACHE_TAGS.PUBLIC_INTERVIEW_REPORTS],
-      revalidate: REVALIDATE_SECONDS,
-    }
-  )();
+  return { reports, totalCount };
 }

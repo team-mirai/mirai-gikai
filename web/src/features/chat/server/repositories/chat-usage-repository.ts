@@ -47,12 +47,10 @@ export async function sumChatUsageCost(
   toIso: string
 ): Promise<number> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("chat_usage_events")
-    .select("cost_usd.sum()")
-    .gte("occurred_at", fromIso)
-    .lt("occurred_at", toIso)
-    .single();
+  const { data, error } = await supabase.rpc("sum_chat_usage_cost", {
+    from_iso: fromIso,
+    to_iso: toIso,
+  });
 
   if (error) {
     throw new Error(`Failed to sum chat usage cost: ${error.message}`, {
@@ -60,6 +58,6 @@ export async function sumChatUsageCost(
     });
   }
 
-  const sum = Number((data as Record<string, unknown>)?.cost_usd);
+  const sum = Number(data);
   return Number.isFinite(sum) ? sum : 0;
 }

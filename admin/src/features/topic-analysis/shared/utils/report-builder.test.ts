@@ -138,9 +138,8 @@ describe("buildReportMarkdown", () => {
     expect(md).toContain("## トピック1. 交通");
     expect(md).toContain("交通の説明");
     expect(md).toContain("### 代表的な意見");
-    expect(md).toContain("**賛成意見**");
-    expect(md).toContain("（インタビュー#1）");
-    expect(md).toContain("内容A");
+    expect(md).toContain("[1]");
+    expect(md).toContain('"内容A"');
   });
 
   it("builds markdown without summary", () => {
@@ -184,7 +183,7 @@ describe("buildReportMarkdown", () => {
 
     const md = buildReportMarkdown(version, topics);
 
-    expect(md).toContain("（インタビュー#5）");
+    expect(md).toContain("[5]");
   });
 
   it("omits ref label when ref_id is null", () => {
@@ -201,7 +200,7 @@ describe("buildReportMarkdown", () => {
 
     const md = buildReportMarkdown(version, topics);
 
-    expect(md).not.toContain("インタビュー#");
+    expect(md).not.toContain("[");
   });
 
   it("uses source_message_content over opinion_content when available", () => {

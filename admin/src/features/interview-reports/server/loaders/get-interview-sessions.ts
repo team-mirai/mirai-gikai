@@ -48,10 +48,15 @@ export async function getInterviewSessions(
   } as const;
 
   // message_count/total_content_richness/helpful_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
+  // ただしRPC関数はmoderationフィルタ未対応のため、moderation指定時はRPCソートをスキップし
+  // started_atソートにフォールバック（計算カラムはSupabaseクエリビルダーで直接ソートできないため）
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;
+  let effectiveSortField = sort.field;
   try {
     const rpcFetcher =
-      rpcSortFetchers[sort.field as keyof typeof rpcSortFetchers];
+      filters.moderation === "all"
+        ? rpcSortFetchers[sort.field as keyof typeof rpcSortFetchers]
+        : undefined;
     if (rpcFetcher) {
       const orderedIds = await rpcFetcher(
         config.id,
@@ -62,13 +67,18 @@ export async function getInterviewSessions(
       );
       sessions = await findInterviewSessionsWithReportByIds(orderedIds);
     } else {
+      // RPC専用ソートフィールドの場合はstarted_atにフォールバック
+      const isRpcOnlyField = sort.field in rpcSortFetchers;
+      if (isRpcOnlyField) {
+        effectiveSortField = "started_at";
+      }
       sessions = await findInterviewSessionsWithReport(
         config.id,
         from,
         to,
         {
-          column: sort.field,
-          ascending: sort.order === "asc",
+          column: effectiveSortField,
+          ascending: isRpcOnlyField ? false : sort.order === "asc",
         },
         filters
       );
@@ -105,7 +115,7 @@ export async function getInterviewSessions(
   if (messageCountsResult.status === "fulfilled") {
     messageCounts = messageCountsResult.value;
   } else {
-    if (sort.field === "message_count") {
+    if (effectiveSortField === "message_count") {
       throw messageCountsResult.reason;
     }
     console.error(
@@ -117,7 +127,7 @@ export async function getInterviewSessions(
   if (helpfulCountsResult.status === "fulfilled") {
     helpfulCountsMap = helpfulCountsResult.value;
   } else {
-    if (sort.field === "helpful_count") {
+    if (effectiveSortField === "helpful_count") {
       throw helpfulCountsResult.reason;
     }
     console.error(

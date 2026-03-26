@@ -3,11 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
 import { Lightbulb, Upload } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useOptimistic, useState, useTransition } from "react";
-import { toggleReaction } from "../../server/actions/toggle-reaction";
-import type { ReactionType, ReportReactionData } from "../../shared/types";
-import { computeOptimisticState } from "../../shared/utils/compute-optimistic-state";
+import { useState } from "react";
+import type { ReportReactionData } from "../../shared/types";
+import { useReactionToggle } from "../hooks/use-reaction-toggle";
 import { ReportShareModal } from "./report-share-modal";
 
 interface ReactionButtonsProps {
@@ -15,7 +13,8 @@ interface ReactionButtonsProps {
   initialData: ReportReactionData;
   billName: string;
   shareUrl: string;
-  thumbnailUrl?: string | null;
+  /** OGP画像のURL */
+  ogImageUrl: string;
   /** シェア時のメッセージ（レポートのsummary等） */
   shareMessage?: string | null;
   /** 共有ボタンを表示するかどうか（非公開レポートでは非表示） */
@@ -27,34 +26,15 @@ export function ReactionButtons({
   initialData,
   billName,
   shareUrl,
-  thumbnailUrl,
+  ogImageUrl,
   shareMessage,
   showShare = true,
 }: ReactionButtonsProps) {
   useAnonymousSupabaseUser();
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const { data, isPending, toggle } = useReactionToggle(reportId, initialData);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [optimistic, setOptimistic] = useOptimistic(
-    initialData,
-    computeOptimisticState
-  );
 
-  const handleClick = (reactionType: ReactionType) => {
-    startTransition(async () => {
-      setOptimistic(reactionType);
-      try {
-        const result = await toggleReaction(reportId, reactionType);
-        if (!result.success) {
-          router.refresh();
-        }
-      } catch {
-        router.refresh();
-      }
-    });
-  };
-
-  const isActive = optimistic.userReaction === "helpful";
+  const isActive = data.userReaction === "helpful";
 
   return (
     <>
@@ -65,7 +45,7 @@ export function ReactionButtons({
             {/* 参考になる */}
             <Button
               variant="ghost"
-              onClick={() => handleClick("helpful")}
+              onClick={() => toggle("helpful")}
               disabled={isPending}
               className="flex-1 flex items-center justify-center gap-2 h-auto py-5 rounded-none hover:bg-transparent active:bg-gray-50"
             >
@@ -80,9 +60,9 @@ export function ReactionButtons({
               <span className="text-[15px] font-bold text-gray-800">
                 参考になる
               </span>
-              {optimistic.counts.helpful > 0 && (
+              {data.counts.helpful > 0 && (
                 <span className="text-[15px] font-bold text-gray-800">
-                  {optimistic.counts.helpful}
+                  {data.counts.helpful}
                 </span>
               )}
             </Button>
@@ -114,7 +94,7 @@ export function ReactionButtons({
         onClose={() => setIsShareModalOpen(false)}
         billName={billName}
         shareUrl={shareUrl}
-        thumbnailUrl={thumbnailUrl}
+        ogImageUrl={ogImageUrl}
         shareMessage={shareMessage}
       />
     </>

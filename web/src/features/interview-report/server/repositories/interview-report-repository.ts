@@ -79,28 +79,47 @@ export async function findBillWithContentById(billId: string) {
 }
 
 /**
- * 議案IDから公開インタビューレポートを取得（total_content_richness降順、件数制限あり）
+ * 議案IDから公開インタビューレポートを取得（helpful×5+total_content_richnessの重み付きスコア降順、件数制限あり）
  * 公開条件: is_public_by_admin = true AND is_public_by_user = true
  */
 export async function findPublicReportsByBillId(
   billId: string,
-  limit: number = 3
+  limit: number = 3,
+  offset: number = 0,
+  stance?: string
 ) {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("interview_report")
-    .select(
-      "id, stance, role, role_title, summary, total_content_richness, created_at, interview_sessions!inner(interview_configs!inner(bill_id))"
-    )
-    .eq("is_public_by_admin", true)
-    .eq("is_public_by_user", true)
-    .eq("interview_sessions.interview_configs.bill_id", billId)
-    .order("total_content_richness", { ascending: false, nullsFirst: false })
-    .limit(limit);
+  const { data, error } = await supabase.rpc(
+    "find_public_reports_by_bill_id_ordered_by_reactions",
+    {
+      p_bill_id: billId,
+      p_limit: limit,
+      p_offset: offset,
+      p_stance: stance,
+    }
+  );
 
   if (error) {
     throw new Error(
       `Failed to fetch public interview reports: ${error.message}`
+    );
+  }
+
+  return data;
+}
+
+/**
+ * 議案IDからスタンスごとの公開レポート件数を取得
+ */
+export async function countPublicReportsByStance(billId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("count_public_reports_by_stance", {
+    p_bill_id: billId,
+  });
+
+  if (error) {
+    throw new Error(
+      `Failed to count public reports by stance: ${error.message}`
     );
   }
 
@@ -151,6 +170,30 @@ export async function findPublicReportWithSessionById(reportId: string) {
     throw new Error(
       `Failed to fetch public interview report: ${error.message}`
     );
+  }
+
+  return data;
+}
+
+/**
+ * ユーザーの過去のインタビューレポートを取得（指定interview_config配下、新しい順）
+ */
+export async function findUserReportsByInterviewConfigId(
+  interviewConfigId: string,
+  userId: string
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_report")
+    .select(
+      "id, stance, role, role_title, summary, created_at, interview_sessions!inner(interview_config_id, user_id)"
+    )
+    .eq("interview_sessions.interview_config_id", interviewConfigId)
+    .eq("interview_sessions.user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch user interview reports: ${error.message}`);
   }
 
   return data;

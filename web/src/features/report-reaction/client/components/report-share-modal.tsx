@@ -9,13 +9,15 @@ import {
   shareOnLine,
   shareOnTwitter,
 } from "@/features/bills/client/utils/share-handlers";
+import { OgpPreviewCard } from "./ogp-preview-card";
 
 interface ReportShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   billName: string;
   shareUrl: string;
-  thumbnailUrl?: string | null;
+  /** OGP画像のURL */
+  ogImageUrl: string;
   /** シェア時のメッセージ（レポートのsummary等） */
   shareMessage?: string | null;
 }
@@ -25,7 +27,7 @@ export function ReportShareModal({
   onClose,
   billName,
   shareUrl,
-  thumbnailUrl,
+  ogImageUrl,
   shareMessage: shareMessageProp,
 }: ReportShareModalProps) {
   if (!isOpen) return null;
@@ -77,62 +79,50 @@ export function ReportShareModal({
       onKeyDown={handleBackgroundKeyDown}
       tabIndex={-1}
     >
-      <div className="bg-white rounded-2xl px-3 py-9 w-[370px] max-w-full flex flex-col items-center gap-6">
-        {/* タイトルと法案名 */}
-        <div className="flex flex-col items-center gap-3 text-center w-full">
+      <div className="flex w-[500px] max-w-full flex-col items-center gap-6 rounded-2xl bg-white px-3 py-9">
+        <div className="flex w-full flex-col items-center gap-6">
+          {/* タイトル */}
           <h2 className="text-2xl font-bold text-gray-800">意見をシェアする</h2>
-          <p className="text-[15px] font-medium text-gray-800 leading-7">
-            {billName}
-          </p>
-        </div>
 
-        {/* サムネイル画像 */}
-        {thumbnailUrl && (
-          <div className="w-full h-[181px] relative rounded-md overflow-hidden">
-            <Image
-              src={thumbnailUrl}
-              alt={billName}
-              fill
-              className="object-cover"
-            />
-          </div>
-        )}
+          {/* OGPプレビュー画像 */}
+          <OgpPreviewCard ogImageUrl={ogImageUrl} billName={billName} />
 
-        {/* シェアセクション */}
-        <div className="flex flex-col items-center gap-4 w-full">
-          <p className="text-base font-bold text-gray-800 text-center">
-            法案に対する意見をシェアしよう
-          </p>
+          {/* シェアセクション */}
+          <div className="flex w-full flex-col items-center gap-4">
+            <p className="text-center text-base font-bold text-gray-800">
+              法案に対する意見をシェアしよう
+            </p>
 
-          {/* SNSアイコン */}
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {shareButtons.map((button) => (
-              <Button
-                key={button.name}
-                type="button"
-                variant="ghost"
-                onClick={button.onClick}
-                className="w-12 h-12 flex items-center justify-center p-0"
-              >
-                <Image
-                  src={button.iconPath}
-                  alt={button.name}
-                  width={48}
-                  height={48}
-                  className="w-12 h-12"
-                />
-              </Button>
-            ))}
+            {/* SNSアイコン */}
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              {shareButtons.map((button) => (
+                <Button
+                  key={button.name}
+                  type="button"
+                  variant="ghost"
+                  onClick={button.onClick}
+                  className="flex h-12 w-12 items-center justify-center p-0"
+                >
+                  <Image
+                    src={button.iconPath}
+                    alt={button.name}
+                    width={48}
+                    height={48}
+                    className="h-12 w-12"
+                  />
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* 閉じるボタン */}
         <Button
-          variant="outline"
+          variant="ghost"
           onClick={onClose}
-          className="w-[287px] max-w-full rounded-full px-6 py-3 font-bold text-base bg-mirai-gradient text-gray-800 border border-gray-800 h-auto"
+          className="text-base font-bold text-primary-accent hover:bg-transparent"
         >
-          このまま閉じる
+          閉じる
         </Button>
       </div>
     </div>

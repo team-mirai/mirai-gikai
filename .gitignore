@@ -3,6 +3,7 @@ node_modules
 # misc
 .DS_Store
 .vscode
+.claude/worktrees
 
 # env files
 .env

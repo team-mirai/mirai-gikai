@@ -60,14 +60,6 @@ export async function BillDetailLayout({
       </BillDetailClient>
 
       <Container>
-        {interviewConfig != null && (
-          <div className="my-8">
-            <InterviewLandingSection
-              billId={bill.id}
-              estimatedDuration={interviewConfig.estimated_duration}
-            />
-          </div>
-        )}
         {publicReportsResult.totalCount > 0 && (
           <div className="my-8">
             <BillInterviewOpinionsSection
@@ -75,6 +67,11 @@ export async function BillDetailLayout({
               reports={publicReportsResult.reports}
               totalCount={publicReportsResult.totalCount}
             />
+          </div>
+        )}
+        {interviewConfig != null && (
+          <div className="my-8">
+            <InterviewLandingSection billId={bill.id} />
           </div>
         )}
         {showMiraiStance && (

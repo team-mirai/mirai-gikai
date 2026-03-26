@@ -1,17 +1,19 @@
 import "server-only";
 
+import { env } from "@/lib/env";
+
 /**
  * 次フェーズのAPI routeを内部fetchで起動する
  *
  * REVALIDATE_SECRET を Bearer token として使用し、
- * NEXT_PUBLIC_APP_URL を自己呼び出しURLとして使用する
+ * env.adminUrl を自己呼び出しURLとして使用する
  */
 export async function triggerNextPhase(
   phase: 1 | 2 | 3,
   versionId: string,
   billId: string
 ): Promise<void> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
+  const baseUrl = env.adminUrl;
   const secret = process.env.REVALIDATE_SECRET;
 
   if (!secret) {

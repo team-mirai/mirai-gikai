@@ -1,0 +1,98 @@
+import { describe, expect, it } from "vitest";
+import type { CompiledPrompt, PromptVariables } from "../interface/types";
+import { CompositePromptProvider } from "./composite-prompt-provider";
+
+function createFakeProvider(label: string): {
+  getPrompt: (
+    name: string,
+    variables?: PromptVariables
+  ) => Promise<CompiledPrompt>;
+} {
+  return {
+    getPrompt: async (name: string) => ({
+      content: `${label}:${name}`,
+      metadata: JSON.stringify({ source: label }),
+    }),
+  };
+}
+
+describe("CompositePromptProvider", () => {
+  const sourceCodeProvider = createFakeProvider("source-code");
+  const sourceCodeNames = new Set([
+    "top-chat-system",
+    "bill-chat-system-normal",
+    "bill-chat-system-hard",
+  ]);
+
+  const composite = new CompositePromptProvider(
+    sourceCodeProvider,
+    () => createFakeProvider("langfuse"),
+    sourceCodeNames
+  );
+
+  it("ソースコード管理のプロンプト名はsourceCodeProviderにルーティングされる", async () => {
+    const result = await composite.getPrompt("top-chat-system", {
+      billSummary: "test",
+    });
+    expect(result.content).toBe("source-code:top-chat-system");
+  });
+
+  it("bill-chat-system-normal もsourceCodeProviderにルーティングされる", async () => {
+    const result = await composite.getPrompt("bill-chat-system-normal", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
+    });
+    expect(result.content).toBe("source-code:bill-chat-system-normal");
+  });
+
+  it("bill-chat-system-hard もsourceCodeProviderにルーティングされる", async () => {
+    const result = await composite.getPrompt("bill-chat-system-hard", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
+    });
+    expect(result.content).toBe("source-code:bill-chat-system-hard");
+  });
+
+  it("未知のプロンプト名はfallbackにルーティングされる", async () => {
+    const result = await composite.getPrompt("unknown-prompt");
+    expect(result.content).toBe("langfuse:unknown-prompt");
+  });
+
+  it("ソースコードプロンプトのみ使用時はfallbackファクトリが呼ばれない", async () => {
+    let factoryCalled = false;
+    const lazyComposite = new CompositePromptProvider(
+      createFakeProvider("source-code"),
+      () => {
+        factoryCalled = true;
+        return createFakeProvider("langfuse");
+      },
+      new Set([
+        "top-chat-system",
+        "bill-chat-system-normal",
+        "bill-chat-system-hard",
+      ])
+    );
+
+    await lazyComposite.getPrompt("top-chat-system", {
+      billSummary: "test",
+    });
+    await lazyComposite.getPrompt("bill-chat-system-normal", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
+    });
+    await lazyComposite.getPrompt("bill-chat-system-hard", {
+      billName: "test",
+      billTitle: "test",
+      billSummary: "test",
+      billContent: "test",
+    });
+
+    expect(factoryCalled).toBe(false);
+  });
+});

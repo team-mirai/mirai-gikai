@@ -1,7 +1,8 @@
 import "server-only";
 
-import { Bot, UserRound } from "lucide-react";
+import { Bot, ChevronLeft, UserRound } from "lucide-react";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -54,8 +55,31 @@ export async function ReportChatLogPage({
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
+      {/* 法案サムネイル画像 */}
+      {bill.thumbnail_url && (
+        <div className="relative w-full h-[320px]">
+          <Image
+            src={bill.thumbnail_url}
+            alt={billName}
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+
+      {/* Back to Report Link */}
+      <div className="px-4 pt-4">
+        <Link
+          href={reportHref as Route}
+          className="inline-flex items-center gap-1 text-sm font-medium text-mirai-text-secondary"
+        >
+          <ChevronLeft size={20} />
+          レポートに戻る
+        </Link>
+      </div>
+
       {/* Header Section */}
-      <div className="px-4 pt-24 pb-8">
+      <div className="px-4 pt-8 pb-8">
         <div className="flex flex-col items-center">
           {/* Title */}
           <h1 className="text-2xl font-bold text-center text-gray-800">
@@ -73,12 +97,13 @@ export async function ReportChatLogPage({
           {/* Stance and Meta Info */}
           <div className="mt-8">
             <ReportMetaInfo
+              reportId={report.id}
               stance={report.stance}
               role={report.role}
               roleTitle={report.role_title}
               sessionStartedAt={report.session_started_at}
               characterCount={characterCount}
-              variant="chat-log"
+              disableLink
             />
           </div>
         </div>
@@ -128,7 +153,7 @@ export async function ReportChatLogPage({
         initialData={reactionData}
         billName={billName}
         shareUrl={shareUrl}
-        thumbnailUrl={bill.thumbnail_url}
+        ogImageUrl={`${origin}/api/og/report?id=${reportId}`}
         shareMessage={report.summary}
         showShare={report.is_public_by_user && report.is_public_by_admin}
       />
@@ -168,7 +193,10 @@ function ChatMessage({ message }: ChatMessageProps) {
     const displayText = getMessageDisplayText(message.content);
     // AI message: icon on top left with gray background, then plain text below
     return (
-      <div className="flex flex-col items-start gap-2">
+      <div
+        id={`message-${message.id}`}
+        className="flex flex-col items-start gap-2 scroll-mt-4"
+      >
         <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
           <Bot size={24} className="text-gray-600" />
         </div>
@@ -181,7 +209,10 @@ function ChatMessage({ message }: ChatMessageProps) {
 
   // User message: icon on top right, then bubble below
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div
+      id={`message-${message.id}`}
+      className="flex flex-col items-end gap-2 scroll-mt-4"
+    >
       <div className="w-9 h-9 rounded-full bg-mirai-light-gradient flex items-center justify-center">
         <UserRound size={20} className="text-gray-600" />
       </div>
