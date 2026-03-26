@@ -25,7 +25,6 @@ type ModerationOutput = {
   score: number;
   status: ModerationStatus;
   reasoning: string;
-  flaggedCategories: string[];
 };
 
 /**
@@ -46,14 +45,11 @@ export async function evaluateModerationScore(
 
   const status = determineModerationStatus(object.score);
 
-  console.log(
-    `Moderation result: score=${object.score}, status=${status}, categories=[${object.flagged_categories.join(",")}]`
-  );
+  console.log(`Moderation result: score=${object.score}, status=${status}`);
 
   return {
     score: object.score,
     status,
     reasoning: object.reasoning,
-    flaggedCategories: object.flagged_categories,
   };
 }

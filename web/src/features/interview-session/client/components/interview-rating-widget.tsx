@@ -3,14 +3,14 @@
 import { ArrowRight, Star, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  FEEDBACK_RATING_THRESHOLD,
-  FEEDBACK_TAGS,
-  FEEDBACK_TAG_LABELS,
-  type FeedbackTag,
-} from "../../shared/constants/feedback-tags";
 import { submitInterviewFeedback } from "../../server/actions/submit-interview-feedback";
 import { submitInterviewRating } from "../../server/actions/submit-interview-rating";
+import {
+  FEEDBACK_RATING_THRESHOLD,
+  FEEDBACK_TAG_LABELS,
+  FEEDBACK_TAGS,
+  type FeedbackTag,
+} from "../../shared/constants/feedback-tags";
 
 type WidgetPhase = "rating" | "feedback" | "thankyou";
 
@@ -27,10 +27,13 @@ function RatingPhase({
 }) {
   return (
     <>
+      <p className="text-[13px] font-medium leading-none text-primary-accent text-center">
+        AIインタビュー改善のためのアンケート
+      </p>
       <p className="text-[13px] font-medium leading-none text-mirai-text text-center">
         AIはあなたの考えを十分に引き出せていますか
       </p>
-      <div className="flex justify-center gap-[15px]">
+      <div className="flex justify-center">
         {[1, 2, 3, 4, 5].map((star) => (
           <Button
             key={star}
@@ -40,12 +43,11 @@ function RatingPhase({
             aria-label={`${star}つ星`}
           >
             <Star
-              size={24}
-              className={
+              className={`size-6 ${
                 selectedRating !== null && star <= selectedRating
                   ? "fill-mirai-star text-mirai-star"
                   : "fill-white text-mirai-text-muted stroke-[0.5]"
-              }
+              }`}
             />
           </Button>
         ))}
@@ -188,7 +190,7 @@ export function InterviewRatingWidget({
 
   return (
     <div className="relative mx-4 rounded-xl bg-gray-100 px-6 py-4">
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         {phase === "rating" && (
           <RatingPhase selectedRating={selectedRating} onRate={handleRate} />
         )}
