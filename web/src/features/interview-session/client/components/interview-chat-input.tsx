@@ -1,7 +1,7 @@
 "use client";
 
-import type { ChangeEvent } from "react";
 import Image from "next/image";
+import type { ChangeEvent } from "react";
 import { useEffect, useRef } from "react";
 import {
   PromptInput,
@@ -83,7 +83,7 @@ export function InterviewChatInput({
       <PromptInputError status={error ? "error" : undefined} error={error} />
       {/* {showHint && <PromptInputHint />} */}
       <PromptInputHint>
-        個人情報や機密情報は記載しないでください
+        個人情報や機密情報は記入しないでください
       </PromptInputHint>
     </>
   );

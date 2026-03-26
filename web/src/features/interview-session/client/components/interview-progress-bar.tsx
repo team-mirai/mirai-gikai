@@ -15,7 +15,7 @@ export function InterviewProgressBar({
   remainingMinutes,
 }: InterviewProgressBarProps) {
   return (
-    <div className="rounded-[18px] bg-white py-[10px]">
+    <div className="rounded-[18px] bg-white">
       {(currentTopic || remainingMinutes != null) && (
         <div className="mb-3 flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
