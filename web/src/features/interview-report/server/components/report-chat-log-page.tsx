@@ -142,7 +142,7 @@ export async function ReportChatLogPage({
         ogImageUrl={`${origin}/api/og/report?id=${reportId}`}
         shareMessage={report.summary}
         showShare={report.is_public_by_user && report.is_public_by_admin}
-        showReaction={false}
+        showReaction={from !== "complete"} // 完了ページからはリアクション非表示
       />
     </div>
   );
@@ -182,7 +182,7 @@ function ChatMessage({ message }: ChatMessageProps) {
     return (
       <div
         id={`message-${message.id}`}
-        className="flex flex-col items-start gap-2 scroll-mt-4"
+        className="flex flex-col items-start gap-2 scroll-mt-24"
       >
         <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
           <Bot size={24} className="text-gray-600" />
@@ -198,7 +198,7 @@ function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div
       id={`message-${message.id}`}
-      className="flex flex-col items-end gap-2 scroll-mt-4"
+      className="flex flex-col items-end gap-2 scroll-mt-24"
     >
       <div className="w-9 h-9 rounded-full bg-mirai-light-gradient flex items-center justify-center">
         <UserRound size={20} className="text-gray-600" />

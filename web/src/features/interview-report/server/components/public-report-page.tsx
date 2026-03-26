@@ -70,6 +70,7 @@ export async function PublicReportPage({
           roleDescription={data.role_description}
           opinions={opinions}
           from={from}
+          reactionData={reactionData}
         />
       </div>
 

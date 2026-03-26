@@ -4,6 +4,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { SpeechBubble } from "@/components/ui/speech-bubble";
 import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
+import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
+import type { ReportReactionData } from "@/features/report-reaction/shared/types";
 import { BackToBillButton } from "./back-to-bill-button";
 import { IntervieweeInfo } from "./interviewee-info";
 import type { Opinion } from "./opinions-list";
@@ -23,6 +25,8 @@ interface ReportContentProps {
   characterCount: number;
   roleDescription: string | null;
   opinions: Opinion[];
+  /** リアクションデータ（公開レポートで使用） */
+  reactionData?: ReportReactionData;
   /** 遷移元のコンテキスト。"complete" の場合、会話ログへのリンクに ?from=complete を付与。"opinions" の場合、戻るボタンがレポート一覧を指す */
   from?: "complete" | "opinions";
   /** 意見リストの後に差し込む追加セクション（有識者登録バナーなど） */
@@ -40,6 +44,7 @@ export function ReportContent({
   characterCount,
   roleDescription,
   opinions,
+  reactionData,
   from,
   children,
 }: ReportContentProps) {
@@ -63,6 +68,14 @@ export function ReportContent({
           characterCount={characterCount}
           from={from === "complete" ? "complete" : undefined}
         />
+
+        {/* 参考になるボタン */}
+        {reactionData && (
+          <ReactionButtonsInline
+            reportId={reportId}
+            initialData={reactionData}
+          />
+        )}
       </div>
 
       {/* インタビューを受けた人 */}
