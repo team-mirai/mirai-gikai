@@ -25,7 +25,11 @@ export function RestartInterviewButton({
   );
 
   const handleConfirm = async () => {
-    await execute();
+    try {
+      await execute();
+    } finally {
+      setShowConfirm(false);
+    }
   };
 
   return (
