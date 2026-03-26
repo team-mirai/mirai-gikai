@@ -10,8 +10,6 @@ import { PublicStatusSection } from "@/features/interview-report/client/componen
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
 import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
-import { routes } from "@/lib/routes";
-import { getOrigin } from "@/lib/utils/url";
 import { ExpertRegistrationSection } from "../../client/components/expert-registration-section";
 import { ReportContent } from "../../shared/components/report-content";
 import { isExpertRegistrationTargetRole } from "../../shared/utils/expert-registration-validation";
@@ -39,14 +37,13 @@ export async function ReportCompletePage({
   const isExpertRole = isExpertRegistrationTargetRole(report.role);
   const authResult = await getAuthenticatedUser();
 
-  // 法案・メッセージ・有識者登録状況・オリジンを並列取得
-  const [bill, messages, isExpertRegistered, origin] = await Promise.all([
+  // 法案・メッセージ・有識者登録状況を並列取得
+  const [bill, messages, isExpertRegistered] = await Promise.all([
     getBillById(billId),
     getInterviewMessages(report.interview_session_id),
     isExpertRole && authResult.authenticated
       ? getExpertRegistrationStatus(authResult.userId)
       : Promise.resolve(false),
-    getOrigin(),
   ]);
 
   if (!bill) {
@@ -56,8 +53,6 @@ export async function ReportCompletePage({
   const opinions = parseOpinions(report.opinions);
   const characterCount = countCharacters(messages);
   const billName = bill.bill_content?.title || bill.name;
-  const shareUrl = `${origin}${routes.publicReport(reportId)}`;
-  const ogImageUrl = `${origin}/api/og/report?id=${reportId}`;
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -119,12 +114,6 @@ export async function ReportCompletePage({
             characterCount={characterCount}
             roleDescription={report.role_description}
             opinions={opinions}
-            share={{
-              billName,
-              shareUrl,
-              ogImageUrl,
-              shareMessage: report.summary,
-            }}
           >
             {/* 有識者リスト登録バナー */}
             {isExpertRole && !isExpertRegistered && (
