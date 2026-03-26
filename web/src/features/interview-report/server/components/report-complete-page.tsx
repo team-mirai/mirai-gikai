@@ -52,6 +52,7 @@ export async function ReportCompletePage({
 
   const opinions = parseOpinions(report.opinions);
   const characterCount = countCharacters(messages);
+  const billName = bill.bill_content?.title || bill.name;
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -92,7 +93,7 @@ export async function ReportCompletePage({
               href={getBillDetailLink(billId) as Route}
               className="text-sm text-black underline"
             >
-              {bill.bill_content?.title || bill.name}
+              {billName}
             </Link>
             <PublicStatusSection
               sessionId={report.interview_session_id}
