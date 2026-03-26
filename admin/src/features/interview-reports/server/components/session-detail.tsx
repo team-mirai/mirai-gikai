@@ -252,9 +252,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
 
       {/* モデレーション・情報充実度 */}
       {report && (
-        <div
-          className={`grid grid-cols-1 gap-6 ${contentRichness ? "md:grid-cols-2" : ""}`}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* モデレーションスコア */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -311,41 +309,49 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
           </Card>
 
           {/* 情報充実度 */}
-          {contentRichness && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">情報充実度</CardTitle>
-                <RegenerateContentRichnessButton
-                  reportId={report.id}
-                  sessionId={session.id}
-                  billId={billId}
-                />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2.5">
-                  {Object.entries(contentRichnessLabels).map(([key, label]) => {
-                    const value = contentRichness[key];
-                    if (typeof value !== "number") return null;
-                    return (
-                      <ContentRichnessBar
-                        key={key}
-                        label={label}
-                        value={value}
-                      />
-                    );
-                  })}
-                </div>
-                {typeof contentRichness.reasoning === "string" && (
-                  <div className="mt-3">
-                    <div className="text-sm text-gray-500 mb-1">評価根拠</div>
-                    <div className="text-sm bg-gray-50 p-3 rounded-lg">
-                      {contentRichness.reasoning}
-                    </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">情報充実度</CardTitle>
+              <RegenerateContentRichnessButton
+                reportId={report.id}
+                sessionId={session.id}
+                billId={billId}
+              />
+            </CardHeader>
+            <CardContent>
+              {contentRichness ? (
+                <>
+                  <div className="space-y-2.5">
+                    {Object.entries(contentRichnessLabels).map(
+                      ([key, label]) => {
+                        const value = contentRichness[key];
+                        if (typeof value !== "number") return null;
+                        return (
+                          <ContentRichnessBar
+                            key={key}
+                            label={label}
+                            value={value}
+                          />
+                        );
+                      }
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  {typeof contentRichness.reasoning === "string" && (
+                    <div className="mt-3">
+                      <div className="text-sm text-gray-500 mb-1">評価根拠</div>
+                      <div className="text-sm bg-gray-50 p-3 rounded-lg">
+                        {contentRichness.reasoning}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-gray-500 text-sm">
+                  情報充実度評価はまだ実行されていません
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
 
