@@ -1,8 +1,11 @@
 import "server-only";
 
+import type { Route } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { PublicStatusSection } from "@/features/interview-report/client/components/public-status-section";
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
 import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
@@ -70,13 +73,6 @@ export async function ReportCompletePage({
             ご協力ありがとうございました
           </h1>
 
-          {/* 法案名 */}
-          <div className="bg-mirai-surface-grouped rounded-xl px-4 py-2">
-            <p className="text-sm text-gray-800">
-              {bill.bill_content?.title || bill.name}
-            </p>
-          </div>
-
           {/* 活用メッセージ */}
           <p className="text-sm text-gray-800">
             いただいた声は政策検討に最大限活用します
@@ -92,6 +88,12 @@ export async function ReportCompletePage({
             <h2 className="text-2xl font-bold text-black">
               インタビューレポート
             </h2>
+            <Link
+              href={getBillDetailLink(billId) as Route}
+              className="text-sm text-black underline"
+            >
+              {bill.bill_content?.title || bill.name}
+            </Link>
             <PublicStatusSection
               sessionId={report.interview_session_id}
               initialIsPublic={report.is_public_by_user}
