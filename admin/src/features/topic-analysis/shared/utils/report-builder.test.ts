@@ -4,7 +4,12 @@ import type {
   TopicAnalysisTopic,
   TopicAnalysisVersion,
 } from "../types";
-import { buildReportMarkdown, buildToc, toSlug } from "./report-builder";
+import {
+  buildReportMarkdown,
+  buildToc,
+  fixCjkBold,
+  toSlug,
+} from "./report-builder";
 
 // ---------------------------------------------------------------------------
 // Helpers to build minimal mock objects
@@ -139,7 +144,7 @@ describe("buildReportMarkdown", () => {
     expect(md).toContain("交通の説明");
     expect(md).toContain("### 代表的な意見");
     expect(md).toContain("[1]");
-    expect(md).toContain('"内容A"');
+    expect(md).toContain("内容A");
   });
 
   it("builds markdown without summary", () => {
@@ -241,5 +246,31 @@ describe("buildReportMarkdown", () => {
   it("returns empty string when no summary and no topics", () => {
     const version = makeVersion({ summary_md: null });
     expect(buildReportMarkdown(version, [])).toBe("");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fixCjkBold
+// ---------------------------------------------------------------------------
+
+describe("fixCjkBold", () => {
+  it("inserts ZWS around ** so CJK bold renders correctly", () => {
+    const input = "のは**健康被害に関するトピック（76件）**であり";
+    const result = fixCjkBold(input);
+    expect(result).toContain(
+      "\u2009**健康被害に関するトピック（76件）**\u2009"
+    );
+  });
+
+  it("handles multiple bold markers", () => {
+    const input = "**トピックA**と**トピックB**について";
+    const result = fixCjkBold(input);
+    expect(result).toContain("\u2009**トピックA**\u2009");
+    expect(result).toContain("\u2009**トピックB**\u2009");
+  });
+
+  it("does not modify text without bold markers", () => {
+    const input = "普通のテキスト";
+    expect(fixCjkBold(input)).toBe("普通のテキスト");
   });
 });

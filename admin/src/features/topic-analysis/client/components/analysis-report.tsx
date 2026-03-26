@@ -8,6 +8,7 @@ import type {
 import {
   buildReportMarkdown,
   buildToc,
+  fixCjkBold,
   toSlug,
 } from "../../shared/utils/report-builder";
 
@@ -43,8 +44,9 @@ export function AnalysisReport({ version, topics }: AnalysisReportProps) {
       )}
 
       {/* レポート本文 */}
-      <article className="prose prose-base max-w-none prose-headings:border-b prose-headings:pb-2 prose-h1:text-2xl prose-h1:mb-6 prose-h2:text-xl prose-h2:mt-10 prose-h2:border-primary/20 prose-h3:text-base prose-h3:border-none prose-h3:mt-6 prose-blockquote:border-l-primary/40 prose-blockquote:bg-muted/30 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-hr:my-8">
+      <article className="prose prose-base max-w-none prose-headings:border-b prose-headings:pb-2 prose-h1:text-2xl prose-h1:mb-6 prose-h2:text-xl prose-h2:mt-10 prose-h2:border-primary/20 prose-h3:text-base prose-h3:border-none prose-h3:mt-6 prose-blockquote:border-l-primary/40 prose-blockquote:bg-muted/30 prose-blockquote:py-0 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-hr:my-8">
         <Markdown
+          remarkPlugins={[]}
           components={{
             h1: ({ children, ...props }) => {
               const text = String(children);
@@ -66,7 +68,7 @@ export function AnalysisReport({ version, topics }: AnalysisReportProps) {
             },
           }}
         >
-          {markdown}
+          {fixCjkBold(markdown)}
         </Markdown>
       </article>
     </div>
