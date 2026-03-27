@@ -65,6 +65,7 @@ describe("parseSessionFilterParams", () => {
       visibility: "all",
       stance: "all",
       role: "all",
+      moderation: "all",
     });
   });
 
