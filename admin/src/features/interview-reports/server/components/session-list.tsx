@@ -142,7 +142,14 @@ export function SessionList({
                   >
                     充実度
                   </SortableTableHead>
-                  <TableHead className="w-32">モデレーション</TableHead>
+                  <SortableTableHead
+                    field="moderation_score"
+                    currentField={sort.field}
+                    currentOrder={sort.order}
+                    className="w-32"
+                  >
+                    モデレーション
+                  </SortableTableHead>
                   <TableHead className="w-24 text-center">満足度</TableHead>
                   <SortableTableHead
                     field="started_at"
