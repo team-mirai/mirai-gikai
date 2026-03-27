@@ -1,11 +1,16 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
+import { ChevronDown, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   fetchModerationTargetIds,
   runModerationChunkAction,
@@ -18,13 +23,16 @@ export function BatchModerationButton() {
   const router = useRouter();
   const [isRunning, setIsRunning] = useState(false);
   const [includeScored, setIncludeScored] = useState(false);
+  const [open, setOpen] = useState(false);
   const [progress, setProgress] = useState<{
     processed: number;
     failed: number;
     total: number;
   } | null>(null);
 
-  const handleClick = async () => {
+  const handleExecute = async () => {
+    if (isRunning) return;
+    setOpen(false);
     setIsRunning(true);
     setProgress(null);
 
@@ -86,31 +94,42 @@ export function BatchModerationButton() {
     }
   };
 
-  return (
-    <div className="flex items-center gap-3">
-      <label
-        htmlFor="include-scored"
-        className="flex items-center gap-2 text-sm cursor-pointer"
-      >
-        <Checkbox
-          id="include-scored"
-          checked={includeScored}
-          onCheckedChange={(checked) => setIncludeScored(checked === true)}
-          disabled={isRunning}
-        />
-        評価済みも含める
-      </label>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleClick}
-        disabled={isRunning}
-      >
+  if (isRunning && progress) {
+    return (
+      <Button variant="outline" size="sm" disabled>
         <ShieldCheck className="h-4 w-4 mr-1" />
-        {isRunning && progress
-          ? `評価中... ${progress.processed}/${progress.total}${progress.failed ? ` (${progress.failed}件失敗)` : ""}`
-          : "モデレーション一括評価"}
+        {`評価中... ${progress.processed}/${progress.total}${progress.failed ? ` (${progress.failed}件失敗)` : ""}`}
       </Button>
-    </div>
+    );
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" disabled={isRunning}>
+          <ShieldCheck className="h-4 w-4 mr-1" />
+          モデレーション一括評価
+          <ChevronDown className="h-3 w-3 ml-1" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-64">
+        <div className="flex flex-col gap-3">
+          <label
+            htmlFor="include-scored"
+            className="flex items-center gap-2 text-sm cursor-pointer"
+          >
+            <Checkbox
+              id="include-scored"
+              checked={includeScored}
+              onCheckedChange={(checked) => setIncludeScored(checked === true)}
+            />
+            評価済みも含める
+          </label>
+          <Button size="sm" onClick={handleExecute}>
+            実行
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
