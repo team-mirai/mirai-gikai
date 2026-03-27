@@ -17,7 +17,11 @@ import {
   countBulkPublishTargetsAction,
 } from "../../server/actions/bulk-publish-reports-action";
 
-export function BatchPublishButton() {
+interface BatchPublishButtonProps {
+  billId: string;
+}
+
+export function BatchPublishButton({ billId }: BatchPublishButtonProps) {
   const router = useRouter();
   const [isRunning, setIsRunning] = useState(false);
   const [open, setOpen] = useState(false);
@@ -30,6 +34,7 @@ export function BatchPublishButton() {
     setIsCounting(true);
     try {
       const result = await countBulkPublishTargetsAction({
+        billId,
         maxModerationScore,
         minContentRichness,
       });
@@ -52,6 +57,7 @@ export function BatchPublishButton() {
 
     try {
       const result = await bulkPublishReportsAction({
+        billId,
         maxModerationScore,
         minContentRichness,
       });

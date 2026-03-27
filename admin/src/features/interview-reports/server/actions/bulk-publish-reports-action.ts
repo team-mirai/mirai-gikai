@@ -3,9 +3,10 @@
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidateTag } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { chunkArray } from "../../shared/utils/chunk-array";
+import { findInterviewConfigIdByBillId } from "../repositories/interview-report-repository";
 
 interface BulkPublishParams {
+  billId: string;
   maxModerationScore: number;
   minContentRichness: number;
 }
@@ -15,8 +16,6 @@ interface BulkPublishResult {
   updatedCount?: number;
   error?: string;
 }
-
-const UPDATE_CHUNK_SIZE = 500;
 
 function applyPublishTargetFilters<
   T extends ReturnType<
@@ -36,46 +35,55 @@ function applyPublishTargetFilters<
     .gte("total_content_richness", params.minContentRichness) as never as T;
 }
 
+async function resolveConfigId(billId: string): Promise<string> {
+  const config = await findInterviewConfigIdByBillId(billId);
+  if (!config) {
+    throw new Error("対象の議案にインタビュー設定が見つかりません");
+  }
+  return config.id;
+}
+
 export async function bulkPublishReportsAction(
   params: BulkPublishParams
 ): Promise<BulkPublishResult> {
   await requireAdmin();
 
   try {
+    const configId = await resolveConfigId(params.billId);
     const supabase = createAdminClient();
 
-    const query = supabase.from("interview_report").select("id");
-    const { data: targets, error: fetchError } =
-      await applyPublishTargetFilters(query, params);
+    // interview_session_id で議案スコープを絞るため、先にセッションIDを取得
+    const { data: sessions, error: sessionError } = await supabase
+      .from("interview_sessions")
+      .select("id")
+      .eq("interview_config_id", configId);
 
-    if (fetchError) {
-      throw new Error(`Failed to fetch target reports: ${fetchError.message}`);
+    if (sessionError) {
+      throw new Error(`Failed to fetch sessions: ${sessionError.message}`);
     }
 
-    if (!targets || targets.length === 0) {
+    if (!sessions || sessions.length === 0) {
       return { success: true, updatedCount: 0 };
     }
 
-    const targetIds = targets.map((r) => r.id);
+    const sessionIds = sessions.map((s) => s.id);
 
-    // 大量ID対策としてチャンク分割で更新
-    const chunks = chunkArray(targetIds, UPDATE_CHUNK_SIZE);
-    for (const chunk of chunks) {
-      const { error: updateError } = await supabase
-        .from("interview_report")
-        .update({ is_public_by_admin: true })
-        .in("id", chunk);
+    // 条件付きUPDATEで原子的に更新
+    const updateQuery = supabase
+      .from("interview_report")
+      .update({ is_public_by_admin: true })
+      .in("interview_session_id", sessionIds);
 
-      if (updateError) {
-        throw new Error(
-          `Failed to bulk update reports: ${updateError.message}`
-        );
-      }
+    const { data: updated, error: updateError } =
+      await applyPublishTargetFilters(updateQuery, params).select("id");
+
+    if (updateError) {
+      throw new Error(`Failed to bulk update reports: ${updateError.message}`);
     }
 
     revalidateTag("public-interview-reports");
 
-    return { success: true, updatedCount: targetIds.length };
+    return { success: true, updatedCount: updated?.length ?? 0 };
   } catch (error) {
     console.error("Bulk publish failed:", error);
     return {
@@ -91,12 +99,34 @@ export async function countBulkPublishTargetsAction(
   await requireAdmin();
 
   try {
+    const configId = await resolveConfigId(params.billId);
     const supabase = createAdminClient();
 
-    const query = supabase
+    // 議案スコープ: セッションIDを取得
+    const { data: sessions, error: sessionError } = await supabase
+      .from("interview_sessions")
+      .select("id")
+      .eq("interview_config_id", configId);
+
+    if (sessionError) {
+      throw new Error(`Failed to fetch sessions: ${sessionError.message}`);
+    }
+
+    if (!sessions || sessions.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    const sessionIds = sessions.map((s) => s.id);
+
+    const countQuery = supabase
       .from("interview_report")
-      .select("id", { count: "exact", head: true });
-    const { count, error } = await applyPublishTargetFilters(query, params);
+      .select("id", { count: "exact", head: true })
+      .in("interview_session_id", sessionIds);
+
+    const { count, error } = await applyPublishTargetFilters(
+      countQuery,
+      params
+    );
 
     if (error) {
       throw new Error(`Failed to count target reports: ${error.message}`);
