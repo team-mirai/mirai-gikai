@@ -51,6 +51,7 @@ export type BillWithContent = Bill & {
   mirai_stance?: MiraiStance;
   tags: BillTag[];
   featured_tag?: FeaturedTag;
+  hasPublicInterview?: boolean;
 };
 
 // タグごとにグループ化された議案
