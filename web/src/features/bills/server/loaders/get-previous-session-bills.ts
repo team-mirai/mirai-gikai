@@ -8,6 +8,7 @@ import type { BillWithContent } from "../../shared/types";
 import {
   findPreviousSessionBills,
   findTagsByBillIds,
+  findBillIdsWithPublicInterview,
   countPublishedBillsByDietSession,
 } from "../repositories/bill-repository";
 
@@ -57,9 +58,12 @@ const _getCachedPreviousSessionBills = unstable_cache(
       return [];
     }
 
-    // タグ情報を取得
+    // タグ情報とインタビュー状態を取得
     const billIds = data.map((item) => item.id);
-    const tagsByBillId = await findTagsByBillIds(billIds);
+    const [tagsByBillId, interviewBillIds] = await Promise.all([
+      findTagsByBillIds(billIds),
+      findBillIdsWithPublicInterview(billIds),
+    ]);
 
     const billsWithContent: BillWithContent[] = data.map((item) => {
       const { bill_contents, ...bill } = item;
@@ -69,6 +73,7 @@ const _getCachedPreviousSessionBills = unstable_cache(
           ? bill_contents[0]
           : undefined,
         tags: tagsByBillId.get(item.id) ?? [],
+        hasPublicInterview: interviewBillIds.has(item.id),
       };
     });
 
@@ -77,7 +82,7 @@ const _getCachedPreviousSessionBills = unstable_cache(
   ["previous-session-bills"],
   {
     revalidate: 600, // 10分
-    tags: [CACHE_TAGS.BILLS],
+    tags: [CACHE_TAGS.BILLS, CACHE_TAGS.INTERVIEW_CONFIGS],
   }
 );
 

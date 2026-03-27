@@ -63,11 +63,16 @@ export function BillCard({ bill }: BillCardProps) {
                 className="text-sm leading-relaxed"
               />
               {/* タグ表示 */}
-              {bill.tags && bill.tags.length > 0 && (
+              {(bill.tags.length > 0 || bill.hasPublicInterview) && (
                 <div className="flex flex-wrap gap-3">
                   {bill.tags.map((tag) => (
                     <BillTag key={tag.id} tag={tag} />
                   ))}
+                  {bill.hasPublicInterview && (
+                    <span className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-black bg-mirai-light-gradient rounded-full">
+                      AIインタビュー受付中
+                    </span>
+                  )}
                 </div>
               )}
             </div>
