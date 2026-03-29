@@ -873,6 +873,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bulk_publish_reports: {
+        Args: {
+          p_config_id: string
+          p_max_moderation_score: number
+          p_min_content_richness: number
+        }
+        Returns: number
+      }
+      count_bulk_publish_targets: {
+        Args: {
+          p_config_id: string
+          p_max_moderation_score: number
+          p_min_content_richness: number
+        }
+        Returns: number
+      }
       count_public_reports_by_stance: {
         Args: { p_bill_id: string }
         Returns: {
