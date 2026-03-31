@@ -3,7 +3,7 @@ import "server-only";
 import { generateObject } from "ai";
 import {
   TOPIC_ANALYSIS_MAX_CONCURRENCY,
-  TOPIC_ANALYSIS_MODEL,
+  TOPIC_ANALYSIS_WRITING_MODEL,
 } from "../../shared/constants";
 import { topicReportSchema } from "../../shared/schemas";
 import type { FlatOpinion, RepresentativeOpinion } from "../../shared/types";
@@ -66,7 +66,7 @@ async function generateSingleTopicReport(
   const sessionList = sessionIds.map((id, i) => `  ${i + 1}. ${id}`).join("\n");
 
   const result = await generateObject({
-    model: TOPIC_ANALYSIS_MODEL,
+    model: TOPIC_ANALYSIS_WRITING_MODEL,
     schema: topicReportSchema,
     prompt: `あなたは市民意見の分析レポートを作成します。
 
