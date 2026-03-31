@@ -126,7 +126,6 @@ export function InterviewConfigList({
                 <TableRow>
                   <TableHead>設定名</TableHead>
                   <TableHead>モード</TableHead>
-                  <TableHead>テーマ</TableHead>
                   <TableHead>ステータス</TableHead>
                   <TableHead>作成日</TableHead>
                   <TableHead className="w-[50px]" />
@@ -149,24 +148,6 @@ export function InterviewConfigList({
                       <Badge variant="outline">
                         {getModeLabel(config.mode)}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[400px]">
-                      {config.themes && config.themes.length > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          {config.themes.map((theme) => (
-                            <Badge
-                              key={theme}
-                              variant="secondary"
-                              className="text-xs max-w-full truncate"
-                              title={theme}
-                            >
-                              {theme}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
                     </TableCell>
                     <TableCell>
                       <Badge
