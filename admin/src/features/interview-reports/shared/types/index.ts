@@ -117,6 +117,8 @@ export type InterviewStatistics = {
   feedbackMisunderstood: number;
   feedbackTooManyQuestions: number;
   feedbackOther: number;
+  totalCostUsd: number;
+  avgCostUsd: number;
 };
 
 // ソート関連の型定義

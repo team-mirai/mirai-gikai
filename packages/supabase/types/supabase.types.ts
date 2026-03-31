@@ -970,6 +970,7 @@ export type Database = {
       get_interview_statistics: {
         Args: { p_config_id: string }
         Returns: {
+          avg_cost_usd: number
           avg_message_count: number
           avg_rating: number
           avg_total_content_richness: number
@@ -988,6 +989,7 @@ export type Database = {
           stance_against_count: number
           stance_for_count: number
           stance_neutral_count: number
+          total_cost_usd: number
           total_sessions: number
         }[]
       }
