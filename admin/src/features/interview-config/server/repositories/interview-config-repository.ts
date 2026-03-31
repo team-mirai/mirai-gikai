@@ -3,6 +3,26 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { InterviewConfig, InterviewQuestion } from "../../shared/types";
 
+export type InterviewConfigWithBill = InterviewConfig & {
+  bill: { id: string; name: string };
+};
+
+export async function findAllInterviewConfigs(): Promise<
+  InterviewConfigWithBill[]
+> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_configs")
+    .select("*, bill:bills!inner(id, name)")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch interview configs: ${error.message}`);
+  }
+
+  return data as InterviewConfigWithBill[];
+}
+
 export async function findInterviewConfigsByBillId(
   billId: string
 ): Promise<InterviewConfig[]> {
@@ -163,6 +183,26 @@ export async function countSessionsByConfigIds(
   for (const configId of configIds) {
     result[configId] = 0;
   }
+  for (const row of data) {
+    result[row.interview_config_id] =
+      (result[row.interview_config_id] ?? 0) + 1;
+  }
+  return result;
+}
+
+export async function countAllSessionsByConfigId(): Promise<
+  Record<string, number>
+> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_sessions")
+    .select("interview_config_id");
+
+  if (error) {
+    throw new Error(`Failed to count sessions: ${error.message}`);
+  }
+
+  const result: Record<string, number> = {};
   for (const row of data) {
     result[row.interview_config_id] =
       (result[row.interview_config_id] ?? 0) + 1;

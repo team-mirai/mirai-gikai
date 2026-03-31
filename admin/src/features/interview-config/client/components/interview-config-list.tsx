@@ -40,22 +40,12 @@ import {
   duplicateInterviewConfig,
 } from "../../server/actions/upsert-interview-config";
 import type { InterviewConfig } from "../../shared/types";
+import { getModeLabel } from "../../shared/utils/get-mode-label";
 
 interface InterviewConfigListProps {
   billId: string;
   configs: InterviewConfig[];
   sessionCounts: Record<string, number> | null;
-}
-
-function getModeLabel(mode: InterviewConfig["mode"]): string {
-  switch (mode) {
-    case "loop":
-      return "ループ";
-    case "bulk":
-      return "一括";
-    default:
-      return mode;
-  }
 }
 
 export function InterviewConfigList({

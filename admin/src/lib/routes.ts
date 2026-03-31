@@ -15,6 +15,7 @@ export const routes = {
   tags: () => "/tags" as const,
   dietSessions: () => "/diet-sessions" as const,
   experts: () => "/experts" as const,
+  interviews: () => "/interviews" as const,
 
   // ── 議案配下 ──────────────────────────────────────
   billEdit: (billId: string) => `/bills/${billId}/edit` as const,
