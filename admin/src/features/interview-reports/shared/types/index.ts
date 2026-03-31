@@ -117,6 +117,8 @@ export type InterviewStatistics = {
   feedbackMisunderstood: number;
   feedbackTooManyQuestions: number;
   feedbackOther: number;
+  totalCostUsd: number;
+  avgCostUsd: number;
 };
 
 // ソート関連の型定義
@@ -124,13 +126,15 @@ export type SessionSortField =
   | "started_at"
   | "message_count"
   | "total_content_richness"
-  | "helpful_count";
+  | "helpful_count"
+  | "moderation_score";
 
 export const SESSION_SORT_FIELDS: readonly SessionSortField[] = [
   "started_at",
   "message_count",
   "total_content_richness",
   "helpful_count",
+  "moderation_score",
 ] as const;
 
 export type SessionSortConfig = SortConfig<SessionSortField>;

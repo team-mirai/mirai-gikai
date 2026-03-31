@@ -19,6 +19,7 @@ import {
   findInterviewSessionsWithReportByIds,
   findSessionIdsOrderedByHelpfulCount,
   findSessionIdsOrderedByMessageCount,
+  findSessionIdsOrderedByModerationScore,
   findSessionIdsOrderedByTotalContentRichness,
 } from "../repositories/interview-report-repository";
 
@@ -45,9 +46,10 @@ export async function getInterviewSessions(
     total_content_richness: findSessionIdsOrderedByTotalContentRichness,
     helpful_count: findSessionIdsOrderedByHelpfulCount,
     message_count: findSessionIdsOrderedByMessageCount,
+    moderation_score: findSessionIdsOrderedByModerationScore,
   } as const;
 
-  // message_count/total_content_richness/helpful_countソートの場合はDB関数でソート済みIDを取得してからセッションを取得
+  // message_count/total_content_richness/helpful_count/moderation_scoreソートの場合はDB関数でソート済みIDを取得してからセッションを取得
   // ただしRPC関数はmoderationフィルタ未対応のため、moderation指定時はRPCソートをスキップし
   // started_atソートにフォールバック（計算カラムはSupabaseクエリビルダーで直接ソートできないため）
   let sessions: Awaited<ReturnType<typeof findInterviewSessionsWithReport>>;

@@ -294,6 +294,34 @@ export async function findSessionIdsOrderedByHelpfulCount(
   return (data || []).map((row) => row.session_id);
 }
 
+export async function findSessionIdsOrderedByModerationScore(
+  configId: string,
+  ascending: boolean,
+  offset: number,
+  limit: number,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
+): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc(
+    "find_sessions_ordered_by_moderation_score",
+    {
+      p_config_id: configId,
+      p_ascending: ascending,
+      p_offset: offset,
+      p_limit: limit,
+      ...toRpcFilterParams(filters),
+    }
+  );
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch sessions ordered by moderation score: ${error.message}`
+    );
+  }
+
+  return (data || []).map((row) => row.session_id);
+}
+
 export async function findHelpfulCountsByReportIds(
   reportIds: string[]
 ): Promise<Map<string, number>> {

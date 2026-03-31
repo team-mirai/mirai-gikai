@@ -191,6 +191,15 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                     />
                   </div>
                 </div>
+                <div>
+                  <div className="text-sm text-gray-500">情報充実度</div>
+                  <div className="text-sm">
+                    {contentRichness &&
+                    typeof contentRichness.total === "number"
+                      ? `${contentRichness.total} / 100`
+                      : "-"}
+                  </div>
+                </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500 mb-1">要約</div>

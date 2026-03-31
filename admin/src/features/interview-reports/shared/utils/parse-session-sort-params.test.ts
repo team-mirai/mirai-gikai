@@ -20,6 +20,10 @@ describe("parseSessionSortParams", () => {
       field: "helpful_count",
       order: "desc",
     });
+    expect(parseSessionSortParams("moderation_score", "asc")).toEqual({
+      field: "moderation_score",
+      order: "asc",
+    });
   });
 
   it("無効なフィールドはデフォルトにフォールバックする", () => {

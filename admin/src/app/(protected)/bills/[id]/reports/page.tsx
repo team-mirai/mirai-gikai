@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { BatchModerationButton } from "@/features/interview-reports/client/components/batch-moderation-button";
+import { BatchPublishButton } from "@/features/interview-reports/client/components/batch-publish-button";
 import { InterviewStatistics } from "@/features/interview-reports/server/components/interview-statistics";
 import { SessionList } from "@/features/interview-reports/server/components/session-list";
 import {
@@ -78,7 +79,10 @@ export default async function ReportsPage({
           </h1>
           <p className="text-gray-600 mt-1">議案「{bill.name}」のレポート</p>
         </div>
-        <BatchModerationButton />
+        <div className="flex items-center gap-2">
+          <BatchPublishButton billId={id} />
+          <BatchModerationButton />
+        </div>
       </div>
 
       {statistics && (
