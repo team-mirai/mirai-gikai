@@ -399,6 +399,7 @@ export async function fetchCompletedInterviewReports(billId: string) {
     .select(
       `
       id,
+      interview_config_id,
       interview_report(*)
     `
     )
@@ -414,6 +415,7 @@ export async function fetchCompletedInterviewReports(billId: string) {
   // レポートが存在し、opinions が null でないものだけを返す
   const reports: Array<{
     session_id: string;
+    config_id: string;
     report_id: string;
     opinions: Array<{
       title: string;
@@ -441,6 +443,7 @@ export async function fetchCompletedInterviewReports(billId: string) {
       if (opinions.length > 0) {
         reports.push({
           session_id: session.id,
+          config_id: session.interview_config_id,
           report_id: report.id,
           opinions,
         });

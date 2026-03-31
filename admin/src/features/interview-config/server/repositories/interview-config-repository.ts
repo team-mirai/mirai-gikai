@@ -26,18 +26,24 @@ export async function countSessionsByConfigIds(
   const countsMap = new Map<string, number>();
   if (configIds.length === 0) return countsMap;
 
+  // Initialize all configIds with 0
+  for (const id of configIds) {
+    countsMap.set(id, 0);
+  }
+
   const supabase = createAdminClient();
-  for (const configId of configIds) {
-    const { count, error } = await supabase
-      .from("interview_sessions")
-      .select("*", { count: "exact", head: true })
-      .eq("interview_config_id", configId);
+  const { data, error } = await supabase
+    .from("interview_sessions")
+    .select("interview_config_id")
+    .in("interview_config_id", configIds);
 
-    if (error) {
-      throw new Error(`Failed to count sessions: ${error.message}`);
-    }
+  if (error) {
+    throw new Error(`Failed to count sessions: ${error.message}`);
+  }
 
-    countsMap.set(configId, count ?? 0);
+  for (const row of data) {
+    const current = countsMap.get(row.interview_config_id) ?? 0;
+    countsMap.set(row.interview_config_id, current + 1);
   }
 
   return countsMap;

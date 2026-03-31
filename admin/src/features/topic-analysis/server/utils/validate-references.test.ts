@@ -4,6 +4,11 @@ import { validateAndReplaceReferences } from "./validate-references";
 describe("validateAndReplaceReferences", () => {
   const validSessionIds = new Set(["session-1", "session-2", "session-3"]);
   const billId = "bill-abc";
+  const sessionConfigMap: Record<string, string> = {
+    "session-1": "config-1",
+    "session-2": "config-1",
+    "session-3": "config-1",
+  };
 
   it("replaces valid [ref:N] markers with footnote links", () => {
     const md = "This is mentioned in [ref:1] and [ref:2].";
@@ -16,11 +21,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "This is mentioned in [[1]](/bills/bill-abc/reports/session-1) and [[2]](/bills/bill-abc/reports/session-2)."
+      "This is mentioned in [[1]](/bills/bill-abc/interview/config-1/reports/session-1) and [[2]](/bills/bill-abc/interview/config-1/reports/session-2)."
     );
     expect(result.validReferences).toHaveLength(2);
   });
@@ -36,11 +42,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "See [[1]](/bills/bill-abc/reports/session-1) and ."
+      "See [[1]](/bills/bill-abc/interview/config-1/reports/session-1) and ."
     );
     expect(result.validReferences).toHaveLength(1);
     expect(result.validReferences[0].session_id).toBe("session-1");
@@ -54,11 +61,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "Mentioned in [[1]](/bills/bill-abc/reports/session-1) and ."
+      "Mentioned in [[1]](/bills/bill-abc/interview/config-1/reports/session-1) and ."
     );
   });
 
@@ -70,7 +78,8 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe("No references here.");
@@ -85,7 +94,8 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe("");
@@ -100,7 +110,8 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe("This text has no reference markers at all.");
@@ -115,11 +126,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "First mention [[1]](/bills/bill-abc/reports/session-1), second mention [[1]](/bills/bill-abc/reports/session-1)."
+      "First mention [[1]](/bills/bill-abc/interview/config-1/reports/session-1), second mention [[1]](/bills/bill-abc/interview/config-1/reports/session-1)."
     );
   });
 
@@ -134,7 +146,8 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe("See  and .");
@@ -150,7 +163,8 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       emptySet,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe("See .");
@@ -170,11 +184,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "効率化が可能です [[1]](/bills/bill-abc/reports/session-1)[[2]](/bills/bill-abc/reports/session-2)。また改善も見込まれます [[3]](/bills/bill-abc/reports/session-3)。"
+      "効率化が可能です [[1]](/bills/bill-abc/interview/config-1/reports/session-1)[[2]](/bills/bill-abc/interview/config-1/reports/session-2)。また改善も見込まれます [[3]](/bills/bill-abc/interview/config-1/reports/session-3)。"
     );
   });
 
@@ -189,11 +204,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "参照 [[1]](/bills/bill-abc/reports/session-1)[[2]](/bills/bill-abc/reports/session-2)。"
+      "参照 [[1]](/bills/bill-abc/interview/config-1/reports/session-1)[[2]](/bills/bill-abc/interview/config-1/reports/session-2)。"
     );
   });
 
@@ -205,7 +221,8 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe("参照 。");
@@ -224,11 +241,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "最初の参照 [[1]](/bills/bill-abc/reports/session-1)、複数参照 [[2]](/bills/bill-abc/reports/session-2)[[3]](/bills/bill-abc/reports/session-3)、最後 [[1]](/bills/bill-abc/reports/session-1)[[3]](/bills/bill-abc/reports/session-3)。"
+      "最初の参照 [[1]](/bills/bill-abc/interview/config-1/reports/session-1)、複数参照 [[2]](/bills/bill-abc/interview/config-1/reports/session-2)[[3]](/bills/bill-abc/interview/config-1/reports/session-3)、最後 [[1]](/bills/bill-abc/interview/config-1/reports/session-1)[[3]](/bills/bill-abc/interview/config-1/reports/session-3)。"
     );
   });
 
@@ -244,11 +262,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       sessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "意見が出ています[[1]](/bills/bill-abc/reports/session-1)[[4]](/bills/bill-abc/reports/session-2)。"
+      "意見が出ています[[1]](/bills/bill-abc/interview/config-1/reports/session-1)[[4]](/bills/bill-abc/interview/config-1/reports/session-2)。"
     );
   });
 
@@ -263,11 +282,12 @@ describe("validateAndReplaceReferences", () => {
       md,
       references,
       validSessionIds,
-      billId
+      billId,
+      sessionConfigMap
     );
 
     expect(result.cleanedMd).toBe(
-      "参照[[1]](/bills/bill-abc/reports/session-1)[[2]](/bills/bill-abc/reports/session-2)。"
+      "参照[[1]](/bills/bill-abc/interview/config-1/reports/session-1)[[2]](/bills/bill-abc/interview/config-1/reports/session-2)。"
     );
   });
 });

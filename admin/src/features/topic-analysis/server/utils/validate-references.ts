@@ -12,7 +12,8 @@ export function validateAndReplaceReferences(
   descriptionMd: string,
   references: Array<{ ref_id: number; session_id: string }>,
   validSessionIds: Set<string>,
-  billId: string
+  billId: string,
+  sessionConfigMap: Record<string, string>
 ): {
   cleanedMd: string;
   validReferences: Array<{ ref_id: number; session_id: string }>;
@@ -36,7 +37,11 @@ export function validateAndReplaceReferences(
           if (!ref) {
             return null;
           }
-          return `[[${refId}]](/bills/${billId}/reports/${ref.session_id})`;
+          const configId = sessionConfigMap[ref.session_id];
+          if (!configId) {
+            return null;
+          }
+          return `[[${refId}]](/bills/${billId}/interview/${configId}/reports/${ref.session_id})`;
         })
         .filter(Boolean);
       if (replaced.length === 0) {

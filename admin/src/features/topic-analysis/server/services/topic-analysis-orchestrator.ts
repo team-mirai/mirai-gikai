@@ -77,6 +77,12 @@ async function runPhase1Steps(
 
   const validSessionIds = [...new Set(reports.map((r) => r.session_id))];
 
+  // session_id → config_id のマッピングを構築
+  const sessionConfigMap: Record<string, string> = {};
+  for (const report of reports) {
+    sessionConfigMap[report.session_id] = report.config_id;
+  }
+
   // Step 2: トピック抽出
   await updateVersionStep(versionId, ANALYSIS_STEPS.EXTRACT_TOPICS.label);
   console.log(
@@ -100,6 +106,7 @@ async function runPhase1Steps(
     bill_title: billData.billTitle,
     bill_summary: billData.billSummary,
     valid_session_ids: validSessionIds,
+    session_config_map: sessionConfigMap,
     raw_topics: rawTopics,
     merged_topic_names: mergedTopicNames,
     sessions_count: reports.length,
@@ -147,6 +154,7 @@ async function runPhase3Steps(
   const mergedTopicNames = phaseData.merged_topic_names!;
   const billTitle = phaseData.bill_title!;
   const validSessionIds = new Set(phaseData.valid_session_ids!);
+  const sessionConfigMap = phaseData.session_config_map ?? {};
   const classifications = phaseData.classifications!;
 
   // トピックごとの意見をグループ化
@@ -187,7 +195,8 @@ async function runPhase3Steps(
     topicInputs,
     billTitle,
     validSessionIds,
-    billId
+    billId,
+    sessionConfigMap
   );
 
   // Step 6: 全体サマリ生成

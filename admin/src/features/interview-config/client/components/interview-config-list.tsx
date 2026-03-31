@@ -32,11 +32,10 @@ import {
   deleteInterviewConfig,
   duplicateInterviewConfig,
 } from "../../server/actions/upsert-interview-config";
-import type { InterviewConfig } from "../../shared/types";
-
-export interface InterviewConfigWithSessionCount extends InterviewConfig {
-  sessionCount: number;
-}
+import type {
+  InterviewConfig,
+  InterviewConfigWithSessionCount,
+} from "../../shared/types";
 
 interface InterviewConfigListProps {
   billId: string;

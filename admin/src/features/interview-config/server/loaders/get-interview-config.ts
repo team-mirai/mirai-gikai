@@ -1,5 +1,7 @@
-import type { InterviewConfigWithSessionCount } from "../../client/components/interview-config-list";
-import type { InterviewConfig } from "../../shared/types";
+import type {
+  InterviewConfig,
+  InterviewConfigWithSessionCount,
+} from "../../shared/types";
 import {
   countSessionsByConfigIds,
   findInterviewConfigById,
