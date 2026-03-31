@@ -22,6 +22,8 @@ describe("mapInterviewStatistics", () => {
     feedback_misunderstood: 7,
     feedback_too_many_questions: 2,
     feedback_other: 1,
+    total_cost_usd: 12.345678,
+    avg_cost_usd: 0.123457,
   };
 
   it("maps raw DB result to InterviewStatistics", () => {
@@ -48,6 +50,8 @@ describe("mapInterviewStatistics", () => {
     expect(result.feedbackMisunderstood).toBe(7);
     expect(result.feedbackTooManyQuestions).toBe(2);
     expect(result.feedbackOther).toBe(1);
+    expect(result.totalCostUsd).toBe(12.345678);
+    expect(result.avgCostUsd).toBe(0.123457);
   });
 
   it("handles zero total sessions", () => {

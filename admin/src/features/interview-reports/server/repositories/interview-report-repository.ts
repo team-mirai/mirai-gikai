@@ -23,6 +23,26 @@ function hasReportLevelFilters(filters: SessionFilterConfig): boolean {
   );
 }
 
+export async function findInterviewConfigIdByBillId(
+  billId: string
+): Promise<{ id: string } | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_configs")
+    .select("id")
+    .eq("bill_id", billId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to fetch interview config: ${error.message}`);
+  }
+
+  return data;
+}
+
 export async function findInterviewSessionsWithReport(
   configId: string,
   from: number,
@@ -268,6 +288,34 @@ export async function findSessionIdsOrderedByHelpfulCount(
   if (error) {
     throw new Error(
       `Failed to fetch sessions ordered by helpful count: ${error.message}`
+    );
+  }
+
+  return (data || []).map((row) => row.session_id);
+}
+
+export async function findSessionIdsOrderedByModerationScore(
+  configId: string,
+  ascending: boolean,
+  offset: number,
+  limit: number,
+  filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
+): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc(
+    "find_sessions_ordered_by_moderation_score",
+    {
+      p_config_id: configId,
+      p_ascending: ascending,
+      p_offset: offset,
+      p_limit: limit,
+      ...toRpcFilterParams(filters),
+    }
+  );
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch sessions ordered by moderation score: ${error.message}`
     );
   }
 

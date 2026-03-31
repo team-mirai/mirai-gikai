@@ -64,8 +64,4 @@ export type InterviewQuestionsInput = z.infer<
   typeof interviewQuestionsInputSchema
 >;
 
-export interface InterviewConfigWithSessionCount extends InterviewConfig {
-  sessionCount: number;
-}
-
 export { arrayToText, textToArray } from "../utils/array-text-conversion";

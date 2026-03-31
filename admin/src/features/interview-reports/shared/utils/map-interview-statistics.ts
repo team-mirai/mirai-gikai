@@ -20,6 +20,8 @@ type RawStatistics = {
   feedback_misunderstood: number;
   feedback_too_many_questions: number;
   feedback_other: number;
+  total_cost_usd: number;
+  avg_cost_usd: number;
 };
 
 export function mapInterviewStatistics(
@@ -51,5 +53,7 @@ export function mapInterviewStatistics(
     feedbackMisunderstood: raw.feedback_misunderstood,
     feedbackTooManyQuestions: raw.feedback_too_many_questions,
     feedbackOther: raw.feedback_other,
+    totalCostUsd: raw.total_cost_usd,
+    avgCostUsd: raw.avg_cost_usd,
   };
 }

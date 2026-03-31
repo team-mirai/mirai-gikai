@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { InterviewConfigList } from "@/features/interview-config/client/components/interview-config-list";
-import { getInterviewConfigsWithSessionCount } from "@/features/interview-config/server/loaders/get-interview-config";
+import {
+  getInterviewConfigs,
+  getSessionCountsByConfigIds,
+} from "@/features/interview-config/server/loaders/get-interview-config";
 import { routes } from "@/lib/routes";
 
 interface InterviewListPageProps {
@@ -19,12 +22,16 @@ export default async function InterviewListPage({
   const { id } = await params;
   const [bill, configs] = await Promise.all([
     getBillById(id),
-    getInterviewConfigsWithSessionCount(id),
+    getInterviewConfigs(id),
   ]);
 
   if (!bill) {
     notFound();
   }
+
+  const sessionCounts = await getSessionCountsByConfigIds(
+    configs.map((c) => c.id)
+  );
 
   return (
     <div>
@@ -45,7 +52,11 @@ export default async function InterviewListPage({
         </p>
       </div>
 
-      <InterviewConfigList billId={bill.id} configs={configs} />
+      <InterviewConfigList
+        billId={bill.id}
+        configs={configs}
+        sessionCounts={sessionCounts}
+      />
     </div>
   );
 }

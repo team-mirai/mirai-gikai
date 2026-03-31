@@ -3,6 +3,7 @@ import "server-only";
 import {
   CheckCircle2,
   Clock,
+  DollarSign,
   Eye,
   MessageSquare,
   Star,
@@ -266,6 +267,12 @@ export function InterviewStatistics({
           label="公開許可"
           value={stats.publicByUserCount}
           sub={`公開率 ${stats.publicRate.toFixed(0)}%`}
+        />
+        <StatCard
+          icon={<DollarSign className="h-5 w-5" />}
+          label="トータルコスト"
+          value={`$${stats.totalCostUsd.toFixed(2)}`}
+          sub={`平均 $${stats.avgCostUsd.toFixed(4)}/セッション`}
         />
       </div>
 

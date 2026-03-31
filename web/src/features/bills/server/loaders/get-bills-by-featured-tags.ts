@@ -7,6 +7,7 @@ import type { BillsByTag } from "../../shared/types";
 import {
   findFeaturedTags,
   findPublishedBillsByTag,
+  findBillIdsWithPublicInterview,
 } from "../repositories/bill-repository";
 
 /**
@@ -91,14 +92,27 @@ const _getCachedBillsByFeaturedTags = unstable_cache(
       })
     );
 
-    // nullを除外して返す
-    return results.filter(
+    // nullを除外
+    const filteredResults = results.filter(
       (result): result is NonNullable<typeof result> => result !== null
     );
+
+    // 全議案のIDを収集してインタビュー状態を一括取得
+    const allBillIds = filteredResults.flatMap((r) => r.bills.map((b) => b.id));
+    const interviewBillIds = await findBillIdsWithPublicInterview(allBillIds);
+
+    // インタビュー状態を付与
+    return filteredResults.map((result) => ({
+      ...result,
+      bills: result.bills.map((bill) => ({
+        ...bill,
+        hasPublicInterview: interviewBillIds.has(bill.id),
+      })),
+    }));
   },
   ["featured-bills-list"],
   {
     revalidate: 600, // 10分（600秒）
-    tags: [CACHE_TAGS.BILLS],
+    tags: [CACHE_TAGS.BILLS, CACHE_TAGS.INTERVIEW_CONFIGS],
   }
 );

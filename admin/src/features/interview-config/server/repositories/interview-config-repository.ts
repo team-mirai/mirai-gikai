@@ -20,35 +20,6 @@ export async function findInterviewConfigsByBillId(
   return data;
 }
 
-export async function countSessionsByConfigIds(
-  configIds: string[]
-): Promise<Map<string, number>> {
-  const countsMap = new Map<string, number>();
-  if (configIds.length === 0) return countsMap;
-
-  // Initialize all configIds with 0
-  for (const id of configIds) {
-    countsMap.set(id, 0);
-  }
-
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("interview_sessions")
-    .select("interview_config_id")
-    .in("interview_config_id", configIds);
-
-  if (error) {
-    throw new Error(`Failed to count sessions: ${error.message}`);
-  }
-
-  for (const row of data) {
-    const current = countsMap.get(row.interview_config_id) ?? 0;
-    countsMap.set(row.interview_config_id, current + 1);
-  }
-
-  return countsMap;
-}
-
 export async function findInterviewConfigById(
   configId: string
 ): Promise<InterviewConfig | null> {
@@ -171,6 +142,32 @@ export async function updateInterviewConfigRecord(
   }
 
   return data;
+}
+
+export async function countSessionsByConfigIds(
+  configIds: string[]
+): Promise<Record<string, number>> {
+  if (configIds.length === 0) return {};
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_sessions")
+    .select("interview_config_id")
+    .in("interview_config_id", configIds);
+
+  if (error) {
+    throw new Error(`Failed to count sessions: ${error.message}`);
+  }
+
+  const result: Record<string, number> = {};
+  for (const configId of configIds) {
+    result[configId] = 0;
+  }
+  for (const row of data) {
+    result[row.interview_config_id] =
+      (result[row.interview_config_id] ?? 0) + 1;
+  }
+  return result;
 }
 
 export async function deleteInterviewConfigRecord(

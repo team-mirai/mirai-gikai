@@ -873,6 +873,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bulk_publish_reports: {
+        Args: {
+          p_config_id: string
+          p_max_moderation_score: number
+          p_min_content_richness: number
+        }
+        Returns: number
+      }
+      count_bulk_publish_targets: {
+        Args: {
+          p_config_id: string
+          p_max_moderation_score: number
+          p_min_content_richness: number
+        }
+        Returns: number
+      }
       count_public_reports_by_stance: {
         Args: { p_bill_id: string }
         Returns: {
@@ -936,6 +952,21 @@ export type Database = {
           session_id: string
         }[]
       }
+      find_sessions_ordered_by_moderation_score: {
+        Args: {
+          p_ascending?: boolean
+          p_config_id: string
+          p_limit?: number
+          p_offset?: number
+          p_role?: string
+          p_stance?: string
+          p_status?: string
+          p_visibility?: string
+        }
+        Returns: {
+          session_id: string
+        }[]
+      }
       find_sessions_ordered_by_total_content_richness: {
         Args: {
           p_ascending?: boolean
@@ -970,6 +1001,7 @@ export type Database = {
       get_interview_statistics: {
         Args: { p_config_id: string }
         Returns: {
+          avg_cost_usd: number
           avg_message_count: number
           avg_rating: number
           avg_total_content_richness: number
@@ -988,6 +1020,7 @@ export type Database = {
           stance_against_count: number
           stance_for_count: number
           stance_neutral_count: number
+          total_cost_usd: number
           total_sessions: number
         }[]
       }

@@ -313,6 +313,116 @@ describe("get_interview_statistics() 関数", () => {
     expect(data?.[0].feedback_other).toBe(0);
   });
 
+  it("コスト集計を正しく計算する", async () => {
+    const bill = await createTestBill();
+    billIds.push(bill.id);
+    const config = await createTestInterviewConfig(bill.id);
+
+    const s1 = await createTestSession(config.id, testUser.id);
+    const s2 = await createTestSession(config.id, testUser.id);
+    const s3 = await createTestSession(config.id, testUser.id); // コストなし
+
+    // s1: 2件のコストイベント
+    await adminClient.from("chat_usage_events").insert([
+      {
+        user_id: testUser.id,
+        session_id: s1.id,
+        model: "gpt-4o",
+        cost_usd: 0.05,
+        input_tokens: 100,
+        output_tokens: 50,
+        total_tokens: 150,
+      },
+      {
+        user_id: testUser.id,
+        session_id: s1.id,
+        model: "gpt-4o",
+        cost_usd: 0.03,
+        input_tokens: 80,
+        output_tokens: 40,
+        total_tokens: 120,
+      },
+    ]);
+    // s2: 1件のコストイベント
+    await adminClient.from("chat_usage_events").insert({
+      user_id: testUser.id,
+      session_id: s2.id,
+      model: "gpt-4o",
+      cost_usd: 0.02,
+      input_tokens: 60,
+      output_tokens: 30,
+      total_tokens: 90,
+    });
+
+    const { data, error } = await adminClient.rpc("get_interview_statistics", {
+      p_config_id: config.id,
+    });
+
+    expect(error).toBeNull();
+    // total: 0.05 + 0.03 + 0.02 = 0.10
+    expect(Number(data?.[0].total_cost_usd)).toBeCloseTo(0.1, 4);
+    // avg: 0.10 / 3 sessions = 0.033333
+    expect(Number(data?.[0].avg_cost_usd)).toBeCloseTo(0.033333, 4);
+  });
+
+  it("コストイベントがない場合はゼロを返す", async () => {
+    const bill = await createTestBill();
+    billIds.push(bill.id);
+    const config = await createTestInterviewConfig(bill.id);
+
+    await createTestSession(config.id, testUser.id);
+
+    const { data, error } = await adminClient.rpc("get_interview_statistics", {
+      p_config_id: config.id,
+    });
+
+    expect(error).toBeNull();
+    expect(Number(data?.[0].total_cost_usd)).toBe(0);
+    expect(Number(data?.[0].avg_cost_usd)).toBe(0);
+  });
+
+  it("別configのコストデータは含まれない", async () => {
+    const bill1 = await createTestBill();
+    billIds.push(bill1.id);
+    const config1 = await createTestInterviewConfig(bill1.id);
+    const s1 = await createTestSession(config1.id, testUser.id);
+
+    const bill2 = await createTestBill();
+    billIds.push(bill2.id);
+    const config2 = await createTestInterviewConfig(bill2.id);
+    const s2 = await createTestSession(config2.id, testUser.id);
+
+    // config1のセッションに0.05、config2のセッションに0.10
+    await adminClient.from("chat_usage_events").insert([
+      {
+        user_id: testUser.id,
+        session_id: s1.id,
+        model: "gpt-4o",
+        cost_usd: 0.05,
+        input_tokens: 100,
+        output_tokens: 50,
+        total_tokens: 150,
+      },
+      {
+        user_id: testUser.id,
+        session_id: s2.id,
+        model: "gpt-4o",
+        cost_usd: 0.1,
+        input_tokens: 200,
+        output_tokens: 100,
+        total_tokens: 300,
+      },
+    ]);
+
+    const { data, error } = await adminClient.rpc("get_interview_statistics", {
+      p_config_id: config1.id,
+    });
+
+    expect(error).toBeNull();
+    expect(Number(data?.[0].total_cost_usd)).toBeCloseTo(0.05, 4);
+    expect(Number(data?.[0].avg_cost_usd)).toBeCloseTo(0.05, 4);
+  });
+
   it("存在しないconfig_idではすべてゼロ/NULLの行を返す", async () => {
     const { data, error } = await adminClient.rpc("get_interview_statistics", {
       p_config_id: "00000000-0000-0000-0000-000000000000",

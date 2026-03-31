@@ -52,7 +52,7 @@ export function MakePrivateModal({
 
         <div className="space-y-4 mt-6">
           <CheckListItem>
-            非公開にした場合、あなたのご意見が世の中に公開されることはありません
+            非公開にした場合、あなたのご意見が世の中に公開されることはありません。
           </CheckListItem>
           <CheckListItem>
             チームみらい党内での政策検討に最大限活用させていただきます。
