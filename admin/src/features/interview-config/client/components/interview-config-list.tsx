@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { routes } from "@/lib/routes";
 import {
   Table,
@@ -37,6 +39,7 @@ import type { InterviewConfig } from "../../shared/types";
 interface InterviewConfigListProps {
   billId: string;
   configs: InterviewConfig[];
+  sessionCounts: Record<string, number> | null;
 }
 
 function getModeLabel(mode: InterviewConfig["mode"]): string {
@@ -53,6 +56,7 @@ function getModeLabel(mode: InterviewConfig["mode"]): string {
 export function InterviewConfigList({
   billId,
   configs,
+  sessionCounts,
 }: InterviewConfigListProps) {
   const router = useRouter();
   const [deleteTarget, setDeleteTarget] = useState<InterviewConfig | null>(
@@ -60,6 +64,17 @@ export function InterviewConfigList({
   );
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+
+  const handleOpenDeleteDialog = (config: InterviewConfig) => {
+    setDeleteConfirmed(false);
+    setDeleteTarget(config);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteTarget(null);
+    setDeleteConfirmed(false);
+  };
 
   const handleDuplicate = async (configId: string) => {
     setIsDuplicating(configId);
@@ -96,9 +111,14 @@ export function InterviewConfigList({
       toast.error("予期しないエラーが発生しました");
     } finally {
       setIsDeleting(false);
-      setDeleteTarget(null);
+      handleCloseDeleteDialog();
     }
   };
+
+  const deleteTargetSessionCount =
+    deleteTarget && sessionCounts
+      ? (sessionCounts[deleteTarget.id] ?? 0)
+      : null;
 
   return (
     <>
@@ -203,7 +223,7 @@ export function InterviewConfigList({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setDeleteTarget(config)}
+                          onClick={() => handleOpenDeleteDialog(config)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -219,24 +239,56 @@ export function InterviewConfigList({
 
       <AlertDialog
         open={deleteTarget !== null}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onOpenChange={(open) => !open && handleCloseDeleteDialog()}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>インタビュー設定の削除</AlertDialogTitle>
-            <AlertDialogDescription>
-              「{deleteTarget?.name}」を削除しますか？
-              この設定に関連する質問、セッション、レポートもすべて削除されます。
-              この操作は取り消せません。
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>「{deleteTarget?.name}」を削除しますか？</p>
+                {deleteTargetSessionCount === null ? (
+                  <p className="font-medium text-yellow-600">
+                    セッション数を取得できませんでした。紐づくセッションが存在する可能性があります。
+                  </p>
+                ) : (
+                  deleteTargetSessionCount > 0 && (
+                    <p className="font-medium text-red-600">
+                      この設定には{deleteTargetSessionCount}
+                      件のセッションが紐づいています。
+                    </p>
+                  )
+                )}
+                <p>
+                  この設定に関連する質問、セッション、レポートもすべて削除されます。
+                  この操作は取り消せません。
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="flex items-center gap-2 px-1">
+            <Checkbox
+              id="delete-confirm"
+              checked={deleteConfirmed}
+              onCheckedChange={(checked) =>
+                setDeleteConfirmed(checked === true)
+              }
+              disabled={isDeleting}
+            />
+            <Label
+              htmlFor="delete-confirm"
+              className="text-sm cursor-pointer select-none"
+            >
+              上記の内容を理解した上で削除します
+            </Label>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>
               キャンセル
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={isDeleting || !deleteConfirmed}
               className="bg-red-600 hover:bg-red-700"
             >
               {isDeleting ? "削除中..." : "削除する"}

@@ -144,6 +144,32 @@ export async function updateInterviewConfigRecord(
   return data;
 }
 
+export async function countSessionsByConfigIds(
+  configIds: string[]
+): Promise<Record<string, number>> {
+  if (configIds.length === 0) return {};
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_sessions")
+    .select("interview_config_id")
+    .in("interview_config_id", configIds);
+
+  if (error) {
+    throw new Error(`Failed to count sessions: ${error.message}`);
+  }
+
+  const result: Record<string, number> = {};
+  for (const configId of configIds) {
+    result[configId] = 0;
+  }
+  for (const row of data) {
+    result[row.interview_config_id] =
+      (result[row.interview_config_id] ?? 0) + 1;
+  }
+  return result;
+}
+
 export async function deleteInterviewConfigRecord(
   configId: string
 ): Promise<void> {
