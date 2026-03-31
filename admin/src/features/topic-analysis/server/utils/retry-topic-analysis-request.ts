@@ -73,6 +73,20 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
+function getSanitizedErrorDetails(error: unknown): string {
+  const status = getErrorStatus(error);
+  if (error instanceof Error) {
+    const statusSuffix = status !== undefined ? ` status=${status}` : "";
+    return `message="${error.message}"${statusSuffix}`;
+  }
+
+  if (status !== undefined) {
+    return `status=${status}`;
+  }
+
+  return "unknown error";
+}
+
 export async function retryTopicAnalysisRequest<T>(
   fn: () => Promise<T>,
   options: RetryOptions,
@@ -85,6 +99,14 @@ export async function retryTopicAnalysisRequest<T>(
   } = options;
   const { randomFn = Math.random, sleepFn = sleep } = deps;
 
+  if (maxAttempts < 1) {
+    throw new Error("maxAttempts must be greater than or equal to 1");
+  }
+
+  if (baseDelayMs < 0) {
+    throw new Error("baseDelayMs must be greater than or equal to 0");
+  }
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
@@ -95,8 +117,7 @@ export async function retryTopicAnalysisRequest<T>(
 
       const delayMs = getRetryDelayMs(attempt, baseDelayMs, randomFn);
       console.warn(
-        `[TopicAnalysis] ${label} failed on attempt ${attempt}/${maxAttempts}. Retrying in ${delayMs}ms...`,
-        error
+        `[TopicAnalysis] ${label} failed on attempt ${attempt}/${maxAttempts}. Retrying in ${delayMs}ms. ${getSanitizedErrorDetails(error)}`
       );
       await sleepFn(delayMs);
     }

@@ -18,6 +18,7 @@ describe("retryTopicAnalysisRequest", () => {
       .mockRejectedValueOnce({ statusCode: 429 })
       .mockResolvedValueOnce("ok");
     const sleepFn = vi.fn().mockResolvedValue(undefined);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     await expect(
       retryTopicAnalysisRequest(fn, { label: "step1" }, { sleepFn })
@@ -25,6 +26,8 @@ describe("retryTopicAnalysisRequest", () => {
 
     expect(fn).toHaveBeenCalledTimes(2);
     expect(sleepFn).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("status=429"));
+    warnSpy.mockRestore();
   });
 
   it("リトライ不可エラーは即座に失敗する", async () => {
@@ -44,6 +47,7 @@ describe("retryTopicAnalysisRequest", () => {
     const error = { response: { status: 503 } };
     const fn = vi.fn().mockRejectedValue(error);
     const sleepFn = vi.fn().mockResolvedValue(undefined);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     await expect(
       retryTopicAnalysisRequest(
@@ -55,5 +59,33 @@ describe("retryTopicAnalysisRequest", () => {
 
     expect(fn).toHaveBeenCalledTimes(3);
     expect(sleepFn).toHaveBeenCalledTimes(2);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("status=503"));
+    warnSpy.mockRestore();
+  });
+
+  it("不正な maxAttempts を明示エラーにする", async () => {
+    await expect(
+      retryTopicAnalysisRequest(
+        vi.fn().mockResolvedValue("ok"),
+        {
+          label: "step1",
+          maxAttempts: 0,
+        },
+        { sleepFn: vi.fn().mockResolvedValue(undefined) }
+      )
+    ).rejects.toThrow("maxAttempts must be greater than or equal to 1");
+  });
+
+  it("不正な baseDelayMs を明示エラーにする", async () => {
+    await expect(
+      retryTopicAnalysisRequest(
+        vi.fn().mockResolvedValue("ok"),
+        {
+          label: "step1",
+          baseDelayMs: -1,
+        },
+        { sleepFn: vi.fn().mockResolvedValue(undefined) }
+      )
+    ).rejects.toThrow("baseDelayMs must be greater than or equal to 0");
   });
 });
