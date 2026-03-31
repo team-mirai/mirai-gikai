@@ -1,8 +1,6 @@
 import { CheckCircle2, Clock, Lightbulb, XCircle } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-
-import { routes } from "@/lib/routes";
 import {
   Pagination,
   PaginationContent,
@@ -23,8 +21,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SessionFilterBar } from "../../client/components/session-filter-bar";
+import { routes } from "@/lib/routes";
 import { ReportVisibilityListToggle } from "../../client/components/report-visibility-list-toggle";
+import { SessionFilterBar } from "../../client/components/session-filter-bar";
 import type {
   InterviewSessionWithDetails,
   SessionFilterConfig,
@@ -45,6 +44,7 @@ import { StanceBadge } from "./stance-badge";
 
 interface SessionListProps {
   billId: string;
+  configId: string;
   sessions: InterviewSessionWithDetails[];
   totalCount: number;
   currentPage: number;
@@ -61,6 +61,7 @@ function BooleanIcon({ value }: { value: boolean }) {
 
 function buildPageUrl(
   billId: string,
+  configId: string,
   page: number,
   sort: SessionSortConfig,
   filters: SessionFilterConfig
@@ -89,11 +90,12 @@ function buildPageUrl(
   if (filters.moderation !== DEFAULT_SESSION_FILTER.moderation) {
     params.set("moderation", filters.moderation);
   }
-  return `${routes.billReports(billId)}?${params.toString()}` as Route;
+  return `${routes.billReports(billId, configId)}?${params.toString()}` as Route;
 }
 
 export function SessionList({
   billId,
+  configId,
   sessions,
   totalCount,
   currentPage,
@@ -186,7 +188,11 @@ export function SessionList({
                       <TableCell className="font-mono text-sm">
                         <Link
                           href={
-                            routes.billReportDetail(billId, session.id) as Route
+                            routes.billReportDetail(
+                              billId,
+                              configId,
+                              session.id
+                            ) as Route
                           }
                           className="text-blue-600 hover:underline"
                         >
@@ -310,7 +316,7 @@ export function SessionList({
           <PaginationContent>
             <PaginationItem>
               <PaginationFirst
-                href={buildPageUrl(billId, 1, sort, filters)}
+                href={buildPageUrl(billId, configId, 1, sort, filters)}
                 aria-disabled={currentPage <= 1}
                 className={
                   currentPage <= 1 ? "pointer-events-none opacity-50" : ""
@@ -322,6 +328,7 @@ export function SessionList({
               <PaginationPrevious
                 href={buildPageUrl(
                   billId,
+                  configId,
                   currentPage > 1 ? currentPage - 1 : 1,
                   sort,
                   filters
@@ -341,7 +348,7 @@ export function SessionList({
               ) : (
                 <PaginationItem key={page}>
                   <PaginationLink
-                    href={buildPageUrl(billId, page, sort, filters)}
+                    href={buildPageUrl(billId, configId, page, sort, filters)}
                     isActive={page === currentPage}
                   >
                     {page}
@@ -354,6 +361,7 @@ export function SessionList({
               <PaginationNext
                 href={buildPageUrl(
                   billId,
+                  configId,
                   currentPage < totalPages ? currentPage + 1 : totalPages,
                   sort,
                   filters
@@ -369,7 +377,7 @@ export function SessionList({
 
             <PaginationItem>
               <PaginationLast
-                href={buildPageUrl(billId, totalPages, sort, filters)}
+                href={buildPageUrl(billId, configId, totalPages, sort, filters)}
                 aria-disabled={currentPage >= totalPages}
                 className={
                   currentPage >= totalPages

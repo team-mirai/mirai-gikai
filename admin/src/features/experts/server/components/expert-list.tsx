@@ -1,4 +1,6 @@
 import "server-only";
+import { FileText } from "lucide-react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -9,8 +11,6 @@ import {
 } from "@/components/ui/table";
 import { StanceBadge } from "@/features/interview-reports/server/components/stance-badge";
 import { routes } from "@/lib/routes";
-import { FileText } from "lucide-react";
-import Link from "next/link";
 import type { Expert } from "../../shared/types";
 
 type ExpertListProps = {
@@ -59,6 +59,7 @@ export function ExpertList({ experts }: ExpertListProps) {
                             key={report.sessionId}
                             href={routes.billReportDetail(
                               report.billId,
+                              report.configId,
                               report.sessionId
                             )}
                             className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"

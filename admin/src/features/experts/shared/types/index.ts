@@ -1,6 +1,7 @@
 export type ExpertReport = {
   sessionId: string;
   billId: string;
+  configId: string;
   billName: string;
   stance: string | null;
 };

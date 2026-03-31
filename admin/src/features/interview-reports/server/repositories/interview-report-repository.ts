@@ -23,26 +23,6 @@ function hasReportLevelFilters(filters: SessionFilterConfig): boolean {
   );
 }
 
-export async function findInterviewConfigIdByBillId(
-  billId: string
-): Promise<{ id: string } | null> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("interview_configs")
-    .select("id")
-    .eq("bill_id", billId)
-    .single();
-
-  if (error) {
-    if (error.code === "PGRST116") {
-      return null;
-    }
-    throw new Error(`Failed to fetch interview config: ${error.message}`);
-  }
-
-  return data;
-}
-
 export async function findInterviewSessionsWithReport(
   configId: string,
   from: number,

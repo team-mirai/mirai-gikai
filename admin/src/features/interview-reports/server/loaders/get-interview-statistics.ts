@@ -2,22 +2,13 @@ import "server-only";
 
 import type { InterviewStatistics } from "../../shared/types";
 import { mapInterviewStatistics } from "../../shared/utils/map-interview-statistics";
-import {
-  findInterviewConfigIdByBillId,
-  findInterviewStatistics,
-} from "../repositories/interview-report-repository";
+import { findInterviewStatistics } from "../repositories/interview-report-repository";
 
 export async function getInterviewStatistics(
-  billId: string
+  configId: string
 ): Promise<InterviewStatistics | null> {
-  const config = await findInterviewConfigIdByBillId(billId);
-
-  if (!config) {
-    return null;
-  }
-
   try {
-    const raw = await findInterviewStatistics(config.id);
+    const raw = await findInterviewStatistics(configId);
     if (!raw) {
       return null;
     }

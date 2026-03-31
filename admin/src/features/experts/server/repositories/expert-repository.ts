@@ -27,7 +27,7 @@ export async function findCompletedSessionsWithReportsByUserIds(
       id,
       user_id,
       interview_report(id, stance),
-      interview_configs!inner(bill_id, bills(id, name))
+      interview_configs!inner(id, bill_id, bills(id, name))
     `
     )
     .in("user_id", userIds)

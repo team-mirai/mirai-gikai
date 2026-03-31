@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { routes } from "@/lib/routes";
 import { runSingleContentRichnessScoring } from "../services/content-richness-scoring";
 
 interface SingleContentRichnessResult {
@@ -21,8 +20,7 @@ export async function runSingleContentRichnessAction(
   try {
     const { total } = await runSingleContentRichnessScoring(reportId);
 
-    revalidatePath(routes.billReportDetail(billId, sessionId));
-    revalidatePath(routes.billReports(billId));
+    revalidatePath(`/bills/${billId}`, "layout");
 
     return { success: true, total };
   } catch (error) {

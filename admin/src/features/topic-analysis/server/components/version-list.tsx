@@ -1,5 +1,5 @@
-import type { Route } from "next";
 import { FileText } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
 
@@ -9,6 +9,7 @@ import { formatAnalysisDuration } from "../../shared/utils/format-analysis-durat
 interface VersionListProps {
   versions: TopicAnalysisVersion[];
   billId: string;
+  configId: string;
 }
 
 const statusLabels: Record<string, { label: string; className: string }> = {
@@ -30,7 +31,7 @@ const statusLabels: Record<string, { label: string; className: string }> = {
   },
 };
 
-export function VersionList({ versions, billId }: VersionListProps) {
+export function VersionList({ versions, billId, configId }: VersionListProps) {
   if (versions.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
@@ -89,6 +90,7 @@ export function VersionList({ versions, billId }: VersionListProps) {
                       href={
                         routes.billTopicAnalysisDetail(
                           billId,
+                          configId,
                           version.id
                         ) as Route
                       }

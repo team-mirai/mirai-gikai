@@ -47,9 +47,8 @@ export async function updateReportVisibilityAction(
 
     await updateReportVisibility(reportId, isPublic);
 
-    // Revalidate the detail page and list page
-    revalidatePath(`/bills/${billId}/reports/${sessionId}`);
-    revalidatePath(`/bills/${billId}/reports`);
+    // Revalidate bill interview pages (reports are under interview config)
+    revalidatePath(`/bills/${billId}`, "layout");
     revalidateTag("public-interview-reports");
 
     return { success: true };

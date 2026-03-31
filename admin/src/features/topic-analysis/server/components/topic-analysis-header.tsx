@@ -1,16 +1,18 @@
-import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
 
 interface TopicAnalysisHeaderProps {
   billId: string;
+  configId: string;
   billName: string;
   showBackToAnalysis?: boolean;
 }
 
 export function TopicAnalysisHeader({
   billId,
+  configId,
   billName,
   showBackToAnalysis,
 }: TopicAnalysisHeaderProps) {
@@ -19,7 +21,7 @@ export function TopicAnalysisHeader({
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
         {showBackToAnalysis ? (
           <Link
-            href={routes.billTopicAnalysis(billId) as Route}
+            href={routes.billTopicAnalysis(billId, configId) as Route}
             className="flex items-center gap-1 hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -27,11 +29,11 @@ export function TopicAnalysisHeader({
           </Link>
         ) : (
           <Link
-            href={routes.bills()}
+            href={routes.billInterview(billId) as Route}
             className="flex items-center gap-1 hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
-            議案一覧に戻る
+            インタビュー設定に戻る
           </Link>
         )}
       </div>

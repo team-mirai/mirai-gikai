@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { routes } from "@/lib/routes";
 import { runSingleModerationScoring } from "../services/batch-moderation-scoring";
 
 interface SingleModerationResult {
@@ -21,8 +20,7 @@ export async function runSingleModerationAction(
   try {
     const { score } = await runSingleModerationScoring(reportId);
 
-    revalidatePath(routes.billReportDetail(billId, sessionId));
-    revalidatePath(routes.billReports(billId));
+    revalidatePath(`/bills/${billId}`, "layout");
 
     return { success: true, score };
   } catch (error) {

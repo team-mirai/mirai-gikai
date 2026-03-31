@@ -20,6 +20,29 @@ export async function findInterviewConfigsByBillId(
   return data;
 }
 
+export async function countSessionsByConfigIds(
+  configIds: string[]
+): Promise<Map<string, number>> {
+  const countsMap = new Map<string, number>();
+  if (configIds.length === 0) return countsMap;
+
+  const supabase = createAdminClient();
+  for (const configId of configIds) {
+    const { count, error } = await supabase
+      .from("interview_sessions")
+      .select("*", { count: "exact", head: true })
+      .eq("interview_config_id", configId);
+
+    if (error) {
+      throw new Error(`Failed to count sessions: ${error.message}`);
+    }
+
+    countsMap.set(configId, count ?? 0);
+  }
+
+  return countsMap;
+}
+
 export async function findInterviewConfigById(
   configId: string
 ): Promise<InterviewConfig | null> {

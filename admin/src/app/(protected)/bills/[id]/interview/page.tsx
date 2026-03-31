@@ -3,9 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
-import { routes } from "@/lib/routes";
 import { InterviewConfigList } from "@/features/interview-config/client/components/interview-config-list";
-import { getInterviewConfigs } from "@/features/interview-config/server/loaders/get-interview-config";
+import { getInterviewConfigsWithSessionCount } from "@/features/interview-config/server/loaders/get-interview-config";
+import { routes } from "@/lib/routes";
 
 interface InterviewListPageProps {
   params: Promise<{
@@ -19,7 +19,7 @@ export default async function InterviewListPage({
   const { id } = await params;
   const [bill, configs] = await Promise.all([
     getBillById(id),
-    getInterviewConfigs(id),
+    getInterviewConfigsWithSessionCount(id),
   ]);
 
   if (!bill) {

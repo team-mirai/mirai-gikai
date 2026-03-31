@@ -8,6 +8,7 @@ type SessionWithReport = {
     stance: string | null;
   } | null;
   interview_configs: {
+    id: string;
     bill_id: string;
     bills: {
       id: string;
@@ -30,6 +31,7 @@ export function buildReportsByUserId(
     existing.push({
       sessionId: session.id,
       billId: bills.id,
+      configId: session.interview_configs.id,
       billName: bills.name,
       stance: report.stance,
     });

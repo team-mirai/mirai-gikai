@@ -39,7 +39,7 @@ export async function runTopicAnalysisAction(
       };
     }
 
-    revalidatePath(`/bills/${billId}/topic-analysis`);
+    revalidatePath(`/bills/${billId}`, "layout");
 
     return { success: true, versionId: data.versionId };
   } catch (error) {

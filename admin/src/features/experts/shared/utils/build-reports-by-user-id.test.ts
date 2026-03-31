@@ -14,6 +14,7 @@ describe("buildReportsByUserId", () => {
         user_id: "user-1",
         interview_report: null,
         interview_configs: {
+          id: "config-1",
           bill_id: "bill-1",
           bills: { id: "bill-1", name: "議案A" },
         },
@@ -28,7 +29,7 @@ describe("buildReportsByUserId", () => {
         id: "session-1",
         user_id: "user-1",
         interview_report: { id: "report-1", stance: "for" },
-        interview_configs: { bill_id: "bill-1", bills: null },
+        interview_configs: { id: "config-1", bill_id: "bill-1", bills: null },
       },
     ]);
     expect(result.size).toBe(0);
@@ -41,6 +42,7 @@ describe("buildReportsByUserId", () => {
         user_id: "user-1",
         interview_report: { id: "report-1", stance: "for" },
         interview_configs: {
+          id: "config-1",
           bill_id: "bill-1",
           bills: { id: "bill-1", name: "議案A" },
         },
@@ -53,6 +55,7 @@ describe("buildReportsByUserId", () => {
       {
         sessionId: "session-1",
         billId: "bill-1",
+        configId: "config-1",
         billName: "議案A",
         stance: "for",
       },
@@ -66,6 +69,7 @@ describe("buildReportsByUserId", () => {
         user_id: "user-1",
         interview_report: { id: "report-1", stance: "for" },
         interview_configs: {
+          id: "config-1",
           bill_id: "bill-1",
           bills: { id: "bill-1", name: "議案A" },
         },
@@ -75,6 +79,7 @@ describe("buildReportsByUserId", () => {
         user_id: "user-1",
         interview_report: { id: "report-2", stance: "against" },
         interview_configs: {
+          id: "config-2",
           bill_id: "bill-2",
           bills: { id: "bill-2", name: "議案B" },
         },
@@ -95,6 +100,7 @@ describe("buildReportsByUserId", () => {
         user_id: "user-1",
         interview_report: { id: "report-1", stance: "neutral" },
         interview_configs: {
+          id: "config-1",
           bill_id: "bill-1",
           bills: { id: "bill-1", name: "議案A" },
         },
@@ -104,6 +110,7 @@ describe("buildReportsByUserId", () => {
         user_id: "user-2",
         interview_report: { id: "report-2", stance: "for" },
         interview_configs: {
+          id: "config-1",
           bill_id: "bill-1",
           bills: { id: "bill-1", name: "議案A" },
         },
@@ -122,6 +129,7 @@ describe("buildReportsByUserId", () => {
         user_id: "user-1",
         interview_report: { id: "report-1", stance: null },
         interview_configs: {
+          id: "config-1",
           bill_id: "bill-1",
           bills: { id: "bill-1", name: "議案A" },
         },

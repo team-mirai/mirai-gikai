@@ -13,7 +13,6 @@ import { calculatePaginationRange } from "../../shared/utils/pagination-utils";
 import {
   countInterviewSessionsByConfigId,
   findHelpfulCountsByReportIds,
-  findInterviewConfigIdByBillId,
   findInterviewMessageCounts,
   findInterviewSessionsWithReport,
   findInterviewSessionsWithReportByIds,
@@ -25,17 +24,11 @@ import {
 export const SESSIONS_PER_PAGE = 30;
 
 export async function getInterviewSessions(
-  billId: string,
+  configId: string,
   page = 1,
   sort: SessionSortConfig = DEFAULT_SESSION_SORT,
   filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
 ): Promise<InterviewSessionWithDetails[]> {
-  const config = await findInterviewConfigIdByBillId(billId);
-
-  if (!config) {
-    return [];
-  }
-
   // ページネーション計算
   const { from, to } = calculatePaginationRange(page, SESSIONS_PER_PAGE);
   const limit = to - from + 1;
@@ -59,7 +52,7 @@ export async function getInterviewSessions(
         : undefined;
     if (rpcFetcher) {
       const orderedIds = await rpcFetcher(
-        config.id,
+        configId,
         sort.order === "asc",
         from,
         limit,
@@ -73,7 +66,7 @@ export async function getInterviewSessions(
         effectiveSortField = "started_at";
       }
       sessions = await findInterviewSessionsWithReport(
-        config.id,
+        configId,
         from,
         to,
         {
@@ -164,17 +157,11 @@ export async function getInterviewSessions(
 }
 
 export async function getInterviewSessionsCount(
-  billId: string,
+  configId: string,
   filters: SessionFilterConfig = DEFAULT_SESSION_FILTER
 ): Promise<number> {
-  const config = await findInterviewConfigIdByBillId(billId);
-
-  if (!config) {
-    return 0;
-  }
-
   try {
-    return await countInterviewSessionsByConfigId(config.id, filters);
+    return await countInterviewSessionsByConfigId(configId, filters);
   } catch (error) {
     console.error("Failed to fetch session count:", error);
     return 0;

@@ -1,22 +1,15 @@
 "use client";
 
-import {
-  BarChart3,
-  Edit,
-  FileText,
-  MessageCircle,
-  MoreVertical,
-  Sparkles,
-} from "lucide-react";
+import { Edit, FileText, MessageCircle, MoreVertical } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { routes } from "@/lib/routes";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { routes } from "@/lib/routes";
 import { DeleteBillButton } from "./delete-bill-button";
 import { DuplicateBillButton } from "./duplicate-bill-button";
 
@@ -51,18 +44,6 @@ export function BillActionsMenu({ billId, billName }: BillActionsMenuProps) {
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <MessageCircle className="h-4 w-4 mr-2" />
               インタビュー設定
-            </Button>
-          </Link>
-          <Link href={routes.billReports(billId) as Route}>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              レポート一覧
-            </Button>
-          </Link>
-          <Link href={routes.billTopicAnalysis(billId) as Route}>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <Sparkles className="h-4 w-4 mr-2" />
-              トピック解析
             </Button>
           </Link>
           <div className="my-1 border-t" />

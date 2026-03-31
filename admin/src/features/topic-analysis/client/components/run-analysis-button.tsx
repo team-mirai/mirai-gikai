@@ -11,6 +11,7 @@ import { formatDurationMs } from "../../shared/utils/format-analysis-duration";
 
 interface RunAnalysisButtonProps {
   billId: string;
+  configId: string;
 }
 
 type AnalysisStatus = {
@@ -27,7 +28,10 @@ function getStepOrder(stepLabel: string | null): number {
   return step?.order ?? 0;
 }
 
-export function RunAnalysisButton({ billId }: RunAnalysisButtonProps) {
+export function RunAnalysisButton({
+  billId,
+  configId,
+}: RunAnalysisButtonProps) {
   const router = useRouter();
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +85,11 @@ export function RunAnalysisButton({ billId }: RunAnalysisButtonProps) {
         stopPolling();
         setIsRunning(false);
         router.push(
-          routes.billTopicAnalysisDetail(billId, versionIdRef.current!) as Route
+          routes.billTopicAnalysisDetail(
+            billId,
+            configId,
+            versionIdRef.current!
+          ) as Route
         );
         router.refresh();
       } else if (data.status === "failed") {
@@ -97,7 +105,7 @@ export function RunAnalysisButton({ billId }: RunAnalysisButtonProps) {
         setError("ステータス取得に繰り返し失敗しました");
       }
     }
-  }, [billId, router, stopPolling]);
+  }, [billId, configId, router, stopPolling]);
 
   const handleRun = async () => {
     setIsRunning(true);

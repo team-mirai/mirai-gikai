@@ -1,7 +1,7 @@
 "use client";
 
+import { BarChart3, Copy, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import type { Route } from "next";
-import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { routes } from "@/lib/routes";
 import {
   Table,
   TableBody,
@@ -28,15 +27,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { routes } from "@/lib/routes";
 import {
   deleteInterviewConfig,
   duplicateInterviewConfig,
 } from "../../server/actions/upsert-interview-config";
 import type { InterviewConfig } from "../../shared/types";
 
+export interface InterviewConfigWithSessionCount extends InterviewConfig {
+  sessionCount: number;
+}
+
 interface InterviewConfigListProps {
   billId: string;
-  configs: InterviewConfig[];
+  configs: InterviewConfigWithSessionCount[];
 }
 
 function getModeLabel(mode: InterviewConfig["mode"]): string {
@@ -55,9 +59,8 @@ export function InterviewConfigList({
   configs,
 }: InterviewConfigListProps) {
   const router = useRouter();
-  const [deleteTarget, setDeleteTarget] = useState<InterviewConfig | null>(
-    null
-  );
+  const [deleteTarget, setDeleteTarget] =
+    useState<InterviewConfigWithSessionCount | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
 
@@ -128,7 +131,9 @@ export function InterviewConfigList({
                   <TableHead>モード</TableHead>
                   <TableHead>テーマ</TableHead>
                   <TableHead>ステータス</TableHead>
+                  <TableHead>セッション数</TableHead>
                   <TableHead>作成日</TableHead>
+                  <TableHead>リンク</TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
@@ -179,7 +184,32 @@ export function InterviewConfigList({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-gray-600">
+                      {config.sessionCount}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
                       {new Date(config.created_at).toLocaleDateString("ja-JP")}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Link
+                          href={routes.billReports(billId, config.id) as Route}
+                        >
+                          <Button variant="ghost" size="sm" className="gap-1">
+                            <BarChart3 className="h-4 w-4" />
+                            レポート
+                          </Button>
+                        </Link>
+                        <Link
+                          href={
+                            routes.billTopicAnalysis(billId, config.id) as Route
+                          }
+                        >
+                          <Button variant="ghost" size="sm" className="gap-1">
+                            <Sparkles className="h-4 w-4" />
+                            トピック解析
+                          </Button>
+                        </Link>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">

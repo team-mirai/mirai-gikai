@@ -1,16 +1,17 @@
-import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
-import { routes } from "@/lib/routes";
 import { SessionDetail } from "@/features/interview-reports/server/components/session-detail";
 import { getInterviewSessionDetail } from "@/features/interview-reports/server/loaders/get-interview-session-detail";
+import { routes } from "@/lib/routes";
 
 interface ReportDetailPageProps {
   params: Promise<{
     id: string;
+    configId: string;
     sessionId: string;
   }>;
 }
@@ -18,7 +19,7 @@ interface ReportDetailPageProps {
 export default async function ReportDetailPage({
   params,
 }: ReportDetailPageProps) {
-  const { id, sessionId } = await params;
+  const { id, configId, sessionId } = await params;
   const [bill, session] = await Promise.all([
     getBillById(id),
     getInterviewSessionDetail(sessionId),
@@ -36,7 +37,7 @@ export default async function ReportDetailPage({
     <div>
       <div className="mb-6">
         <Link
-          href={routes.billReports(id) as Route}
+          href={routes.billReports(id, configId) as Route}
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4" />
