@@ -93,29 +93,42 @@ export function AllInterviewConfigList({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      <Link
-                        href={
-                          routes.billReports(config.bill_id, config.id) as Route
-                        }
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1"
                       >
-                        <Button variant="ghost" size="sm" className="gap-1">
+                        <Link
+                          href={
+                            routes.billReports(
+                              config.bill_id,
+                              config.id
+                            ) as Route
+                          }
+                        >
                           <BarChart3 className="h-4 w-4" />
                           レポート
-                        </Button>
-                      </Link>
-                      <Link
-                        href={
-                          routes.billTopicAnalysis(
-                            config.bill_id,
-                            config.id
-                          ) as Route
-                        }
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1"
                       >
-                        <Button variant="ghost" size="sm" className="gap-1">
+                        <Link
+                          href={
+                            routes.billTopicAnalysis(
+                              config.bill_id,
+                              config.id
+                            ) as Route
+                          }
+                        >
                           <Sparkles className="h-4 w-4" />
                           トピック解析
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
