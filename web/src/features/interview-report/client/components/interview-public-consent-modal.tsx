@@ -56,7 +56,7 @@ export function InterviewPublicConsentModal({
           <h3 className="text-lg font-bold text-primary-accent text-center leading-relaxed">
             インタビュー内容の公開を
             <br />
-            許可しますか
+            許可しますか？
           </h3>
 
           <div className="space-y-4">
@@ -64,7 +64,7 @@ export function InterviewPublicConsentModal({
               公開を許可した場合、今後みらい議会にあなたのご意見の要約とインタビュー原文が匿名で掲載されることがあります。
             </CheckListItem>
             <CheckListItem>
-              さまざまな意見が公開されることで、より深い法案議論が実現できます
+              さまざまな意見が公開されることで、より深い法案議論が実現できます。
             </CheckListItem>
           </div>
 
