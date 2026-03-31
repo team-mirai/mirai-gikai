@@ -904,6 +904,13 @@ export type Database = {
           reaction_type: string
         }[]
       }
+      count_sessions_by_config_ids: {
+        Args: { p_config_ids: string[] }
+        Returns: {
+          interview_config_id: string
+          session_count: number
+        }[]
+      }
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: {
           p_bill_id: string

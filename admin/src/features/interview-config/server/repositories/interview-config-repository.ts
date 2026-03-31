@@ -150,10 +150,9 @@ export async function countSessionsByConfigIds(
   if (configIds.length === 0) return {};
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("interview_sessions")
-    .select("interview_config_id")
-    .in("interview_config_id", configIds);
+  const { data, error } = await supabase.rpc("count_sessions_by_config_ids", {
+    p_config_ids: configIds,
+  });
 
   if (error) {
     throw new Error(`Failed to count sessions: ${error.message}`);
@@ -164,8 +163,7 @@ export async function countSessionsByConfigIds(
     result[configId] = 0;
   }
   for (const row of data) {
-    result[row.interview_config_id] =
-      (result[row.interview_config_id] ?? 0) + 1;
+    result[row.interview_config_id] = Number(row.session_count);
   }
   return result;
 }
