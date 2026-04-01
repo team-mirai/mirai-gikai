@@ -3,9 +3,9 @@
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidateTag } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { findInterviewConfigIdByBillId } from "../repositories/interview-report-repository";
 
 interface BulkPublishParams {
+  configId: string;
   billId: string;
   maxModerationScore: number;
   minContentRichness: number;
@@ -17,12 +17,21 @@ interface BulkPublishResult {
   error?: string;
 }
 
-async function resolveConfigId(billId: string): Promise<string> {
-  const config = await findInterviewConfigIdByBillId(billId);
-  if (!config) {
-    throw new Error("対象の議案にインタビュー設定が見つかりません");
+async function verifyConfigBelongsToBill(
+  configId: string,
+  billId: string
+): Promise<void> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_configs")
+    .select("id")
+    .eq("id", configId)
+    .eq("bill_id", billId)
+    .single();
+
+  if (error || !data) {
+    throw new Error("指定されたインタビュー設定はこの議案に属していません");
   }
-  return config.id;
 }
 
 export async function bulkPublishReportsAction(
@@ -31,11 +40,11 @@ export async function bulkPublishReportsAction(
   await requireAdmin();
 
   try {
-    const configId = await resolveConfigId(params.billId);
+    await verifyConfigBelongsToBill(params.configId, params.billId);
     const supabase = createAdminClient();
 
     const { data, error } = await supabase.rpc("bulk_publish_reports", {
-      p_config_id: configId,
+      p_config_id: params.configId,
       p_max_moderation_score: params.maxModerationScore,
       p_min_content_richness: params.minContentRichness,
     });
@@ -64,11 +73,11 @@ export async function countBulkPublishTargetsAction(
   await requireAdmin();
 
   try {
-    const configId = await resolveConfigId(params.billId);
+    await verifyConfigBelongsToBill(params.configId, params.billId);
     const supabase = createAdminClient();
 
     const { data, error } = await supabase.rpc("count_bulk_publish_targets", {
-      p_config_id: configId,
+      p_config_id: params.configId,
       p_max_moderation_score: params.maxModerationScore,
       p_min_content_richness: params.minContentRichness,
     });
