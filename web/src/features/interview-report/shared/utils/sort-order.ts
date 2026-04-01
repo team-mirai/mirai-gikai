@@ -1,7 +1,7 @@
 export type SortOrder = "recommended" | "newest";
 
 export const sortOrderLabels: Record<SortOrder, string> = {
-  recommended: "おすすめ順",
+  recommended: "標準",
   newest: "新着順",
 };
 
