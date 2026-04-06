@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+> **Note**: `CLAUDE.md` は `AGENTS.md` へのシンボリックリンクです。ルールの追加・編集は必ず `AGENTS.md` を直接編集してください。
+
 ## 必須ルール
 
 ### Worktree必須
