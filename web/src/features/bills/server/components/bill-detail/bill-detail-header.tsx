@@ -7,6 +7,7 @@ import { getInterviewLPLink } from "@/features/interview-config/shared/utils/int
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
+import { ReviewCompleteBadge } from "../../../client/components/bill-detail/review-status-banner";
 import { BillStatusBadge } from "../../../client/components/bill-list/bill-status-badge";
 import { BillTag } from "../../../client/components/bill-list/bill-tag";
 import { getBillShareData } from "../../../client/utils/share";
@@ -47,7 +48,15 @@ export async function BillDetailHeader({
 
       <div className="px-4 pt-8 mb-3">
         {displayTitle && (
-          <h1 className="text-2xl font-bold mb-3">{displayTitle}</h1>
+          <h1 className="text-2xl font-bold mb-3">
+            {displayTitle}
+            {bill.is_review_completed && (
+              <>
+                {" "}
+                <ReviewCompleteBadge />
+              </>
+            )}
+          </h1>
         )}
         <div className="flex flex-row gap-4">
           <BillStatusBadge status={bill.status} className="w-fit" />

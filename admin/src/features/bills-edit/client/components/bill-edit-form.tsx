@@ -44,6 +44,7 @@ export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
       share_thumbnail_url: bill.share_thumbnail_url,
       shugiin_url: bill.shugiin_url,
       is_featured: bill.is_featured,
+      is_review_completed: bill.is_review_completed,
       diet_session_id: defaultDietSessionId,
     },
   });

@@ -40,6 +40,7 @@ const billBaseSchema = z.object({
     })
     .optional(),
   is_featured: z.boolean(),
+  is_review_completed: z.boolean(),
   diet_session_id: z.string().uuid().nullable().optional(),
 });
 

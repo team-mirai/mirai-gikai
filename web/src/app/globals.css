@@ -100,6 +100,9 @@
   --color-mirai-badge-yellow: #fffd96;
   --color-mirai-info-blue: #b2d3e8;
 
+  /* Review */
+  --color-mirai-review-complete: #34c759;
+
   /* Progress */
   --color-mirai-progress-track: #d9d9d9;
   --color-mirai-progress-fill: #a9e89d;

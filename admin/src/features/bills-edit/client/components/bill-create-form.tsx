@@ -36,6 +36,7 @@ export function BillCreateForm({ dietSessions }: BillCreateFormProps) {
       share_thumbnail_url: null,
       shugiin_url: null,
       is_featured: false,
+      is_review_completed: false,
       diet_session_id: defaultDietSessionId,
     },
   });

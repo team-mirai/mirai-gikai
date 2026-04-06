@@ -18,6 +18,7 @@ const baseBill: BillWithContent = {
   status: "in_originating_house",
   originating_house: "HR",
   is_featured: false,
+  is_review_completed: true,
   thumbnail_url: null,
   share_thumbnail_url: null,
   published_at: "2026-02-15",

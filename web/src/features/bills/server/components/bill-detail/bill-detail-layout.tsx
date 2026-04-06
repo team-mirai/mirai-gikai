@@ -8,6 +8,7 @@ import { BillDetailClient } from "../../../client/components/bill-detail/bill-de
 import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disclaimer";
 import { BillStatusProgress } from "../../../client/components/bill-detail/bill-status-progress";
 import { MiraiStanceCard } from "../../../client/components/bill-detail/mirai-stance-card";
+import { ReviewInProgressBanner } from "../../../client/components/bill-detail/review-status-banner";
 import type { BillWithContent } from "../../../shared/types";
 import { BillShareButtons } from "../share/bill-share-buttons";
 import { BillContent } from "./bill-content";
@@ -36,6 +37,11 @@ export async function BillDetailLayout({
         - BillDetailClientでクライアントサイド機能（テキスト選択、チャット連携）を提供
         - このパターンによりSSRを保持しつつインタラクティブ機能を実装
       */}
+      {!bill.is_review_completed && (
+        <div className="px-4 pt-4">
+          <ReviewInProgressBanner />
+        </div>
+      )}
       <BillDetailClient
         bill={bill}
         currentDifficulty={currentDifficulty}

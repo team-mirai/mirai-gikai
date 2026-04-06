@@ -285,6 +285,27 @@ export function BillFormFields({
           </FormItem>
         )}
       />
+
+      <FormField
+        control={control}
+        name="is_review_completed"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>記事レビュー完了</FormLabel>
+              <FormDescription>
+                未完了の場合、記事にレビュー中バナーが表示されます
+              </FormDescription>
+            </div>
+          </FormItem>
+        )}
+      />
     </>
   );
 }

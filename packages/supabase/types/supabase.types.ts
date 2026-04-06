@@ -81,6 +81,7 @@ export type Database = {
           diet_session_id: string | null
           id: string
           is_featured: boolean
+          is_review_completed: boolean
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
@@ -99,6 +100,7 @@ export type Database = {
           diet_session_id?: string | null
           id?: string
           is_featured?: boolean
+          is_review_completed?: boolean
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
@@ -117,6 +119,7 @@ export type Database = {
           diet_session_id?: string | null
           id?: string
           is_featured?: boolean
+          is_review_completed?: boolean
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
