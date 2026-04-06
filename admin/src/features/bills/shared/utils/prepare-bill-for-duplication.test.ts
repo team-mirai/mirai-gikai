@@ -44,6 +44,11 @@ describe("prepareBillForDuplication", () => {
     expect(result.publish_status).toBe("draft");
   });
 
+  it("is_review_completedをfalseにリセットする", () => {
+    const result = prepareBillForDuplication(baseBill);
+    expect(result.is_review_completed).toBe(false);
+  });
+
   it("その他のフィールドを保持する", () => {
     const result = prepareBillForDuplication(baseBill);
     expect(result.diet_session_id).toBe("session-001");
