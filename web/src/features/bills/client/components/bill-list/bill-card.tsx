@@ -1,9 +1,9 @@
+import { CircleCheck } from "lucide-react";
 import Image from "next/image";
 import { RubySafeLineClamp } from "@/components/ruby-safe-line-clamp";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
-import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
 import { BillStatusBadge } from "./bill-status-badge";
 import { BillTag } from "./bill-tag";
 
@@ -51,7 +51,9 @@ export function BillCard({ bill }: BillCardProps) {
                 {bill.is_review_completed && (
                   <>
                     {" "}
-                    <ReviewCompleteBadge />
+                    <span className="inline-flex items-center align-baseline">
+                      <CircleCheck className="size-6 fill-primary text-white" />
+                    </span>
                   </>
                 )}
               </CardTitle>
