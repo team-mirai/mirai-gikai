@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return NextResponse.redirect(`${origin}${routes.login()}?error=auth_error`);
+    return redirectWithCookies(
+      response,
+      `${origin}${routes.login()}?error=auth_error`
+    );
   }
 
   // admin 権限チェック: 権限がなければサインアウトしてログインページにリダイレクト
@@ -47,10 +50,25 @@ export async function GET(request: NextRequest) {
 
   if (!user || !checkAdminPermission(user)) {
     await supabase.auth.signOut();
-    return NextResponse.redirect(
+    return redirectWithCookies(
+      response,
       `${origin}${routes.login()}?error=unauthorized`
     );
   }
 
   return response;
+}
+
+/**
+ * response に蓄積された Set-Cookie を新しいリダイレクト先に引き継ぐ
+ */
+function redirectWithCookies(
+  source: NextResponse,
+  location: string
+): NextResponse {
+  const redirect = NextResponse.redirect(location);
+  for (const cookie of source.cookies.getAll()) {
+    redirect.cookies.set(cookie);
+  }
+  return redirect;
 }
