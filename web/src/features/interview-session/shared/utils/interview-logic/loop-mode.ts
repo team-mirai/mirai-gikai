@@ -2,6 +2,7 @@ import {
   buildLoopModeStageGuidance,
   buildTimeManagementGuidance,
 } from "../stage-transition-guidance";
+import { BILL_CLARIFICATION_GUIDANCE } from "./bill-clarification-guidance";
 import type { InterviewPromptInput, NextQuestionInput } from "./types";
 
 /**
@@ -68,6 +69,8 @@ export function buildLoopModeSystemPrompt(
 - **「なぜ」の多用を避ける**: 「なぜそう思うのですか？」ではなく「どのような背景で」「何がきっかけで」など柔らかい表現を使う
 - **「一つだけ」「一番」の多用を避ける**: 「一つだけ教えてください」「一番大きな理由は？」のような限定的な聞き方はパターン化しやすい。代わりに「どのあたりが」「どういった点で」「いくつか挙げるとすれば」など、回答の幅を狭めない表現を使う
 - 法案に関する質問のみに集中してください
+
+${BILL_CLARIFICATION_GUIDANCE}
 
 ## 法案に関する知識
 - 法案名: ${billName}
