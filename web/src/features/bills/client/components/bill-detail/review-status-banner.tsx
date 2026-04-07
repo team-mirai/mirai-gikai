@@ -36,7 +36,7 @@ export function ReviewCompleteBadge({
   const [open, setOpen] = useState(false);
 
   const icon = (
-    <span className="inline-flex items-center align-baseline">
+    <span className="inline-flex items-center align-middle">
       <CircleCheck className="size-6 fill-primary text-white" />
     </span>
   );
@@ -50,7 +50,7 @@ export function ReviewCompleteBadge({
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center align-baseline"
+          className="inline-flex items-center align-middle"
           onClick={() => setOpen(true)}
         >
           <CircleCheck className="size-6 fill-primary text-white" />
