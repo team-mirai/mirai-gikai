@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { ReportCardData } from "../components/report-card";
-import { countReportsByStance, filterReportsByStance } from "./stance-filter";
+import {
+  countReportsByStance,
+  filterReportsByStance,
+  parseStanceFilter,
+} from "./stance-filter";
 
 const reports: ReportCardData[] = [
   {
@@ -80,5 +84,23 @@ describe("countReportsByStance", () => {
       against: 0,
       neutral: 0,
     });
+  });
+});
+
+describe("parseStanceFilter", () => {
+  it("有効な値をそのまま返す", () => {
+    expect(parseStanceFilter("all")).toBe("all");
+    expect(parseStanceFilter("for")).toBe("for");
+    expect(parseStanceFilter("against")).toBe("against");
+    expect(parseStanceFilter("neutral")).toBe("neutral");
+  });
+
+  it("無効な値の場合は 'all' を返す", () => {
+    expect(parseStanceFilter("invalid")).toBe("all");
+    expect(parseStanceFilter("")).toBe("all");
+  });
+
+  it("null の場合は 'all' を返す", () => {
+    expect(parseStanceFilter(null)).toBe("all");
   });
 });
