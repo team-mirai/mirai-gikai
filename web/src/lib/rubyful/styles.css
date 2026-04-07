@@ -13,7 +13,7 @@ rt {
 }
 
 /* ボタン内のルビを非表示（固定高さのボタンレイアウトが崩れるため） */
-button rt,
-[data-slot="button"] rt {
+button .rubyful-rt,
+[data-slot="button"] .rubyful-rt {
   display: none;
 }
