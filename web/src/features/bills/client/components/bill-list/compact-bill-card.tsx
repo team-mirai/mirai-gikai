@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
+import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
 import { BillStatusBadge } from "./bill-status-badge";
 
 interface CompactBillCardProps {
@@ -26,6 +27,12 @@ export function CompactBillCard({ bill, className }: CompactBillCardProps) {
         <div className="flex-1 p-4 flex flex-col gap-2">
           <h3 className="font-bold text-[15px] leading-[1.6] line-clamp-2">
             {displayTitle}
+            {bill.is_review_completed && (
+              <>
+                {" "}
+                <ReviewCompleteBadge />
+              </>
+            )}
           </h3>
           <div className="flex items-center gap-3">
             <BillStatusBadge status={bill.status} className="w-fit" />
