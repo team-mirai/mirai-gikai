@@ -4,6 +4,7 @@ node_modules
 .DS_Store
 .vscode
 .claude/worktrees
+*.local.json
 
 # env files
 .env

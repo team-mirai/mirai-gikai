@@ -16,12 +16,21 @@ UI変更を含むPRのスクリーンショットを自動で撮影・アップ�
 
 引数なしで実行すると、変更差分からUI変更対象ページを自動判断する。
 
-## 定数
+## 設定
+
+R2の接続情報はローカル設定ファイル `.claude/skills/pr-screenshot/config.local.json` から読み取る（gitignore対象）。
+
+```json
+{
+  "r2AccountId": "your-cloudflare-account-id",
+  "r2Bucket": "your-bucket-name",
+  "r2PublicUrl": "https://pub-xxx.r2.dev"
+}
+```
+
+**初回セットアップ**: このファイルが存在しない場合、スキル実行時にユーザーに値を聞いて作成する。
 
 ```
-R2_ACCOUNT_ID=9bcb6374e14bf692153e4e8d9314803f
-R2_BUCKET=sample
-R2_PUBLIC_URL=https://pub-d6de2fb179d948d18c6b1ed89fcf1061.r2.dev
 SCREENSHOT_DIR=/tmp/pr-screenshots
 ```
 
@@ -146,11 +155,18 @@ agent-browser --session $SESSION wait 3000
 
 ### Step 5: R2 アップロード
 
+`config.local.json` から設定を読み取ってアップロードする。
+
 ```bash
-export CLOUDFLARE_ACCOUNT_ID=9bcb6374e14bf692153e4e8d9314803f
+# config.local.json から値を取得（Bash の jq または Read ツールで読む）
+R2_ACCOUNT_ID=$(cat .claude/skills/pr-screenshot/config.local.json | jq -r '.r2AccountId')
+R2_BUCKET=$(cat .claude/skills/pr-screenshot/config.local.json | jq -r '.r2Bucket')
+R2_PUBLIC_URL=$(cat .claude/skills/pr-screenshot/config.local.json | jq -r '.r2PublicUrl')
+
+export CLOUDFLARE_ACCOUNT_ID=$R2_ACCOUNT_ID
 
 # PR番号ベースのパスでアップロード
-npx wrangler r2 object put "sample/pr-${PR_NUMBER}/screenshot-1.png" \
+npx wrangler r2 object put "${R2_BUCKET}/pr-${PR_NUMBER}/screenshot-1.png" \
   --file /tmp/pr-screenshots/screenshot-1.png --remote
 
 # 複数ファイルがある場合はそれぞれアップロード
@@ -158,7 +174,7 @@ npx wrangler r2 object put "sample/pr-${PR_NUMBER}/screenshot-1.png" \
 
 公開URLのパターン:
 ```
-https://pub-d6de2fb179d948d18c6b1ed89fcf1061.r2.dev/pr-${PR_NUMBER}/screenshot-1.png
+${R2_PUBLIC_URL}/pr-${PR_NUMBER}/screenshot-1.png
 ```
 
 ### Step 6: PR 本文にスクリーンショットを追加
