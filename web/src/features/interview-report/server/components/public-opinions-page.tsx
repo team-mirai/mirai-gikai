@@ -82,7 +82,6 @@ export async function PublicOpinionsPage({
 
         {/* 意見一覧（フィルター付き・スクロールページネーション） */}
         <PublicOpinionsList
-          key={`${initialFilter}-${initialSort}`}
           billId={billId}
           initialReports={initialData.reports}
           initialReactionsRecord={reactionsRecord}

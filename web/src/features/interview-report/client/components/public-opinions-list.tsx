@@ -1,8 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import type { Route } from "next";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
@@ -108,14 +107,13 @@ export function PublicOpinionsList({
   initialSort,
 }: PublicOpinionsListProps) {
   useAnonymousSupabaseUser();
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [reactionsRecord, setReactionsRecord] = useState<ReactionsRecord>(
     initialReactionsRecord
   );
 
-  const updateSearchParams = useCallback(
+  const updateUrl = useCallback(
     (filter: StanceFilter, sort: SortOrder) => {
       const params = new URLSearchParams(searchParams.toString());
 
@@ -133,9 +131,9 @@ export function PublicOpinionsList({
 
       const query = params.toString();
       const href = query ? `${pathname}?${query}` : pathname;
-      router.replace(href as Route, { scroll: false });
+      window.history.replaceState(null, "", href);
     },
-    [router, pathname, searchParams]
+    [pathname, searchParams]
   );
 
   const fetchMore = useCallback(
@@ -170,17 +168,17 @@ export function PublicOpinionsList({
   const changeFilter = useCallback(
     (filter: StanceFilter) => {
       rawChangeFilter(filter);
-      updateSearchParams(filter, activeSort);
+      updateUrl(filter, activeSort);
     },
-    [rawChangeFilter, updateSearchParams, activeSort]
+    [rawChangeFilter, updateUrl, activeSort]
   );
 
   const changeSort = useCallback(
     (sort: SortOrder) => {
       rawChangeSort(sort);
-      updateSearchParams(activeFilter, sort);
+      updateUrl(activeFilter, sort);
     },
-    [rawChangeSort, updateSearchParams, activeFilter]
+    [rawChangeSort, updateUrl, activeFilter]
   );
 
   return (
