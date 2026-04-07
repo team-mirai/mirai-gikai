@@ -1,8 +1,8 @@
-import { CircleCheck } from "lucide-react";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
+import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
 import { BillStatusBadge } from "./bill-status-badge";
 
 interface CompactBillCardProps {
@@ -30,9 +30,7 @@ export function CompactBillCard({ bill, className }: CompactBillCardProps) {
             {bill.is_review_completed && (
               <>
                 {" "}
-                <span className="inline-flex items-center align-baseline">
-                  <CircleCheck className="size-6 fill-primary text-white" />
-                </span>
+                <ReviewCompleteBadge />
               </>
             )}
           </h3>

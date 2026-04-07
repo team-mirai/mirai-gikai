@@ -22,12 +22,28 @@ export function ReviewInProgressBanner() {
   );
 }
 
+interface ReviewCompleteBadgeProps {
+  showTooltip?: boolean;
+}
+
 /**
- * レビュー完了時にタイトル横に表示するチェックマーク（ツールチップ付き）
- * タップでもツールチップを表示（スマホ対応）
+ * レビュー完了時にタイトル横に表示するチェックマーク
+ * showTooltip=true の場合、ホバー＋タップでツールチップを表示（スマホ対応）
  */
-export function ReviewCompleteBadge() {
+export function ReviewCompleteBadge({
+  showTooltip = false,
+}: ReviewCompleteBadgeProps) {
   const [open, setOpen] = useState(false);
+
+  const icon = (
+    <span className="inline-flex items-center align-baseline">
+      <CircleCheck className="size-6 fill-primary text-white" />
+    </span>
+  );
+
+  if (!showTooltip) {
+    return icon;
+  }
 
   return (
     <Tooltip open={open} onOpenChange={setOpen}>

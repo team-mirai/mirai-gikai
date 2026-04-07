@@ -62,7 +62,7 @@ export async function BillDetailHeader({
             {bill.is_review_completed && (
               <>
                 {" "}
-                <ReviewCompleteBadge />
+                <ReviewCompleteBadge showTooltip />
               </>
             )}
           </h1>
