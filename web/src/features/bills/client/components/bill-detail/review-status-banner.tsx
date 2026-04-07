@@ -15,7 +15,7 @@ export function ReviewInProgressBanner() {
     <div className="flex gap-2 items-start rounded-2xl bg-mirai-surface-gray px-4 py-2">
       <Info className="size-5 shrink-0 text-mirai-text mt-0.5" />
       <p className="text-xs font-medium leading-[1.5] text-mirai-text">
-        この記事は複数有識者によるレビューが完了していません。今後内容が変更されることがあります。
+        この記事は現在、複数有識者によるレビュー中です。今後内容が変更されることがあります。
       </p>
     </div>
   );
