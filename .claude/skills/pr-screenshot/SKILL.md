@@ -155,6 +155,14 @@ agent-browser --session $SESSION wait 3000
 
 ### Step 5: R2 アップロード
 
+まず wrangler の認証状態を確認する:
+
+```bash
+npx wrangler whoami 2>&1
+```
+
+「Not authenticated」等のエラーが出た場合、ユーザーに `! npx wrangler login` の実行を促す（ブラウザでのOAuth認証が必要なため、Claude側では実行できない）。認証が完了するまでこのステップを中断する。
+
 `config.local.json` から設定を読み取ってアップロードする。
 
 ```bash
@@ -217,7 +225,7 @@ rm -rf /tmp/pr-screenshots
 ## 注意事項
 
 - `agent-browser` CLI がインストール済みであること
-- `npx wrangler` が認証済みであること（Cloudflare）
+- `npx wrangler` が認証済みであること（未認証の場合、ユーザーに `! npx wrangler login` を促す）
 - Supabase がローカルで起動中であること（`npx supabase start`）
 - seed データには固定IDがないため、DBクエリでIDを取得する
 - Next.js の `unstable_cache` により、seed直後でもキャッシュが効く場合がある。`.next` フォルダ削除 + サーバー再起動で解決する
