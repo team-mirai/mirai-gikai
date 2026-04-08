@@ -23,6 +23,15 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 ```
 
 - **目的**: developブランチを常にクリーンに保ち、作業の分離と並列作業を容易にする
+- **developに変更が残っている場合のリカバリ**: worktreeを作成する前に、developブランチの変更を必ずクリーンアップすること。作業途中の変更をdevelopに残したままworktreeを作成・作業することは禁止。
+  ```bash
+  # 変更を退避してからworktreeを作成
+  git stash --include-untracked
+  git worktree add ../mirai-gikai-<branch-name> -b <branch-name>
+  # worktreeに移動して退避した変更を適用
+  cd ../mirai-gikai-<branch-name>
+  git stash pop
+  ```
 
 ### 実装完了後は即PR作成
 実装完了後は「コミットしますか？」等の確認を挟まず、コミット → push → PR作成まで一気に進めること。ユーザーへの確認は不要。
