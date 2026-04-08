@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CircleCheck, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -48,13 +49,14 @@ export function ReviewCompleteBadge({
   return (
     <Tooltip open={open} onOpenChange={setOpen}>
       <TooltipTrigger asChild>
-        <button
+        <Button
           type="button"
-          className="inline-flex items-center relative top-1.5"
+          variant="ghost"
+          className="inline-flex items-center relative top-1.5 h-auto p-0 hover:bg-transparent"
           onClick={() => setOpen(true)}
         >
           <CircleCheck className="size-7.5 fill-primary text-white" />
-        </button>
+        </Button>
       </TooltipTrigger>
       <TooltipContent
         side="bottom"
