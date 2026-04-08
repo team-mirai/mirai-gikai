@@ -49,12 +49,6 @@ export async function BillDetailHeader({
         <div className="w-full h-20 bg-white-100" />
       )}
 
-      {!bill.is_review_completed && (
-        <div className="px-4 pt-4">
-          <ReviewInProgressBanner />
-        </div>
-      )}
-
       <div className="px-4 pt-8 mb-3">
         {displayTitle && (
           <h1 className="text-2xl font-bold mb-3">
@@ -94,6 +88,12 @@ export async function BillDetailHeader({
         <p className="text-sm text-muted-foreground font-medium mb-4">
           {bill.name}
         </p>
+        {!bill.is_review_completed && (
+          <div className="mb-4">
+            <ReviewInProgressBanner />
+          </div>
+        )}
+
         {opinionCount != null && opinionCount > 0 && (
           <Link
             href={routes.billOpinions(bill.id) as Route}

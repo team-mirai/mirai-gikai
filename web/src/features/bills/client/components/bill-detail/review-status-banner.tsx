@@ -13,9 +13,9 @@ import {
  */
 export function ReviewInProgressBanner() {
   return (
-    <div className="flex gap-2 items-start rounded-2xl bg-mirai-surface-gray px-4 py-2">
-      <Info className="size-5 shrink-0 text-mirai-text mt-0.5" />
-      <p className="text-xs font-medium leading-[1.5] text-mirai-text">
+    <div className="flex gap-2 items-center rounded-2xl bg-mirai-surface-gray px-4 py-2">
+      <Info className="size-5 shrink-0 text-mirai-text" />
+      <p className="text-[13px] font-medium leading-[1.5] text-mirai-text">
         この記事は現在、複数有識者によるレビュー中です。今後内容が変更されることがあります。
       </p>
     </div>
@@ -36,8 +36,8 @@ export function ReviewCompleteBadge({
   const [open, setOpen] = useState(false);
 
   const icon = (
-    <span className="inline-flex items-center align-[-0.0625em]">
-      <CircleCheck className="size-6 fill-primary text-white" />
+    <span className="inline-flex items-center relative top-1.5">
+      <CircleCheck className="size-7.5 fill-primary text-white" />
     </span>
   );
 
@@ -50,10 +50,10 @@ export function ReviewCompleteBadge({
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center align-[-0.0625em]"
+          className="inline-flex items-center relative top-1.5"
           onClick={() => setOpen(true)}
         >
-          <CircleCheck className="size-6 fill-primary text-white" />
+          <CircleCheck className="size-7.5 fill-primary text-white" />
         </button>
       </TooltipTrigger>
       <TooltipContent
@@ -61,7 +61,9 @@ export function ReviewCompleteBadge({
         align="start"
         className="bg-mirai-surface-gray text-mirai-text font-medium text-xs rounded-lg px-4 py-2"
       >
-        この記事は複数有識者によるレビューが完了しています
+        この記事は複数有識者によるレビューが
+        <br />
+        完了しています
       </TooltipContent>
     </Tooltip>
   );
