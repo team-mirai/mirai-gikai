@@ -24,6 +24,10 @@ export function ReviewInProgressBanner() {
 
 interface ReviewCompleteBadgeProps {
   showTooltip?: boolean;
+  /** Icon size in px (e.g. 16). Default uses size-7.5 (30px) */
+  size?: number;
+  /** CSS top offset (e.g. "2px"). Default uses Tailwind top-1.5 */
+  top?: string;
 }
 
 /**
@@ -32,12 +36,27 @@ interface ReviewCompleteBadgeProps {
  */
 export function ReviewCompleteBadge({
   showTooltip = false,
+  size,
+  top,
 }: ReviewCompleteBadgeProps) {
   const [open, setOpen] = useState(false);
 
+  const hasCustomSize = size != null;
+  const hasCustomTop = top != null;
+
   const icon = (
-    <span className="inline-flex items-center relative top-1.5">
-      <CircleCheck className="size-7.5 fill-primary text-white" />
+    <span
+      className={`inline-flex items-center relative ${hasCustomTop ? "" : "top-1.5"}`}
+      style={hasCustomTop ? { top } : undefined}
+    >
+      <CircleCheck
+        className={`${hasCustomSize ? "" : "size-7.5"} fill-primary text-white`}
+        style={
+          hasCustomSize
+            ? { width: `${size}px`, height: `${size}px` }
+            : undefined
+        }
+      />
     </span>
   );
 
@@ -50,10 +69,18 @@ export function ReviewCompleteBadge({
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center relative top-1.5"
+          className={`inline-flex items-center relative ${hasCustomTop ? "" : "top-1.5"}`}
+          style={hasCustomTop ? { top } : undefined}
           onClick={() => setOpen(true)}
         >
-          <CircleCheck className="size-7.5 fill-primary text-white" />
+          <CircleCheck
+            className={`${hasCustomSize ? "" : "size-7.5"} fill-primary text-white`}
+            style={
+              hasCustomSize
+                ? { width: `${size}px`, height: `${size}px` }
+                : undefined
+            }
+          />
         </button>
       </TooltipTrigger>
       <TooltipContent
