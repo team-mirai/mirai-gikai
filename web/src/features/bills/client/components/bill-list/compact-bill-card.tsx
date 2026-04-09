@@ -30,7 +30,7 @@ export function CompactBillCard({ bill, className }: CompactBillCardProps) {
             {bill.is_review_completed && (
               <>
                 {" "}
-                <ReviewCompleteBadge size={18} top="3px" />
+                <ReviewCompleteBadge size={14} top="1px" />
               </>
             )}
           </h3>

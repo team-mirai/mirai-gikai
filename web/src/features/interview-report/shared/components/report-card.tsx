@@ -24,17 +24,11 @@ export interface ReportCardData {
 
 interface ReportCardProps {
   report: ReportCardData;
-  summaryMaxLength?: number;
   children?: React.ReactNode;
   href?: string;
 }
 
-export function ReportCard({
-  report,
-  summaryMaxLength = 80,
-  children,
-  href,
-}: ReportCardProps) {
+export function ReportCard({ report, children, href }: ReportCardProps) {
   const stanceLabel = report.stance
     ? stanceLabels[report.stance] || report.stance
     : null;
@@ -53,10 +47,6 @@ export function ReportCard({
   const relativeTime = formatRelativeTime(report.created_at);
 
   const summary = report.summary || "";
-  const truncatedSummary =
-    summary.length > summaryMaxLength
-      ? `${summary.slice(0, summaryMaxLength)}...`
-      : summary;
 
   return (
     <article className="relative bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors">
@@ -65,7 +55,7 @@ export function ReportCard({
         prefetch={false}
         className="absolute inset-0 rounded-lg"
         aria-label={
-          [stanceLabel, report.role_title || roleLabel, truncatedSummary]
+          [stanceLabel, report.role_title || roleLabel, summary]
             .filter(Boolean)
             .join(" / ") || "レポートを見る"
         }
@@ -111,8 +101,8 @@ export function ReportCard({
               </span>
             </div>
 
-            {truncatedSummary && (
-              <p className="text-sm leading-6 text-black">{truncatedSummary}</p>
+            {summary && (
+              <p className="text-sm leading-6 text-black">{summary}</p>
             )}
           </div>
 
