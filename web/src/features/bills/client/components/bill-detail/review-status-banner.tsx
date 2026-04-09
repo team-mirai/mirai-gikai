@@ -54,9 +54,9 @@ export function ReviewInProgressBanner() {
 
 interface ReviewCompleteBadgeProps {
   showTooltip?: boolean;
-  /** Icon size in px (e.g. 16). Default: size-6.5 (no tooltip) / size-7.5 (tooltip) */
+  /** Icon size in px (e.g. 16). Default: size-5 (no tooltip) / size-5 (tooltip) */
   size?: number;
-  /** CSS top offset (e.g. "2px"). Default: top-1 (no tooltip) / top-1.5 (tooltip) */
+  /** CSS top offset (e.g. "2px"). Default: top-[1px] */
   top?: string;
 }
 
