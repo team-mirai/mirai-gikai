@@ -1,12 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { CircleCheck, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+/** Figmaデザイン準拠のレビュー完了チェックアイコン */
+function ReviewCheckIcon({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="レビュー完了"
+      className={className}
+      style={style}
+    >
+      <circle cx="8" cy="8" r="8" className="fill-primary" />
+      <path
+        d="M5 8L7 10L11 6"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 /**
  * レビュー未完了時に記事上部に表示するバナー
@@ -24,9 +54,9 @@ export function ReviewInProgressBanner() {
 
 interface ReviewCompleteBadgeProps {
   showTooltip?: boolean;
-  /** Icon size in px (e.g. 16). Default uses size-7.5 (30px) */
+  /** Icon size in px (e.g. 16). Default: size-6.5 (no tooltip) / size-7.5 (tooltip) */
   size?: number;
-  /** CSS top offset (e.g. "2px"). Default uses Tailwind top-1.5 */
+  /** CSS top offset (e.g. "2px"). Default: top-1 (no tooltip) / top-1.5 (tooltip) */
   top?: string;
 }
 
@@ -46,11 +76,11 @@ export function ReviewCompleteBadge({
 
   const icon = (
     <span
-      className={`inline-flex items-center relative ${hasCustomTop ? "" : "top-1.5"}`}
+      className={`inline-flex items-center relative ${hasCustomTop ? "" : "top-[1px]"} ml-0.5`}
       style={hasCustomTop ? { top } : undefined}
     >
-      <CircleCheck
-        className={`${hasCustomSize ? "" : "size-7.5"} fill-primary text-white`}
+      <ReviewCheckIcon
+        className={hasCustomSize ? undefined : "size-5"}
         style={
           hasCustomSize
             ? { width: `${size}px`, height: `${size}px` }
@@ -69,12 +99,12 @@ export function ReviewCompleteBadge({
       <TooltipTrigger asChild>
         <button
           type="button"
-          className={`inline-flex items-center relative ${hasCustomTop ? "" : "top-1.5"}`}
+          className={`inline-flex items-center relative ${hasCustomTop ? "" : "top-[1px]"} ml-0.5`}
           style={hasCustomTop ? { top } : undefined}
           onClick={() => setOpen(true)}
         >
-          <CircleCheck
-            className={`${hasCustomSize ? "" : "size-7.5"} fill-primary text-white`}
+          <ReviewCheckIcon
+            className={hasCustomSize ? undefined : "size-5"}
             style={
               hasCustomSize
                 ? { width: `${size}px`, height: `${size}px` }
