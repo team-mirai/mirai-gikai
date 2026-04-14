@@ -14,6 +14,7 @@ const makeBill = (
   is_review_completed: true,
   originating_house: "HR",
   shugiin_url: null,
+  slug: null,
   diet_session_id: null,
   publish_status: "published",
   published_at: null,
