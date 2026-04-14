@@ -43,6 +43,7 @@ export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
       thumbnail_url: bill.thumbnail_url,
       share_thumbnail_url: bill.share_thumbnail_url,
       shugiin_url: bill.shugiin_url,
+      slug: bill.slug,
       is_featured: bill.is_featured,
       is_review_completed: bill.is_review_completed,
       diet_session_id: defaultDietSessionId,

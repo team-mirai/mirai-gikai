@@ -35,6 +35,7 @@ export function BillCreateForm({ dietSessions }: BillCreateFormProps) {
       thumbnail_url: null,
       share_thumbnail_url: null,
       shugiin_url: null,
+      slug: null,
       is_featured: false,
       is_review_completed: false,
       diet_session_id: defaultDietSessionId,

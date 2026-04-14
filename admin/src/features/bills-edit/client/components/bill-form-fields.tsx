@@ -236,6 +236,27 @@ export function BillFormFields({
 
       <FormField
         control={control}
+        name="slug"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Slug</FormLabel>
+            <FormControl>
+              <Input
+                {...field}
+                value={field.value || ""}
+                placeholder="221-kaku-1-mof-法案名"
+              />
+            </FormControl>
+            <FormDescription>
+              コンテンツ同期用の識別子です（最大200文字）
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
         name="diet_session_id"
         render={({ field }) => (
           <FormItem>

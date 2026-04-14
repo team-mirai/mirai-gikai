@@ -42,6 +42,12 @@ const billBaseSchema = z.object({
   is_featured: z.boolean(),
   is_review_completed: z.boolean(),
   diet_session_id: z.string().uuid().nullable().optional(),
+  slug: z
+    .string()
+    .max(200, "slugは200文字以内で入力してください")
+    .transform((val) => (val === "" ? null : val))
+    .nullable()
+    .optional(),
 });
 
 // 更新用スキーマ（既存）
