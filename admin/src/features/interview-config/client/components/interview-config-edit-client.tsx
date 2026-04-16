@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfigSimulationPanel } from "@/features/interview-simulation/client/components/config-simulation-panel";
-import type { CompletedReportListItem } from "@/features/interview-simulation/server/loaders/get-completed-reports-for-bill";
+import type { CompletedReportListItem } from "@/features/interview-simulation/shared/types";
 import { routes } from "@/lib/routes";
 import { saveInterviewQuestions } from "../../server/actions/save-interview-questions";
 import {

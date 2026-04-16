@@ -1,21 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-
-export interface CompletedReportListItem {
-  sessionId: string;
-  reportId: string;
-  /** このレポートが属する config ID。UI で「現在の config のみ」フィルタに使う */
-  configId: string;
-  /** config 名。法案全体から選ぶとき、どの config のインタビューか判別する */
-  configName: string | null;
-  roleTitle: string | null;
-  role: string | null;
-  stance: string | null;
-  summary: string | null;
-  totalContentRichness: number | null;
-  completedAt: string | null;
-}
+import type { CompletedReportListItem } from "../../shared/types";
 
 /**
  * シミュレーション画面の Select 候補として取得する上限。

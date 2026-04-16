@@ -8,6 +8,26 @@ import type {
 } from "../schemas";
 
 /**
+ * シミュレーション画面の Select で表示する完了レポート行。
+ * server/loaders/get-completed-reports-for-bill が返す形と対応。
+ * client component から server 型を直接参照しないよう shared に置く。
+ */
+export interface CompletedReportListItem {
+  sessionId: string;
+  reportId: string;
+  /** このレポートが属する config ID。UI で「現在の config のみ」フィルタに使う */
+  configId: string;
+  /** config 名。法案全体から選ぶとき、どの config のインタビューか判別する */
+  configName: string | null;
+  roleTitle: string | null;
+  role: string | null;
+  stance: string | null;
+  summary: string | null;
+  totalContentRichness: number | null;
+  completedAt: string | null;
+}
+
+/**
  * ストリーミング進捗イベント（NDJSON で 1 行ずつ送信される）
  */
 export type SimulationProgressEvent =

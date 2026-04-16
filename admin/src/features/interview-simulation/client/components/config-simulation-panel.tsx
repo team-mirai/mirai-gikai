@@ -35,7 +35,6 @@ import {
 } from "../../server/actions/fetch-original-interview-preview";
 import { SimulationResultsPanel } from "./simulation-results-panel";
 import { TranscriptViewer } from "./transcript-viewer";
-import type { CompletedReportListItem } from "../../server/loaders/get-completed-reports-for-bill";
 import {
   DEFAULT_INTERVIEWEE_MODEL,
   DEFAULT_INTERVIEWER_MODEL,
@@ -45,6 +44,7 @@ import {
 } from "../../shared/constants";
 import type { SimulatedTurn } from "../../shared/schemas";
 import type {
+  CompletedReportListItem,
   SimulationProgressEvent,
   SimulationResult,
   TransientConfigSnapshot,
