@@ -1,9 +1,11 @@
 import type { InterviewQuestion as PromptInterviewQuestion } from "@mirai-gikai/shared/interview-prompts/types";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import type { RunSimulationActionParams } from "@/features/interview-simulation/server/actions/run-simulation-action";
 import { getReportDetailForSimulation } from "@/features/interview-simulation/server/loaders/get-report-detail-for-simulation";
 import { runSimulationPipeline } from "@/features/interview-simulation/server/services/simulation-orchestrator";
-import type { SimulationProgressEvent } from "@/features/interview-simulation/shared/types";
+import type {
+  SimulationProgressEvent,
+  SimulationRunRequest,
+} from "@/features/interview-simulation/shared/types";
 import { verifyInternalAuth } from "@/features/topic-analysis/server/utils/trigger-next-phase";
 
 export const maxDuration = 300;
@@ -31,7 +33,7 @@ async function authenticate(request: Request): Promise<Response | null> {
 }
 
 function buildPipelineParams(
-  params: RunSimulationActionParams,
+  params: SimulationRunRequest,
   detail: NonNullable<Awaited<ReturnType<typeof getReportDetailForSimulation>>>
 ) {
   const improvedQuestions: PromptInterviewQuestion[] =
@@ -79,9 +81,9 @@ export async function POST(request: Request) {
   const authError = await authenticate(request);
   if (authError) return authError;
 
-  let params: RunSimulationActionParams;
+  let params: SimulationRunRequest;
   try {
-    params = (await request.json()) as RunSimulationActionParams;
+    params = (await request.json()) as SimulationRunRequest;
   } catch {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 });
   }

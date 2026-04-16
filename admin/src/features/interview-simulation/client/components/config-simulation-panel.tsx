@@ -33,7 +33,6 @@ import {
   fetchOriginalInterviewPreview,
   type OriginalInterviewPreview,
 } from "../../server/actions/fetch-original-interview-preview";
-import type { TransientConfigSnapshot } from "../../server/actions/run-simulation-action";
 import { SimulationResultsPanel } from "./simulation-results-panel";
 import { TranscriptViewer } from "./transcript-viewer";
 import type { CompletedReportListItem } from "../../server/loaders/get-completed-reports-for-bill";
@@ -48,6 +47,7 @@ import type { SimulatedTurn } from "../../shared/schemas";
 import type {
   SimulationProgressEvent,
   SimulationResult,
+  TransientConfigSnapshot,
 } from "../../shared/types";
 
 interface ConfigSimulationPanelProps {

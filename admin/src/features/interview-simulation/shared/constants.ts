@@ -32,38 +32,6 @@ export const DEFAULT_PERSONA_MODEL = AI_MODELS.gemini3_1_flash_lite_preview;
 /** AI Judge のデフォルトモデル */
 export const DEFAULT_JUDGE_MODEL = AI_MODELS.gpt5_2;
 
-/** Judge の評価軸 */
-export const JUDGE_CRITERIA = [
-  {
-    key: "question_diversity",
-    label: "質問の多様性",
-    description: "質問パターンが偏っていないか。同じ言い回しの繰り返しがないか",
-  },
-  {
-    key: "depth_of_followup",
-    label: "深掘りの質",
-    description: "ユーザーの回答に対して有意義な深掘りができているか",
-  },
-  {
-    key: "flow_naturalness",
-    label: "会話の自然さ",
-    description: "話の流れが不自然な転換や唐突な切り替えなく進んでいるか",
-  },
-  {
-    key: "question_coverage",
-    label: "事前定義質問のカバレッジ",
-    description: "事前定義された質問のうちどの程度が網羅されているか",
-  },
-  {
-    key: "persona_consistency",
-    label: "ペルソナ一貫性（メタ評価）",
-    description:
-      "シミュレーションされたインタビュイーがペルソナ設定から逸脱していないか",
-  },
-] as const;
-
-export type JudgeCriterionKey = (typeof JUDGE_CRITERIA)[number]["key"];
-
 /** 比較対象のプロンプト種別 */
 export const PROMPT_KIND = {
   current: "current",
