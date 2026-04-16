@@ -508,6 +508,238 @@ export function createShippingBillMessages(
   return messages;
 }
 
+// =============================================================================
+// リアルなインタビューログ（1件、自然な back-and-forth）
+//
+// 本番のインタビューらしさを再現するため、opinionPatterns の
+// 「5 ターンで 3 意見一気に話す」構造ではなく、インタビュアーとの
+// 深掘り往復を含む自然な流れで 1 セッションを作成する。
+// シミュレーション機能の検証用データとしても有用。
+// =============================================================================
+
+/**
+ * リアル系セッションのペルソナ情報（1件分）。
+ *
+ * 医薬品・バイオ原料の国際輸送を担当する中小物流会社のコーディネーター。
+ * - 業界歴 8 年、IT は得意ではない
+ * - ベトナム・台湾向けが主力
+ * - 冷蔵品の通関遅延で何度も痛い思いをしている
+ * - 条件付き賛成: 中小サポート + 国際整合性がセットなら
+ */
+const realisticPattern = {
+  stance: "conditional_for" as const,
+  summary:
+    "冷蔵医薬品の通関遅延で困ってるから電子化自体は歓迎だけど、中小が使えるサポートと海外取引先との足並みがセットじゃないと結局回らない",
+  role: "work_related" as const,
+  role_title: "医薬品物流担当",
+  role_description:
+    "医薬品・バイオ原料の国際輸送を担当する中小物流会社のコーディネーター。\n業界歴 8 年、IT は得意ではない。\n主力航路はベトナム・台湾。",
+  opinions: [
+    {
+      title: "冷蔵品の通関遅延が業務負担に直結している",
+      content:
+        "紙の B/L が届かないせいで冷蔵コンテナが港で足止めされ、温度維持コストが毎日数万円単位で膨らむ。昨夏はワクチン原料が 5 日遅延し、温度管理費用だけで相当の損失が出た。電子化で即時送付できれば、こうした現場の恒常的な痛みは解消に向かう。",
+    },
+    {
+      title: "中小事業者でも使えるサポートが必須",
+      content:
+        "IT 担当専任を置けない中小企業でも運用できるよう、操作が難しくない標準ツール・日本語のサポート窓口・導入補助金がセットで用意されていないと、結局システム投資余力のある大手だけが恩恵を受ける構図になってしまう。",
+    },
+    {
+      title: "海外取引先との国際整合性が取れないと意味がない",
+      content:
+        "ベトナム・台湾など主要相手国が紙のままだと、こちらだけ電子化しても紙も併走させる必要があり二度手間。日本独自規格を先行させるより、MLETR など国際モデル法に揃えて「ちゃんと回る」形を優先してほしい。",
+    },
+  ],
+} satisfies {
+  stance: "for" | "against" | "neutral" | "conditional_for";
+  summary: string;
+  role:
+    | "subject_expert"
+    | "work_related"
+    | "daily_life_affected"
+    | "general_citizen";
+  role_title: string;
+  role_description: string;
+  opinions: Array<{
+    title: string;
+    content: string;
+  }>;
+};
+
+/**
+ * リアル系セッションの会話ログ（インタビュアー↔ インタビュイーの自然な往復）。
+ *
+ * opinionPatterns の機械的な構造とは違い、
+ * - 最初は短答・躊躇、徐々に開示
+ * - インタビュアーが都度深掘り（モノローグではない）
+ * - 知らない用語を素直に「知らない」と返す
+ * - 言い換え・自己訂正・口癖
+ * が含まれるようにした。
+ */
+const realisticConversation: Array<{
+  role: "assistant" | "user";
+  content: string;
+  /** source_message_id として紐付ける opinions のインデックス。なければ undefined */
+  linksToOpinionIndex?: number;
+}> = [
+  {
+    role: "assistant",
+    content:
+      "こんにちは。船荷証券（B/L）の電子化に関する法案について、率直なご意見を聞かせてください。まずは、賛成・反対・条件付きで賛成のどれに近いですか？",
+  },
+  {
+    role: "user",
+    content: "うーん……条件付きで、賛成、ですかね。",
+  },
+  {
+    role: "assistant",
+    content:
+      "条件付き賛成なのですね。差し支えなければ、お立場と、なぜそう感じているのか、もう少し教えていただけますか？",
+  },
+  {
+    role: "user",
+    content:
+      "医薬品とか、バイオ原料の国際輸送を担当してて、もう 8 年くらいやってます。中小の物流会社です。",
+  },
+  {
+    role: "user",
+    content:
+      "正直、紙の B/L で困るのは毎日あるんですよ。でも、電子化したら全部解決、って話でもなくて。だから条件付き、っていう感じなんです。",
+  },
+  {
+    role: "assistant",
+    content:
+      "毎日困る、というのは具体的にはどんな場面ですか？",
+  },
+  {
+    role: "user",
+    content:
+      "いちばんしんどいのは冷蔵品ですね。B/L が届かないだけでコンテナが港で止まるんで、温度維持のコストが毎日数万単位で積み上がるんですよ。去年の夏、ワクチンの原料で 5 日遅延したんですけど、温度管理だけで本当に痛かったです。",
+    linksToOpinionIndex: 0,
+  },
+  {
+    role: "assistant",
+    content:
+      "5 日の遅延で温度管理コストが数万円単位、それは切実ですね。\n「条件付きで賛成」の「条件」の部分について伺いたいのですが、どういう条件がセットになっていれば、素直に賛成できそうですか？",
+  },
+  {
+    role: "user",
+    content:
+      "まず、うちみたいな中小でもちゃんと使えるシステムであること。IT 担当が専任でいるような会社じゃないので、誰でも触れて、日本語でサポート窓口があって、できれば導入のお金も補助が出て、くらいまで揃ってないと、結局大手しか恩恵を受けない制度になっちゃうんですよね。",
+    linksToOpinionIndex: 1,
+  },
+  {
+    role: "user",
+    content:
+      "あともう一つは、海外の取引先と足並みがそろってること。うち、ベトナムと台湾がメインなんですけど、向こうが紙のままだったら、結局こっちも紙で作って送らないといけないんですよ。国内だけ電子化しても、二度手間になるだけ、というか。",
+    linksToOpinionIndex: 2,
+  },
+  {
+    role: "assistant",
+    content:
+      "国際整合性の話、とても重要ですね。国際的には MLETR（電子的移転可能記録モデル法）という国連のモデル法があって、イギリスやシンガポールなどで採用が進んでいます。日本として、こういう国際ルールと合わせる方向と、独自規格を先に整える方向だと、どちらが望ましいと感じますか？",
+  },
+  {
+    role: "user",
+    content:
+      "あ、えっと、ごめんなさい、MLETR って初めて聞きました……",
+  },
+  {
+    role: "assistant",
+    content:
+      "失礼しました、先走りました。要するに、主要な取引相手国がすでに採用している国際ルールに揃えるか、日本独自の規格を先に作るか、というイメージです。",
+  },
+  {
+    role: "user",
+    content:
+      "あー、なるほど。それなら絶対、国際的に揃ってるやつに合わせてほしいです。日本だけ先行してても、さっき話したみたいに取引先が紙なら意味ないので。先進的かどうかより、ちゃんと回るほうを優先してほしいですね。",
+  },
+  {
+    role: "assistant",
+    content:
+      "承知しました。最後に、この法案を進めるうえで「ここだけは絶対に押さえてほしい」というポイントを一つ挙げるとすると、何になりますか？",
+  },
+  {
+    role: "user",
+    content:
+      "えー、一つだけ……難しいな。じゃあ、中小事業者のサポート、ですね。これが抜けてると、現場は絶対回らないです。",
+  },
+  {
+    role: "assistant",
+    content:
+      "ありがとうございました。ここまでの内容をまとめ、レポートを作成します。",
+  },
+];
+
+/**
+ * リアル系セッション 1 件を作成する（直近の日付で挿入）
+ */
+export function createRealisticShippingBillSession(
+  configId: string
+): Omit<InterviewSessionInsert, "id" | "created_at" | "updated_at"> {
+  const now = new Date();
+  return {
+    interview_config_id: configId,
+    // 既存 opinionPatterns が 200 番台を使っているので被らない番号に
+    user_id: "00000000-0000-0000-0000-000000000500",
+    started_at: new Date(now.getTime() - 40 * 60000).toISOString(),
+    completed_at: new Date(now.getTime() - 5 * 60000).toISOString(),
+  };
+}
+
+/**
+ * リアル系セッションのメッセージを作成する
+ */
+export function createRealisticShippingBillMessages(
+  sessionId: string
+): Omit<InterviewMessageInsert, "id" | "created_at">[] {
+  return realisticConversation.map((turn) => ({
+    interview_session_id: sessionId,
+    role: turn.role,
+    content: turn.content,
+  }));
+}
+
+/**
+ * リアル系セッションのレポート（3 opinions）。source_message_id は呼び出し側で後付け。
+ */
+export function createRealisticShippingBillReport(
+  sessionId: string
+): Omit<InterviewReportInsert, "id" | "created_at" | "updated_at"> {
+  return {
+    interview_session_id: sessionId,
+    stance: realisticPattern.stance,
+    summary: realisticPattern.summary,
+    role: realisticPattern.role,
+    role_title: realisticPattern.role_title,
+    role_description: realisticPattern.role_description,
+    opinions: realisticPattern.opinions.map((o) => ({ ...o })),
+    is_public_by_user: true,
+    is_public_by_admin: true,
+  };
+}
+
+/**
+ * 会話ログのうち、opinions と紐付く user メッセージの (index, opinionIndex) ペアを返す。
+ * run.ts 側で source_message_id を紐付けるために使う。
+ */
+export function getRealisticShippingBillSourceMessageLinks(): Array<{
+  /** realisticConversation の 0-origin index */
+  conversationIndex: number;
+  /** opinions 配列の 0-origin index */
+  opinionIndex: number;
+}> {
+  return realisticConversation
+    .map((turn, index) => ({ turn, index }))
+    .filter(({ turn }) => turn.linksToOpinionIndex !== undefined)
+    .map(({ turn, index }) => ({
+      conversationIndex: index,
+      // biome-ignore lint/style/noNonNullAssertion: filter above guarantees defined
+      opinionIndex: turn.linksToOpinionIndex!,
+    }));
+}
+
 /**
  * 船荷証券法案のインタビューレポートを作成（100件、各3 opinions）
  */

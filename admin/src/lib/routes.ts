@@ -43,4 +43,10 @@ export const routes = {
     versionId: string
   ) =>
     `/bills/${billId}/interview/${configId}/topic-analysis/${versionId}` as const,
+
+  // インタビューシミュレーション（インタビュー設定配下）
+  billInterviewSimulation: (billId: string, configId: string) =>
+    `/bills/${billId}/interview/${configId}/simulation` as const,
+  billInterviewSimulationRun: (billId: string, configId: string) =>
+    `/bills/${billId}/interview/${configId}/simulation/run` as const,
 } as const;

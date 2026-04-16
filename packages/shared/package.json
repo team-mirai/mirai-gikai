@@ -38,6 +38,26 @@
     "./content-richness/instructions": {
       "types": "./src/content-richness/content-richness-instructions.ts",
       "default": "./src/content-richness/content-richness-instructions.ts"
+    },
+    "./interview-prompts/types": {
+      "types": "./src/interview-prompts/types.ts",
+      "default": "./src/interview-prompts/types.ts"
+    },
+    "./interview-prompts/stage-transition-guidance": {
+      "types": "./src/interview-prompts/stage-transition-guidance.ts",
+      "default": "./src/interview-prompts/stage-transition-guidance.ts"
+    },
+    "./interview-prompts/loop-mode": {
+      "types": "./src/interview-prompts/loop-mode.ts",
+      "default": "./src/interview-prompts/loop-mode.ts"
+    },
+    "./interview-prompts/bulk-mode": {
+      "types": "./src/interview-prompts/bulk-mode.ts",
+      "default": "./src/interview-prompts/bulk-mode.ts"
+    },
+    "./interview-prompts/summary": {
+      "types": "./src/interview-prompts/summary.ts",
+      "default": "./src/interview-prompts/summary.ts"
     }
   },
   "peerDependencies": {

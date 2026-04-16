@@ -27,6 +27,10 @@ import {
   createShippingBillSessions,
   createShippingBillMessages,
   createShippingBillReports,
+  createRealisticShippingBillSession,
+  createRealisticShippingBillMessages,
+  createRealisticShippingBillReport,
+  getRealisticShippingBillSourceMessageLinks,
 } from "./shipping-bill-data";
 import { createAdminClient, clearAllData } from "../shared/helper";
 
@@ -506,6 +510,73 @@ async function seedDatabase() {
           }
         }
 
+        // --- リアル系インタビュー（back-and-forth が自然な 1 セッション） ---
+        console.log("🎤 Inserting realistic shipping bill interview...");
+        const realisticSession = createRealisticShippingBillSession(
+          insertedShippingConfig.id
+        );
+        const { data: insertedRealisticSession, error: realisticSessionError } =
+          await supabase
+            .from("interview_sessions")
+            .insert(realisticSession)
+            .select("id")
+            .single();
+        if (realisticSessionError || !insertedRealisticSession) {
+          throw new Error(
+            `Failed to insert realistic session: ${realisticSessionError?.message}`
+          );
+        }
+
+        const realisticMessages = createRealisticShippingBillMessages(
+          insertedRealisticSession.id
+        );
+        const { data: insertedRealisticMessages, error: realisticMessagesError } =
+          await supabase
+            .from("interview_messages")
+            .insert(realisticMessages)
+            .select("id, created_at")
+            .order("created_at", { ascending: true })
+            .order("id", { ascending: true });
+        if (realisticMessagesError || !insertedRealisticMessages) {
+          throw new Error(
+            `Failed to insert realistic messages: ${realisticMessagesError?.message}`
+          );
+        }
+
+        // opinions の source_message_id を後付け（会話ログ内の「意見に紐づくユーザーメッセージ」を参照）
+        const realisticReport = createRealisticShippingBillReport(
+          insertedRealisticSession.id
+        );
+        const links = getRealisticShippingBillSourceMessageLinks();
+        if (Array.isArray(realisticReport.opinions)) {
+          const opinions = realisticReport.opinions as Array<{
+            title: string;
+            content: string;
+            source_message_id?: string;
+            source_message_content?: string;
+          }>;
+          for (const { conversationIndex, opinionIndex } of links) {
+            const msg = insertedRealisticMessages[conversationIndex];
+            const msgContent = realisticMessages[conversationIndex]?.content;
+            if (msg && opinions[opinionIndex] && msgContent) {
+              opinions[opinionIndex].source_message_id = msg.id;
+              opinions[opinionIndex].source_message_content = msgContent;
+            }
+          }
+        }
+        const { error: realisticReportError } = await supabase
+          .from("interview_report")
+          .insert(realisticReport);
+        if (realisticReportError) {
+          throw new Error(
+            `Failed to insert realistic report: ${realisticReportError.message}`
+          );
+        }
+
+        console.log(
+          `✅ Shipping bill: ${shippingSessionsCount} sessions (+1 realistic), ${shippingReportsCount} reports (each with 3 opinions) + 1 realistic report`
+        );
+      } else {
         console.log(
           `✅ Shipping bill: ${shippingSessionsCount} sessions, ${shippingReportsCount} reports (each with 3 opinions)`
         );
