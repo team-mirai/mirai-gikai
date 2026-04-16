@@ -129,5 +129,41 @@ describe("sync_bills_published_submitted トリガー", () => {
       expect(updated!.published_at).toBe(newTimestamp);
       expect(updated!.submitted_date).toBe(newTimestamp);
     });
+
+    it("両カラム同時変更時は submitted_date が優先される", async () => {
+      const initialTimestamp = "2026-04-01T09:00:00+00:00";
+      const { data: bill } = await adminClient
+        .from("bills")
+        .insert({
+          name: `テスト議案 ${Date.now()}`,
+          originating_house: "HR" as const,
+          status: "introduced" as const,
+          submitted_date: initialTimestamp,
+        })
+        .select("id")
+        .single();
+      billIds.push(bill!.id);
+
+      const submittedValue = "2026-07-01T10:00:00+00:00";
+      const publishedValue = "2026-08-01T10:00:00+00:00";
+      const { error } = await adminClient
+        .from("bills")
+        .update({
+          submitted_date: submittedValue,
+          published_at: publishedValue,
+        })
+        .eq("id", bill!.id);
+      expect(error).toBeNull();
+
+      const { data: updated } = await adminClient
+        .from("bills")
+        .select("submitted_date, published_at")
+        .eq("id", bill!.id)
+        .single();
+
+      // submitted_date が優先される
+      expect(updated!.submitted_date).toBe(submittedValue);
+      expect(updated!.published_at).toBe(submittedValue);
+    });
   });
 });

@@ -22,7 +22,10 @@ BEGIN
     NEW.published_at := NEW.submitted_date;
   -- On INSERT, sync whichever is provided
   ELSIF (TG_OP = 'INSERT') THEN
-    IF NEW.submitted_date IS NULL AND NEW.published_at IS NOT NULL THEN
+    IF NEW.submitted_date IS NOT NULL AND NEW.published_at IS NOT NULL AND NEW.published_at IS DISTINCT FROM NEW.submitted_date THEN
+      -- Both provided but inconsistent: new column wins during transition
+      NEW.published_at := NEW.submitted_date;
+    ELSIF NEW.submitted_date IS NULL AND NEW.published_at IS NOT NULL THEN
       NEW.submitted_date := NEW.published_at;
     ELSIF NEW.published_at IS NULL AND NEW.submitted_date IS NOT NULL THEN
       NEW.published_at := NEW.submitted_date;
