@@ -18,6 +18,7 @@ import type {
 } from "../../shared/types";
 import { extractOriginalStyleAnchors } from "../../shared/utils/extract-original-style-anchors";
 import { generatePersona } from "./generate-persona";
+import { generatePersonaFromBill } from "./generate-persona-from-bill";
 import { runAiJudgeVsOriginal } from "./run-ai-judge-vs-original";
 import { runSimulatedInterview } from "./run-simulated-interview";
 
@@ -30,10 +31,24 @@ interface SimulationPromptInputs {
   estimatedDurationMinutes: number | null;
 }
 
+/**
+ * ペルソナ生成ソース（orchestrator 内部用の正規化済み表現）
+ * - report: 過去レポートから抽出（元会話を style anchors / Judge baseline として使う）
+ * - bill: 法案内容から LLM 生成（元会話なし、Judge 無効）
+ */
+type PersonaSource =
+  | { type: "report"; original: OriginalInterviewSnapshot }
+  | {
+      type: "bill";
+      stanceHint?: "for" | "against" | "neutral";
+      roleHint?: string;
+    };
+
 interface RunSimulationParams {
-  original: OriginalInterviewSnapshot;
-  /** 現行（保存済み config）の sim 素材 */
-  currentPromptInputs: SimulationPromptInputs;
+  /** ペルソナ生成ソース */
+  personaSource: PersonaSource;
+  /** 現行（保存済み config）の sim 素材。bill モード時は未使用 */
+  currentPromptInputs: SimulationPromptInputs | null;
   /** 改善版（編集中 config）の sim 素材 */
   improvedPromptInputs: SimulationPromptInputs;
   /** 初回ターン enhanced prompt で使う billTitle（本番 generateInitialQuestion 相当） */
@@ -42,7 +57,9 @@ interface RunSimulationParams {
   intervieweeModel: AiModel;
   personaModel: AiModel;
   judgeModel: AiModel;
+  /** bill モードでは無視＝常に false 扱い */
   includeCurrent: boolean;
+  /** bill モードでは無視＝常に false 扱い */
   evaluate: boolean;
   /** ストリーミング進捗コールバック。省略時は進捗を送信しない */
   onProgress?: (event: SimulationProgressEvent) => void;
@@ -62,24 +79,45 @@ export async function runSimulationPipeline(
   const startedAt = Date.now();
   const traceId = randomUUID();
 
+  const sourceLabel =
+    params.personaSource.type === "report"
+      ? `reportId=${params.personaSource.original.reportId}`
+      : `billMode stance=${params.personaSource.stanceHint ?? "auto"}`;
   console.log(
-    `[Simulation] start traceId=${traceId} reportId=${params.original.reportId} includeCurrent=${params.includeCurrent} evaluate=${params.evaluate}`
+    `[Simulation] start traceId=${traceId} ${sourceLabel} includeCurrent=${params.includeCurrent} evaluate=${params.evaluate}`
   );
 
   const emit = params.onProgress;
 
-  emit?.({ type: "status", message: "ペルソナ抽出中..." });
-  const persona = await generatePersona({
-    original: params.original,
-    model: params.personaModel,
-    traceId,
-  });
+  // --- ペルソナ生成（source により分岐） ---
+  emit?.({ type: "status", message: "ペルソナ生成中..." });
+  const persona =
+    params.personaSource.type === "report"
+      ? await generatePersona({
+          original: params.personaSource.original,
+          model: params.personaModel,
+          traceId,
+        })
+      : await generatePersonaFromBill({
+          bill: params.improvedPromptInputs.bill,
+          interviewConfig: params.improvedPromptInputs.interviewConfig,
+          stanceHint: params.personaSource.stanceHint,
+          roleHint: params.personaSource.roleHint,
+          model: params.personaModel,
+          traceId,
+        });
 
-  // 元インタビューの実測文字数 + サンプル発話を抽出して、
-  // インタビュイー LLM の回答長を元会話レンジに寄せる
-  const styleAnchors = extractOriginalStyleAnchors(
-    params.original.conversation
-  );
+  // --- style anchors（report モード時のみ、元会話から抽出） ---
+  const styleAnchors =
+    params.personaSource.type === "report"
+      ? extractOriginalStyleAnchors(params.personaSource.original.conversation)
+      : undefined;
+
+  // bill モードでは includeCurrent / evaluate を無効化（比較対象なし）
+  const effectiveIncludeCurrent =
+    params.personaSource.type === "report" && params.includeCurrent;
+  const effectiveEvaluate =
+    params.personaSource.type === "report" && params.evaluate;
 
   emit?.({ type: "status", message: "改善版シミュレーション実行中..." });
   const simPromises: Array<Promise<SimulationRun>> = [
@@ -108,7 +146,8 @@ export async function runSimulationPipeline(
     }),
   ];
 
-  if (params.includeCurrent) {
+  if (effectiveIncludeCurrent && params.currentPromptInputs) {
+    const currentInputs = params.currentPromptInputs;
     simPromises.push(
       runSimulatedInterview({
         persona,
@@ -118,17 +157,16 @@ export async function runSimulationPipeline(
         kind: PROMPT_KIND.current,
         styleAnchors,
         promptInputs: {
-          bill: params.currentPromptInputs.bill,
-          interviewConfig: params.currentPromptInputs.interviewConfig,
-          questions: params.currentPromptInputs.questions,
-          mode: params.currentPromptInputs.mode,
+          bill: currentInputs.bill,
+          interviewConfig: currentInputs.interviewConfig,
+          questions: currentInputs.questions,
+          mode: currentInputs.mode,
         },
         initialTurnEnhancement: {
           billTitle: params.billTitle,
-          firstQuestionId: params.currentPromptInputs.questions[0]?.id ?? null,
+          firstQuestionId: currentInputs.questions[0]?.id ?? null,
         },
-        estimatedDurationMinutes:
-          params.currentPromptInputs.estimatedDurationMinutes,
+        estimatedDurationMinutes: currentInputs.estimatedDurationMinutes,
       })
     );
   }
@@ -143,16 +181,17 @@ export async function runSimulationPipeline(
   let judgeModelUsed: AiModel | null = null;
   const improvedSim = simulations[PROMPT_KIND.improved];
 
-  // 改善版 sim vs 元の実インタビュー（唯一の Judge）
+  // 改善版 sim vs 元の実インタビュー（report モード時のみ）
   if (
-    params.evaluate &&
+    effectiveEvaluate &&
     improvedSim &&
-    params.original.conversation.length > 0
+    params.personaSource.type === "report" &&
+    params.personaSource.original.conversation.length > 0
   ) {
     emit?.({ type: "status", message: "AI Judge 評価中..." });
     try {
       evaluationVsOriginal = await runAiJudgeVsOriginal({
-        original: params.original,
+        original: params.personaSource.original,
         improvedSimulation: {
           interviewerSystemPrompt: improvedSim.interviewerSystemPrompt,
           transcript: improvedSim.transcript,
@@ -178,7 +217,10 @@ export async function runSimulationPipeline(
     persona,
     personaModel: params.personaModel,
     judgeModel: judgeModelUsed,
-    original: params.original,
+    original:
+      params.personaSource.type === "report"
+        ? params.personaSource.original
+        : null,
     simulations,
     evaluationVsOriginal,
     totalElapsedMs,

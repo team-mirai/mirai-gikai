@@ -1,0 +1,80 @@
+import { describe, expect, it } from "vitest";
+import { buildPersonaFromBillPrompt } from "./build-persona-from-bill-prompt";
+
+const baseBill = {
+  name: "宇宙活動法改正案",
+  bill_content: {
+    title: "人工衛星等の打上げ及び人工衛星の管理に関する法律案",
+    summary: "ロケットの打上げルールを見直す法律",
+    content: "第一条 本法律は…",
+  },
+};
+
+const baseConfig = {
+  themes: ["安全確保", "産業競争力"],
+  knowledge_source: "宇宙活動法の概要",
+};
+
+describe("buildPersonaFromBillPrompt", () => {
+  it("法案情報・テーマ・知識ソースがプロンプトに含まれる", () => {
+    const result = buildPersonaFromBillPrompt({
+      bill: baseBill,
+      interviewConfig: baseConfig,
+    });
+    expect(result).toContain("宇宙活動法改正案");
+    expect(result).toContain(
+      "人工衛星等の打上げ及び人工衛星の管理に関する法律案"
+    );
+    expect(result).toContain("第一条 本法律は…");
+    expect(result).toContain("安全確保");
+    expect(result).toContain("産業競争力");
+    expect(result).toContain("宇宙活動法の概要");
+  });
+
+  it("stanceHint 指定時はスタンスを必須として明記する", () => {
+    const result = buildPersonaFromBillPrompt({
+      bill: baseBill,
+      interviewConfig: baseConfig,
+      stanceHint: "against",
+    });
+    expect(result).toContain("反対");
+    expect(result).toContain('"against"');
+    expect(result).toContain("必須");
+  });
+
+  it("stanceHint 未指定時は LLM に決めさせる文言になる", () => {
+    const result = buildPersonaFromBillPrompt({
+      bill: baseBill,
+      interviewConfig: baseConfig,
+    });
+    expect(result).toContain("自然に導かれる立場");
+    expect(result).not.toContain("（必須）");
+  });
+
+  it("roleHint 指定時は役割ヒントをプロンプトに含める", () => {
+    const result = buildPersonaFromBillPrompt({
+      bill: baseBill,
+      interviewConfig: baseConfig,
+      roleHint: "射場運用の民間事業者",
+    });
+    expect(result).toContain("射場運用の民間事業者");
+  });
+
+  it("テーマ未設定でも壊れない", () => {
+    const result = buildPersonaFromBillPrompt({
+      bill: baseBill,
+      interviewConfig: { themes: [], knowledge_source: "" },
+    });
+    expect(result).toContain("テーマ未設定");
+    expect(result).toContain("知識ソース未設定");
+  });
+
+  it("抽象的な「一般市民」を禁じる注意書きが含まれる", () => {
+    const result = buildPersonaFromBillPrompt({
+      bill: baseBill,
+      interviewConfig: baseConfig,
+    });
+    expect(result).toContain("一般市民");
+    expect(result).toContain("禁止");
+  });
+});

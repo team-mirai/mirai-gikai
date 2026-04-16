@@ -214,25 +214,35 @@ export function SimulationResultsPanel({
         </div>
       </details>
 
-      {/* ── メイン比較: 元の実インタビュー vs 改善版 sim ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-lg border bg-white p-4 space-y-3">
-          <div className="flex items-baseline justify-between">
-            <h3 className="font-semibold">元の実インタビュー</h3>
-            <span className="text-xs text-muted-foreground">
-              {result.original.conversation.length} ターン
-            </span>
+      {/* ── メイン比較: 元の実インタビュー vs 改善版 sim（report モード時のみ並列） ── */}
+      <div
+        className={
+          result.original
+            ? "grid grid-cols-1 lg:grid-cols-2 gap-4"
+            : "grid grid-cols-1 gap-4"
+        }
+      >
+        {result.original && (
+          <div className="rounded-lg border bg-white p-4 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <h3 className="font-semibold">元の実インタビュー</h3>
+              <span className="text-xs text-muted-foreground">
+                {result.original.conversation.length} ターン
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              シミュレートの目標となる元会話。改善版の回答がこの文体・長さに近いほど精度が高い。
+            </p>
+            <TranscriptViewer turns={result.original.conversation} />
           </div>
-          <p className="text-xs text-muted-foreground">
-            シミュレートの目標となる元会話。改善版の回答がこの文体・長さに近いほど精度が高い。
-          </p>
-          <TranscriptViewer turns={result.original.conversation} />
-        </div>
+        )}
 
         <div className="rounded-lg border bg-white p-4 space-y-3">
           <div className="flex items-baseline justify-between">
             <h3 className="font-semibold">
-              改善版プロンプトのシミュレート結果
+              {result.original
+                ? "改善版プロンプトのシミュレート結果"
+                : "シミュレート結果"}
             </h3>
             {improvedSim ? (
               <span className="text-xs text-muted-foreground">
@@ -254,7 +264,7 @@ export function SimulationResultsPanel({
             </>
           ) : (
             <p className="text-sm text-muted-foreground italic">
-              改善版のシミュレート結果なし
+              シミュレート結果なし
             </p>
           )}
         </div>

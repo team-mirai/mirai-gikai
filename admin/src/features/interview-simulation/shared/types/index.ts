@@ -114,20 +114,37 @@ export interface TransientConfigSnapshot {
 }
 
 /**
+ * ペルソナ生成のソース指定
+ * - report: 過去の完了インタビューから抽出
+ * - bill: 法案内容のみから LLM で自動生成（レポートがない段階でも使える）
+ */
+export type PersonaSource =
+  | { type: "report"; reportId: string }
+  | {
+      type: "bill";
+      /** 対象法案 ID（改善版 config の bill_id） */
+      billId: string;
+      /** 生成ペルソナの立場ヒント。指定しなければ LLM が法案内容から決める */
+      stanceHint?: "for" | "against" | "neutral";
+      /** 立場・属性の自由記述ヒント。例: "教育現場の教員" */
+      roleHint?: string;
+    };
+
+/**
  * シミュレーション API (/api/interview-simulation/run) のリクエストボディ
  */
 export interface SimulationRunRequest {
-  /** どのレポート（過去の完了インタビュー）をペルソナ抽出元として使うか */
-  reportId: string;
+  /** ペルソナ抽出のソース（過去レポート or 法案から自動生成） */
+  personaSource: PersonaSource;
   /** 改善版 = UI で編集中の config スナップショット（未保存を含む） */
   improvedConfig: TransientConfigSnapshot;
   interviewerModel: AiModel;
   intervieweeModel: AiModel;
   personaModel: AiModel;
   judgeModel: AiModel;
-  /** false なら improved だけ実行。true なら「保存済み config」と並列 sim + Judge で比較 */
+  /** false なら improved だけ実行。true なら「保存済み config」と並列 sim + Judge で比較（bill モードでは無視） */
   includeCurrent: boolean;
-  /** false なら Judge を回さない */
+  /** false なら Judge を回さない（bill モードでは無視＝常に false 扱い） */
   evaluate: boolean;
 }
 
@@ -138,10 +155,11 @@ export interface SimulationResult {
   persona: PersonaCharacterSheet;
   personaModel: AiModel;
   judgeModel: AiModel | null;
-  original: OriginalInterviewSnapshot;
+  /** 元レポート（report モード時のみ）。bill モードでは null */
+  original: OriginalInterviewSnapshot | null;
   simulations: Partial<Record<PromptKind, SimulationRun>>;
   /**
-   * evaluate=true のときのみ、改善版 sim と元の実インタビューを比較した Judge 結果
+   * evaluate=true かつ report モードのときのみ、改善版 sim と元の実インタビューを比較した Judge 結果
    * （改善版のインタビュアー質問が元と比べて良いか・悪いか・変わらないかを要約）
    */
   evaluationVsOriginal: JudgeVsOriginalVerdict | null;

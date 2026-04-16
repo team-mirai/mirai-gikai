@@ -146,6 +146,7 @@ async function readNdjsonStream(
 }
 
 export function ConfigSimulationPanel({
+  billId,
   configId,
   getFormValues,
   getCurrentQuestions,
@@ -160,6 +161,17 @@ export function ConfigSimulationPanel({
   const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
   const [streamingTurns, setStreamingTurns] = useState<SimulatedTurn[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // ペルソナソース: "report" = 完了レポートから抽出 / "bill" = 法案から自動生成
+  // 完了レポートが 0 件なら自動生成をデフォルトに
+  const [personaSource, setPersonaSource] = useState<"report" | "bill">(
+    completedReports.length > 0 ? "report" : "bill"
+  );
+  // bill モード用のペルソナ生成ヒント
+  const [billStanceHint, setBillStanceHint] = useState<
+    "for" | "against" | "neutral" | "auto"
+  >("auto");
+  const [billRoleHint, setBillRoleHint] = useState<string>("");
 
   // 選択範囲: "config" = この設定のレポートのみ / "bill" = この法案の全レポート
   const [reportScope, setReportScope] = useState<"config" | "bill">("bill");
@@ -238,7 +250,7 @@ export function ConfigSimulationPanel({
     setStreamingTurns([]);
     setStreamingStatus(null);
 
-    if (!reportId) {
+    if (personaSource === "report" && !reportId) {
       setError("テストに使うレポートを選択してください");
       return;
     }
@@ -282,6 +294,18 @@ export function ConfigSimulationPanel({
     const resolvedInterviewerModel: AiModel =
       (formValues.chat_model as AiModel | null) ?? DEFAULT_INTERVIEWER_MODEL;
 
+    // ペルソナソース別のリクエストペイロード
+    const personaSourcePayload =
+      personaSource === "report"
+        ? { type: "report" as const, reportId }
+        : {
+            type: "bill" as const,
+            billId,
+            stanceHint: billStanceHint === "auto" ? undefined : billStanceHint,
+            roleHint:
+              billRoleHint.trim().length > 0 ? billRoleHint.trim() : undefined,
+          };
+
     const controller = new AbortController();
     abortControllerRef.current = controller;
     setIsStreaming(true);
@@ -294,14 +318,15 @@ export function ConfigSimulationPanel({
           Accept: "application/x-ndjson",
         },
         body: JSON.stringify({
-          reportId,
+          personaSource: personaSourcePayload,
           improvedConfig: snapshot,
           interviewerModel: resolvedInterviewerModel,
           intervieweeModel,
           personaModel,
           judgeModel,
-          includeCurrent,
-          evaluate,
+          // bill モードでは比較対象がないので UI 状態に関わらず無効化
+          includeCurrent: personaSource === "bill" ? false : includeCurrent,
+          evaluate: personaSource === "bill" ? false : evaluate,
         }),
         signal: controller.signal,
       });
@@ -353,6 +378,7 @@ export function ConfigSimulationPanel({
   }, [
     reportId,
     configId,
+    billId,
     getFormValues,
     getCurrentQuestions,
     intervieweeModel,
@@ -360,6 +386,9 @@ export function ConfigSimulationPanel({
     judgeModel,
     includeCurrent,
     evaluate,
+    personaSource,
+    billStanceHint,
+    billRoleHint,
   ]);
 
   return (
@@ -380,7 +409,79 @@ export function ConfigSimulationPanel({
           </div>
         )}
 
-        {completedReports.length > 0 ? (
+        {/* ペルソナソース切替 */}
+        <div className="space-y-1.5">
+          <Label className="text-xs">ペルソナの抽出元</Label>
+          <Tabs
+            value={personaSource}
+            onValueChange={(v) => setPersonaSource(v as "report" | "bill")}
+          >
+            <TabsList className="h-8 w-full">
+              <TabsTrigger
+                value="report"
+                className="text-xs flex-1"
+                disabled={completedReports.length === 0}
+              >
+                完了レポートから
+                {completedReports.length === 0 && "（なし）"}
+              </TabsTrigger>
+              <TabsTrigger value="bill" className="text-xs flex-1">
+                法案から自動生成
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* 自動生成モードの追加オプション */}
+        {personaSource === "bill" && (
+          <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+            <p className="text-xs text-muted-foreground">
+              法案内容から当事者ペルソナを LLM
+              で自動生成してシミュレートします。
+              完了インタビューがまだない段階で設定を試すのに使います。
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="sim-bill-stance" className="text-xs">
+                  立場（任意）
+                </Label>
+                <Select
+                  value={billStanceHint}
+                  onValueChange={(v) =>
+                    setBillStanceHint(
+                      v as "for" | "against" | "neutral" | "auto"
+                    )
+                  }
+                >
+                  <SelectTrigger id="sim-bill-stance" className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">自動（法案から推定）</SelectItem>
+                    <SelectItem value="for">賛成</SelectItem>
+                    <SelectItem value="against">反対</SelectItem>
+                    <SelectItem value="neutral">中立</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="sim-bill-role" className="text-xs">
+                  役割ヒント（任意）
+                </Label>
+                <input
+                  id="sim-bill-role"
+                  type="text"
+                  value={billRoleHint}
+                  onChange={(e) => setBillRoleHint(e.target.value)}
+                  placeholder="例: 射場運用の民間事業者"
+                  className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-0.5 text-xs shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-xs file:font-medium focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {personaSource === "report" && completedReports.length > 0 ? (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="sim-report-select" className="text-xs">
@@ -516,12 +617,12 @@ export function ConfigSimulationPanel({
               </details>
             )}
           </div>
-        ) : (
+        ) : personaSource === "report" && completedReports.length === 0 ? (
           <div className="text-sm text-muted-foreground italic border rounded-md p-3 bg-muted/30">
-            この法案にはまだ完了済みのインタビューがありません。実インタビューを
-            1 件以上完走させてからシミュレートしてください。
+            この法案にはまだ完了済みのインタビューがありません。「法案から自動生成」
+            に切り替えるか、実インタビューを完走させてから再度お試しください。
           </div>
-        )}
+        ) : null}
 
         <div>
           <Button
@@ -568,12 +669,13 @@ export function ConfigSimulationPanel({
           <div className="flex items-center gap-2">
             <Checkbox
               id="sim-include-current"
-              checked={includeCurrent}
+              checked={includeCurrent && personaSource === "report"}
               onCheckedChange={(v) => setIncludeCurrent(v === true)}
+              disabled={personaSource === "bill"}
             />
             <Label
               htmlFor="sim-include-current"
-              className="cursor-pointer flex items-center gap-1"
+              className={`flex items-center gap-1 ${personaSource === "bill" ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
             >
               保存済み設定とも比較する
               <Tooltip>
@@ -589,10 +691,18 @@ export function ConfigSimulationPanel({
           <div className="flex items-center gap-2">
             <Checkbox
               id="sim-evaluate"
-              checked={evaluate}
+              checked={evaluate && personaSource === "report"}
               onCheckedChange={(v) => setEvaluate(v === true)}
+              disabled={personaSource === "bill"}
             />
-            <Label htmlFor="sim-evaluate" className="cursor-pointer">
+            <Label
+              htmlFor="sim-evaluate"
+              className={
+                personaSource === "bill"
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer"
+              }
+            >
               AI Judge で元インタビューと比較評価する
             </Label>
           </div>
@@ -643,27 +753,39 @@ export function ConfigSimulationPanel({
               </span>
             )}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-lg border bg-white p-4 space-y-3">
-              <div className="flex items-baseline justify-between">
-                <h3 className="font-semibold">元の実インタビュー</h3>
-                {preview && (
-                  <span className="text-xs text-muted-foreground">
-                    {preview.conversation.length} ターン
-                  </span>
+          <div
+            className={
+              personaSource === "report"
+                ? "grid grid-cols-1 lg:grid-cols-2 gap-4"
+                : "grid grid-cols-1 gap-4"
+            }
+          >
+            {personaSource === "report" && (
+              <div className="rounded-lg border bg-white p-4 space-y-3">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="font-semibold">元の実インタビュー</h3>
+                  {preview && (
+                    <span className="text-xs text-muted-foreground">
+                      {preview.conversation.length} ターン
+                    </span>
+                  )}
+                </div>
+                {preview ? (
+                  <TranscriptViewer turns={preview.conversation} />
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    プレビューなし
+                  </p>
                 )}
               </div>
-              {preview ? (
-                <TranscriptViewer turns={preview.conversation} />
-              ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  プレビューなし
-                </p>
-              )}
-            </div>
+            )}
             <div className="rounded-lg border bg-white p-4 space-y-3">
               <div className="flex items-baseline justify-between">
-                <h3 className="font-semibold">改善版シミュレーション</h3>
+                <h3 className="font-semibold">
+                  {personaSource === "report"
+                    ? "改善版シミュレーション"
+                    : "シミュレーション"}
+                </h3>
                 {streamingTurns.length > 0 && (
                   <span className="text-xs text-muted-foreground">
                     {streamingTurns.length} ターン
