@@ -125,7 +125,7 @@ export async function createTestBill(
     publish_status: "draft" | "published" | "coming_soon";
     diet_session_id: string;
     is_featured: boolean;
-    submitted_at: string;
+    submitted_date: string;
     shugiin_url: string;
   }> = {}
 ) {

@@ -28,7 +28,7 @@ const billBaseSchema = z.object({
     .string()
     .max(500, "ステータス備考は500文字以内で入力してください")
     .nullable(),
-  submitted_at: z
+  submitted_date: z
     .string()
     .refine(
       (val) => val === "" || /^\d{4}-\d{2}-\d{2}$/.test(val),

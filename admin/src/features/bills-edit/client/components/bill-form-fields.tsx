@@ -155,7 +155,7 @@ export function BillFormFields({
 
       <FormField
         control={control}
-        name="submitted_at"
+        name="submitted_date"
         render={({ field }) => (
           <FormItem>
             <FormLabel>法案提出日 *</FormLabel>

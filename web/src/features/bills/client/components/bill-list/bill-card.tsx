@@ -58,8 +58,8 @@ export function BillCard({ bill }: BillCardProps) {
               <div className="flex flex-row gap-4">
                 <BillStatusBadge status={bill.status} className="w-fit" />
                 <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                  {bill.submitted_at && (
-                    <time>{formatDateWithDots(bill.submitted_at)} 提出</time>
+                  {bill.submitted_date && (
+                    <time>{formatDateWithDots(bill.submitted_date)} 提出</time>
                   )}
                 </div>
               </div>

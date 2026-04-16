@@ -37,8 +37,8 @@ export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
       status: bill.status,
       originating_house: bill.originating_house,
       status_note: bill.status_note,
-      submitted_at: bill.submitted_at
-        ? new Date(bill.submitted_at).toISOString().slice(0, 10)
+      submitted_date: bill.submitted_date
+        ? new Date(bill.submitted_date).toISOString().slice(0, 10)
         : "",
       thumbnail_url: bill.thumbnail_url,
       share_thumbnail_url: bill.share_thumbnail_url,
