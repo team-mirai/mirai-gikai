@@ -17,9 +17,9 @@ describe("parseBillSortParams", () => {
     expect(result).toEqual({ field: "publish_status_order", order: "desc" });
   });
 
-  it("published_atフィールドを受け付ける", () => {
-    const result = parseBillSortParams("published_at", "asc");
-    expect(result).toEqual({ field: "published_at", order: "asc" });
+  it("submitted_atフィールドを受け付ける", () => {
+    const result = parseBillSortParams("submitted_at", "asc");
+    expect(result).toEqual({ field: "submitted_at", order: "asc" });
   });
 
   it("不正なフィールドはデフォルトフィールドにフォールバックする", () => {

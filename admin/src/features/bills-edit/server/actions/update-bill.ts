@@ -20,8 +20,8 @@ export async function updateBill(id: string, input: BillUpdateInput) {
     // Supabaseで更新
     await updateBillRecord(id, {
       ...validatedData,
-      published_at: validatedData.published_at
-        ? new Date(validatedData.published_at).toISOString()
+      submitted_at: validatedData.submitted_at
+        ? new Date(validatedData.submitted_at).toISOString()
         : null,
       updated_at: new Date().toISOString(),
     });

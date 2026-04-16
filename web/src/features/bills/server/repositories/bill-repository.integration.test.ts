@@ -57,7 +57,7 @@ describe("bill-repository 統合テスト", () => {
     it("公開済み議案を難易度コンテンツ付きで取得できる", async () => {
       const bill = await createTestBill({
         publish_status: "published",
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, {
@@ -88,7 +88,7 @@ describe("bill-repository 統合テスト", () => {
     it("指定した難易度のコンテンツがない議案は含まれない", async () => {
       const bill = await createTestBill({
         publish_status: "published",
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, { difficulty_level: "hard" });
@@ -303,7 +303,7 @@ describe("bill-repository 統合テスト", () => {
       const bill = await createTestBill({
         publish_status: "published",
         diet_session_id: session.id,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, { difficulty_level: "normal" });
@@ -330,7 +330,7 @@ describe("bill-repository 統合テスト", () => {
       const bill = await createTestBill({
         publish_status: "published",
         diet_session_id: session1.id,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, { difficulty_level: "normal" });
@@ -356,12 +356,12 @@ describe("bill-repository 統合テスト", () => {
       const bill1 = await createTestBill({
         publish_status: "published",
         diet_session_id: session.id,
-        published_at: new Date(Date.now() - 1000).toISOString(),
+        submitted_at: new Date(Date.now() - 1000).toISOString(),
       });
       const bill2 = await createTestBill({
         publish_status: "published",
         diet_session_id: session.id,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill1.id, bill2.id);
       await createTestBillContent(bill1.id, { difficulty_level: "normal" });
@@ -394,12 +394,12 @@ describe("bill-repository 統合テスト", () => {
       const bill1 = await createTestBill({
         publish_status: "published",
         diet_session_id: session.id,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       const bill2 = await createTestBill({
         publish_status: "published",
         diet_session_id: session.id,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       const draftBill = await createTestBill({
         publish_status: "draft",
@@ -475,7 +475,7 @@ describe("bill-repository 統合テスト", () => {
       const bill = await createTestBill({
         publish_status: "published",
         diet_session_id: session.id,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, { difficulty_level: "normal" });
@@ -498,7 +498,7 @@ describe("bill-repository 統合テスト", () => {
     it("dietSessionIdがnullの場合は全会期から取得できる", async () => {
       const bill = await createTestBill({
         publish_status: "published",
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, { difficulty_level: "normal" });
@@ -529,7 +529,7 @@ describe("bill-repository 統合テスト", () => {
         publish_status: "published",
         is_featured: true,
         diet_session_id: session.id,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, {
@@ -550,7 +550,7 @@ describe("bill-repository 統合テスト", () => {
       const bill = await createTestBill({
         publish_status: "published",
         is_featured: false,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, { difficulty_level: "normal" });
@@ -565,7 +565,7 @@ describe("bill-repository 統合テスト", () => {
       const bill = await createTestBill({
         publish_status: "published",
         is_featured: true,
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
       await createTestBillContent(bill.id, { difficulty_level: "normal" });
@@ -620,7 +620,7 @@ describe("bill-repository 統合テスト", () => {
     it("publishedの議案は含まれない", async () => {
       const bill = await createTestBill({
         publish_status: "published",
-        published_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
       });
       billIds.push(bill.id);
 

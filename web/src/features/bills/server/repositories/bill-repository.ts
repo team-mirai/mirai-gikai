@@ -32,7 +32,7 @@ export async function findPublishedBillsWithContents(
     )
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
-    .order("published_at", { ascending: false });
+    .order("submitted_at", { ascending: false });
 
   if (error) {
     throw new Error(`Failed to fetch bills: ${error.message}`);
@@ -202,7 +202,7 @@ export async function findPublishedBillsByDietSession(
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("status_order", { ascending: true })
-    .order("published_at", { ascending: false });
+    .order("submitted_at", { ascending: false });
 
   if (error) {
     throw new Error(`Failed to fetch bills by diet session: ${error.message}`);
@@ -241,7 +241,7 @@ export async function findPreviousSessionBills(
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("status_order", { ascending: true })
-    .order("published_at", { ascending: false })
+    .order("submitted_at", { ascending: false })
     .limit(limit);
 
   if (error) {
@@ -387,7 +387,7 @@ export async function findFeaturedBillsWithContents(
     )
     .eq("is_featured", true)
     .eq("bill_contents.difficulty_level", difficultyLevel)
-    .order("published_at", { ascending: false });
+    .order("submitted_at", { ascending: false });
 
   if (dietSessionId) {
     query = query.eq("diet_session_id", dietSessionId);

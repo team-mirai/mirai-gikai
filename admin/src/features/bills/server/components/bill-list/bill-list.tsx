@@ -80,11 +80,11 @@ export async function BillList({ sortConfig }: { sortConfig: BillSortConfig }) {
                 審議ステータス
               </SortableTableHead>
               <SortableTableHead
-                field="published_at"
+                field="submitted_at"
                 currentField={sortConfig.field}
                 currentOrder={sortConfig.order}
               >
-                公開日
+                法案提出日
               </SortableTableHead>
               <TableHead className="w-[50px]" />
             </TableRow>
@@ -136,8 +136,8 @@ function BillRow({ bill }: { bill: BillWithDietSession }) {
         />
       </TableCell>
       <TableCell className="text-gray-600">
-        {bill.published_at
-          ? new Date(bill.published_at).toLocaleDateString("ja-JP")
+        {bill.submitted_at
+          ? new Date(bill.submitted_at).toLocaleDateString("ja-JP")
           : "-"}
       </TableCell>
       <TableCell>

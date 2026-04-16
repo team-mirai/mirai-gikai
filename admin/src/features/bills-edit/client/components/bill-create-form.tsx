@@ -31,7 +31,7 @@ export function BillCreateForm({ dietSessions }: BillCreateFormProps) {
       status: "preparing",
       originating_house: "HR",
       status_note: null,
-      published_at: new Date().toISOString().slice(0, 16),
+      submitted_at: new Date().toISOString().slice(0, 16),
       thumbnail_url: null,
       share_thumbnail_url: null,
       shugiin_url: null,

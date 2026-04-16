@@ -155,16 +155,14 @@ export function BillFormFields({
 
       <FormField
         control={control}
-        name="published_at"
+        name="submitted_at"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>公開日時 *</FormLabel>
+            <FormLabel>法案提出日 *</FormLabel>
             <FormControl>
               <Input type="datetime-local" {...field} />
             </FormControl>
-            <FormDescription>
-              議案が公開される日時を設定してください
-            </FormDescription>
+            <FormDescription>法案の提出日を設定してください</FormDescription>
             <FormMessage />
           </FormItem>
         )}

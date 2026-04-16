@@ -21,8 +21,8 @@ export async function createBill(input: BillCreateInput) {
 
     const insertData = {
       ...validatedData,
-      published_at: validatedData.published_at
-        ? new Date(validatedData.published_at).toISOString()
+      submitted_at: validatedData.submitted_at
+        ? new Date(validatedData.submitted_at).toISOString()
         : null,
     };
 
