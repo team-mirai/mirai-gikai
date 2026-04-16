@@ -183,7 +183,10 @@ export function InterviewConfigEditClient({
         <Tabs defaultValue="ai-chat" className="w-full">
           <TabsList>
             <TabsTrigger value="ai-chat">AI 設定生成</TabsTrigger>
-            <TabsTrigger value="simulation">シミュレーション</TabsTrigger>
+            <TabsTrigger value="simulation" disabled={!configId}>
+              シミュレーション
+              {!configId && "（保存後に有効）"}
+            </TabsTrigger>
           </TabsList>
           <TabsContent
             value="ai-chat"
@@ -204,21 +207,23 @@ export function InterviewConfigEditClient({
               getFormThemes={getFormThemes}
             />
           </TabsContent>
-          <TabsContent
-            value="simulation"
-            forceMount
-            className="mt-4 data-[state=inactive]:hidden"
-          >
-            <ConfigSimulationPanel
-              billId={billId}
-              configId={configId ?? null}
-              getFormValues={() => getFormValuesRef.current?.() ?? null}
-              getCurrentQuestions={() => getQuestionsRef.current?.() ?? []}
-              completedReports={completedReports}
-              completedReportsTruncated={completedReportsTruncated}
-              completedReportsLimit={completedReportsLimit}
-            />
-          </TabsContent>
+          {configId ? (
+            <TabsContent
+              value="simulation"
+              forceMount
+              className="mt-4 data-[state=inactive]:hidden"
+            >
+              <ConfigSimulationPanel
+                billId={billId}
+                configId={configId}
+                getFormValues={() => getFormValuesRef.current?.() ?? null}
+                getCurrentQuestions={() => getQuestionsRef.current?.() ?? []}
+                completedReports={completedReports}
+                completedReportsTruncated={completedReportsTruncated}
+                completedReportsLimit={completedReportsLimit}
+              />
+            </TabsContent>
+          ) : null}
         </Tabs>
       </div>
     </div>

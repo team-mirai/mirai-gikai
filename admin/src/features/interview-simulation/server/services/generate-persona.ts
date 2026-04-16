@@ -13,6 +13,8 @@ interface GeneratePersonaParams {
   original: OriginalInterviewSnapshot;
   model: AiModel;
   traceId: string;
+  /** クライアント abort 時に LLM 呼び出しも停止させる */
+  signal?: AbortSignal;
 }
 
 /**
@@ -23,6 +25,7 @@ export async function generatePersona({
   original,
   model,
   traceId,
+  signal,
 }: GeneratePersonaParams): Promise<PersonaCharacterSheet> {
   const prompt = buildPersonaExtractorPrompt(original);
 
@@ -31,6 +34,7 @@ export async function generatePersona({
       model,
       schema: personaSchema,
       prompt,
+      abortSignal: signal,
       experimental_telemetry: {
         isEnabled: true,
         functionId: "sim-extract-persona",

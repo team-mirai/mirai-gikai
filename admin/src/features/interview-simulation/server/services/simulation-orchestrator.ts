@@ -63,6 +63,12 @@ interface RunSimulationParams {
   evaluate: boolean;
   /** ストリーミング進捗コールバック。省略時は進捗を送信しない */
   onProgress?: (event: SimulationProgressEvent) => void;
+  /**
+   * 中断シグナル（request.signal 等）。
+   * クライアントが fetch を abort した場合にサーバー側の LLM 呼び出しも
+   * 停止させ、課金とレイテンシの無駄を防ぐため pipeline 末端まで伝播させる。
+   */
+  signal?: AbortSignal;
 }
 
 /**
@@ -97,6 +103,7 @@ export async function runSimulationPipeline(
           original: params.personaSource.original,
           model: params.personaModel,
           traceId,
+          signal: params.signal,
         })
       : await generatePersonaFromBill({
           bill: params.improvedPromptInputs.bill,
@@ -105,6 +112,7 @@ export async function runSimulationPipeline(
           roleHint: params.personaSource.roleHint,
           model: params.personaModel,
           traceId,
+          signal: params.signal,
         });
 
   // --- style anchors（report モード時のみ、元会話から抽出） ---
@@ -143,6 +151,7 @@ export async function runSimulationPipeline(
       onTurnComplete: emit
         ? (turnIndex, turn) => emit({ type: "turn", turnIndex, turn })
         : undefined,
+      signal: params.signal,
     }),
   ];
 
@@ -167,6 +176,7 @@ export async function runSimulationPipeline(
           firstQuestionId: currentInputs.questions[0]?.id ?? null,
         },
         estimatedDurationMinutes: currentInputs.estimatedDurationMinutes,
+        signal: params.signal,
       })
     );
   }
@@ -201,6 +211,7 @@ export async function runSimulationPipeline(
         },
         model: params.judgeModel,
         traceId,
+        signal: params.signal,
       });
       judgeModelUsed = params.judgeModel;
     } catch (error) {

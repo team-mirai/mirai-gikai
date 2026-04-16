@@ -19,6 +19,8 @@ interface GeneratePersonaFromBillParams {
   roleHint?: string;
   model: AiModel;
   traceId: string;
+  /** クライアント abort 時に LLM 呼び出しも停止させる */
+  signal?: AbortSignal;
 }
 
 /**
@@ -33,6 +35,7 @@ export async function generatePersonaFromBill({
   roleHint,
   model,
   traceId,
+  signal,
 }: GeneratePersonaFromBillParams): Promise<PersonaCharacterSheet> {
   const prompt = buildPersonaFromBillPrompt({
     bill,
@@ -46,6 +49,7 @@ export async function generatePersonaFromBill({
       model,
       schema: personaSchema,
       prompt,
+      abortSignal: signal,
       experimental_telemetry: {
         isEnabled: true,
         functionId: "sim-generate-persona-from-bill",

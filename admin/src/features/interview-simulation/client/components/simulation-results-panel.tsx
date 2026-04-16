@@ -14,8 +14,13 @@ import { TranscriptViewer } from "./transcript-viewer";
 function formatElapsed(ms: number): string {
   const totalSec = ms / 1000;
   if (totalSec < 60) return `${totalSec.toFixed(1)}秒`;
-  const min = Math.floor(totalSec / 60);
-  const sec = Math.round(totalSec - min * 60);
+  let min = Math.floor(totalSec / 60);
+  let sec = Math.round(totalSec - min * 60);
+  // 丸めで sec が 60 になるケースを繰り上げて「1分60秒」表示を回避
+  if (sec === 60) {
+    min += 1;
+    sec = 0;
+  }
   return `${min}分${sec}秒`;
 }
 
@@ -112,8 +117,8 @@ export function SimulationResultsPanel({
                     改善版が元より良い点
                   </p>
                   <ul className="list-disc pl-5 text-sm space-y-1">
-                    {vsOriginal.improved_strengths.map((s) => (
-                      <li key={s}>{s}</li>
+                    {vsOriginal.improved_strengths.map((s, i) => (
+                      <li key={`${i}-${s}`}>{s}</li>
                     ))}
                   </ul>
                 </div>
@@ -125,8 +130,8 @@ export function SimulationResultsPanel({
                     改善版が元より劣る点
                   </p>
                   <ul className="list-disc pl-5 text-sm space-y-1">
-                    {vsOriginal.improved_weaknesses.map((s) => (
-                      <li key={s}>{s}</li>
+                    {vsOriginal.improved_weaknesses.map((s, i) => (
+                      <li key={`${i}-${s}`}>{s}</li>
                     ))}
                   </ul>
                 </div>
@@ -140,8 +145,8 @@ export function SimulationResultsPanel({
                 その他の観察
               </p>
               <ul className="list-disc pl-5 text-sm space-y-1">
-                {vsOriginal.notable_observations.map((o) => (
-                  <li key={o}>{o}</li>
+                {vsOriginal.notable_observations.map((o, i) => (
+                  <li key={`${i}-${o}`}>{o}</li>
                 ))}
               </ul>
             </div>
@@ -189,8 +194,8 @@ export function SimulationResultsPanel({
                 気にしている論点
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {result.persona.key_concerns.map((c) => (
-                  <Badge key={c} variant="outline">
+                {result.persona.key_concerns.map((c, i) => (
+                  <Badge key={`${i}-${c}`} variant="outline">
                     {c}
                   </Badge>
                 ))}
@@ -203,8 +208,8 @@ export function SimulationResultsPanel({
                 拒否・回避する話題
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {result.persona.boundaries.map((b) => (
-                  <Badge key={b} variant="outline">
+                {result.persona.boundaries.map((b, i) => (
+                  <Badge key={`${i}-${b}`} variant="outline">
                     {b}
                   </Badge>
                 ))}

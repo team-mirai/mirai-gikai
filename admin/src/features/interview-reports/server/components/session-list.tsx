@@ -123,198 +123,185 @@ export function SessionList({
       )}
 
       {sessions.length > 0 && (
-        <>
-          <div className="rounded-lg border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="w-32">セッションID</TableHead>
-                  <TableHead className="w-24">ステータス</TableHead>
-                  <TableHead className="w-24 text-center">
-                    ユーザー公開
-                  </TableHead>
-                  <TableHead className="w-24 text-center">管理者公開</TableHead>
-                  <TableHead className="w-28">スタンス</TableHead>
-                  <TableHead className="w-40">役割名</TableHead>
-                  <SortableTableHead
-                    field="total_content_richness"
-                    currentField={sort.field}
-                    currentOrder={sort.order}
-                    className="w-20 text-right"
-                  >
-                    充実度
-                  </SortableTableHead>
-                  <SortableTableHead
-                    field="moderation_score"
-                    currentField={sort.field}
-                    currentOrder={sort.order}
-                    className="w-32"
-                  >
-                    モデレーション
-                  </SortableTableHead>
-                  <TableHead className="w-24 text-center">満足度</TableHead>
-                  <SortableTableHead
-                    field="started_at"
-                    currentField={sort.field}
-                    currentOrder={sort.order}
-                    className="w-44"
-                  >
-                    開始時刻
-                  </SortableTableHead>
-                  <TableHead className="w-24">時間</TableHead>
-                  <SortableTableHead
-                    field="message_count"
-                    currentField={sort.field}
-                    currentOrder={sort.order}
-                    className="w-24 text-right"
-                  >
-                    メッセージ数
-                  </SortableTableHead>
-                  <SortableTableHead
-                    field="helpful_count"
-                    currentField={sort.field}
-                    currentOrder={sort.order}
-                    className="w-24 text-right"
-                  >
-                    参考になる
-                  </SortableTableHead>
-                  <TableHead className="w-64">要約</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sessions.map((session) => {
-                  const status = getSessionStatus(session);
-                  const duration = formatDuration(
-                    session.started_at,
-                    session.completed_at
-                  );
-                  const hasReport = !!session.interview_report;
+        <div className="rounded-lg border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="w-32">セッションID</TableHead>
+                <TableHead className="w-24">ステータス</TableHead>
+                <TableHead className="w-24 text-center">ユーザー公開</TableHead>
+                <TableHead className="w-24 text-center">管理者公開</TableHead>
+                <TableHead className="w-28">スタンス</TableHead>
+                <TableHead className="w-40">役割名</TableHead>
+                <SortableTableHead
+                  field="total_content_richness"
+                  currentField={sort.field}
+                  currentOrder={sort.order}
+                  className="w-20 text-right"
+                >
+                  充実度
+                </SortableTableHead>
+                <SortableTableHead
+                  field="moderation_score"
+                  currentField={sort.field}
+                  currentOrder={sort.order}
+                  className="w-32"
+                >
+                  モデレーション
+                </SortableTableHead>
+                <TableHead className="w-24 text-center">満足度</TableHead>
+                <SortableTableHead
+                  field="started_at"
+                  currentField={sort.field}
+                  currentOrder={sort.order}
+                  className="w-44"
+                >
+                  開始時刻
+                </SortableTableHead>
+                <TableHead className="w-24">時間</TableHead>
+                <SortableTableHead
+                  field="message_count"
+                  currentField={sort.field}
+                  currentOrder={sort.order}
+                  className="w-24 text-right"
+                >
+                  メッセージ数
+                </SortableTableHead>
+                <SortableTableHead
+                  field="helpful_count"
+                  currentField={sort.field}
+                  currentOrder={sort.order}
+                  className="w-24 text-right"
+                >
+                  参考になる
+                </SortableTableHead>
+                <TableHead className="w-64">要約</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sessions.map((session) => {
+                const status = getSessionStatus(session);
+                const duration = formatDuration(
+                  session.started_at,
+                  session.completed_at
+                );
+                const hasReport = !!session.interview_report;
 
-                  return (
-                    <TableRow key={session.id}>
-                      <TableCell className="font-mono text-sm">
-                        <Link
-                          href={
-                            routes.billReportDetail(
-                              billId,
-                              configId,
-                              session.id
-                            ) as Route
-                          }
-                          className="text-blue-600 hover:underline"
-                        >
-                          {session.id.substring(0, 8)}...
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <SessionStatusBadge status={status} />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {hasReport ? (
-                          <BooleanIcon
-                            value={
-                              session.interview_report?.is_public_by_user ??
-                              false
-                            }
-                          />
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {hasReport && session.interview_report ? (
-                          <ReportVisibilityListToggle
-                            reportId={session.interview_report.id}
-                            sessionId={session.id}
-                            billId={billId}
-                            isPublic={
-                              session.interview_report.is_public_by_admin ??
-                              false
-                            }
-                            isPublicByUser={
-                              session.interview_report.is_public_by_user ??
-                              false
-                            }
-                          />
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <StanceBadge
-                          stance={session.interview_report?.stance || null}
-                        />
-                      </TableCell>
-                      <TableCell className="text-gray-600 text-sm">
-                        {session.interview_report?.role_title || "-"}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {session.interview_report?.total_content_richness !=
-                        null
-                          ? session.interview_report.total_content_richness
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <ModerationBadge
-                          status={
-                            session.interview_report?.moderation_status ?? null
-                          }
-                          score={
-                            session.interview_report?.moderation_score ?? null
+                return (
+                  <TableRow key={session.id}>
+                    <TableCell className="font-mono text-sm">
+                      <Link
+                        href={
+                          routes.billReportDetail(
+                            billId,
+                            configId,
+                            session.id
+                          ) as Route
+                        }
+                        className="text-blue-600 hover:underline"
+                      >
+                        {session.id.substring(0, 8)}...
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <SessionStatusBadge status={status} />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {hasReport ? (
+                        <BooleanIcon
+                          value={
+                            session.interview_report?.is_public_by_user ?? false
                           }
                         />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {session.rating != null ? (
-                          <RatingStars rating={session.rating} />
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {new Date(session.started_at).toLocaleString(
-                            "ja-JP",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              timeZone: "Asia/Tokyo",
-                            }
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        {duration}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {session.message_count}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {session.helpful_count > 0 ? (
-                          <span className="inline-flex items-center gap-1">
-                            <Lightbulb className="h-4 w-4 text-blue-500" />
-                            {session.helpful_count}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">0</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-gray-600 text-sm">
-                        <span className="line-clamp-2">
-                          {session.interview_report?.summary || "-"}
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {hasReport && session.interview_report ? (
+                        <ReportVisibilityListToggle
+                          reportId={session.interview_report.id}
+                          sessionId={session.id}
+                          billId={billId}
+                          isPublic={
+                            session.interview_report.is_public_by_admin ?? false
+                          }
+                          isPublicByUser={
+                            session.interview_report.is_public_by_user ?? false
+                          }
+                        />
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <StanceBadge
+                        stance={session.interview_report?.stance || null}
+                      />
+                    </TableCell>
+                    <TableCell className="text-gray-600 text-sm">
+                      {session.interview_report?.role_title || "-"}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {session.interview_report?.total_content_richness != null
+                        ? session.interview_report.total_content_richness
+                        : "-"}
+                    </TableCell>
+                    <TableCell>
+                      <ModerationBadge
+                        status={
+                          session.interview_report?.moderation_status ?? null
+                        }
+                        score={
+                          session.interview_report?.moderation_score ?? null
+                        }
+                      />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {session.rating != null ? (
+                        <RatingStars rating={session.rating} />
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {new Date(session.started_at).toLocaleString("ja-JP", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          timeZone: "Asia/Tokyo",
+                        })}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">{duration}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {session.message_count}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {session.helpful_count > 0 ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Lightbulb className="h-4 w-4 text-blue-500" />
+                          {session.helpful_count}
                         </span>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </>
+                      ) : (
+                        <span className="text-gray-400">0</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-gray-600 text-sm">
+                      <span className="line-clamp-2">
+                        {session.interview_report?.summary || "-"}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {/* ページネーション */}

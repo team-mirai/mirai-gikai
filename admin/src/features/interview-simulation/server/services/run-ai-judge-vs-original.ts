@@ -26,6 +26,8 @@ interface RunAiJudgeVsOriginalParams {
   };
   model: AiModel;
   traceId: string;
+  /** クライアント abort 時に LLM 呼び出しも停止させる */
+  signal?: AbortSignal;
 }
 
 /**
@@ -37,6 +39,7 @@ export async function runAiJudgeVsOriginal({
   improvedSimulation,
   model,
   traceId,
+  signal,
 }: RunAiJudgeVsOriginalParams): Promise<JudgeVsOriginalVerdict> {
   const prompt = buildJudgeVsOriginalPrompt({
     original,
@@ -47,6 +50,7 @@ export async function runAiJudgeVsOriginal({
     model,
     schema: judgeVsOriginalVerdictSchema,
     prompt,
+    abortSignal: signal,
     experimental_telemetry: {
       isEnabled: true,
       functionId: "sim-judge-vs-original",

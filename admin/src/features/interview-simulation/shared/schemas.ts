@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AI_MODELS, type AiModel } from "@/lib/ai/models";
 
 /**
  * ペルソナ生成 LLM の出力スキーマ
@@ -164,3 +165,58 @@ export const simulatedTurnSchema = z
   .strict();
 
 export type SimulatedTurn = z.infer<typeof simulatedTurnSchema>;
+
+/**
+ * AI_MODELS の値のみを許可する zod スキーマ。
+ * 未知のモデル ID を弾くため、値集合を runtime で検査する。
+ */
+const aiModelSchema = z.custom<AiModel>(
+  (val): val is AiModel =>
+    typeof val === "string" &&
+    (Object.values(AI_MODELS) as string[]).includes(val),
+  { message: "Unknown AI model id" }
+);
+
+/**
+ * シミュレーション API のリクエストボディ（実行時バリデーション用）
+ * 型 SimulationRunRequest と対応。不正 payload を 400 で弾くのに使う。
+ */
+export const simulationRunRequestSchema = z
+  .object({
+    personaSource: z.discriminatedUnion("type", [
+      z.object({
+        type: z.literal("report"),
+        reportId: z.string().min(1),
+      }),
+      z.object({
+        type: z.literal("bill"),
+        billId: z.string().min(1),
+        stanceHint: z.enum(["for", "against", "neutral"]).optional(),
+        roleHint: z.string().optional(),
+      }),
+    ]),
+    improvedConfig: z.object({
+      mode: z.enum(["loop", "bulk"]),
+      themes: z.array(z.string()).nullable(),
+      knowledgeSource: z.string().nullable(),
+      estimatedDurationMinutes: z.number().nullable(),
+      questions: z
+        .array(
+          z.object({
+            id: z.string().min(1),
+            question: z.string().min(1),
+            quick_replies: z.array(z.string()).nullable(),
+            follow_up_guide: z.string().nullable(),
+          })
+        )
+        .min(1, "改善版 config に質問が 1 件以上必要です"),
+    }),
+    // AI モデルは AI_MODELS の値のいずれか（型 AiModel）
+    interviewerModel: aiModelSchema,
+    intervieweeModel: aiModelSchema,
+    personaModel: aiModelSchema,
+    judgeModel: aiModelSchema,
+    includeCurrent: z.boolean(),
+    evaluate: z.boolean(),
+  })
+  .strict();

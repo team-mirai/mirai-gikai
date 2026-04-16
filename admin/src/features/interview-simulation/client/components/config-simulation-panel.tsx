@@ -53,8 +53,8 @@ import type {
 interface ConfigSimulationPanelProps {
   /** 編集中 config の billId */
   billId: string;
-  /** 保存済み config ID。未保存なら null（この場合はサーバー検証でエラーになる） */
-  configId: string | null;
+  /** 保存済み config ID（保存前はタブごと非マウントにしているので必ず string） */
+  configId: string;
   /** 編集フォームの現在値を取り出すための ref */
   getFormValues: () => {
     mode: string;
@@ -254,10 +254,6 @@ export function ConfigSimulationPanel({
       setError("テストに使うレポートを選択してください");
       return;
     }
-    if (!configId) {
-      setError("先に設定を保存してください");
-      return;
-    }
     const formValues = getFormValues();
     if (!formValues) {
       setError("フォーム値の取得に失敗しました");
@@ -377,7 +373,6 @@ export function ConfigSimulationPanel({
     }
   }, [
     reportId,
-    configId,
     billId,
     getFormValues,
     getCurrentQuestions,

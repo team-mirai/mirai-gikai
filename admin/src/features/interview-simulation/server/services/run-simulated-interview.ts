@@ -91,6 +91,8 @@ interface RunSimulatedInterviewParams {
   estimatedDurationMinutes?: number | null;
   /** 各ターン完了時に呼ばれるコールバック（ストリーミング進捗用） */
   onTurnComplete?: (turnIndex: number, turn: SimulatedTurn) => void;
+  /** クライアント abort 時に LLM 呼び出しも停止させる */
+  signal?: AbortSignal;
 }
 
 /**
@@ -241,6 +243,7 @@ export async function runSimulatedInterview({
   initialTurnEnhancement,
   estimatedDurationMinutes,
   onTurnComplete,
+  signal,
 }: RunSimulatedInterviewParams): Promise<SimulationRun> {
   const questionsCount = promptInputs.questions.length;
   const effectiveMaxTurns = deriveTargetMaxTurns(
@@ -299,6 +302,7 @@ export async function runSimulatedInterview({
           model: interviewerModel,
           schema: simInterviewerOutputSchema,
           prompt: enhancedPrompt,
+          abortSignal: signal,
           experimental_telemetry: {
             isEnabled: true,
             functionId: "sim-interviewer-initial",
@@ -313,6 +317,7 @@ export async function runSimulatedInterview({
           schema: simInterviewerOutputSchema,
           system: interviewerSystemPromptForThisTurn,
           messages,
+          abortSignal: signal,
           experimental_telemetry: {
             isEnabled: true,
             functionId: "sim-interviewer",
@@ -386,6 +391,7 @@ export async function runSimulatedInterview({
         model: intervieweeModel,
         system: intervieweeSystemPrompt,
         messages,
+        abortSignal: signal,
         experimental_telemetry: {
           isEnabled: true,
           functionId: "sim-interviewee",
@@ -435,6 +441,7 @@ export async function runSimulatedInterview({
         system: summarySystemPrompt,
         prompt:
           "上記の会話履歴をもとに、スキーマに従ってレポートを JSON で生成してください。",
+        abortSignal: signal,
         experimental_telemetry: {
           isEnabled: true,
           functionId: "sim-summary",

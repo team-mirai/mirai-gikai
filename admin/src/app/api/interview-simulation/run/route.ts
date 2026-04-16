@@ -5,6 +5,7 @@ import type {
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { getReportDetailForSimulation } from "@/features/interview-simulation/server/loaders/get-report-detail-for-simulation";
 import { runSimulationPipeline } from "@/features/interview-simulation/server/services/simulation-orchestrator";
+import { simulationRunRequestSchema } from "@/features/interview-simulation/shared/schemas";
 import type {
   SimulationProgressEvent,
   SimulationRunRequest,
@@ -166,46 +167,33 @@ async function buildPipelineParamsForBill(
   };
 }
 
-function validateRequest(params: SimulationRunRequest): string | null {
-  if (!params.personaSource) {
-    return "personaSource is required";
-  }
-  if (
-    params.personaSource.type === "report" &&
-    !params.personaSource.reportId
-  ) {
-    return "personaSource.reportId is required";
-  }
-  if (params.personaSource.type === "bill" && !params.personaSource.billId) {
-    return "personaSource.billId is required";
-  }
-  if (!params.improvedConfig) {
-    return "improvedConfig is required";
-  }
-  if (
-    !Array.isArray(params.improvedConfig.questions) ||
-    params.improvedConfig.questions.length === 0
-  ) {
-    return "改善版 config に質問が 1 件以上必要です";
-  }
-  return null;
-}
-
 export async function POST(request: Request) {
   const authError = await authenticate(request);
   if (authError) return authError;
 
-  let params: SimulationRunRequest;
+  let rawBody: unknown;
   try {
-    params = (await request.json()) as SimulationRunRequest;
+    rawBody = await request.json();
   } catch {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const validationError = validateRequest(params);
-  if (validationError) {
-    return Response.json({ error: validationError }, { status: 400 });
+  // zod で実行時バリデーション: personaSource.type や mode などの enum、
+  // 質問要素の必須フィールドまで含めて不正 payload を 400 で弾く
+  const parsed = simulationRunRequestSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    const path = firstIssue?.path.join(".") ?? "";
+    return Response.json(
+      {
+        error: firstIssue
+          ? `リクエストが不正です (${path}: ${firstIssue.message})`
+          : "リクエストが不正です",
+      },
+      { status: 400 }
+    );
   }
+  const params: SimulationRunRequest = parsed.data;
 
   const built: BuildResult =
     params.personaSource.type === "report"
@@ -234,20 +222,26 @@ export async function POST(request: Request) {
           controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
         };
         try {
+          // クライアントが fetch を abort したら pipeline 全体にも伝播させる
           const result = await runSimulationPipeline({
             ...pipelineParams,
             onProgress: emit,
+            signal: request.signal,
           });
           emit({ type: "complete", result });
         } catch (error) {
-          console.error("[Simulation] pipeline failed:", error);
-          emit({
-            type: "error",
-            message:
-              error instanceof Error
-                ? error.message
-                : "シミュレーションに失敗しました",
-          });
+          if (request.signal.aborted) {
+            console.log("[Simulation] aborted by client");
+          } else {
+            console.error("[Simulation] pipeline failed:", error);
+            emit({
+              type: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "シミュレーションに失敗しました",
+            });
+          }
         } finally {
           controller.close();
         }
@@ -262,7 +256,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await runSimulationPipeline(pipelineParams);
+    const result = await runSimulationPipeline({
+      ...pipelineParams,
+      signal: request.signal,
+    });
     return Response.json({ success: true, result });
   } catch (error) {
     console.error("[Simulation] pipeline failed:", error);
