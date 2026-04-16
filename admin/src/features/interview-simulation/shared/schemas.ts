@@ -55,61 +55,6 @@ export const personaSchema = z
 export type PersonaCharacterSheet = z.infer<typeof personaSchema>;
 
 /**
- * Judge による評価軸ごとのスコア
- */
-export const judgeCriterionSchema = z
-  .object({
-    criterion: z.enum([
-      "question_diversity",
-      "depth_of_followup",
-      "flow_naturalness",
-      "question_coverage",
-      "persona_consistency",
-    ]),
-    score_current: z
-      .number()
-      .int()
-      .min(1)
-      .max(5)
-      .describe("現行プロンプトのスコア（1=悪い, 5=非常に良い）"),
-    score_improved: z
-      .number()
-      .int()
-      .min(1)
-      .max(5)
-      .describe("改善版プロンプトのスコア"),
-    comment: z.string().describe("差を説明する短いコメント（80文字以内）"),
-  })
-  .strict();
-
-export type JudgeCriterionResult = z.infer<typeof judgeCriterionSchema>;
-
-/**
- * Judge の総合判定スキーマ
- */
-export const judgeVerdictSchema = z
-  .object({
-    criteria: z
-      .array(judgeCriterionSchema)
-      .describe("評価軸ごとのスコアとコメント"),
-    winner: z
-      .enum(["current", "improved", "tie"])
-      .describe("総合的にどちらが優れているか"),
-    summary: z
-      .string()
-      .describe("総合所見。改善版の長所と懸念を200文字以内で記述"),
-    key_differences: z
-      .array(z.string())
-      .describe("対比した際の主要な差分（箇条書き、3〜5件）"),
-    concerns: z
-      .array(z.string())
-      .describe("改善版を本番投入する前に確認すべき懸念点。なければ空配列"),
-  })
-  .strict();
-
-export type JudgeVerdict = z.infer<typeof judgeVerdictSchema>;
-
-/**
  * 改善版 sim の「インタビュアー質問」を、元の実インタビューの
  * インタビュアー質問と比較評価する Judge のスキーマ。
  *

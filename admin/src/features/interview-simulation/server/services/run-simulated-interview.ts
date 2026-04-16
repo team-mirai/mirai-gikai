@@ -1,5 +1,7 @@
 import "server-only";
 
+import { buildBulkModeSystemPrompt } from "@mirai-gikai/shared/interview-prompts/bulk-mode";
+import { buildLoopModeSystemPrompt } from "@mirai-gikai/shared/interview-prompts/loop-mode";
 import { buildSummarySystemPrompt } from "@mirai-gikai/shared/interview-prompts/summary";
 import type {
   PromptBillInput,
@@ -20,7 +22,6 @@ import type { SimulationMetrics, SimulationRun } from "../../shared/types";
 import { buildIntervieweeSystemPrompt } from "../../shared/utils/build-interviewee-system-prompt";
 import type { OriginalStyleAnchors } from "../../shared/utils/extract-original-style-anchors";
 import { isShortAnswer } from "../../shared/utils/format-transcript";
-import { refreshStageGuidance } from "../../shared/utils/refresh-stage-guidance";
 
 /**
  * シミュレーション中のインタビュアー LLM が返す最低限のフィールド
@@ -51,19 +52,24 @@ const simInterviewerOutputSchema = z
 
 interface RunSimulatedInterviewParams {
   persona: PersonaCharacterSheet;
-  interviewerSystemPrompt: string;
   interviewerModel: AiModel;
   intervieweeModel: AiModel;
   traceId: string;
   kind: PromptKind;
-  questionsCount: number;
   /** 元インタビューから抽出した文体指標（省略可）。渡すとインタビュイー LLM の回答長を元会話レンジに寄せる */
   styleAnchors?: OriginalStyleAnchors;
   maxTurns?: number;
-  /** Summary フェーズ用。本番と同じ buildSummarySystemPrompt で構築する素材 */
-  summaryInputs?: {
+  /**
+   * 本番と同じ builder を毎ターン呼んで system prompt を再構築するための素材。
+   * handleInterviewChatRequest は毎ターン fresh に prompt をビルドし、bulk では
+   * calculateNextQuestionId() の結果を nextQuestionId として渡す。
+   * シミュでもこの挙動を揃える。
+   */
+  promptInputs: {
     bill: PromptBillInput;
     interviewConfig: PromptInterviewConfig;
+    questions: PromptInterviewQuestion[];
+    mode: "loop" | "bulk";
   };
   /** Summary フェーズ用モデル。省略時は interviewerModel と同じ */
   summaryModel?: AiModel;
@@ -78,29 +84,62 @@ interface RunSimulatedInterviewParams {
     firstQuestionId: string | null;
   };
   /**
-   * 毎ターンの「事前定義質問の進捗状況」セクション更新に使う。
-   * これを渡すと、本番 handleInterviewChatRequest と同じく毎ターン
-   * askedQuestionIds を反映した進捗が system prompt に注入される。
+   * インタビュー目安時間（分）。本番では毎ターン実時間ベースで残り時間を計算するが、
+   * シミュでは元インタビューのターン数を基準に時間消費をシミュレートする。
+   * null なら「## タイムマネジメント」セクションが出ない（本番と同じ挙動）。
    */
-  dynamicStageGuidance?: {
-    questions: PromptInterviewQuestion[];
-    mode: "loop" | "bulk";
-  };
+  estimatedDurationMinutes?: number | null;
+  /** 各ターン完了時に呼ばれるコールバック（ストリーミング進捗用） */
+  onTurnComplete?: (turnIndex: number, turn: SimulatedTurn) => void;
+}
+
+/**
+ * Bulk モードで「次に強制する質問」を計算する。
+ * 本番の calculateNextQuestionId と同等: 未回答のうち定義順で最初の質問。
+ */
+function pickNextQuestionIdForBulk(
+  questions: PromptInterviewQuestion[],
+  askedQuestionIds: Set<string>
+): string | undefined {
+  return questions.find((q) => !askedQuestionIds.has(q.id))?.id;
+}
+
+/**
+ * 本番と同じ builder を呼んで、現在のターンの system prompt を構築する。
+ * 毎ターン fresh にビルドすることで、refresh によるセクション差し替え漏れを防ぐ。
+ */
+function buildInterviewerSystemPromptForTurn(
+  promptInputs: RunSimulatedInterviewParams["promptInputs"],
+  askedQuestionIds: Set<string>,
+  remainingMinutes: number | null | undefined
+): string {
+  const builder =
+    promptInputs.mode === "bulk"
+      ? buildBulkModeSystemPrompt
+      : buildLoopModeSystemPrompt;
+  const nextQuestionId =
+    promptInputs.mode === "bulk"
+      ? pickNextQuestionIdForBulk(promptInputs.questions, askedQuestionIds)
+      : undefined;
+  return builder({
+    bill: promptInputs.bill,
+    interviewConfig: promptInputs.interviewConfig,
+    questions: promptInputs.questions,
+    currentStage: "chat",
+    askedQuestionIds,
+    remainingMinutes,
+    nextQuestionId,
+  });
 }
 
 function asInterviewerMessages(turns: SimulatedTurn[]): ModelMessage[] {
+  // 本番と同じ挙動に合わせる: assistant メッセージはプレーンテキストのみ渡す。
+  // JSON 全体（topic_title / question_id 等）を渡すと、LLM が過去の話題文脈を
+  // 強く保持しすぎて深掘りが止まらなくなる。askedQuestionIds の進捗は
+  // system prompt 側の「## ステージ遷移判定」セクションで LLM に伝える。
   return turns.map<ModelMessage>((t) => {
     if (t.role === "interviewer") {
-      // インタビュアー視点では自分の過去発話は assistant、
-      // 元プロンプトが JSON 出力を要求しているので JSON 文字列で再現する
-      const payload = {
-        text: t.content,
-        topic_title: t.topic_title ?? null,
-        question_id: t.question_id ?? null,
-        next_stage: t.next_stage ?? "chat",
-        quick_replies: t.quick_replies ?? null,
-      };
-      return { role: "assistant", content: JSON.stringify(payload) };
+      return { role: "assistant", content: t.content };
     }
     return { role: "user", content: t.content };
   });
@@ -153,6 +192,24 @@ function computeMetrics(
 }
 
 /**
+ * シミュレート上の残り時間（分）を算出する。
+ * 本番は `estimated_duration - (now - session.started_at) / 60000` だが、
+ * simでは実時間が数秒しか経過しないため、元インタビューのターン数を基準に
+ * 時間消費をシミュレートする。
+ *
+ * turnIndex=0 で full time、turnIndex=expectedTurns で 0 になるよう線形補間。
+ */
+function calculateSimulatedRemainingMinutes(
+  estimatedDuration: number,
+  turnIndex: number,
+  expectedTotalTurns: number
+): number {
+  if (expectedTotalTurns <= 0) return estimatedDuration;
+  const minutesPerTurn = estimatedDuration / expectedTotalTurns;
+  return Math.max(0, Math.ceil(estimatedDuration - turnIndex * minutesPerTurn));
+}
+
+/**
  * 元インタビュアーのターン数から、シミュのターン上限を算出する。
  * 元が短ければシミュも短く、元が長ければ元並みに（ただし hard cap を超えない）。
  * この値は LLM には伝えない（本番プロンプトをいじらないため）。純粋に実行側の安全装置。
@@ -173,19 +230,19 @@ function deriveTargetMaxTurns(
 
 export async function runSimulatedInterview({
   persona,
-  interviewerSystemPrompt,
   interviewerModel,
   intervieweeModel,
   traceId,
   kind,
-  questionsCount,
   styleAnchors,
   maxTurns = SIMULATION_MAX_TURNS,
-  summaryInputs,
+  promptInputs,
   summaryModel,
   initialTurnEnhancement,
-  dynamicStageGuidance,
+  estimatedDurationMinutes,
+  onTurnComplete,
 }: RunSimulatedInterviewParams): Promise<SimulationRun> {
+  const questionsCount = promptInputs.questions.length;
   const effectiveMaxTurns = deriveTargetMaxTurns(
     maxTurns,
     styleAnchors?.originalInterviewerTurns,
@@ -196,24 +253,38 @@ export async function runSimulatedInterview({
   const startedAt = Date.now();
   // インタビュイーが元の発言回数を超えないうちに自然に畳ませるための「予算」
   const intervieweeBudget = styleAnchors?.originalIntervieweeTurns;
+  // タイムマネジメント用: 元インタビューのターン数を基準に残り時間をシミュレート
+  const expectedTotalTurns =
+    styleAnchors?.originalInterviewerTurns ?? questionsCount * 2;
 
   let stopReason: SimulationRun["stopReason"] = "max_turns";
+  // 1 ターン目の system prompt を結果に残す（UI で system prompt 確認用）
+  let firstTurnSystemPrompt = "";
 
   // インタビュアーがリードするので、ターンはペア単位 (interviewer + interviewee) で進む
   for (let turnIndex = 0; turnIndex < effectiveMaxTurns; turnIndex++) {
     // --- インタビュアーの発話 ---
-    // 本番の handleInterviewChatRequest は毎ターン system prompt を再構築して
-    // 「完了した質問 / 未回答の質問」セクションを更新する。
-    // シミュでも同じ挙動にするため、現在の askedQuestionIds で進捗セクションを
-    // 差し替えてから LLM に渡す。
-    const interviewerSystemPromptForThisTurn = dynamicStageGuidance
-      ? refreshStageGuidance({
-          userSystemPrompt: interviewerSystemPrompt,
-          askedQuestionIds,
-          questions: dynamicStageGuidance.questions,
-          mode: dynamicStageGuidance.mode,
-        })
-      : interviewerSystemPrompt;
+    // 本番の handleInterviewChatRequest は毎ターン fresh に system prompt を
+    // 再構築する。bulk では calculateNextQuestionId() で「次に強制する質問」を
+    // 選び直すので、deep-dive や質問重複が構造的に避けられる仕組み。
+    // シミュでも同じく毎ターン fresh ビルドする。
+    const simulatedRemainingMinutes =
+      estimatedDurationMinutes != null
+        ? calculateSimulatedRemainingMinutes(
+            estimatedDurationMinutes,
+            turnIndex,
+            expectedTotalTurns
+          )
+        : undefined;
+
+    const interviewerSystemPromptForThisTurn =
+      buildInterviewerSystemPromptForTurn(
+        promptInputs,
+        askedQuestionIds,
+        simulatedRemainingMinutes
+      );
+    if (turnIndex === 0)
+      firstTurnSystemPrompt = interviewerSystemPromptForThisTurn;
 
     let interviewerOutput: z.infer<typeof simInterviewerOutputSchema>;
     try {
@@ -265,14 +336,16 @@ export async function runSimulatedInterview({
       interviewerOutput.quick_replies.length > 0
         ? interviewerOutput.quick_replies
         : null;
-    transcript.push({
+    const interviewerTurn: SimulatedTurn = {
       role: "interviewer",
       content: interviewerOutput.text,
       topic_title: interviewerOutput.topic_title ?? null,
       question_id: interviewerOutput.question_id ?? null,
       next_stage: interviewerOutput.next_stage ?? "chat",
       quick_replies: interviewerQuickReplies,
-    });
+    };
+    transcript.push(interviewerTurn);
+    onTurnComplete?.(turnIndex, interviewerTurn);
 
     if (interviewerOutput.question_id) {
       askedQuestionIds.add(interviewerOutput.question_id);
@@ -324,10 +397,12 @@ export async function runSimulatedInterview({
           },
         },
       });
-      transcript.push({
+      const intervieweeTurn: SimulatedTurn = {
         role: "interviewee",
         content: text.trim(),
-      });
+      };
+      transcript.push(intervieweeTurn);
+      onTurnComplete?.(turnIndex, intervieweeTurn);
     } catch (error) {
       console.error("[Simulation] interviewee LLM failed:", error);
       stopReason = "interviewee_error";
@@ -335,13 +410,14 @@ export async function runSimulatedInterview({
     }
   }
 
-  // Summary フェーズ: 本番プロンプト側で summary / summary_complete に遷移した場合のみ、
+  // Summary フェーズ: summary/summary_complete への自然遷移 or max_turns 到達時に
   // 本番と同じ buildSummarySystemPrompt で Summary LLM を呼び、構造化レポートを生成する。
-  // （max_turns 到達や、遷移しなかった場合は null のまま）
+  // max_turns でも要約を生成することで、常にレポートが得られるようにする。
   let generatedReport: SimGeneratedReport | null = null;
   if (
-    (stopReason === "summary" || stopReason === "summary_complete") &&
-    summaryInputs
+    stopReason === "summary" ||
+    stopReason === "summary_complete" ||
+    stopReason === "max_turns"
   ) {
     try {
       const summaryMessages = transcript.map((t) => ({
@@ -349,8 +425,8 @@ export async function runSimulatedInterview({
         content: t.content,
       }));
       const summarySystemPrompt = buildSummarySystemPrompt({
-        bill: summaryInputs.bill,
-        interviewConfig: summaryInputs.interviewConfig,
+        bill: promptInputs.bill,
+        interviewConfig: promptInputs.interviewConfig,
         messages: summaryMessages,
       });
       const { object } = await generateObject({
@@ -373,7 +449,7 @@ export async function runSimulatedInterview({
 
   return {
     promptKind: kind,
-    interviewerSystemPrompt,
+    interviewerSystemPrompt: firstTurnSystemPrompt,
     interviewerModel,
     intervieweeModel,
     transcript,

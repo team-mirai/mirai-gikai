@@ -6,21 +6,36 @@ import type { AiModel } from "@/lib/ai/models";
 import { env } from "@/lib/env";
 import type { SimulationResult } from "../../shared/types";
 
+/**
+ * UI フォームから送る「編集中（未保存を含む）の config スナップショット」。
+ * 改善版 sim はこの値を使って system prompt を毎ターン構築する。
+ * 本番の「編集した config を保存せずにテストする」ユースケース向け。
+ */
+export interface TransientConfigSnapshot {
+  mode: "loop" | "bulk";
+  themes: string[] | null;
+  knowledgeSource: string | null;
+  /** インタビュー目安時間（分）。本番の「## タイムマネジメント」セクションに反映される */
+  estimatedDurationMinutes: number | null;
+  questions: Array<{
+    /** 既存質問ならその id、未保存の新規質問ならクライアント側の一時 UUID */
+    id: string;
+    question: string;
+    quick_replies: string[] | null;
+    follow_up_guide: string | null;
+  }>;
+}
+
 export interface RunSimulationActionParams {
+  /** どのレポート（過去の完了インタビュー）をペルソナ抽出元として使うか */
   reportId: string;
-  /** 元 config から復元した「現行プロンプト」全文 */
-  currentSystemPrompt: string;
-  /** ユーザーが編集した「改善版プロンプト」全文 */
-  improvedSystemPrompt: string;
-  /** 改善版で使う config ID（current と同じでも別でも可） */
-  improvedConfigId: string;
-  /** 改善版 sim のメトリクス用（選択した config の質問数） */
-  improvedQuestionsCount: number;
+  /** 改善版 = UI で編集中の config スナップショット（未保存を含む） */
+  improvedConfig: TransientConfigSnapshot;
   interviewerModel: AiModel;
   intervieweeModel: AiModel;
   personaModel: AiModel;
   judgeModel: AiModel;
-  /** false なら improved だけ実行（current は走らせない） */
+  /** false なら improved だけ実行。true なら「保存済み config」と並列 sim + Judge で比較 */
   includeCurrent: boolean;
   /** false なら Judge を回さない */
   evaluate: boolean;

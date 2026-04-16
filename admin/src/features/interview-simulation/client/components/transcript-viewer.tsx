@@ -58,14 +58,14 @@ export function TranscriptViewer({
             key={`${idx}-${t.role}`}
             className={`rounded-md border p-3 ${baseClass} ${highlightClass}`}
           >
-            <div className="flex items-center justify-between mb-1.5 text-xs">
+            <div className="mb-1.5 text-xs">
               <span className="font-semibold">
                 {idx + 1}. {ROLE_LABEL[t.role]}
               </span>
               {meta.length > 0 && (
-                <span className="text-muted-foreground">
+                <div className="text-muted-foreground mt-0.5">
                   {meta.join(" / ")}
-                </span>
+                </div>
               )}
             </div>
             <p className="text-sm whitespace-pre-wrap leading-relaxed">

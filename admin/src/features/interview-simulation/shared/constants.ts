@@ -1,7 +1,8 @@
 import { AI_MODELS } from "@/lib/ai/models";
 
-/** シミュレーション 1 本あたりの最大ターン数（interviewer + interviewee の往復） */
-export const SIMULATION_MAX_TURNS = 12;
+/** シミュレーション 1 本あたりの最大ターン数（interviewer + interviewee の往復）。
+ *  タイムマネジメントの動的更新で自然に要約遷移するのが理想で、これは安全弁。 */
+export const SIMULATION_MAX_TURNS = 20;
 
 /** UI のモデル選択肢として提示するモデル一覧 */
 export const SIMULATION_MODEL_OPTIONS = [

@@ -1,15 +1,13 @@
 "use client";
 
-import type { Route } from "next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import type { MutableRefObject } from "react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
-import { routes } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -32,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { routes } from "@/lib/routes";
 import { generateInterviewPreviewUrl } from "../../server/actions/generate-interview-preview-url";
 import {
   createInterviewConfig,

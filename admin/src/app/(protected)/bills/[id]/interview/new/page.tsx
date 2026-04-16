@@ -1,11 +1,11 @@
-import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
-import { routes } from "@/lib/routes";
 import { InterviewConfigEditClient } from "@/features/interview-config/client/components/interview-config-edit-client";
+import { routes } from "@/lib/routes";
 
 interface InterviewNewPageProps {
   params: Promise<{
@@ -48,6 +48,7 @@ export default async function InterviewNewPage({
         billId={bill.id}
         config={null}
         questions={[]}
+        completedReports={[]}
       />
     </div>
   );

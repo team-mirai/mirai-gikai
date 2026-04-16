@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  BarChart3,
-  Copy,
-  FlaskConical,
-  Pencil,
-  Plus,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+import { BarChart3, Copy, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -218,19 +210,6 @@ export function InterviewConfigList({
                           <Button variant="ghost" size="sm" className="gap-1">
                             <Sparkles className="h-4 w-4" />
                             トピック解析
-                          </Button>
-                        </Link>
-                        <Link
-                          href={
-                            routes.billInterviewSimulation(
-                              billId,
-                              config.id
-                            ) as Route
-                          }
-                        >
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <FlaskConical className="h-4 w-4" />
-                            シミュレーション
                           </Button>
                         </Link>
                       </div>

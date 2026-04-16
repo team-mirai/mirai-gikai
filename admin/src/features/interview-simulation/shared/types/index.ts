@@ -1,12 +1,20 @@
 import type { AiModel } from "@/lib/ai/models";
 import type { PromptKind } from "../constants";
 import type {
-  JudgeVerdict,
   JudgeVsOriginalVerdict,
   PersonaCharacterSheet,
   SimGeneratedReport,
   SimulatedTurn,
 } from "../schemas";
+
+/**
+ * ストリーミング進捗イベント（NDJSON で 1 行ずつ送信される）
+ */
+export type SimulationProgressEvent =
+  | { type: "status"; message: string }
+  | { type: "turn"; turnIndex: number; turn: SimulatedTurn }
+  | { type: "complete"; result: SimulationResult }
+  | { type: "error"; message: string };
 
 /**
  * 元のインタビューを再構成するためのデータ
@@ -94,8 +102,6 @@ export interface SimulationResult {
   judgeModel: AiModel | null;
   original: OriginalInterviewSnapshot;
   simulations: Partial<Record<PromptKind, SimulationRun>>;
-  /** evaluate=true のときのみ、現行 vs 改善版の Judge 結果が入る（includeCurrent=true 時のみ） */
-  evaluations: Partial<Record<PromptKind, JudgeVerdict | null>>;
   /**
    * evaluate=true のときのみ、改善版 sim と元の実インタビューを比較した Judge 結果
    * （改善版のインタビュアー質問が元と比べて良いか・悪いか・変わらないかを要約）

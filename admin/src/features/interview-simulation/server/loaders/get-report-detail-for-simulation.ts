@@ -23,15 +23,20 @@ export interface ReportDetailForSimulation {
   interviewConfig: PromptInterviewConfig;
   questions: PromptInterviewQuestion[];
   mode: "loop" | "bulk";
+  /** 保存済み config の estimated_duration（分）。本番のタイムマネジメント用 */
+  estimatedDurationMinutes: number | null;
 }
 
 /**
  * インタビュアーが返した assistant の content (JSON 文字列) から
- * text と quick_replies を取り出す。
+ * text と quick_replies, next_stage を取り出す。
+ * next_stage は summary / summary_complete 判定で使う。
  */
 function parseAssistantMessage(content: string): {
   text: string;
   quick_replies: string[] | null;
+  nextStage: "chat" | "summary" | "summary_complete" | null;
+  hasReport: boolean;
 } {
   try {
     const parsed = JSON.parse(content);
@@ -41,22 +46,41 @@ function parseAssistantMessage(content: string): {
       "text" in parsed &&
       typeof parsed.text === "string"
     ) {
-      const rawQr = (parsed as { quick_replies?: unknown }).quick_replies;
+      const raw = parsed as {
+        quick_replies?: unknown;
+        next_stage?: unknown;
+        report?: unknown;
+      };
+      const rawQr = raw.quick_replies;
       const quick_replies = Array.isArray(rawQr)
         ? rawQr.filter(
             (v): v is string => typeof v === "string" && v.length > 0
           )
         : null;
+      const nextStageRaw = raw.next_stage;
+      const nextStage =
+        nextStageRaw === "chat" ||
+        nextStageRaw === "summary" ||
+        nextStageRaw === "summary_complete"
+          ? nextStageRaw
+          : null;
       return {
         text: parsed.text,
         quick_replies:
           quick_replies && quick_replies.length > 0 ? quick_replies : null,
+        nextStage,
+        hasReport: raw.report != null,
       };
     }
   } catch {
     /* JSON でない場合はそのまま */
   }
-  return { text: content, quick_replies: null };
+  return {
+    text: content,
+    quick_replies: null,
+    nextStage: null,
+    hasReport: false,
+  };
 }
 
 /**
@@ -81,8 +105,24 @@ export async function getReportDetailForSimulation(
 
   const billData = await fetchBillWithContents(interviewConfig.bill_id);
 
-  // 元会話を interviewer / interviewee の text のみに正規化
-  const conversation = (messages ?? []).map((m) => {
+  // 元会話を interviewer / interviewee の text のみに正規化。
+  // Summary フェーズ（report 生成・確認ターン）は除外する。
+  // 方針: 最初に report フィールドを含む assistant メッセージ or
+  //       next_stage === "summary_complete" が出た時点で、以降は除外。
+  // next_stage === "summary" のターン自体は「これから要約します」という
+  // 移行宣言の発話なので chat 末尾として残す（本番 UI でもそう見える）。
+  const rawMessages = messages ?? [];
+  let summaryCutoffIndex = rawMessages.length;
+  for (let i = 0; i < rawMessages.length; i++) {
+    const m = rawMessages[i];
+    if (m.role !== "assistant") continue;
+    const parsed = parseAssistantMessage(m.content);
+    if (parsed.hasReport || parsed.nextStage === "summary_complete") {
+      summaryCutoffIndex = i;
+      break;
+    }
+  }
+  const conversation = rawMessages.slice(0, summaryCutoffIndex).map((m) => {
     const role: "interviewer" | "interviewee" =
       m.role === "assistant" ? "interviewer" : "interviewee";
     if (m.role === "assistant") {
@@ -163,5 +203,6 @@ export async function getReportDetailForSimulation(
     interviewConfig: promptInterviewConfig,
     questions: promptQuestions,
     mode,
+    estimatedDurationMinutes: interviewConfig.estimated_duration ?? null,
   };
 }
