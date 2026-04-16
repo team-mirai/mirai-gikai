@@ -28,7 +28,13 @@ const billBaseSchema = z.object({
     .string()
     .max(500, "ステータス備考は500文字以内で入力してください")
     .nullable(),
-  submitted_at: z.string().optional(),
+  submitted_at: z
+    .string()
+    .regex(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+      "法案提出日は YYYY-MM-DDTHH:mm 形式で入力してください"
+    )
+    .optional(),
   thumbnail_url: z.string().nullable().optional(),
   share_thumbnail_url: z.string().nullable().optional(),
   shugiin_url: z
