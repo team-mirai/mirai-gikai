@@ -44,9 +44,12 @@ export function InterviewQuestionList({
 
   // 親コンポーネントから最新の questions を読めるようにする
   useEffect(() => {
-    if (getQuestionsRef) {
-      getQuestionsRef.current = () => questions;
-    }
+    if (!getQuestionsRef) return;
+    getQuestionsRef.current = () => questions;
+    return () => {
+      // アンマウント後に stale な getter を親が読まないようクリア
+      getQuestionsRef.current = null;
+    };
   }, [questions, getQuestionsRef]);
 
   const saveQuestions = useCallback(

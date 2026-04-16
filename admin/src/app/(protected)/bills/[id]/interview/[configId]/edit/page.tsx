@@ -30,7 +30,7 @@ export default async function InterviewEditPage({
     notFound();
   }
 
-  const [questions, completedReports] = await Promise.all([
+  const [questions, completedReportsResult] = await Promise.all([
     getInterviewQuestions(config.id),
     getCompletedReportsForBill(bill.id),
   ]);
@@ -61,7 +61,9 @@ export default async function InterviewEditPage({
         billId={bill.id}
         config={config}
         questions={questions}
-        completedReports={completedReports}
+        completedReports={completedReportsResult.reports}
+        completedReportsTruncated={completedReportsResult.isTruncated}
+        completedReportsLimit={completedReportsResult.limit}
       />
     </div>
   );

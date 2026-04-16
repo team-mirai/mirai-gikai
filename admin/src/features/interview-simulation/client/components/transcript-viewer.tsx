@@ -73,9 +73,9 @@ export function TranscriptViewer({
             </p>
             {t.quick_replies && t.quick_replies.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {t.quick_replies.map((qr) => (
+                {t.quick_replies.map((qr, qrIdx) => (
                   <span
-                    key={qr}
+                    key={`${qrIdx}-${qr}`}
                     className="inline-flex items-center rounded-full border bg-background px-2 py-0.5 text-xs text-muted-foreground"
                   >
                     {qr}

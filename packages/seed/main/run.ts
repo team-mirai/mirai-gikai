@@ -530,20 +530,22 @@ async function seedDatabase() {
         const realisticMessages = createRealisticShippingBillMessages(
           insertedRealisticSession.id
         );
+        // 1 回の bulk insert だと全行が同一 created_at になり、return 順も UUID 依存で不定
+        // → id + content を返してもらい、後で content で対象を特定する
         const { data: insertedRealisticMessages, error: realisticMessagesError } =
           await supabase
             .from("interview_messages")
             .insert(realisticMessages)
-            .select("id, created_at")
-            .order("created_at", { ascending: true })
-            .order("id", { ascending: true });
+            .select("id, content");
         if (realisticMessagesError || !insertedRealisticMessages) {
           throw new Error(
             `Failed to insert realistic messages: ${realisticMessagesError?.message}`
           );
         }
 
-        // opinions の source_message_id を後付け（会話ログ内の「意見に紐づくユーザーメッセージ」を参照）
+        // opinions の source_message_id を後付け。
+        // content は会話ログ内で一意な前提（リアル seed データ用なので成り立つ）。
+        // conversationIndex → 対象 content → inserted row.id という経路で特定する。
         const realisticReport = createRealisticShippingBillReport(
           insertedRealisticSession.id
         );
@@ -555,11 +557,14 @@ async function seedDatabase() {
             source_message_id?: string;
             source_message_content?: string;
           }>;
+          const contentToId = new Map(
+            insertedRealisticMessages.map((m) => [m.content, m.id])
+          );
           for (const { conversationIndex, opinionIndex } of links) {
-            const msg = insertedRealisticMessages[conversationIndex];
             const msgContent = realisticMessages[conversationIndex]?.content;
-            if (msg && opinions[opinionIndex] && msgContent) {
-              opinions[opinionIndex].source_message_id = msg.id;
+            const msgId = msgContent ? contentToId.get(msgContent) : undefined;
+            if (msgId && opinions[opinionIndex] && msgContent) {
+              opinions[opinionIndex].source_message_id = msgId;
               opinions[opinionIndex].source_message_content = msgContent;
             }
           }

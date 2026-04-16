@@ -18,6 +18,22 @@ export interface CompletedReportListItem {
 }
 
 /**
+ * シミュレーション画面の Select 候補として取得する上限。
+ * 完了済みインタビューはUIドロップダウンで選ばせる想定なので、大量だと
+ * スクロール困難で操作性を損なう。運用上 300 件を超えるケースは稀。
+ * 上限に達した場合は `isTruncated=true` を返し、呼び出し側で警告表示する。
+ */
+const MAX_REPORTS_FOR_SIMULATION = 300;
+
+export interface CompletedReportsForBillResult {
+  reports: CompletedReportListItem[];
+  /** true なら MAX_REPORTS_FOR_SIMULATION で切り詰められている */
+  isTruncated: boolean;
+  /** UI 警告用の上限値 */
+  limit: number;
+}
+
+/**
  * 指定法案の「完了済みインタビュー + レポートあり」の一覧を取得する。
  *
  * シミュレーション画面で、編集中の config に紐づくものと法案全体のものの
@@ -26,7 +42,7 @@ export interface CompletedReportListItem {
  */
 export async function getCompletedReportsForBill(
   billId: string
-): Promise<CompletedReportListItem[]> {
+): Promise<CompletedReportsForBillResult> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("interview_sessions")
@@ -36,13 +52,20 @@ export async function getCompletedReportsForBill(
     .eq("interview_configs.bill_id", billId)
     .not("completed_at", "is", null)
     .order("completed_at", { ascending: false })
-    .limit(100);
+    .limit(MAX_REPORTS_FOR_SIMULATION + 1);
 
   if (error) {
     throw new Error(`Failed to fetch completed reports: ${error.message}`);
   }
 
-  return (data ?? []).flatMap((session) => {
+  const rows = data ?? [];
+  // +1 件取って超過判定。超過時は配列を MAX 件に切り詰めて返す
+  const isTruncated = rows.length > MAX_REPORTS_FOR_SIMULATION;
+  const visibleRows = isTruncated
+    ? rows.slice(0, MAX_REPORTS_FOR_SIMULATION)
+    : rows;
+
+  const reports: CompletedReportListItem[] = visibleRows.flatMap((session) => {
     const report = Array.isArray(session.interview_report)
       ? session.interview_report[0]
       : session.interview_report;
@@ -65,4 +88,6 @@ export async function getCompletedReportsForBill(
       },
     ];
   });
+
+  return { reports, isTruncated, limit: MAX_REPORTS_FOR_SIMULATION };
 }

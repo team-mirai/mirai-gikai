@@ -27,6 +27,10 @@ interface InterviewConfigEditClientProps {
   config: InterviewConfig | null;
   questions: InterviewQuestion[];
   completedReports: CompletedReportListItem[];
+  /** レポート一覧が上限で切り詰められたか（シミュレーション UI の警告表示用） */
+  completedReportsTruncated?: boolean;
+  /** 切り詰め上限値 */
+  completedReportsLimit?: number;
 }
 
 export function InterviewConfigEditClient({
@@ -34,6 +38,8 @@ export function InterviewConfigEditClient({
   config: initialConfig,
   questions,
   completedReports,
+  completedReportsTruncated = false,
+  completedReportsLimit,
 }: InterviewConfigEditClientProps) {
   const router = useRouter();
   const [configId, setConfigId] = useState<string | undefined>(
@@ -209,6 +215,8 @@ export function InterviewConfigEditClient({
               getFormValues={() => getFormValuesRef.current?.() ?? null}
               getCurrentQuestions={() => getQuestionsRef.current?.() ?? []}
               completedReports={completedReports}
+              completedReportsTruncated={completedReportsTruncated}
+              completedReportsLimit={completedReportsLimit}
             />
           </TabsContent>
         </Tabs>

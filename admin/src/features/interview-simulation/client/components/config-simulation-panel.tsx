@@ -67,6 +67,10 @@ interface ConfigSimulationPanelProps {
   getCurrentQuestions: () => InterviewQuestionInput[];
   /** 抽出元ペルソナの候補（完了済みレポート） */
   completedReports: CompletedReportListItem[];
+  /** レポート一覧が上限で切り詰められたか */
+  completedReportsTruncated?: boolean;
+  /** 切り詰め上限値 */
+  completedReportsLimit?: number;
 }
 
 const STANCE_LABEL: Record<string, string> = {
@@ -127,8 +131,12 @@ async function readNdjsonStream(
       buffer = lines.pop() ?? "";
 
       for (const line of lines) {
-        if (line.trim()) {
+        if (!line.trim()) continue;
+        try {
           onEvent(JSON.parse(line) as SimulationProgressEvent);
+        } catch (err) {
+          // 不正な JSON 行はスキップしてストリーム継続（サーバー側で println 混入等の防御）
+          console.warn("[Simulation] failed to parse NDJSON line:", line, err);
         }
       }
     }
@@ -142,6 +150,8 @@ export function ConfigSimulationPanel({
   getFormValues,
   getCurrentQuestions,
   completedReports,
+  completedReportsTruncated = false,
+  completedReportsLimit,
 }: ConfigSimulationPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -362,6 +372,13 @@ export function ConfigSimulationPanel({
             本番挙動を確認します。
           </p>
         </div>
+
+        {completedReportsTruncated && (
+          <div className="text-xs text-muted-foreground rounded-md border bg-muted/30 px-3 py-2">
+            直近 {completedReportsLimit ?? completedReports.length}{" "}
+            件を表示しています。それ以前のインタビューは一覧に含まれません。
+          </div>
+        )}
 
         {completedReports.length > 0 ? (
           <div className="space-y-1.5">

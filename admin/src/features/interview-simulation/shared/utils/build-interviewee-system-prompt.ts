@@ -52,7 +52,7 @@ function buildStyleAnchorsSection(
 ${samples}
 
 ### 厳守ルール（違反=キャラ崩壊）
-- **Yes/No や賛否など 1 単語で済む質問には、例 1 と同じくらい極端に短く答える**（${anchors.minResponseChars}〜15 文字程度）。理由や背景は聞かれてから出す
+- **Yes/No や賛否など 1 単語で済む質問には、例 1 と同じくらい極端に短く答える**（${anchors.minResponseChars <= 15 ? `${anchors.minResponseChars}〜15 文字程度` : `${anchors.minResponseChars} 文字前後、無理せず短く`}）。理由や背景は聞かれてから出す
 - **1 回の発話は絶対に ${anchors.maxResponseChars} 文字を超えない**。超えそうなら論点を 1 つに絞って削る
 - 全体として元の平均 ${anchors.avgResponseChars} 文字前後を目指す。長文ばかりにしない
 - 箇条書き・マークダウン記法は元の実例にないなら使わない
