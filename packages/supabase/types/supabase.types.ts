@@ -81,6 +81,7 @@ export type Database = {
           diet_session_id: string | null
           id: string
           is_featured: boolean
+          is_review_completed: boolean
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
@@ -88,6 +89,7 @@ export type Database = {
           published_at: string | null
           share_thumbnail_url: string | null
           shugiin_url: string | null
+          slug: string | null
           status: Database["public"]["Enums"]["bill_status_enum"]
           status_note: string | null
           status_order: number | null
@@ -99,6 +101,7 @@ export type Database = {
           diet_session_id?: string | null
           id?: string
           is_featured?: boolean
+          is_review_completed?: boolean
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
@@ -106,6 +109,7 @@ export type Database = {
           published_at?: string | null
           share_thumbnail_url?: string | null
           shugiin_url?: string | null
+          slug?: string | null
           status: Database["public"]["Enums"]["bill_status_enum"]
           status_note?: string | null
           status_order?: number | null
@@ -117,6 +121,7 @@ export type Database = {
           diet_session_id?: string | null
           id?: string
           is_featured?: boolean
+          is_review_completed?: boolean
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
@@ -124,6 +129,7 @@ export type Database = {
           published_at?: string | null
           share_thumbnail_url?: string | null
           shugiin_url?: string | null
+          slug?: string | null
           status?: Database["public"]["Enums"]["bill_status_enum"]
           status_note?: string | null
           status_order?: number | null
@@ -902,6 +908,13 @@ export type Database = {
           cnt: number
           interview_report_id: string
           reaction_type: string
+        }[]
+      }
+      count_sessions_by_config_ids: {
+        Args: { p_config_ids: string[] }
+        Returns: {
+          interview_config_id: string
+          session_count: number
         }[]
       }
       find_public_reports_by_bill_id_ordered_by_reactions: {

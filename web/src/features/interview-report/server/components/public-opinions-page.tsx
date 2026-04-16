@@ -11,16 +11,24 @@ import { getReportReactionsBatch } from "@/features/report-reaction/server/loade
 import { routes } from "@/lib/routes";
 import { PublicOpinionsList } from "../../client/components/public-opinions-list";
 import { OpinionsBreadcrumb } from "../../shared/components/opinions-breadcrumb";
+import type { SortOrder } from "../../shared/utils/sort-order";
+import type { StanceFilter } from "../../shared/utils/stance-filter";
 import { getInitialPublicReportsByBillId } from "../loaders/get-all-public-reports-by-bill-id";
 
 interface PublicOpinionsPageProps {
   billId: string;
+  initialFilter: StanceFilter;
+  initialSort: SortOrder;
 }
 
-export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
+export async function PublicOpinionsPage({
+  billId,
+  initialFilter,
+  initialSort,
+}: PublicOpinionsPageProps) {
   const [bill, initialData, interviewConfig] = await Promise.all([
     getBillById(billId),
-    getInitialPublicReportsByBillId(billId),
+    getInitialPublicReportsByBillId(billId, initialFilter, initialSort),
     getInterviewConfig(billId),
   ]);
 
@@ -79,6 +87,8 @@ export async function PublicOpinionsPage({ billId }: PublicOpinionsPageProps) {
           initialReactionsRecord={reactionsRecord}
           stanceCounts={initialData.stanceCounts}
           initialHasMore={initialData.hasMore}
+          initialFilter={initialFilter}
+          initialSort={initialSort}
         />
 
         {/* AIインタビューCTAバナー */}

@@ -18,6 +18,16 @@ export const stanceFilterOrder: StanceFilter[] = [
   "neutral",
 ];
 
+const stanceFilterSet = new Set<string>(stanceFilterOrder);
+
+/**
+ * 文字列を StanceFilter に変換。無効な値の場合は "all" を返す
+ */
+export function parseStanceFilter(value: string | null): StanceFilter {
+  if (value && stanceFilterSet.has(value)) return value as StanceFilter;
+  return "all";
+}
+
 /**
  * スタンスフィルターに基づいてレポートをフィルタリング
  */

@@ -45,3 +45,7 @@ WHERE email = '<1で作成したユーザーのemail>';
 
 > [!NOTE]
 > 開発環境では、seedデータによって、`email: admin@example.com, password: admin123456` のAdminユーザーが作成されます。
+
+## Fork して独自サービスを運営する場合
+
+本リポジトリを fork して独自にサービスを運営する場合は、[Fork ガイドライン](./FORK_GUIDELINES.md) を確認してください。本家サービスとの混同防止のため、ロゴ・カラー・サービス名称などの変更が必要です。

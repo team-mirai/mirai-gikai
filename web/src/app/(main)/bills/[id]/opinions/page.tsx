@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { PublicOpinionsPage } from "@/features/interview-report/server/components/public-opinions-page";
+import { parseSortOrder } from "@/features/interview-report/shared/utils/sort-order";
+import { parseStanceFilter } from "@/features/interview-report/shared/utils/stance-filter";
 
 interface OpinionsPageProps {
   params: Promise<{
     id: string;
+  }>;
+  searchParams: Promise<{
+    stance?: string;
+    sort?: string;
   }>;
 }
 
@@ -21,7 +27,18 @@ export async function generateMetadata({
   };
 }
 
-export default async function OpinionsPage({ params }: OpinionsPageProps) {
+export default async function OpinionsPage({
+  params,
+  searchParams,
+}: OpinionsPageProps) {
   const { id } = await params;
-  return <PublicOpinionsPage billId={id} />;
+  const { stance, sort } = await searchParams;
+
+  return (
+    <PublicOpinionsPage
+      billId={id}
+      initialFilter={parseStanceFilter(stance ?? null)}
+      initialSort={parseSortOrder(sort ?? null)}
+    />
+  );
 }

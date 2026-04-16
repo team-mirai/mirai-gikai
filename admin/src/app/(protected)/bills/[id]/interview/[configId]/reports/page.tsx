@@ -82,7 +82,7 @@ export default async function ReportsPage({
           <p className="text-gray-600 mt-1">議案「{bill.name}」のレポート</p>
         </div>
         <div className="flex items-center gap-2">
-          <BatchPublishButton billId={id} />
+          <BatchPublishButton billId={id} configId={configId} />
           <BatchModerationButton />
         </div>
       </div>

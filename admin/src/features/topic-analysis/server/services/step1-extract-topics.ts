@@ -8,6 +8,7 @@ import {
 } from "../../shared/constants";
 import { topicExtractionSchema } from "../../shared/schemas";
 import type { FlatOpinion } from "../../shared/types";
+import { retryTopicAnalysisRequest } from "../utils/retry-topic-analysis-request";
 
 function chunk<T>(array: T[], size: number): T[][] {
   const chunks: T[][] = [];
@@ -55,10 +56,12 @@ async function extractTopicsFromBatch(
     .map((o, i) => `[${i + 1}] ${o.title}\n${o.content}`)
     .join("\n\n");
 
-  const { object } = await generateObject({
-    model: TOPIC_ANALYSIS_MODEL,
-    schema: topicExtractionSchema,
-    prompt: `あなたは議案に対する市民の意見を分析する専門家です。
+  const { object } = await retryTopicAnalysisRequest(
+    () =>
+      generateObject({
+        model: TOPIC_ANALYSIS_MODEL,
+        schema: topicExtractionSchema,
+        prompt: `あなたは議案に対する市民の意見を分析する専門家です。
 
 ## 議案情報
 タイトル: ${billTitle}
@@ -79,14 +82,18 @@ ${opinionsText}
   - 良い例: 「貿易事務コストを削減すべき」「システムの安全性が不十分」「現場職員への教育支援を充実させるべき」
 - 似たような意見はまとめて1つのトピックにしてください
 - 意見が少ない場合でも最低1つのトピックを抽出してください`,
-    experimental_telemetry: {
-      isEnabled: true,
-      functionId: "topic-analysis-step1-extract",
-      metadata: {
-        batchIndex: String(batchIndex),
-      },
-    },
-  });
+        experimental_telemetry: {
+          isEnabled: true,
+          functionId: "topic-analysis-step1-extract",
+          metadata: {
+            batchIndex: String(batchIndex),
+          },
+        },
+      }),
+    {
+      label: `step1-extract batch=${batchIndex}`,
+    }
+  );
 
   return object.topics.map((t) => t.name);
 }

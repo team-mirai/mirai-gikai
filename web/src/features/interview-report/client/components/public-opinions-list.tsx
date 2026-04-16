@@ -1,15 +1,16 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
+import { getPublicReportLink } from "@/features/interview-config/shared/utils/interview-links";
 import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
 import type { ReportReactionData } from "@/features/report-reaction/shared/types";
 import { cn } from "@/lib/utils";
 import { fetchMorePublicReports } from "../../server/actions/fetch-more-public-reports";
 import type { PublicInterviewReport } from "../../server/loaders/get-public-reports-by-bill-id";
-import { getPublicReportLink } from "@/features/interview-config/shared/utils/interview-links";
 import { ReportCard } from "../../shared/components/report-card";
 import {
   type SortOrder,
@@ -86,16 +87,14 @@ type ReactionsRecord = Record<
   { counts: { helpful: number; hmm: number }; userReaction: string | null }
 >;
 
-type ReportWithReactions = PublicInterviewReport & {
-  _reactions: ReactionsRecord;
-};
-
 interface PublicOpinionsListProps {
   billId: string;
   initialReports: PublicInterviewReport[];
   initialReactionsRecord: ReactionsRecord;
   stanceCounts: StanceCounts;
   initialHasMore: boolean;
+  initialFilter: StanceFilter;
+  initialSort: SortOrder;
 }
 
 export function PublicOpinionsList({
@@ -104,10 +103,37 @@ export function PublicOpinionsList({
   initialReactionsRecord,
   stanceCounts,
   initialHasMore,
+  initialFilter,
+  initialSort,
 }: PublicOpinionsListProps) {
   useAnonymousSupabaseUser();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [reactionsRecord, setReactionsRecord] = useState<ReactionsRecord>(
     initialReactionsRecord
+  );
+
+  const updateUrl = useCallback(
+    (filter: StanceFilter, sort: SortOrder) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (filter === "all") {
+        params.delete("stance");
+      } else {
+        params.set("stance", filter);
+      }
+
+      if (sort === "recommended") {
+        params.delete("sort");
+      } else {
+        params.set("sort", sort);
+      }
+
+      const query = params.toString();
+      const href = query ? `${pathname}?${query}` : pathname;
+      window.history.replaceState(null, "", href);
+    },
+    [pathname, searchParams]
   );
 
   const fetchMore = useCallback(
@@ -129,15 +155,31 @@ export function PublicOpinionsList({
     activeFilter,
     activeSort,
     sentinelRef,
-    changeFilter,
-    changeSort,
+    changeFilter: rawChangeFilter,
+    changeSort: rawChangeSort,
   } = useInfiniteScroll<PublicInterviewReport, StanceFilter, SortOrder>({
     initialItems: initialReports,
     initialHasMore,
-    initialFilter: "all",
-    initialSort: "recommended",
+    initialFilter,
+    initialSort,
     fetchMore,
   });
+
+  const changeFilter = useCallback(
+    (filter: StanceFilter) => {
+      rawChangeFilter(filter);
+      updateUrl(filter, activeSort);
+    },
+    [rawChangeFilter, updateUrl, activeSort]
+  );
+
+  const changeSort = useCallback(
+    (sort: SortOrder) => {
+      rawChangeSort(sort);
+      updateUrl(activeFilter, sort);
+    },
+    [rawChangeSort, updateUrl, activeFilter]
+  );
 
   return (
     <div className="flex flex-col gap-4">

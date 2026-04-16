@@ -236,6 +236,27 @@ export function BillFormFields({
 
       <FormField
         control={control}
+        name="slug"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Slug</FormLabel>
+            <FormControl>
+              <Input
+                {...field}
+                value={field.value || ""}
+                placeholder="221-kaku-1-mof-法案名"
+              />
+            </FormControl>
+            <FormDescription>
+              コンテンツ同期用の識別子です（最大200文字）
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
         name="diet_session_id"
         render={({ field }) => (
           <FormItem>
@@ -280,6 +301,27 @@ export function BillFormFields({
               <FormLabel>注目の議案</FormLabel>
               <FormDescription>
                 トップページなどで優先的に表示されます
+              </FormDescription>
+            </div>
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="is_review_completed"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>記事レビュー完了</FormLabel>
+              <FormDescription>
+                未完了の場合、記事にレビュー中バナーが表示されます
               </FormDescription>
             </div>
           </FormItem>

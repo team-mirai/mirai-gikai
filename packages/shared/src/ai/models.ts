@@ -20,8 +20,8 @@ export const AI_MODELS = {
   // --- Google ---
   gemini3_flash: "google/gemini-3-flash",
   gemini3_flash_preview: "google/gemini-3-flash-preview",
-  gemini3_1_pro_preview: "google/gemini-3.1-pro-preview",
   gemini3_1_flash_lite_preview: "google/gemini-3.1-flash-lite-preview",
+  gemini3_1_pro_preview: "google/gemini-3.1-pro-preview",
   // --- Anthropic ---
   claude_haiku_4_5: "anthropic/claude-haiku-4.5",
   claude_sonnet_4_6: "anthropic/claude-sonnet-4.6",

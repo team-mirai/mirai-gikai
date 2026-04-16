@@ -5,11 +5,11 @@ import type {
   StanceCounts,
   StanceFilter,
 } from "../../shared/utils/stance-filter";
-import type { PublicInterviewReport } from "./get-public-reports-by-bill-id";
 import {
   countPublicReportsByStance,
   findPublicReportsByBillId,
 } from "../repositories/interview-report-repository";
+import type { PublicInterviewReport } from "./get-public-reports-by-bill-id";
 
 export const PAGE_SIZE = 20;
 
@@ -37,10 +37,13 @@ function mapRawReports(
  * 議案IDから公開インタビューレポートの初回ページとスタンスごとの件数を取得
  */
 export async function getInitialPublicReportsByBillId(
-  billId: string
+  billId: string,
+  stance: StanceFilter = "all",
+  sortOrder: SortOrder = "recommended"
 ): Promise<PaginatedPublicReportsResult> {
+  const stanceParam = stance === "all" ? undefined : stance;
   const [rawReports, stanceRows] = await Promise.all([
-    findPublicReportsByBillId(billId, PAGE_SIZE + 1),
+    findPublicReportsByBillId(billId, PAGE_SIZE + 1, 0, stanceParam, sortOrder),
     countPublicReportsByStance(billId),
   ]);
 

@@ -19,9 +19,13 @@ import {
 
 interface BatchPublishButtonProps {
   billId: string;
+  configId: string;
 }
 
-export function BatchPublishButton({ billId }: BatchPublishButtonProps) {
+export function BatchPublishButton({
+  billId,
+  configId,
+}: BatchPublishButtonProps) {
   const router = useRouter();
   const [isRunning, setIsRunning] = useState(false);
   const [open, setOpen] = useState(false);
@@ -34,6 +38,7 @@ export function BatchPublishButton({ billId }: BatchPublishButtonProps) {
     setIsCounting(true);
     try {
       const result = await countBulkPublishTargetsAction({
+        configId,
         billId,
         maxModerationScore,
         minContentRichness,
@@ -57,6 +62,7 @@ export function BatchPublishButton({ billId }: BatchPublishButtonProps) {
 
     try {
       const result = await bulkPublishReportsAction({
+        configId,
         billId,
         maxModerationScore,
         minContentRichness,

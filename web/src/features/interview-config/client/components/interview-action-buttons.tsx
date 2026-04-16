@@ -38,8 +38,11 @@ export function InterviewActionButtons({
 
     return (
       <>
-        <Link href={chatLink as Route}>
-          <Button className="w-full bg-mirai-gradient text-black border border-black rounded-[100px] h-[48px] px-6 font-bold text-[15px] hover:opacity-90 transition-opacity flex items-center justify-center gap-4">
+        <Button
+          asChild
+          className="w-full bg-mirai-gradient text-black border border-black rounded-[100px] h-[48px] px-6 font-bold text-[15px] hover:opacity-90 transition-opacity flex items-center justify-center gap-4"
+        >
+          <Link href={chatLink as Route}>
             <Image
               src="/icons/messages-square-icon.svg"
               alt=""
@@ -49,8 +52,8 @@ export function InterviewActionButtons({
             />
             <span>AIインタビューを再開する</span>
             <ArrowRight className="size-5" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
         <RestartInterviewButton
           sessionId={sessionInfo.id}
           billId={billId}
