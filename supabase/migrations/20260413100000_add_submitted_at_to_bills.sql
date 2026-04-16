@@ -17,6 +17,9 @@ BEGIN
   -- When new code writes submitted_at, sync to published_at
   ELSIF (TG_OP = 'UPDATE' AND NEW.submitted_at IS DISTINCT FROM OLD.submitted_at AND NEW.published_at IS NOT DISTINCT FROM OLD.published_at) THEN
     NEW.published_at := NEW.submitted_at;
+  -- When both change simultaneously, submitted_at wins (new code is authoritative)
+  ELSIF (TG_OP = 'UPDATE' AND NEW.published_at IS DISTINCT FROM OLD.published_at AND NEW.submitted_at IS DISTINCT FROM OLD.submitted_at) THEN
+    NEW.published_at := NEW.submitted_at;
   -- On INSERT, sync whichever is provided
   ELSIF (TG_OP = 'INSERT') THEN
     IF NEW.submitted_at IS NULL AND NEW.published_at IS NOT NULL THEN

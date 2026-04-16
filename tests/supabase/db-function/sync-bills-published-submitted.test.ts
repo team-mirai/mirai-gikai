@@ -17,25 +17,17 @@ describe("sync_bills_published_submitted トリガー", () => {
       const { data, error } = await adminClient
         .from("bills")
         .insert({
-          name: "テスト議案",
+          name: `テスト議案 ${Date.now()}`,
           originating_house: "HR" as const,
           status: "introduced" as const,
           submitted_at: timestamp,
         })
-        .select("submitted_at, published_at")
+        .select("id, submitted_at, published_at")
         .single();
 
       expect(error).toBeNull();
       expect(data).not.toBeNull();
-      billIds.push(
-        (
-          await adminClient
-            .from("bills")
-            .select("id")
-            .eq("name", "テスト議案")
-            .single()
-        ).data!.id
-      );
+      billIds.push(data!.id);
       expect(data!.submitted_at).toBe(timestamp);
       expect(data!.published_at).toBe(timestamp);
     });
@@ -45,25 +37,17 @@ describe("sync_bills_published_submitted トリガー", () => {
       const { data, error } = await adminClient
         .from("bills")
         .insert({
-          name: "テスト議案2",
+          name: `テスト議案 ${Date.now()}`,
           originating_house: "HR" as const,
           status: "introduced" as const,
           published_at: timestamp,
         })
-        .select("submitted_at, published_at")
+        .select("id, submitted_at, published_at")
         .single();
 
       expect(error).toBeNull();
       expect(data).not.toBeNull();
-      billIds.push(
-        (
-          await adminClient
-            .from("bills")
-            .select("id")
-            .eq("name", "テスト議案2")
-            .single()
-        ).data!.id
-      );
+      billIds.push(data!.id);
       expect(data!.published_at).toBe(timestamp);
       expect(data!.submitted_at).toBe(timestamp);
     });
@@ -72,7 +56,7 @@ describe("sync_bills_published_submitted トリガー", () => {
       const { data, error } = await adminClient
         .from("bills")
         .insert({
-          name: "テスト議案3",
+          name: `テスト議案 ${Date.now()}`,
           originating_house: "HR" as const,
           status: "introduced" as const,
         })
@@ -92,7 +76,7 @@ describe("sync_bills_published_submitted トリガー", () => {
       const { data: bill } = await adminClient
         .from("bills")
         .insert({
-          name: "テスト議案4",
+          name: `テスト議案 ${Date.now()}`,
           originating_house: "HR" as const,
           status: "introduced" as const,
         })
@@ -121,7 +105,7 @@ describe("sync_bills_published_submitted トリガー", () => {
       const { data: bill } = await adminClient
         .from("bills")
         .insert({
-          name: "テスト議案5",
+          name: `テスト議案 ${Date.now()}`,
           originating_house: "HR" as const,
           status: "introduced" as const,
         })

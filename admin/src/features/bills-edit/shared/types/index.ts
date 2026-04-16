@@ -30,9 +30,9 @@ const billBaseSchema = z.object({
     .nullable(),
   submitted_at: z
     .string()
-    .regex(
-      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
-      "法案提出日は YYYY-MM-DDTHH:mm 形式で入力してください"
+    .refine(
+      (val) => val === "" || /^\d{4}-\d{2}-\d{2}$/.test(val),
+      "法案提出日は YYYY-MM-DD 形式で入力してください"
     )
     .optional(),
   thumbnail_url: z.string().nullable().optional(),

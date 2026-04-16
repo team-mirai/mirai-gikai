@@ -160,7 +160,7 @@ export function BillFormFields({
           <FormItem>
             <FormLabel>法案提出日 *</FormLabel>
             <FormControl>
-              <Input type="datetime-local" {...field} />
+              <Input type="date" {...field} />
             </FormControl>
             <FormDescription>法案の提出日を設定してください</FormDescription>
             <FormMessage />
