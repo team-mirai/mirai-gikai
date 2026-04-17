@@ -2,6 +2,7 @@ import "server-only";
 
 import { generateObject } from "ai";
 import type { AiModel } from "@/lib/ai/models";
+import { LLM_MAX_ATTEMPTS, LLM_TIMEOUT_MS } from "../../shared/constants";
 import {
   type IntervieweeSatisfaction,
   intervieweeSatisfactionSchema,
@@ -9,6 +10,7 @@ import {
   type SimulatedTurn,
 } from "../../shared/schemas";
 import { buildIntervieweeSatisfactionPrompt } from "../../shared/utils/build-interviewee-satisfaction-prompt";
+import { withTimeoutRetry } from "../../shared/utils/with-timeout-retry";
 
 interface EvaluateIntervieweeSatisfactionParams {
   persona: PersonaCharacterSheet;
@@ -48,17 +50,26 @@ export async function evaluateIntervieweeSatisfaction(
   const prompt = buildIntervieweeSatisfactionPrompt({ persona, transcript });
 
   try {
-    const { object } = await generateObject({
-      model,
-      schema: intervieweeSatisfactionSchema,
-      prompt,
-      abortSignal: signal,
-      experimental_telemetry: {
-        isEnabled: true,
-        functionId: "sim-interviewee-satisfaction",
-        metadata: { traceId, personaIndex: String(personaIndex) },
-      },
-    });
+    const { object } = await withTimeoutRetry(
+      (attemptSignal) =>
+        generateObject({
+          model,
+          schema: intervieweeSatisfactionSchema,
+          prompt,
+          abortSignal: attemptSignal,
+          experimental_telemetry: {
+            isEnabled: true,
+            functionId: "sim-interviewee-satisfaction",
+            metadata: { traceId, personaIndex: String(personaIndex) },
+          },
+        }),
+      {
+        externalSignal: signal,
+        timeoutMs: LLM_TIMEOUT_MS.satisfaction,
+        maxAttempts: LLM_MAX_ATTEMPTS,
+        label: "sim-interviewee-satisfaction",
+      }
+    );
     return object;
   } catch (error) {
     console.warn(

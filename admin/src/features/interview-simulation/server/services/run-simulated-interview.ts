@@ -11,7 +11,12 @@ import type {
 import { generateObject, generateText, type ModelMessage } from "ai";
 import { z } from "zod";
 import type { AiModel } from "@/lib/ai/models";
-import { type PromptKind, SIMULATION_MAX_TURNS } from "../../shared/constants";
+import {
+  LLM_MAX_ATTEMPTS,
+  LLM_TIMEOUT_MS,
+  type PromptKind,
+  SIMULATION_MAX_TURNS,
+} from "../../shared/constants";
 import {
   type PersonaCharacterSheet,
   type SimGeneratedReport,
@@ -22,6 +27,7 @@ import type { SimulationMetrics, SimulationRun } from "../../shared/types";
 import { buildIntervieweeSystemPrompt } from "../../shared/utils/build-interviewee-system-prompt";
 import type { OriginalStyleAnchors } from "../../shared/utils/extract-original-style-anchors";
 import { isShortAnswer } from "../../shared/utils/format-transcript";
+import { withTimeoutRetry } from "../../shared/utils/with-timeout-retry";
 
 /**
  * シミュレーション中のインタビュアー LLM が返す最低限のフィールド
@@ -298,36 +304,54 @@ export async function runSimulatedInterview({
       if (isInitialTurn && initialTurnEnhancement) {
         const { billTitle, firstQuestionId } = initialTurnEnhancement;
         const enhancedPrompt = `${interviewerSystemPromptForThisTurn}\n\n## 重要: これはインタビューの開始です。ユーザーからのメッセージはありません。事前定義質問の最初の質問から始めてください。挨拶は温かく丁寧に（2文程度）、「${billTitle}」についてのインタビューであることを明確に伝えた上で、すぐに最初の質問をしてください。最初の質問にクイックリプライが設定されている場合は、必ず quick_replies フィールドに含めてください。${firstQuestionId ? `最初の質問は ID: ${firstQuestionId} であり、レスポンスの question_id にこの値を含めてください。` : ""}`;
-        const { object } = await generateObject({
-          model: interviewerModel,
-          schema: simInterviewerOutputSchema,
-          prompt: enhancedPrompt,
-          abortSignal: signal,
-          experimental_telemetry: {
-            isEnabled: true,
-            functionId: "sim-interviewer-initial",
-            metadata: { traceId, kind, turnIndex: String(turnIndex) },
-          },
-        });
+        const { object } = await withTimeoutRetry(
+          (attemptSignal) =>
+            generateObject({
+              model: interviewerModel,
+              schema: simInterviewerOutputSchema,
+              prompt: enhancedPrompt,
+              abortSignal: attemptSignal,
+              experimental_telemetry: {
+                isEnabled: true,
+                functionId: "sim-interviewer-initial",
+                metadata: { traceId, kind, turnIndex: String(turnIndex) },
+              },
+            }),
+          {
+            externalSignal: signal,
+            timeoutMs: LLM_TIMEOUT_MS.interviewTurn,
+            maxAttempts: LLM_MAX_ATTEMPTS,
+            label: "sim-interviewer-initial",
+          }
+        );
         interviewerOutput = object;
       } else {
         const messages = asInterviewerMessages(transcript);
-        const { object } = await generateObject({
-          model: interviewerModel,
-          schema: simInterviewerOutputSchema,
-          system: interviewerSystemPromptForThisTurn,
-          messages,
-          abortSignal: signal,
-          experimental_telemetry: {
-            isEnabled: true,
-            functionId: "sim-interviewer",
-            metadata: {
-              traceId,
-              kind,
-              turnIndex: String(turnIndex),
-            },
-          },
-        });
+        const { object } = await withTimeoutRetry(
+          (attemptSignal) =>
+            generateObject({
+              model: interviewerModel,
+              schema: simInterviewerOutputSchema,
+              system: interviewerSystemPromptForThisTurn,
+              messages,
+              abortSignal: attemptSignal,
+              experimental_telemetry: {
+                isEnabled: true,
+                functionId: "sim-interviewer",
+                metadata: {
+                  traceId,
+                  kind,
+                  turnIndex: String(turnIndex),
+                },
+              },
+            }),
+          {
+            externalSignal: signal,
+            timeoutMs: LLM_TIMEOUT_MS.interviewTurn,
+            maxAttempts: LLM_MAX_ATTEMPTS,
+            label: "sim-interviewer",
+          }
+        );
         interviewerOutput = object;
       }
     } catch (error) {
@@ -387,22 +411,31 @@ export async function runSimulatedInterview({
     );
     try {
       const messages = asIntervieweeMessages(transcript);
-      const { text } = await generateText({
-        model: intervieweeModel,
-        system: intervieweeSystemPrompt,
-        messages,
-        abortSignal: signal,
-        experimental_telemetry: {
-          isEnabled: true,
-          functionId: "sim-interviewee",
-          metadata: {
-            traceId,
-            kind,
-            turnIndex: String(turnIndex),
-            intervieweeTurnNumber: String(intervieweeTurnNumber),
-          },
-        },
-      });
+      const { text } = await withTimeoutRetry(
+        (attemptSignal) =>
+          generateText({
+            model: intervieweeModel,
+            system: intervieweeSystemPrompt,
+            messages,
+            abortSignal: attemptSignal,
+            experimental_telemetry: {
+              isEnabled: true,
+              functionId: "sim-interviewee",
+              metadata: {
+                traceId,
+                kind,
+                turnIndex: String(turnIndex),
+                intervieweeTurnNumber: String(intervieweeTurnNumber),
+              },
+            },
+          }),
+        {
+          externalSignal: signal,
+          timeoutMs: LLM_TIMEOUT_MS.interviewTurn,
+          maxAttempts: LLM_MAX_ATTEMPTS,
+          label: "sim-interviewee",
+        }
+      );
       const intervieweeTurn: SimulatedTurn = {
         role: "interviewee",
         content: text.trim(),
@@ -435,19 +468,28 @@ export async function runSimulatedInterview({
         interviewConfig: promptInputs.interviewConfig,
         messages: summaryMessages,
       });
-      const { object } = await generateObject({
-        model: summaryModel ?? interviewerModel,
-        schema: simGeneratedReportSchema,
-        system: summarySystemPrompt,
-        prompt:
-          "上記の会話履歴をもとに、スキーマに従ってレポートを JSON で生成してください。",
-        abortSignal: signal,
-        experimental_telemetry: {
-          isEnabled: true,
-          functionId: "sim-summary",
-          metadata: { traceId, kind },
-        },
-      });
+      const { object } = await withTimeoutRetry(
+        (attemptSignal) =>
+          generateObject({
+            model: summaryModel ?? interviewerModel,
+            schema: simGeneratedReportSchema,
+            system: summarySystemPrompt,
+            prompt:
+              "上記の会話履歴をもとに、スキーマに従ってレポートを JSON で生成してください。",
+            abortSignal: attemptSignal,
+            experimental_telemetry: {
+              isEnabled: true,
+              functionId: "sim-summary",
+              metadata: { traceId, kind },
+            },
+          }),
+        {
+          externalSignal: signal,
+          timeoutMs: LLM_TIMEOUT_MS.summary,
+          maxAttempts: LLM_MAX_ATTEMPTS,
+          label: "sim-summary",
+        }
+      );
       generatedReport = object;
     } catch (error) {
       console.warn("[Simulation] summary LLM failed:", error);

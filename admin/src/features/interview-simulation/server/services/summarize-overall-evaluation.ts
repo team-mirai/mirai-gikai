@@ -2,6 +2,7 @@ import "server-only";
 
 import { generateObject } from "ai";
 import type { AiModel } from "@/lib/ai/models";
+import { LLM_MAX_ATTEMPTS, LLM_TIMEOUT_MS } from "../../shared/constants";
 import {
   type OverallEvaluation,
   overallEvaluationSchema,
@@ -10,6 +11,7 @@ import {
   buildOverallEvaluationPrompt,
   type OverallEvaluationSlotInput,
 } from "../../shared/utils/build-overall-evaluation-prompt";
+import { withTimeoutRetry } from "../../shared/utils/with-timeout-retry";
 
 interface SummarizeOverallEvaluationParams {
   slots: OverallEvaluationSlotInput[];
@@ -35,17 +37,26 @@ export async function summarizeOverallEvaluation(
   const prompt = buildOverallEvaluationPrompt({ slots });
 
   try {
-    const { object } = await generateObject({
-      model,
-      schema: overallEvaluationSchema,
-      prompt,
-      abortSignal: signal,
-      experimental_telemetry: {
-        isEnabled: true,
-        functionId: "sim-overall-evaluation",
-        metadata: { traceId, slotCount: String(slots.length) },
-      },
-    });
+    const { object } = await withTimeoutRetry(
+      (attemptSignal) =>
+        generateObject({
+          model,
+          schema: overallEvaluationSchema,
+          prompt,
+          abortSignal: attemptSignal,
+          experimental_telemetry: {
+            isEnabled: true,
+            functionId: "sim-overall-evaluation",
+            metadata: { traceId, slotCount: String(slots.length) },
+          },
+        }),
+      {
+        externalSignal: signal,
+        timeoutMs: LLM_TIMEOUT_MS.overallEvaluation,
+        maxAttempts: LLM_MAX_ATTEMPTS,
+        label: "sim-overall-evaluation",
+      }
+    );
     return object;
   } catch (error) {
     console.warn("[OverallEvaluation] LLM failed", error);

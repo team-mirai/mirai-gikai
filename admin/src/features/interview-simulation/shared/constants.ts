@@ -45,3 +45,24 @@ export const PROMPT_KIND = {
 } as const;
 
 export type PromptKind = (typeof PROMPT_KIND)[keyof typeof PROMPT_KIND];
+
+/**
+ * LLM 個別呼び出しのタイムアウト (ms)。
+ * 呼び出し種別ごとに、処理重さに応じた ceiling を設定する。
+ * タイムアウト時は withTimeoutRetry 側で LLM_MAX_ATTEMPTS 回までリトライする。
+ */
+export const LLM_TIMEOUT_MS = {
+  /** インタビュアー / インタビュイーの 1 ターン生成。短文なので 20s で十分 */
+  interviewTurn: 20_000,
+  /** Summary フェーズのレポート生成（transcript 全体を読むのでやや長め） */
+  summary: 30_000,
+  /** ペルソナ生成（report 抽出 / bill 生成とも）。推論量が多め */
+  persona: 60_000,
+  /** 満足度評価（transcript 全体を読む） */
+  satisfaction: 45_000,
+  /** 総合評価（全ペルソナの情報を横断） */
+  overallEvaluation: 60_000,
+} as const;
+
+/** LLM 呼び出しの最大試行回数（1 = リトライなし、2 = 1 回リトライ） */
+export const LLM_MAX_ATTEMPTS = 2;
