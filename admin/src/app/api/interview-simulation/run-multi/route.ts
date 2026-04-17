@@ -126,7 +126,10 @@ export async function POST(request: Request) {
     return Response.json({ error: built.error }, { status: built.status });
   }
 
-  const wantsStream = request.headers.get("Accept") === "application/x-ndjson";
+  // `application/x-ndjson, */*` や q パラメータ付きでも受け入れられるよう includes で判定
+  const wantsStream = (request.headers.get("Accept") ?? "").includes(
+    "application/x-ndjson"
+  );
   if (!wantsStream) {
     // 非ストリーミングは一旦サポートしない（UI はストリーミング前提）
     return Response.json(

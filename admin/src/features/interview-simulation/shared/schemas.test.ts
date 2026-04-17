@@ -96,6 +96,28 @@ describe("multiSimulationRunRequestSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("personaSlot の report ブランチに未知フィールドがあると拒否", () => {
+    const body = baseValidRequest();
+    body.personaSlots = [
+      {
+        kind: "report",
+        reportId: "r-1",
+        extra: "nope",
+      } as unknown as PersonaSlotInput,
+    ];
+    const result = multiSimulationRunRequestSchema.safeParse(body);
+    expect(result.success).toBe(false);
+  });
+
+  it("reportId が空文字だと拒否", () => {
+    const body = baseValidRequest();
+    body.personaSlots = [
+      { kind: "report", reportId: "" } as unknown as PersonaSlotInput,
+    ];
+    const result = multiSimulationRunRequestSchema.safeParse(body);
+    expect(result.success).toBe(false);
+  });
+
   it("improvedConfig に未知フィールドがあると拒否", () => {
     const body = baseValidRequest();
     (body.improvedConfig as unknown as Record<string, unknown>).extra = "nope";

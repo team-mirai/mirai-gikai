@@ -355,6 +355,12 @@ export async function runSimulatedInterview({
         interviewerOutput = object;
       }
     } catch (error) {
+      // 外部 abort はユーザー操作のキャンセルなのでエラーログに載せない。
+      // 呼び出し側 (pipeline) に伝播させて全体を止める
+      if (signal?.aborted) {
+        console.warn("[Simulation] interviewer LLM aborted");
+        throw error;
+      }
       console.error("[Simulation] interviewer LLM failed:", error);
       stopReason = "interviewer_error";
       break;
@@ -443,6 +449,12 @@ export async function runSimulatedInterview({
       transcript.push(intervieweeTurn);
       onTurnComplete?.(turnIndex, intervieweeTurn);
     } catch (error) {
+      // 外部 abort はユーザー操作のキャンセルなのでエラーログに載せない。
+      // 呼び出し側 (pipeline) に伝播させて全体を止める
+      if (signal?.aborted) {
+        console.warn("[Simulation] interviewee LLM aborted");
+        throw error;
+      }
       console.error("[Simulation] interviewee LLM failed:", error);
       stopReason = "interviewee_error";
       break;
