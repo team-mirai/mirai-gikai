@@ -9,6 +9,7 @@ import type {
   MultiSimulationProgressEvent,
   MultiSimulationRunRequest,
 } from "@/features/interview-simulation/shared/types";
+import { validatePersonaSlots } from "@/features/interview-simulation/shared/utils/validate-persona-slots";
 import { fetchBillWithContents } from "@/features/topic-analysis/server/repositories/topic-analysis-repository";
 import { verifyInternalAuth } from "@/features/topic-analysis/server/utils/trigger-next-phase";
 
@@ -68,6 +69,7 @@ async function buildPipelineParams(params: MultiSimulationRunRequest) {
   return {
     ok: true as const,
     params: {
+      billId: params.billId,
       personaSlots: params.personaSlots,
       improvedPromptInputs: {
         bill,
@@ -111,6 +113,12 @@ export async function POST(request: Request) {
       },
       { status: 400 }
     );
+  }
+
+  // zod で捕捉しきれないビジネスルール（重複 reportId 等）をここで弾く
+  const slotValidation = validatePersonaSlots(parsed.data.personaSlots);
+  if (!slotValidation.ok) {
+    return Response.json({ error: slotValidation.error }, { status: 400 });
   }
 
   const built = await buildPipelineParams(parsed.data);

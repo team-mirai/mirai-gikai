@@ -1,5 +1,18 @@
 import { z } from "zod";
 import { AI_MODELS, type AiModel } from "@/lib/ai/models";
+import { MAX_PERSONA_SLOTS } from "./constants";
+
+/**
+ * 外部入力の長さ上限（prompt injection / DoS 耐性の defensive limit）。
+ * LLM prompt に埋め込まれる or DB からの往復に関わるフィールドは必ず
+ * いずれかの上限に揃える。
+ */
+const ID_MAX = 100;
+const SHORT_TEXT_MAX = 200;
+const MEDIUM_TEXT_MAX = 2_000;
+const LONG_TEXT_MAX = 20_000;
+const SMALL_ARRAY_MAX = 20;
+const MEDIUM_ARRAY_MAX = 50;
 
 /**
  * ペルソナ生成 LLM の出力スキーマ
@@ -227,40 +240,56 @@ const aiModelSchema = z.custom<AiModel>(
  * 複数ペルソナシミュのリクエスト内で、各スロットを表すスキーマ。
  */
 const personaSlotInputSchema = z.discriminatedUnion("kind", [
-  z.object({
-    kind: z.literal("report"),
-    reportId: z.string().min(1),
-  }),
-  z.object({
-    kind: z.literal("bill"),
-    stanceHint: z.enum(["for", "against", "neutral"]).optional(),
-    roleHint: z.string().optional(),
-  }),
+  z
+    .object({
+      kind: z.literal("report"),
+      reportId: z.string().min(1).max(ID_MAX),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("bill"),
+      stanceHint: z.enum(["for", "against", "neutral"]).optional(),
+      roleHint: z.string().max(SHORT_TEXT_MAX).optional(),
+    })
+    .strict(),
 ]);
 
 /** 複数ペルソナシミュ API のリクエストボディ（実行時バリデーション用） */
 export const multiSimulationRunRequestSchema = z
   .object({
-    billId: z.string().min(1),
+    billId: z.string().min(1).max(ID_MAX),
     personaSlots: z
       .array(personaSlotInputSchema)
-      .min(1, "ペルソナを 1 件以上選択してください"),
-    improvedConfig: z.object({
-      mode: z.enum(["loop", "bulk"]),
-      themes: z.array(z.string()).nullable(),
-      knowledgeSource: z.string().nullable(),
-      estimatedDurationMinutes: z.number().nullable(),
-      questions: z
-        .array(
-          z.object({
-            id: z.string().min(1),
-            question: z.string().min(1),
-            quick_replies: z.array(z.string()).nullable(),
-            follow_up_guide: z.string().nullable(),
-          })
-        )
-        .min(1, "改善版 config に質問が 1 件以上必要です"),
-    }),
+      .min(1, "ペルソナを 1 件以上選択してください")
+      .max(MAX_PERSONA_SLOTS, `ペルソナは最大 ${MAX_PERSONA_SLOTS} 件までです`),
+    improvedConfig: z
+      .object({
+        mode: z.enum(["loop", "bulk"]),
+        themes: z
+          .array(z.string().max(SHORT_TEXT_MAX))
+          .max(SMALL_ARRAY_MAX)
+          .nullable(),
+        knowledgeSource: z.string().max(LONG_TEXT_MAX).nullable(),
+        estimatedDurationMinutes: z.number().int().min(1).max(600).nullable(),
+        questions: z
+          .array(
+            z
+              .object({
+                id: z.string().min(1).max(ID_MAX),
+                question: z.string().min(1).max(MEDIUM_TEXT_MAX),
+                quick_replies: z
+                  .array(z.string().max(SHORT_TEXT_MAX))
+                  .max(SMALL_ARRAY_MAX)
+                  .nullable(),
+                follow_up_guide: z.string().max(MEDIUM_TEXT_MAX).nullable(),
+              })
+              .strict()
+          )
+          .min(1, "改善版 config に質問が 1 件以上必要です")
+          .max(MEDIUM_ARRAY_MAX),
+      })
+      .strict(),
     interviewerModel: aiModelSchema,
     intervieweeModel: aiModelSchema,
     personaModel: aiModelSchema,

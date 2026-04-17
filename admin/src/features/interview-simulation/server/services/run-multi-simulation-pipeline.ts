@@ -35,6 +35,8 @@ interface ImprovedPromptInputs {
 }
 
 interface RunMultiSimulationParams {
+  /** 対象法案 ID。report スロットが別法案のレポートを指していないか検証するのに使う */
+  billId: string;
   personaSlots: PersonaSlotInput[];
   /** 全スロット共通の改善版 config */
   improvedPromptInputs: ImprovedPromptInputs;
@@ -67,6 +69,11 @@ async function prepareSlotContext(
       throw new Error(
         `対象のレポートが見つかりません (reportId=${slot.reportId})`
       );
+    }
+    // 指定された billId と、report から辿った bill_id が一致しているか検証。
+    // 不一致 = UI の想定外 or 別法案のレポート混入なので拒否する。
+    if (detail.snapshot.billId !== params.billId) {
+      throw new Error("選択されたレポートが対象法案と一致しません");
     }
     emitStatus("ペルソナ抽出中...");
     const persona = await generatePersona({
