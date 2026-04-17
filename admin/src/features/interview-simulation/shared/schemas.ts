@@ -156,6 +156,48 @@ export const overallEvaluationSchema = z
 export type OverallEvaluation = z.infer<typeof overallEvaluationSchema>;
 
 /**
+ * 多様性プランナー LLM の出力スキーマ。
+ *
+ * roleHint 未指定の bill スロットが複数あるとき、各スロットに割り当てる
+ * 「多様な当事者像」を 1 回の LLM 呼び出しでまとめて計画する。
+ * 出力配列の順序は、入力の slotsToplan の順序に対応する。
+ */
+export const diverseRolesPlanSchema = z
+  .object({
+    roles: z
+      .array(
+        z
+          .object({
+            role_hint: z
+              .string()
+              .min(1)
+              .max(SHORT_TEXT_MAX)
+              .describe(
+                "1 人の当事者像を端的に示す役割ヒント。例: 「都内の高校教師」「中小製造業の経営者」。抽象的な「一般市民」は避ける"
+              ),
+            stance: z
+              .enum(["for", "against", "neutral"])
+              .describe(
+                "この当事者像が法案に対して取りそうな自然なスタンス。役割と矛盾しない範囲で"
+              ),
+            rationale: z
+              .string()
+              .max(MEDIUM_TEXT_MAX)
+              .describe(
+                "なぜこの当事者をインタビュー対象に選んだか、法案との接点を 1〜2 文で"
+              ),
+          })
+          .strict()
+      )
+      .min(1)
+      .max(MAX_PERSONA_SLOTS)
+      .describe("入力の slotsToplan と同じ件数・同じ順序で返すこと"),
+  })
+  .strict();
+
+export type DiverseRolesPlan = z.infer<typeof diverseRolesPlanSchema>;
+
+/**
  * シミュレーションの Summary フェーズで LLM に生成させるレポートのスキーマ。
  * web 本番の interviewReportSchema と互換（シミュ用の定義）。
  *

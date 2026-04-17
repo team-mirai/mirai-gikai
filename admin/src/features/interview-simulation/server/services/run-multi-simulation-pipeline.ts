@@ -22,8 +22,15 @@ import { getReportDetailForSimulation } from "../loaders/get-report-detail-for-s
 import { evaluateIntervieweeSatisfaction } from "./evaluate-interviewee-satisfaction";
 import { generatePersona } from "./generate-persona";
 import { generatePersonaFromBill } from "./generate-persona-from-bill";
+import { planDiverseRoles } from "./plan-diverse-roles";
 import { runSimulatedInterview } from "./run-simulated-interview";
 import { summarizeOverallEvaluation } from "./summarize-overall-evaluation";
+
+/** プランナーで決まった当事者像（roleHint 未指定の bill スロットへ注入する） */
+interface PlannedSlotHint {
+  roleHint: string;
+  stanceHint: "for" | "against" | "neutral";
+}
 
 /** 全スロット共通の改善版 config 素材 */
 interface ImprovedPromptInputs {
@@ -60,7 +67,9 @@ async function prepareSlotContext(
   slot: PersonaSlotInput,
   params: RunMultiSimulationParams,
   traceId: string,
-  emitStatus: (message: string) => void
+  emitStatus: (message: string) => void,
+  /** 多様性プランナーが決めた roleHint / stanceHint。bill スロット用 */
+  plannedHint: PlannedSlotHint | undefined
 ) {
   if (slot.kind === "report") {
     emitStatus("レポート取得中...");
@@ -92,12 +101,16 @@ async function prepareSlotContext(
     };
   }
 
+  // ユーザー指定の hint があれば最優先。なければ planner が決めた hint を採用
+  const effectiveRoleHint = slot.roleHint ?? plannedHint?.roleHint;
+  const effectiveStanceHint = slot.stanceHint ?? plannedHint?.stanceHint;
+
   emitStatus("ペルソナ生成中...");
   const persona = await generatePersonaFromBill({
     bill: params.improvedPromptInputs.bill,
     interviewConfig: params.improvedPromptInputs.interviewConfig,
-    stanceHint: slot.stanceHint,
-    roleHint: slot.roleHint,
+    stanceHint: effectiveStanceHint,
+    roleHint: effectiveRoleHint,
     model: params.personaModel,
     traceId,
     signal: params.signal,
@@ -107,6 +120,61 @@ async function prepareSlotContext(
     original: null as OriginalInterviewSnapshot | null,
     styleAnchors: undefined,
   };
+}
+
+/**
+ * 多様性プランナーで埋めるべき bill スロット（roleHint 未指定）を抽出し、
+ * personaIndex → 計画された hint のマップを返す。
+ *
+ * 計画対象が 2 件未満の場合は LLM を呼ばず空マップを返す
+ * （単独スロットに多様性プランニングは不要）。
+ * プランナーが失敗した場合も空マップを返し、各スロットは従来通り個別生成にフォールバックする。
+ */
+async function buildPlannedHints(
+  params: RunMultiSimulationParams,
+  traceId: string,
+  emitGlobalStatus: (message: string) => void
+): Promise<Map<number, PlannedSlotHint>> {
+  const slotsToplan: Array<{
+    index: number;
+    stanceHint?: "for" | "against" | "neutral";
+  }> = [];
+  const preassignedRoleHints: string[] = [];
+
+  params.personaSlots.forEach((slot, index) => {
+    if (slot.kind !== "bill") return;
+    const trimmed = slot.roleHint?.trim();
+    if (trimmed) {
+      preassignedRoleHints.push(trimmed);
+    } else {
+      slotsToplan.push({ index, stanceHint: slot.stanceHint });
+    }
+  });
+
+  const plannedHints = new Map<number, PlannedSlotHint>();
+  if (slotsToplan.length < 2) return plannedHints;
+
+  emitGlobalStatus("多様な当事者像を計画中...");
+  const plan = await planDiverseRoles({
+    bill: params.improvedPromptInputs.bill,
+    interviewConfig: params.improvedPromptInputs.interviewConfig,
+    slotsToplan: slotsToplan.map((s) => ({ stanceHint: s.stanceHint })),
+    preassignedRoleHints,
+    model: params.personaModel,
+    traceId,
+    signal: params.signal,
+  });
+  if (!plan) return plannedHints;
+
+  plan.roles.forEach((role, i) => {
+    const meta = slotsToplan[i];
+    if (!meta) return;
+    plannedHints.set(meta.index, {
+      roleHint: role.role_hint,
+      stanceHint: role.stance,
+    });
+  });
+  return plannedHints;
 }
 
 /**
@@ -135,6 +203,11 @@ export async function runMultiSimulationPipeline(
   }));
   emit?.({ type: "plan", personaSlots: descriptors });
 
+  // roleHint 未指定の bill スロットが複数ある場合のみ、事前に多様性プランナーを 1 回走らせる
+  const plannedHints = await buildPlannedHints(params, traceId, (message) =>
+    emit?.({ type: "global_status", message })
+  );
+
   const slotResults = await Promise.all(
     params.personaSlots.map(async (slot, personaIndex) => {
       const slotStartedAt = Date.now();
@@ -147,7 +220,8 @@ export async function runMultiSimulationPipeline(
           slot,
           params,
           traceId,
-          emitSlotStatus
+          emitSlotStatus,
+          plannedHints.get(personaIndex)
         );
 
         emitSlotStatus("シミュレーション実行中...");
