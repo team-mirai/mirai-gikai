@@ -20,7 +20,7 @@ describe("buildDiverseRolesPlanPrompt", () => {
     const out = buildDiverseRolesPlanPrompt({
       bill: baseBill,
       interviewConfig: baseConfig,
-      slotsToplan: [{}, {}, {}],
+      slotsToPlan: [{}, {}, {}],
     });
     expect(out).toContain("宇宙ビジネス促進法案");
     expect(out).toContain("民間宇宙射場の整備促進");
@@ -36,7 +36,7 @@ describe("buildDiverseRolesPlanPrompt", () => {
     const out = buildDiverseRolesPlanPrompt({
       bill: baseBill,
       interviewConfig: baseConfig,
-      slotsToplan: [{}, {}],
+      slotsToPlan: [{}, {}],
     });
     expect(out).toContain("- スロット 1:");
     expect(out).toContain("- スロット 2:");
@@ -47,7 +47,7 @@ describe("buildDiverseRolesPlanPrompt", () => {
     const out = buildDiverseRolesPlanPrompt({
       bill: baseBill,
       interviewConfig: baseConfig,
-      slotsToplan: [{ stanceHint: "for" }, {}, { stanceHint: "against" }],
+      slotsToPlan: [{ stanceHint: "for" }, {}, { stanceHint: "against" }],
     });
     expect(out).toContain("- スロット 1: スタンス指定=賛成");
     expect(out).toContain("- スロット 2: スタンス指定なし");
@@ -58,7 +58,7 @@ describe("buildDiverseRolesPlanPrompt", () => {
     const out = buildDiverseRolesPlanPrompt({
       bill: baseBill,
       interviewConfig: baseConfig,
-      slotsToplan: [{}],
+      slotsToPlan: [{}],
       preassignedRoleHints: ["射場運用の民間事業者", "近隣自治体の住民"],
     });
     expect(out).toContain("既にユーザーが手動指定した役割");
@@ -70,7 +70,7 @@ describe("buildDiverseRolesPlanPrompt", () => {
     const out = buildDiverseRolesPlanPrompt({
       bill: baseBill,
       interviewConfig: baseConfig,
-      slotsToplan: [{}, {}],
+      slotsToPlan: [{}, {}],
     });
     expect(out).not.toContain("既にユーザーが手動指定した役割");
   });
@@ -79,7 +79,7 @@ describe("buildDiverseRolesPlanPrompt", () => {
     const out = buildDiverseRolesPlanPrompt({
       bill: baseBill,
       interviewConfig: { themes: [], knowledge_source: null },
-      slotsToplan: [{}, {}],
+      slotsToPlan: [{}, {}],
     });
     expect(out).toContain("（テーマ未設定）");
     expect(out).toContain("（知識ソース未設定）");
@@ -89,7 +89,7 @@ describe("buildDiverseRolesPlanPrompt", () => {
     const out = buildDiverseRolesPlanPrompt({
       bill: baseBill,
       interviewConfig: baseConfig,
-      slotsToplan: [{}, {}, {}],
+      slotsToPlan: [{}, {}, {}],
     });
     expect(out).toContain("同じ件数（3 件）");
     expect(out).toContain("同じ順序");
@@ -99,7 +99,7 @@ describe("buildDiverseRolesPlanPrompt", () => {
     const out = buildDiverseRolesPlanPrompt({
       bill: baseBill,
       interviewConfig: baseConfig,
-      slotsToplan: [{}, {}],
+      slotsToPlan: [{}, {}],
     });
     expect(out).toContain("一般市民");
     expect(out).toContain("禁止");

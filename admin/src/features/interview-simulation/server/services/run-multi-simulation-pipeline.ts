@@ -135,7 +135,7 @@ async function buildPlannedHints(
   traceId: string,
   emitGlobalStatus: (message: string) => void
 ): Promise<Map<number, PlannedSlotHint>> {
-  const slotsToplan: Array<{
+  const slotsToPlan: Array<{
     index: number;
     stanceHint?: "for" | "against" | "neutral";
   }> = [];
@@ -147,18 +147,18 @@ async function buildPlannedHints(
     if (trimmed) {
       preassignedRoleHints.push(trimmed);
     } else {
-      slotsToplan.push({ index, stanceHint: slot.stanceHint });
+      slotsToPlan.push({ index, stanceHint: slot.stanceHint });
     }
   });
 
   const plannedHints = new Map<number, PlannedSlotHint>();
-  if (slotsToplan.length < 2) return plannedHints;
+  if (slotsToPlan.length < 2) return plannedHints;
 
   emitGlobalStatus("多様な当事者像を計画中...");
   const plan = await planDiverseRoles({
     bill: params.improvedPromptInputs.bill,
     interviewConfig: params.improvedPromptInputs.interviewConfig,
-    slotsToplan: slotsToplan.map((s) => ({ stanceHint: s.stanceHint })),
+    slotsToPlan: slotsToPlan.map((s) => ({ stanceHint: s.stanceHint })),
     preassignedRoleHints,
     model: params.personaModel,
     traceId,
@@ -167,7 +167,7 @@ async function buildPlannedHints(
   if (!plan) return plannedHints;
 
   plan.roles.forEach((role, i) => {
-    const meta = slotsToplan[i];
+    const meta = slotsToPlan[i];
     if (!meta) return;
     plannedHints.set(meta.index, {
       roleHint: role.role_hint,

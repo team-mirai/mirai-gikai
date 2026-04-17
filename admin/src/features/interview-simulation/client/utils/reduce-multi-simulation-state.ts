@@ -104,12 +104,14 @@ export function reduceMultiSimulationState(
         })),
       };
     case "turn":
+      // 順序保持を前提にしているが、遅延イベントで complete/error の後に
+      // turn が届いた場合に確定ステータスを running に戻さない
       return {
         ...state,
         slots: updateSlot(state.slots, event.personaIndex, (slot) => ({
           ...slot,
           turns: [...slot.turns, event.turn],
-          status: "running",
+          status: slot.status === "pending" ? "running" : slot.status,
         })),
       };
     case "persona_complete":

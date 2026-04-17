@@ -285,7 +285,17 @@ const personaSlotInputSchema = z.discriminatedUnion("kind", [
     .object({
       kind: z.literal("bill"),
       stanceHint: z.enum(["for", "against", "neutral"]).optional(),
-      roleHint: z.string().max(SHORT_TEXT_MAX).optional(),
+      // 空文字 / 空白のみの roleHint は「未指定」として扱う必要があるが、
+      // .optional() だけだと "" が「指定あり」と解釈されて planner の
+      // fallback を殺してしまう。trim して空なら undefined にそろえる
+      roleHint: z
+        .string()
+        .max(SHORT_TEXT_MAX)
+        .optional()
+        .transform((v) => {
+          const trimmed = v?.trim();
+          return trimmed && trimmed.length > 0 ? trimmed : undefined;
+        }),
     })
     .strict(),
 ]);

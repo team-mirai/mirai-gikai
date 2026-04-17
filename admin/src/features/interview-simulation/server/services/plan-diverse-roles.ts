@@ -20,7 +20,7 @@ import { withTimeoutRetry } from "../../shared/utils/with-timeout-retry";
 interface PlanDiverseRolesParams {
   bill: PromptBillInput;
   interviewConfig: PromptInterviewConfig;
-  slotsToplan: DiversePlanSlotInput[];
+  slotsToPlan: DiversePlanSlotInput[];
   preassignedRoleHints?: string[];
   model: AiModel;
   traceId: string;
@@ -31,23 +31,23 @@ interface PlanDiverseRolesParams {
  * 多様な当事者像を 1 回の LLM 呼び出しでまとめてプランニングする。
  *
  * 失敗時は null を返す（呼び出し側で fallback して各スロットを単独生成に戻す）。
- * 出力配列は入力 slotsToplan と同じ順序であることを期待する（プロンプトで明示）。
+ * 出力配列は入力 slotsToPlan と同じ順序であることを期待する（プロンプトで明示）。
  */
 export async function planDiverseRoles({
   bill,
   interviewConfig,
-  slotsToplan,
+  slotsToPlan,
   preassignedRoleHints,
   model,
   traceId,
   signal,
 }: PlanDiverseRolesParams): Promise<DiverseRolesPlan | null> {
-  if (slotsToplan.length === 0) return null;
+  if (slotsToPlan.length === 0) return null;
 
   const prompt = buildDiverseRolesPlanPrompt({
     bill,
     interviewConfig,
-    slotsToplan,
+    slotsToPlan,
     preassignedRoleHints,
   });
 
@@ -64,7 +64,7 @@ export async function planDiverseRoles({
             functionId: "sim-plan-diverse-roles",
             metadata: {
               traceId,
-              slotCount: slotsToplan.length,
+              slotCount: slotsToPlan.length,
             },
           },
         }),
@@ -76,11 +76,24 @@ export async function planDiverseRoles({
       }
     );
 
-    if (object.roles.length !== slotsToplan.length) {
+    if (object.roles.length !== slotsToPlan.length) {
       console.warn(
-        `[planDiverseRoles] expected ${slotsToplan.length} roles, got ${object.roles.length}; falling back`
+        `[planDiverseRoles] expected ${slotsToPlan.length} roles, got ${object.roles.length}; falling back`
       );
       return null;
+    }
+    // ユーザー指定の stanceHint と planner 出力 stance が矛盾していないか検証。
+    // 下流の generatePersonaFromBill は stanceHint を最優先で使うので実害は
+    // ないが、planner 側が指示に追従していない兆候なのでログを残して fallback
+    for (let i = 0; i < slotsToPlan.length; i++) {
+      const slotHint = slotsToPlan[i]?.stanceHint;
+      const plannedStance = object.roles[i]?.stance;
+      if (slotHint && plannedStance && slotHint !== plannedStance) {
+        console.warn(
+          `[planDiverseRoles] stanceHint mismatch at slot ${i}: hint=${slotHint} planner=${plannedStance}; falling back`
+        );
+        return null;
+      }
     }
     return object;
   } catch (error) {

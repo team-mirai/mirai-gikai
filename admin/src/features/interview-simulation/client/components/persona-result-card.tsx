@@ -147,7 +147,7 @@ function SatisfactionBlock({
               <Star
                 // biome-ignore lint/suspicious/noArrayIndexKey: 5 fixed slots
                 key={i}
-                className={`h-3.5 w-3.5 ${filled ? "fill-current" : "text-muted-foreground/40"}`}
+                className={`h-3.5 w-3.5 ${filled ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/40"}`}
               />
             );
           })}

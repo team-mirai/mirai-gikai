@@ -148,6 +148,20 @@ describe("multiSimulationRunRequestSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("roleHint が空文字 / 空白のみなら undefined に正規化される", () => {
+    const body = baseValidRequest();
+    body.personaSlots = [{ kind: "bill", roleHint: "   " }];
+    const result = multiSimulationRunRequestSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const slot = result.data.personaSlots[0];
+      expect(slot.kind).toBe("bill");
+      if (slot.kind === "bill") {
+        expect(slot.roleHint).toBeUndefined();
+      }
+    }
+  });
+
   it("knowledgeSource が 20000 文字を超えると拒否", () => {
     const body = baseValidRequest();
     body.improvedConfig.knowledgeSource = "a".repeat(20_001);
