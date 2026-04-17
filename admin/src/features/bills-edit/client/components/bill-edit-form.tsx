@@ -38,7 +38,9 @@ export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
       originating_house: bill.originating_house,
       status_note: bill.status_note,
       submitted_date: bill.submitted_date
-        ? new Date(bill.submitted_date).toISOString().slice(0, 10)
+        ? new Date(bill.submitted_date).toLocaleDateString("sv-SE", {
+            timeZone: "Asia/Tokyo",
+          })
         : "",
       thumbnail_url: bill.thumbnail_url,
       share_thumbnail_url: bill.share_thumbnail_url,

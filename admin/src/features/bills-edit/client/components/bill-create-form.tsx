@@ -31,7 +31,9 @@ export function BillCreateForm({ dietSessions }: BillCreateFormProps) {
       status: "preparing",
       originating_house: "HR",
       status_note: null,
-      submitted_date: new Date().toISOString().slice(0, 10),
+      submitted_date: new Date().toLocaleDateString("sv-SE", {
+        timeZone: "Asia/Tokyo",
+      }),
       thumbnail_url: null,
       share_thumbnail_url: null,
       shugiin_url: null,

@@ -21,7 +21,9 @@ export async function createBill(input: BillCreateInput) {
 
     const insertData = {
       ...validatedData,
-      submitted_date: validatedData.submitted_date || null,
+      submitted_date: validatedData.submitted_date
+        ? `${validatedData.submitted_date}T00:00:00+09:00`
+        : null,
     };
 
     // Supabaseに挿入

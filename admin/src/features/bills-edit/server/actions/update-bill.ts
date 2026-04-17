@@ -20,7 +20,9 @@ export async function updateBill(id: string, input: BillUpdateInput) {
     // Supabaseで更新
     await updateBillRecord(id, {
       ...validatedData,
-      submitted_date: validatedData.submitted_date || null,
+      submitted_date: validatedData.submitted_date
+        ? `${validatedData.submitted_date}T00:00:00+09:00`
+        : null,
       updated_at: new Date().toISOString(),
     });
 
