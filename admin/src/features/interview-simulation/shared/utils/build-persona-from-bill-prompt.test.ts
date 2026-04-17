@@ -69,12 +69,26 @@ describe("buildPersonaFromBillPrompt", () => {
     expect(result).toContain("知識ソース未設定");
   });
 
-  it("抽象的な「一般市民」を禁じる注意書きが含まれる", () => {
+  it("roleHint 未指定時は抽象キャラを避ける注意書きが含まれる", () => {
     const result = buildPersonaFromBillPrompt({
       bill: baseBill,
       interviewConfig: baseConfig,
     });
+    expect(result).toContain("抽象");
+    expect(result).toContain("具体的");
+  });
+
+  it("roleHint 指定時はヒントを最優先させる（「一般市民」でも置き換え禁止）", () => {
+    const result = buildPersonaFromBillPrompt({
+      bill: baseBill,
+      interviewConfig: baseConfig,
+      roleHint: "一般市民",
+    });
     expect(result).toContain("一般市民");
-    expect(result).toContain("禁止");
+    expect(result).toContain("最優先");
+    // 勝手に別の職種に置き換えないよう明記されていること
+    expect(result).toMatch(/置き換え|勝手に/);
+    // roleHint 指定時は「抽象キャラ禁止」の旧強い禁則が出ないこと
+    expect(result).not.toMatch(/抽象キャラは禁止/);
   });
 });

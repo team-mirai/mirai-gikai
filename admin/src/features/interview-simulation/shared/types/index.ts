@@ -1,7 +1,8 @@
 import type { AiModel } from "@/lib/ai/models";
 import type { PromptKind } from "../constants";
 import type {
-  JudgeVsOriginalVerdict,
+  IntervieweeSatisfaction,
+  OverallEvaluation,
   PersonaCharacterSheet,
   SimGeneratedReport,
   SimulatedTurn,
@@ -26,15 +27,6 @@ export interface CompletedReportListItem {
   totalContentRichness: number | null;
   completedAt: string | null;
 }
-
-/**
- * ストリーミング進捗イベント（NDJSON で 1 行ずつ送信される）
- */
-export type SimulationProgressEvent =
-  | { type: "status"; message: string }
-  | { type: "turn"; turnIndex: number; turn: SimulatedTurn }
-  | { type: "complete"; result: SimulationResult }
-  | { type: "error"; message: string };
 
 /**
  * 元のインタビューを再構成するためのデータ
@@ -133,55 +125,101 @@ export interface TransientConfigSnapshot {
   }>;
 }
 
+// ============================================================================
+// 複数ペルソナ並列シミュレーション
+// ============================================================================
+
 /**
- * ペルソナ生成のソース指定
- * - report: 過去の完了インタビューから抽出
- * - bill: 法案内容のみから LLM で自動生成（レポートがない段階でも使える）
+ * 複数ペルソナシミュ API のリクエスト内で、各スロットを表す型。
  */
-export type PersonaSource =
-  | { type: "report"; reportId: string }
+export type PersonaSlotInput =
+  | { kind: "report"; reportId: string }
   | {
-      type: "bill";
-      /** 対象法案 ID（改善版 config の bill_id） */
-      billId: string;
-      /** 生成ペルソナの立場ヒント。指定しなければ LLM が法案内容から決める */
+      kind: "bill";
+      /** 立場ヒント（指定しなければ LLM が決める） */
       stanceHint?: "for" | "against" | "neutral";
-      /** 立場・属性の自由記述ヒント。例: "教育現場の教員" */
+      /** 役割ヒント（例: "射場運用の民間事業者"） */
       roleHint?: string;
     };
 
 /**
- * シミュレーション API (/api/interview-simulation/run) のリクエストボディ
+ * 複数ペルソナシミュ API (/api/interview-simulation/run-multi) のリクエストボディ
  */
-export interface SimulationRunRequest {
-  /** ペルソナ抽出のソース（過去レポート or 法案から自動生成） */
-  personaSource: PersonaSource;
-  /** 改善版 = UI で編集中の config スナップショット（未保存を含む） */
+export interface MultiSimulationRunRequest {
+  /** 対象法案 ID（全スロット共通） */
+  billId: string;
+  /** 各スロットのペルソナ定義（1〜MAX_PERSONA_SLOTS） */
+  personaSlots: PersonaSlotInput[];
+  /** 改善版 = 編集中 config スナップショット（全スロット共通） */
   improvedConfig: TransientConfigSnapshot;
   interviewerModel: AiModel;
   intervieweeModel: AiModel;
   personaModel: AiModel;
-  judgeModel: AiModel;
-  /** false なら improved だけ実行。true なら「保存済み config」と並列 sim + Judge で比較（bill モードでは無視） */
-  includeCurrent: boolean;
-  /** false なら Judge を回さない（bill モードでは無視＝常に false 扱い） */
-  evaluate: boolean;
 }
 
 /**
- * API Route の戻り値
+ * 1 スロット分のシミュレーション結果
  */
-export interface SimulationResult {
+export interface PersonaSimulationResult {
+  personaIndex: number;
+  personaSource: PersonaSlotInput;
   persona: PersonaCharacterSheet;
   personaModel: AiModel;
-  judgeModel: AiModel | null;
-  /** 元レポート（report モード時のみ）。bill モードでは null */
+  /** report ソースのスロットのみ。bill ソースでは null */
   original: OriginalInterviewSnapshot | null;
-  simulations: Partial<Record<PromptKind, SimulationRun>>;
-  /**
-   * evaluate=true かつ report モードのときのみ、改善版 sim と元の実インタビューを比較した Judge 結果
-   * （改善版のインタビュアー質問が元と比べて良いか・悪いか・変わらないかを要約）
-   */
-  evaluationVsOriginal: JudgeVsOriginalVerdict | null;
+  run: SimulationRun;
+  elapsedMs: number;
+  /** エラー時は error 文字列のみを持ち、他フィールドは空扱い */
+  error: string | null;
+  /** 満足度評価。LLM 失敗時などは null */
+  satisfaction: IntervieweeSatisfaction | null;
+}
+
+/**
+ * 複数ペルソナシミュ API の戻り値
+ */
+export interface MultiSimulationResult {
+  /** 完了したスロット（エラーのものは含まれない。エラーはストリーミング時のみ見える） */
+  slots: PersonaSimulationResult[];
+  /** 全ペルソナを横断して LLM がまとめたインタビュー設定の総合評価。失敗時は null */
+  overallEvaluation: OverallEvaluation | null;
   totalElapsedMs: number;
 }
+
+/**
+ * スロット記述子（plan イベントで UI に渡して、プレースホルダを描画するのに使う）
+ */
+export interface PersonaSlotDescriptor {
+  personaIndex: number;
+  source: PersonaSlotInput;
+  /** UI 表示用ラベル（例: "完了レポート: 物流業者（賛成）", "自動生成: 中立"） */
+  label: string;
+}
+
+/**
+ * 複数ペルソナシミュ用のストリーミング進捗イベント（NDJSON で 1 行ずつ送信）
+ */
+export type MultiSimulationProgressEvent =
+  // グローバル（全スロット共通）
+  | { type: "plan"; personaSlots: PersonaSlotDescriptor[] }
+  | { type: "global_status"; message: string }
+  // スロット単位の進捗
+  | { type: "persona_started"; personaIndex: number }
+  | { type: "persona_status"; personaIndex: number; message: string }
+  | {
+      type: "turn";
+      personaIndex: number;
+      turnIndex: number;
+      turn: SimulatedTurn;
+    }
+  | {
+      type: "persona_complete";
+      personaIndex: number;
+      result: PersonaSimulationResult;
+    }
+  | { type: "persona_error"; personaIndex: number; message: string }
+  // 全スロット完了後、総合評価の LLM が走る段階で配信
+  | { type: "overall_evaluation_started" }
+  | { type: "overall_evaluation_complete"; evaluation: OverallEvaluation }
+  // 全体完了
+  | { type: "all_complete"; totalElapsedMs: number };

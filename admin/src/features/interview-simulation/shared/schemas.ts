@@ -50,51 +50,97 @@ export const personaSchema = z
       .describe(
         "ペルソナが拒否・回避する話題や前提。例: 「仮定の質問は答えにくい」「個人情報は話せない」など。なければ空配列"
       ),
+    message_to_politicians: z
+      .string()
+      .describe(
+        "このペルソナが今回の法案に関して政治家へ最終的に伝えたい核心メッセージ。" +
+          "インタビューで引き出せたかどうかを後段の満足度評価で照合する。" +
+          "抽象論ではなく、スタンスの根拠＋具体的な懸念/要望を含む 2〜4 文。"
+      ),
   })
   .strict();
 
 export type PersonaCharacterSheet = z.infer<typeof personaSchema>;
 
 /**
- * 改善版 sim の「インタビュアー質問」を、元の実インタビューの
- * インタビュアー質問と比較評価する Judge のスキーマ。
- *
- * 注: インタビュイー側の比較はしない（元は実在人物、sim は合成ペルソナで質が別物）。
- * 比較対象はあくまで "インタビュアーの質問スタイル・深掘り・カバレッジ" に限定する。
+ * インタビュイーの満足度評価（シミュ完了後に LLM に付与させる）。
+ * persona.message_to_politicians が transcript でどの程度引き出されたかを判定する。
  */
-export const judgeVsOriginalVerdictSchema = z
+export const intervieweeSatisfactionSchema = z
   .object({
-    overall_verdict: z
-      .enum(["improved_better", "about_same", "improved_worse"])
+    score: z
+      .number()
+      .int()
+      .min(1)
+      .max(5)
       .describe(
-        "改善版のインタビュアー質問が元インタビューと比べて総合的にどうか。improved_better=改善版が勝る / about_same=大きな差はない / improved_worse=改善版が劣る"
+        "満足度スコア（1〜5）。" +
+          "5=伝えたかったことがほぼ網羅的に引き出された / " +
+          "4=主要な点は伝わったが細部で掘り残しあり / " +
+          "3=半分くらい伝わったが重要な論点が残っている / " +
+          "2=ほとんど伝えられなかった / " +
+          "1=話したい内容に全く触れず終わった"
+      ),
+    message_coverage: z
+      .enum(["covered", "partial", "not_covered"])
+      .describe(
+        "message_to_politicians の網羅度: covered=ほぼ網羅 / partial=一部のみ / not_covered=ほぼ未達"
       ),
     summary: z
       .string()
       .describe(
-        "改善版インタビュアーの良し悪しを 1〜2 段落で要約。元との差が小さければ『大きな差はない』と率直に書く"
+        "スコアの根拠を 2〜3 文で説明。どの論点が引き出され、どこが残ったかを簡潔に。"
       ),
-    improved_strengths: z
+    uncovered_points: z
       .array(z.string())
       .describe(
-        "改善版インタビュアーが元より優れている点。箇条書き、3〜5件。なければ空配列"
-      ),
-    improved_weaknesses: z
-      .array(z.string())
-      .describe(
-        "改善版インタビュアーが元より劣っている点・不自然な点。箇条書き、3〜5件。なければ空配列"
-      ),
-    notable_observations: z
-      .array(z.string())
-      .describe(
-        "特筆すべき観察点（例: カバレッジに大きな差、特定の深掘り技法の差など）。なければ空配列"
+        "message_to_politicians のうち、インタビューで十分引き出されなかったポイント（あれば箇条書き、なければ空配列）"
       ),
   })
   .strict();
 
-export type JudgeVsOriginalVerdict = z.infer<
-  typeof judgeVsOriginalVerdictSchema
+export type IntervieweeSatisfaction = z.infer<
+  typeof intervieweeSatisfactionSchema
 >;
+
+/**
+ * 全ペルソナの満足度を総合的に評価する LLM 出力のスキーマ。
+ * 1 回の複数ペルソナシミュ全体に対して 1 件生成される。
+ */
+export const overallEvaluationSchema = z
+  .object({
+    verdict: z
+      .enum(["excellent", "good", "fair", "poor"])
+      .describe(
+        "総合評価。excellent=どのペルソナも十分に伝えられた / good=主要な論点は概ねカバー / fair=一部ペルソナで掘り残しあり / poor=多くのペルソナで伝えきれない"
+      ),
+    summary: z
+      .string()
+      .describe(
+        "このインタビュー設定が複数のペルソナの伝えたいことをどれくらい引き出せたかを 2〜4 文で総括"
+      ),
+    common_strengths: z
+      .array(z.string())
+      .max(5)
+      .describe(
+        "複数のペルソナで共通して引き出せた点・インタビュー設定の強み（3〜5件）"
+      ),
+    common_gaps: z
+      .array(z.string())
+      .max(5)
+      .describe(
+        "複数のペルソナで共通して取りこぼされた論点・改善余地（3〜5件。なければ空配列）"
+      ),
+    improvement_suggestions: z
+      .array(z.string())
+      .max(5)
+      .describe(
+        "インタビュー設定（質問 / テーマ / 深掘り方針）への具体的な改善提案（3〜5件。改善余地がなければ空配列）"
+      ),
+  })
+  .strict();
+
+export type OverallEvaluation = z.infer<typeof overallEvaluationSchema>;
 
 /**
  * シミュレーションの Summary フェーズで LLM に生成させるレポートのスキーマ。
@@ -178,23 +224,27 @@ const aiModelSchema = z.custom<AiModel>(
 );
 
 /**
- * シミュレーション API のリクエストボディ（実行時バリデーション用）
- * 型 SimulationRunRequest と対応。不正 payload を 400 で弾くのに使う。
+ * 複数ペルソナシミュのリクエスト内で、各スロットを表すスキーマ。
  */
-export const simulationRunRequestSchema = z
+const personaSlotInputSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("report"),
+    reportId: z.string().min(1),
+  }),
+  z.object({
+    kind: z.literal("bill"),
+    stanceHint: z.enum(["for", "against", "neutral"]).optional(),
+    roleHint: z.string().optional(),
+  }),
+]);
+
+/** 複数ペルソナシミュ API のリクエストボディ（実行時バリデーション用） */
+export const multiSimulationRunRequestSchema = z
   .object({
-    personaSource: z.discriminatedUnion("type", [
-      z.object({
-        type: z.literal("report"),
-        reportId: z.string().min(1),
-      }),
-      z.object({
-        type: z.literal("bill"),
-        billId: z.string().min(1),
-        stanceHint: z.enum(["for", "against", "neutral"]).optional(),
-        roleHint: z.string().optional(),
-      }),
-    ]),
+    billId: z.string().min(1),
+    personaSlots: z
+      .array(personaSlotInputSchema)
+      .min(1, "ペルソナを 1 件以上選択してください"),
     improvedConfig: z.object({
       mode: z.enum(["loop", "bulk"]),
       themes: z.array(z.string()).nullable(),
@@ -211,12 +261,8 @@ export const simulationRunRequestSchema = z
         )
         .min(1, "改善版 config に質問が 1 件以上必要です"),
     }),
-    // AI モデルは AI_MODELS の値のいずれか（型 AiModel）
     interviewerModel: aiModelSchema,
     intervieweeModel: aiModelSchema,
     personaModel: aiModelSchema,
-    judgeModel: aiModelSchema,
-    includeCurrent: z.boolean(),
-    evaluate: z.boolean(),
   })
   .strict();

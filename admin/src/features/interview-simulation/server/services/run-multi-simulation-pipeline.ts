@@ -1,0 +1,254 @@
+import "server-only";
+
+import { randomUUID } from "node:crypto";
+import type {
+  PromptBillInput,
+  InterviewConfig as PromptInterviewConfig,
+  InterviewQuestion as PromptInterviewQuestion,
+} from "@mirai-gikai/shared/interview-prompts/types";
+import type { AiModel } from "@/lib/ai/models";
+import { registerNodeTelemetry } from "@/lib/telemetry/register";
+import { PROMPT_KIND } from "../../shared/constants";
+import type {
+  MultiSimulationProgressEvent,
+  MultiSimulationResult,
+  OriginalInterviewSnapshot,
+  PersonaSimulationResult,
+  PersonaSlotInput,
+} from "../../shared/types";
+import { describePersonaSlot } from "../../shared/utils/describe-persona-slot";
+import { extractOriginalStyleAnchors } from "../../shared/utils/extract-original-style-anchors";
+import { getReportDetailForSimulation } from "../loaders/get-report-detail-for-simulation";
+import { evaluateIntervieweeSatisfaction } from "./evaluate-interviewee-satisfaction";
+import { generatePersona } from "./generate-persona";
+import { generatePersonaFromBill } from "./generate-persona-from-bill";
+import { runSimulatedInterview } from "./run-simulated-interview";
+import { summarizeOverallEvaluation } from "./summarize-overall-evaluation";
+
+/** 全スロット共通の改善版 config 素材 */
+interface ImprovedPromptInputs {
+  bill: PromptBillInput;
+  interviewConfig: PromptInterviewConfig;
+  questions: PromptInterviewQuestion[];
+  mode: "loop" | "bulk";
+  estimatedDurationMinutes: number | null;
+}
+
+interface RunMultiSimulationParams {
+  personaSlots: PersonaSlotInput[];
+  /** 全スロット共通の改善版 config */
+  improvedPromptInputs: ImprovedPromptInputs;
+  /** 初回ターン enhanced prompt で使う billTitle */
+  billTitle: string;
+  interviewerModel: AiModel;
+  intervieweeModel: AiModel;
+  personaModel: AiModel;
+  /** ストリーミング進捗コールバック */
+  onProgress?: (event: MultiSimulationProgressEvent) => void;
+  /** 中断シグナル。末端 LLM 呼び出しまで伝播 */
+  signal?: AbortSignal;
+}
+
+/**
+ * 1 スロット分の実行コンテキスト（persona + 元レポート + style anchors）を用意する。
+ * - report スロット: DB からレポート詳細を取得 → persona 抽出 + style anchors 抽出
+ * - bill スロット: 法案内容から persona を LLM 生成（style anchors なし）
+ */
+async function prepareSlotContext(
+  slot: PersonaSlotInput,
+  params: RunMultiSimulationParams,
+  traceId: string,
+  emitStatus: (message: string) => void
+) {
+  if (slot.kind === "report") {
+    emitStatus("レポート取得中...");
+    const detail = await getReportDetailForSimulation(slot.reportId);
+    if (!detail) {
+      throw new Error(
+        `対象のレポートが見つかりません (reportId=${slot.reportId})`
+      );
+    }
+    emitStatus("ペルソナ抽出中...");
+    const persona = await generatePersona({
+      original: detail.snapshot,
+      model: params.personaModel,
+      traceId,
+      signal: params.signal,
+    });
+    const styleAnchors = extractOriginalStyleAnchors(
+      detail.snapshot.conversation
+    );
+    return {
+      persona,
+      original: detail.snapshot as OriginalInterviewSnapshot | null,
+      styleAnchors,
+    };
+  }
+
+  emitStatus("ペルソナ生成中...");
+  const persona = await generatePersonaFromBill({
+    bill: params.improvedPromptInputs.bill,
+    interviewConfig: params.improvedPromptInputs.interviewConfig,
+    stanceHint: slot.stanceHint,
+    roleHint: slot.roleHint,
+    model: params.personaModel,
+    traceId,
+    signal: params.signal,
+  });
+  return {
+    persona,
+    original: null as OriginalInterviewSnapshot | null,
+    styleAnchors: undefined,
+  };
+}
+
+/**
+ * 複数ペルソナ並列シミュレーションのエントリポイント。
+ * 各スロットを Promise.all で並列に走らせ、スロット個別の失敗は persona_error
+ * イベントとして配信しつつ他スロットの実行は継続する。
+ */
+export async function runMultiSimulationPipeline(
+  params: RunMultiSimulationParams
+): Promise<MultiSimulationResult> {
+  await registerNodeTelemetry();
+
+  const startedAt = Date.now();
+  const traceId = randomUUID();
+  const emit = params.onProgress;
+
+  console.log(
+    `[MultiSimulation] start traceId=${traceId} slots=${params.personaSlots.length}`
+  );
+
+  // plan イベント: 全スロットのプレースホルダを UI に先渡し
+  const descriptors = params.personaSlots.map((source, personaIndex) => ({
+    personaIndex,
+    source,
+    label: describePersonaSlot(source),
+  }));
+  emit?.({ type: "plan", personaSlots: descriptors });
+
+  const slotResults = await Promise.all(
+    params.personaSlots.map(async (slot, personaIndex) => {
+      const slotStartedAt = Date.now();
+      emit?.({ type: "persona_started", personaIndex });
+      const emitSlotStatus = (message: string) =>
+        emit?.({ type: "persona_status", personaIndex, message });
+
+      try {
+        const { persona, original, styleAnchors } = await prepareSlotContext(
+          slot,
+          params,
+          traceId,
+          emitSlotStatus
+        );
+
+        emitSlotStatus("シミュレーション実行中...");
+        const run = await runSimulatedInterview({
+          persona,
+          interviewerModel: params.interviewerModel,
+          intervieweeModel: params.intervieweeModel,
+          traceId,
+          kind: PROMPT_KIND.improved,
+          styleAnchors,
+          promptInputs: {
+            bill: params.improvedPromptInputs.bill,
+            interviewConfig: params.improvedPromptInputs.interviewConfig,
+            questions: params.improvedPromptInputs.questions,
+            mode: params.improvedPromptInputs.mode,
+          },
+          initialTurnEnhancement: {
+            billTitle: params.billTitle,
+            firstQuestionId:
+              params.improvedPromptInputs.questions[0]?.id ?? null,
+          },
+          estimatedDurationMinutes:
+            params.improvedPromptInputs.estimatedDurationMinutes,
+          onTurnComplete: emit
+            ? (turnIndex, turn) =>
+                emit({ type: "turn", personaIndex, turnIndex, turn })
+            : undefined,
+          signal: params.signal,
+        });
+
+        // 満足度評価: persona.message_to_politicians が transcript で
+        // どれだけ引き出されたかを LLM に判定させる
+        emitSlotStatus("満足度評価中...");
+        const satisfaction = await evaluateIntervieweeSatisfaction({
+          persona,
+          transcript: run.transcript,
+          model: params.personaModel,
+          traceId,
+          personaIndex,
+          signal: params.signal,
+        });
+
+        const result: PersonaSimulationResult = {
+          personaIndex,
+          personaSource: slot,
+          persona,
+          personaModel: params.personaModel,
+          original,
+          run,
+          elapsedMs: Date.now() - slotStartedAt,
+          error: null,
+          satisfaction,
+        };
+        emit?.({ type: "persona_complete", personaIndex, result });
+        return result;
+      } catch (error) {
+        // 全体 abort の場合は他スロットも reject されるので、伝播させる
+        if (params.signal?.aborted) {
+          throw error;
+        }
+        const message =
+          error instanceof Error
+            ? error.message
+            : "スロットの実行に失敗しました";
+        console.error(`[MultiSimulation] slot ${personaIndex} failed:`, error);
+        emit?.({ type: "persona_error", personaIndex, message });
+        return null;
+      }
+    })
+  );
+
+  const completedSlots = slotResults.filter(
+    (s): s is PersonaSimulationResult => s !== null
+  );
+
+  // 全スロット完走後、横断評価の LLM を 1 回だけ呼ぶ
+  let overallEvaluation: Awaited<
+    ReturnType<typeof summarizeOverallEvaluation>
+  > = null;
+  if (completedSlots.length > 0) {
+    emit?.({ type: "overall_evaluation_started" });
+    overallEvaluation = await summarizeOverallEvaluation({
+      slots: completedSlots.map((s) => ({
+        personaIndex: s.personaIndex,
+        persona: s.persona,
+        satisfaction: s.satisfaction,
+      })),
+      model: params.personaModel,
+      traceId,
+      signal: params.signal,
+    });
+    if (overallEvaluation) {
+      emit?.({
+        type: "overall_evaluation_complete",
+        evaluation: overallEvaluation,
+      });
+    }
+  }
+
+  const totalElapsedMs = Date.now() - startedAt;
+  emit?.({ type: "all_complete", totalElapsedMs });
+  console.log(
+    `[MultiSimulation] done traceId=${traceId} completed=${completedSlots.length}/${params.personaSlots.length} elapsedMs=${totalElapsedMs}`
+  );
+
+  return {
+    slots: completedSlots,
+    overallEvaluation,
+    totalElapsedMs,
+  };
+}

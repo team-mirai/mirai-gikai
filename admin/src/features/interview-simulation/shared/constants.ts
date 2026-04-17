@@ -4,6 +4,12 @@ import { AI_MODELS } from "@/lib/ai/models";
  *  タイムマネジメントの動的更新で自然に要約遷移するのが理想で、これは安全弁。 */
 export const SIMULATION_MAX_TURNS = 20;
 
+/** 複数ペルソナ並列シミュで一度に実行できるスロット数の上限（コスト・レート制限観点） */
+export const MAX_PERSONA_SLOTS = 10;
+
+/** UI 上で推奨する上限。これを超えると警告を出す想定 */
+export const RECOMMENDED_PERSONA_SLOTS = 6;
+
 /** UI のモデル選択肢として提示するモデル一覧 */
 export const SIMULATION_MODEL_OPTIONS = [
   { value: AI_MODELS.gpt5_2, label: "GPT-5.2" },
