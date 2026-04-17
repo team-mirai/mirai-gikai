@@ -20,12 +20,15 @@ const MEDIUM_ARRAY_MAX = 50;
  * 過去レポート（summary / stance / role / opinions / 会話）から
  * インタビュイー LLM の system prompt を組み立てるための構造化データを抽出する。
  */
+// LLM 出力スキーマでは .max() / .min() を hard validation に使わない（learning）。
+// LLM は文字数や件数を厳密に守れず、超過/不足で generateObject が ZodError で
+// 落ちると pipeline 全体が失敗するため、件数・長さは .describe() で soft 指示する。
+// 例外: 構造的に「最低 1 件必要」(.min(1)) は欠落時に下流が壊れるので残す。
 export const personaSchema = z.object({
   role_title: z
     .string()
     .min(1)
-    .max(40)
-    .describe("立場の短縮タイトル（例: 教師、物流業者。日本語で40文字以内）"),
+    .describe("立場の短縮タイトル（例: 教師、物流業者。40 文字以内目安）"),
   role_description: z
     .string()
     .describe(
@@ -45,13 +48,12 @@ export const personaSchema = z.object({
   background: z
     .string()
     .describe(
-      "ペルソナのバックグラウンドストーリー。なぜこの立場・スタンスを取るのかが伝わる短い説明（200文字以内）"
+      "ペルソナのバックグラウンドストーリー。なぜこの立場・スタンスを取るのかが伝わる短い説明（200文字以内目安）"
     ),
   key_concerns: z
     .array(z.string())
     .min(1)
-    .max(8)
-    .describe("このペルソナが法案について特に気にしている論点。3〜5件程度"),
+    .describe("このペルソナが法案について特に気にしている論点。3〜5 件目安"),
   typical_response_length: z
     .enum(["short", "medium", "long"])
     .describe(
@@ -59,16 +61,14 @@ export const personaSchema = z.object({
     ),
   boundaries: z
     .array(z.string())
-    .max(8)
     .describe(
-      "ペルソナが拒否・回避する話題や前提。例: 「仮定の質問は答えにくい」「個人情報は話せない」など。なければ空配列"
+      "ペルソナが拒否・回避する話題や前提。例: 「仮定の質問は答えにくい」「個人情報は話せない」など。なければ空配列。5 件以内目安"
     ),
   message_to_politicians: z
     .array(z.string())
     .min(1)
-    .max(6)
     .describe(
-      "このペルソナが今回の法案に関して政治家へ最終的に伝えたい核心メッセージを 3〜5 件の箇条書きで（1 項目ずつ簡潔に 1 文）。" +
+      "このペルソナが今回の法案に関して政治家へ最終的に伝えたい核心メッセージを 3〜5 件目安の箇条書きで（1 項目ずつ簡潔に 1 文）。" +
         "後段の満足度評価が「項目ごとに引き出せたか」を判定するため、項目は意味的に独立させる。" +
         "抽象論ではなく、スタンスの根拠＋具体的な懸念/要望を含むこと。"
     ),
@@ -135,21 +135,18 @@ export const overallEvaluationSchema = z
       ),
     common_strengths: z
       .array(z.string())
-      .max(5)
       .describe(
-        "複数のペルソナで共通して引き出せた点・インタビュー設定の強み（3〜5件）"
+        "複数のペルソナで共通して引き出せた点・インタビュー設定の強み（3〜5 件目安）"
       ),
     common_gaps: z
       .array(z.string())
-      .max(5)
       .describe(
-        "複数のペルソナで共通して取りこぼされた論点・改善余地（3〜5件。なければ空配列）"
+        "複数のペルソナで共通して取りこぼされた論点・改善余地（3〜5 件目安。なければ空配列）"
       ),
     improvement_suggestions: z
       .array(z.string())
-      .max(5)
       .describe(
-        "インタビュー設定（質問 / テーマ / 深掘り方針）への具体的な改善提案（3〜5件。改善余地がなければ空配列）"
+        "インタビュー設定（質問 / テーマ / 深掘り方針）への具体的な改善提案（3〜5 件目安。改善余地がなければ空配列）"
       ),
   })
   .strict();
@@ -163,38 +160,33 @@ export type OverallEvaluation = z.infer<typeof overallEvaluationSchema>;
  * 「多様な当事者像」を 1 回の LLM 呼び出しでまとめて計画する。
  * 出力配列の順序は、入力の slotsToplan の順序に対応する。
  */
-export const diverseRolesPlanSchema = z
-  .object({
-    roles: z
-      .array(
-        z
-          .object({
-            role_hint: z
-              .string()
-              .min(1)
-              .max(SHORT_TEXT_MAX)
-              .describe(
-                "1 人の当事者像を端的に示す役割ヒント。例: 「都内の高校教師」「中小製造業の経営者」。抽象的な「一般市民」は避ける"
-              ),
-            stance: z
-              .enum(["for", "against", "neutral"])
-              .describe(
-                "この当事者像が法案に対して取りそうな自然なスタンス。役割と矛盾しない範囲で"
-              ),
-            rationale: z
-              .string()
-              .max(MEDIUM_TEXT_MAX)
-              .describe(
-                "なぜこの当事者をインタビュー対象に選んだか、法案との接点を 1〜2 文で"
-              ),
-          })
-          .strict()
-      )
-      .min(1)
-      .max(MAX_PERSONA_SLOTS)
-      .describe("入力の slotsToplan と同じ件数・同じ順序で返すこと"),
-  })
-  .strict();
+export const diverseRolesPlanSchema = z.object({
+  // .max() は付けない（LLM 出力で hard validation を避ける学習）。
+  // 件数の一致は呼び出し側で runtime チェックする。
+  roles: z
+    .array(
+      z.object({
+        role_hint: z
+          .string()
+          .min(1)
+          .describe(
+            "1 人の当事者像を端的に示す役割ヒント。例: 「都内の高校教師」「中小製造業の経営者」。抽象的な「一般市民」は避ける"
+          ),
+        stance: z
+          .enum(["for", "against", "neutral"])
+          .describe(
+            "この当事者像が法案に対して取りそうな自然なスタンス。役割と矛盾しない範囲で"
+          ),
+        rationale: z
+          .string()
+          .describe(
+            "なぜこの当事者をインタビュー対象に選んだか、法案との接点を 1〜2 文で"
+          ),
+      })
+    )
+    .min(1)
+    .describe("入力の slotsToplan と同じ件数・同じ順序で返すこと"),
+});
 
 export type DiverseRolesPlan = z.infer<typeof diverseRolesPlanSchema>;
 
