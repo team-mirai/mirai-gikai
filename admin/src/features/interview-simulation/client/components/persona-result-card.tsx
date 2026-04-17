@@ -63,12 +63,14 @@ export function PersonaResultCard({ slotState }: PersonaResultCardProps) {
               {result.persona.role_description}
             </p>
           )}
-          {result.persona.message_to_politicians && (
+          {result.persona.message_to_politicians.length > 0 && (
             <div className="pt-1 border-t">
               <p className="text-xs font-medium mb-0.5">伝えたいこと</p>
-              <p className="text-xs text-muted-foreground whitespace-pre-wrap">
-                {result.persona.message_to_politicians}
-              </p>
+              <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-0.5">
+                {result.persona.message_to_politicians.map((m, i) => (
+                  <li key={`${i}-${m}`}>{m}</li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

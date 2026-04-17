@@ -83,8 +83,12 @@ export function reduceMultiSimulationState(
     case "global_status":
       return { ...state, globalStatus: event.message };
     case "persona_started":
+      // 1 件目のスロット開始 = planning など global フェーズの終了。
+      // global ステータスを残したままだと「多様な当事者像を計画中...」が
+      // 完了後も画面に出続けるので、ここでクリアする
       return {
         ...state,
+        globalStatus: null,
         slots: updateSlot(state.slots, event.personaIndex, (slot) => ({
           ...slot,
           status: "running",

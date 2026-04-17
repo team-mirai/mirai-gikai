@@ -41,9 +41,7 @@ export async function evaluateIntervieweeSatisfaction(
       message_coverage: "not_covered",
       summary:
         "インタビュイーが一度も発話しないまま終了したため、伝えたいことは全く伝えられませんでした。",
-      uncovered_points: persona.message_to_politicians
-        ? [persona.message_to_politicians]
-        : [],
+      uncovered_points: [...persona.message_to_politicians],
     };
   }
 

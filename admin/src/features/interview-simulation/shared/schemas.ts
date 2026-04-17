@@ -20,58 +20,59 @@ const MEDIUM_ARRAY_MAX = 50;
  * 過去レポート（summary / stance / role / opinions / 会話）から
  * インタビュイー LLM の system prompt を組み立てるための構造化データを抽出する。
  */
-export const personaSchema = z
-  .object({
-    role_title: z
-      .string()
-      .max(20)
-      .describe("立場の短縮タイトル（例: 教師、物流業者）"),
-    role_description: z
-      .string()
-      .describe(
-        "立場・属性の詳細説明。元レポートの role_description を引き継ぎつつ、シミュ用に補強"
-      ),
-    stance: z
-      .enum(["for", "against", "neutral"])
-      .describe("法案へのスタンス。元レポートと一致させる"),
-    knowledge_level: z
-      .enum(["beginner", "intermediate", "expert"])
-      .describe("法案に関する事前知識レベル。会話の語彙から推定"),
-    speaking_style: z
-      .string()
-      .describe(
-        "話し方の特徴（例: 短く端的に答える、丁寧で長めに語る、業界用語を使うなど）"
-      ),
-    background: z
-      .string()
-      .describe(
-        "ペルソナのバックグラウンドストーリー。なぜこの立場・スタンスを取るのかが伝わる短い説明（200文字以内）"
-      ),
-    key_concerns: z
-      .array(z.string())
-      .min(1)
-      .max(5)
-      .describe("このペルソナが法案について特に気にしている論点。3〜5件程度"),
-    typical_response_length: z
-      .enum(["short", "medium", "long"])
-      .describe(
-        "回答の長さ傾向。short=15文字以下中心、medium=数十文字、long=数行"
-      ),
-    boundaries: z
-      .array(z.string())
-      .max(5)
-      .describe(
-        "ペルソナが拒否・回避する話題や前提。例: 「仮定の質問は答えにくい」「個人情報は話せない」など。なければ空配列"
-      ),
-    message_to_politicians: z
-      .string()
-      .describe(
-        "このペルソナが今回の法案に関して政治家へ最終的に伝えたい核心メッセージ。" +
-          "インタビューで引き出せたかどうかを後段の満足度評価で照合する。" +
-          "抽象論ではなく、スタンスの根拠＋具体的な懸念/要望を含む 2〜4 文。"
-      ),
-  })
-  .strict();
+export const personaSchema = z.object({
+  role_title: z
+    .string()
+    .min(1)
+    .max(40)
+    .describe("立場の短縮タイトル（例: 教師、物流業者。日本語で40文字以内）"),
+  role_description: z
+    .string()
+    .describe(
+      "立場・属性の詳細説明。元レポートの role_description を引き継ぎつつ、シミュ用に補強"
+    ),
+  stance: z
+    .enum(["for", "against", "neutral"])
+    .describe("法案へのスタンス。元レポートと一致させる"),
+  knowledge_level: z
+    .enum(["beginner", "intermediate", "expert"])
+    .describe("法案に関する事前知識レベル。会話の語彙から推定"),
+  speaking_style: z
+    .string()
+    .describe(
+      "話し方の特徴（例: 短く端的に答える、丁寧で長めに語る、業界用語を使うなど）"
+    ),
+  background: z
+    .string()
+    .describe(
+      "ペルソナのバックグラウンドストーリー。なぜこの立場・スタンスを取るのかが伝わる短い説明（200文字以内）"
+    ),
+  key_concerns: z
+    .array(z.string())
+    .min(1)
+    .max(8)
+    .describe("このペルソナが法案について特に気にしている論点。3〜5件程度"),
+  typical_response_length: z
+    .enum(["short", "medium", "long"])
+    .describe(
+      "回答の長さ傾向。short=15文字以下中心、medium=数十文字、long=数行"
+    ),
+  boundaries: z
+    .array(z.string())
+    .max(8)
+    .describe(
+      "ペルソナが拒否・回避する話題や前提。例: 「仮定の質問は答えにくい」「個人情報は話せない」など。なければ空配列"
+    ),
+  message_to_politicians: z
+    .array(z.string())
+    .min(1)
+    .max(6)
+    .describe(
+      "このペルソナが今回の法案に関して政治家へ最終的に伝えたい核心メッセージを 3〜5 件の箇条書きで（1 項目ずつ簡潔に 1 文）。" +
+        "後段の満足度評価が「項目ごとに引き出せたか」を判定するため、項目は意味的に独立させる。" +
+        "抽象論ではなく、スタンスの根拠＋具体的な懸念/要望を含むこと。"
+    ),
+});
 
 export type PersonaCharacterSheet = z.infer<typeof personaSchema>;
 

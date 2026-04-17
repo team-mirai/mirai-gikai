@@ -45,9 +45,16 @@ export function buildOverallEvaluationPrompt(
                   .filter(Boolean)
                   .join("\n")
               : "   満足度: （評価失敗）";
+            const messageBlock =
+              s.persona.message_to_politicians.length > 0
+                ? s.persona.message_to_politicians
+                    .map((m) => `   - ${m}`)
+                    .join("\n")
+                : "   - （未設定）";
             return [
               `${s.personaIndex + 1}. ${s.persona.role_title}（${s.persona.stance}）`,
-              `   伝えたかったこと: ${s.persona.message_to_politicians}`,
+              "   伝えたかったこと:",
+              messageBlock,
               satBlock,
             ].join("\n");
           })

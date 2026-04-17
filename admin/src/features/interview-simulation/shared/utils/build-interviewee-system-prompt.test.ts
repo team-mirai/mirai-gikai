@@ -12,8 +12,10 @@ const basePersona: PersonaCharacterSheet = {
   key_concerns: ["業務負担が増えないか", "患者の安全が確保されるか"],
   typical_response_length: "medium",
   boundaries: ["仮定の質問は避けたい"],
-  message_to_politicians:
-    "現場の業務負担を踏まえた制度設計をしてほしい。特に夜勤帯の人員配置について。",
+  message_to_politicians: [
+    "現場の業務負担を踏まえた制度設計をしてほしい。",
+    "特に夜勤帯の人員配置に配慮してほしい。",
+  ],
 };
 
 describe("buildIntervieweeSystemPrompt", () => {

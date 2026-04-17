@@ -161,4 +161,21 @@ describe("reduceMultiSimulationState", () => {
     });
     expect(state.slots).toBeNull();
   });
+
+  it("persona_started は globalStatus をクリアする（planning フェーズの後始末）", () => {
+    let state = reduceMultiSimulationState(
+      initialMultiSimulationState,
+      planEvent
+    );
+    state = reduceMultiSimulationState(state, {
+      type: "global_status",
+      message: "多様な当事者像を計画中...",
+    });
+    expect(state.globalStatus).toBe("多様な当事者像を計画中...");
+    state = reduceMultiSimulationState(state, {
+      type: "persona_started",
+      personaIndex: 0,
+    });
+    expect(state.globalStatus).toBeNull();
+  });
 });

@@ -36,7 +36,7 @@ export function buildIntervieweeSatisfactionPrompt(
 - 話し方: ${persona.speaking_style}
 
 ## インタビュイーが最終的に伝えたかった核心メッセージ（message_to_politicians）
-${persona.message_to_politicians}
+${persona.message_to_politicians.map((m) => `- ${m}`).join("\n")}
 
 ## 会話ログ
 ${transcriptBlock}

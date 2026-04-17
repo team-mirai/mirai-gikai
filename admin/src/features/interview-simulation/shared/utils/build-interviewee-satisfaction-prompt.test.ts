@@ -12,8 +12,10 @@ const persona: PersonaCharacterSheet = {
   key_concerns: ["安全審査の回転", "許可手続きの粒度"],
   typical_response_length: "medium",
   boundaries: [],
-  message_to_politicians:
-    "射場の安全審査を案件ごとの個別審査から型式認定に切り替えてほしい。現行のままでは打上げ頻度が上がったときに審査が詰まる。",
+  message_to_politicians: [
+    "射場の安全審査を案件ごとの個別審査から型式認定に切り替えてほしい。",
+    "現行のままでは打上げ頻度が上がったときに審査が詰まる。",
+  ],
 };
 
 const transcript: SimulatedTurn[] = [
@@ -36,11 +38,13 @@ const transcript: SimulatedTurn[] = [
 ];
 
 describe("buildIntervieweeSatisfactionPrompt", () => {
-  it("persona の役割・スタンス・伝えたいことが含まれる", () => {
+  it("persona の役割・スタンス・伝えたいことが箇条書きで含まれる", () => {
     const result = buildIntervieweeSatisfactionPrompt({ persona, transcript });
     expect(result).toContain(persona.role_title);
     expect(result).toContain(persona.role_description);
-    expect(result).toContain(persona.message_to_politicians);
+    for (const m of persona.message_to_politicians) {
+      expect(result).toContain(`- ${m}`);
+    }
   });
 
   it("transcript の各ターンが含まれる", () => {
