@@ -69,6 +69,12 @@ export function OverallEvaluationPanel({
       {evaluationState.status === "complete" && (
         <EvaluationBody evaluation={evaluationState.evaluation} />
       )}
+
+      {evaluationState.status === "failed" && (
+        <p className="text-xs text-destructive bg-destructive/10 rounded-md p-2">
+          {evaluationState.message}
+        </p>
+      )}
     </div>
   );
 }

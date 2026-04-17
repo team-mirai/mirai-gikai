@@ -25,8 +25,8 @@ interface EvaluateIntervieweeSatisfactionParams {
 /**
  * persona.message_to_politicians が transcript でどれくらい引き出されたかを
  * LLM に判定させ、1〜5 のスコアと根拠を返す。
- * transcript が短すぎる（ペルソナ発話なし）場合は score=1 でフォールバックを返し、
- * 失敗時も null 系を避けるため固定値を返す（スロット個別エラー扱いにはしない）。
+ * - transcript が短すぎる（ペルソナ発話なし）場合は score=1 のフォールバックを返す
+ * - LLM 呼び出しが失敗した場合は null を返す（呼び出し側で「評価なし」扱いになる）
  */
 export async function evaluateIntervieweeSatisfaction(
   params: EvaluateIntervieweeSatisfactionParams
@@ -72,10 +72,13 @@ export async function evaluateIntervieweeSatisfaction(
     );
     return object;
   } catch (error) {
-    console.warn(
-      `[Satisfaction] evaluation failed for slot ${personaIndex}`,
-      error
-    );
+    // ユーザー abort はノイズになるので warn しない
+    if (!signal?.aborted) {
+      console.warn(
+        `[Satisfaction] evaluation failed for slot ${personaIndex}`,
+        error
+      );
+    }
     return null;
   }
 }

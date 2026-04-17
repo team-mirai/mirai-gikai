@@ -222,20 +222,32 @@ export async function runMultiSimulationPipeline(
   > = null;
   if (completedSlots.length > 0) {
     emit?.({ type: "overall_evaluation_started" });
-    overallEvaluation = await summarizeOverallEvaluation({
-      slots: completedSlots.map((s) => ({
-        personaIndex: s.personaIndex,
-        persona: s.persona,
-        satisfaction: s.satisfaction,
-      })),
-      model: params.personaModel,
-      traceId,
-      signal: params.signal,
-    });
+    try {
+      overallEvaluation = await summarizeOverallEvaluation({
+        slots: completedSlots.map((s) => ({
+          personaIndex: s.personaIndex,
+          persona: s.persona,
+          satisfaction: s.satisfaction,
+        })),
+        model: params.personaModel,
+        traceId,
+        signal: params.signal,
+      });
+    } catch (error) {
+      console.warn("[MultiSimulation] overall evaluation threw", error);
+      overallEvaluation = null;
+    }
+    // start を emit したら必ず complete / failed のどちらかで終端イベントを配信する
+    // （UI 側 reducer が "running" に張り付かないように）
     if (overallEvaluation) {
       emit?.({
         type: "overall_evaluation_complete",
         evaluation: overallEvaluation,
+      });
+    } else {
+      emit?.({
+        type: "overall_evaluation_failed",
+        message: "総合評価の生成に失敗しました",
       });
     }
   }

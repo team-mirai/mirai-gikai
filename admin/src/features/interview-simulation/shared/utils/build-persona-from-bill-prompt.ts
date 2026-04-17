@@ -41,9 +41,10 @@ export function buildPersonaFromBillPrompt(
     ? `- **スタンス（必須）**: ${STANCE_LABEL[stanceHint]}（stance フィールドは "${stanceHint}" にしてください）`
     : "- **スタンス**: 法案の内容と、想定される役割から自然に導かれる立場を選んでください。for/against/neutral から適切なものを選択";
 
-  const hasRoleHint = Boolean(roleHint?.trim());
+  const trimmedRoleHint = roleHint?.trim() ?? "";
+  const hasRoleHint = trimmedRoleHint.length > 0;
   const roleLine = hasRoleHint
-    ? `- **役割・属性（必須・最優先）**: ユーザー指定の役割像「**${roleHint}**」を必ず採用してください。role_title / role_description はこのヒントに忠実に従って具体化してください。ヒントを別の属性へ言い換えたり、勝手に職種を置き換えたりすることは禁止です。`
+    ? `- **役割・属性（必須・最優先）**: ユーザー指定の役割像「**${trimmedRoleHint}**」を必ず採用してください。role_title / role_description はこのヒントに忠実に従って具体化してください。ヒントを別の属性へ言い換えたり、勝手に職種を置き換えたりすることは禁止です。`
     : "- **役割・属性**: 法案の影響を直接受けそうな当事者を想定してください。抽象的すぎる「国民全体」のような設定は避け、具体的な生活・業務文脈を持たせてください";
 
   return `あなたはインタビューシミュレータのための「当事者ペルソナ」を組み立てる設計者です。

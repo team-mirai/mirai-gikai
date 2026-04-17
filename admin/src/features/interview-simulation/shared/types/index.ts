@@ -221,5 +221,7 @@ export type MultiSimulationProgressEvent =
   // 全スロット完了後、総合評価の LLM が走る段階で配信
   | { type: "overall_evaluation_started" }
   | { type: "overall_evaluation_complete"; evaluation: OverallEvaluation }
+  /** LLM 失敗などで総合評価が得られなかったケース。UI の「実行中」を解除するため必ず配信する */
+  | { type: "overall_evaluation_failed"; message: string }
   // 全体完了
   | { type: "all_complete"; totalElapsedMs: number };

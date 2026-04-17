@@ -144,8 +144,17 @@ export function MultiSimulationView({
       })),
     };
 
-    const resolvedInterviewerModel: AiModel =
-      (formValues.chat_model as AiModel | null) ?? DEFAULT_INTERVIEWER_MODEL;
+    // chat_model は任意文字列なので AI_MODELS に含まれているか検証してから採用。
+    // 未マッチならデフォルトにフォールバック（そのまま送るとサーバ側 400 で不親切）
+    const allowedModels = new Set<string>(
+      SIMULATION_MODEL_OPTIONS.map((opt) => opt.value)
+    );
+    const candidateInterviewerModel = formValues.chat_model ?? "";
+    const resolvedInterviewerModel: AiModel = allowedModels.has(
+      candidateInterviewerModel
+    )
+      ? (candidateInterviewerModel as AiModel)
+      : DEFAULT_INTERVIEWER_MODEL;
 
     const body: MultiSimulationRunRequest = {
       billId,

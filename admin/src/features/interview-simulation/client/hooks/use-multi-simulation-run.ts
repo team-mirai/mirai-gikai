@@ -31,6 +31,15 @@ export function useMultiSimulationRun(): UseMultiSimulationRun {
   const abortRef = useRef<AbortController | null>(null);
 
   const run = useCallback(async (body: MultiSimulationRunRequest) => {
+    // 前回の run が走っていれば abort してから新規に開始。
+    // UI のボタン制御で防いでいる想定でも、fast click / 外部 trigger で
+    // 2 本走ると両ストリームの setState が交互に入って state が壊れるので
+    // hook 側でも多重実行を防御する。
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+
     setError(null);
     setState(initialMultiSimulationState);
     setIsRunning(true);

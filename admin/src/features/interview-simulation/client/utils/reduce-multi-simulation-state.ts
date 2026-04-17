@@ -29,11 +29,12 @@ export interface MultiSimulationState {
   totalElapsedMs: number | null;
   /** 致命的な切断エラー等（ストリーム読み込み自体が失敗した場合） */
   fatalError: string | null;
-  /** 総合評価（全スロット完走後に LLM がまとめる）。running/done/失敗を区別する */
+  /** 総合評価（全スロット完走後に LLM がまとめる）。running/done/failed を区別する */
   overallEvaluation:
     | { status: "idle" }
     | { status: "running" }
-    | { status: "complete"; evaluation: OverallEvaluation };
+    | { status: "complete"; evaluation: OverallEvaluation }
+    | { status: "failed"; message: string };
 }
 
 export const initialMultiSimulationState: MultiSimulationState = {
@@ -133,6 +134,11 @@ export function reduceMultiSimulationState(
       return {
         ...state,
         overallEvaluation: { status: "complete", evaluation: event.evaluation },
+      };
+    case "overall_evaluation_failed":
+      return {
+        ...state,
+        overallEvaluation: { status: "failed", message: event.message },
       };
     case "all_complete":
       return { ...state, totalElapsedMs: event.totalElapsedMs };
