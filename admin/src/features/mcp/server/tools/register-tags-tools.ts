@@ -4,7 +4,6 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
   createTagRecord,
-  deleteTagRecord,
   findAllTagsWithBillCount,
   updateTagRecord,
 } from "@/features/tags/server/repositories/tag-repository";
@@ -84,28 +83,6 @@ export function registerTagsTools(server: McpServer): void {
       }
       await invalidateBillsCache();
       return jsonResult({ ok: true, tag: result.data });
-    }
-  );
-
-  server.registerTool(
-    "delete_tag",
-    {
-      title: "タグを削除",
-      description: "指定IDのタグを削除する。",
-      inputSchema: {
-        id: z.string().uuid(),
-      },
-    },
-    async ({ id }) => {
-      const result = await deleteTagRecord(id);
-      if (result.error) {
-        return jsonResult({
-          ok: false,
-          error: mapTagDbError(result.error, "削除"),
-        });
-      }
-      await invalidateBillsCache();
-      return jsonResult({ ok: true });
     }
   );
 }

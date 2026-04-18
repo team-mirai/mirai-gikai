@@ -18,7 +18,6 @@ import {
 } from "@/features/bills-edit/shared/types";
 import { billContentsUpdateSchema } from "@/features/bills-edit/shared/types/bill-contents";
 import {
-  deleteBillById,
   findBillsWithDietSessions,
   updateBillPublishStatus,
 } from "@/features/bills/server/repositories/bill-repository";
@@ -100,22 +99,6 @@ export function registerBillsTools(server: McpServer): void {
           : null,
         updated_at: new Date().toISOString(),
       });
-      await invalidateBillsCache();
-      return jsonResult({ ok: true });
-    }
-  );
-
-  server.registerTool(
-    "delete_bill",
-    {
-      title: "議案を削除",
-      description: "指定IDの議案を削除する。",
-      inputSchema: {
-        billId: z.string().uuid(),
-      },
-    },
-    async ({ billId }) => {
-      await deleteBillById(billId);
       await invalidateBillsCache();
       return jsonResult({ ok: true });
     }
