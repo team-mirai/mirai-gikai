@@ -50,7 +50,7 @@ export async function findBillTagIdsByBillId(billId: string) {
 
 export async function createBillRecord(insertData: BillInsert) {
   const supabase = createAdminClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("bills")
     .insert(insertData)
     .select("id")
@@ -59,6 +59,8 @@ export async function createBillRecord(insertData: BillInsert) {
   if (error) {
     throw new Error(`Failed to create bill: ${error.message}`);
   }
+
+  return data;
 }
 
 export async function updateBillRecord(

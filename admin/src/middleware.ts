@@ -4,6 +4,12 @@ import { checkAdminPermission } from "@/lib/auth/permissions";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  // MCP エンドポイントはBearerトークンで独自認証する。Supabase auth の呼び出しを避けるため
+  // updateSession() より前にバイパスする。
+  if (request.nextUrl.pathname.startsWith("/api/mcp")) {
+    return NextResponse.next();
+  }
+
   const { supabaseResponse, user } = await updateSession(request);
 
   // OAuth コールバックはそのまま通す（Route Handler で処理する）
