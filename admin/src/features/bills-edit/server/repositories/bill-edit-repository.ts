@@ -48,6 +48,21 @@ export async function findBillTagIdsByBillId(billId: string) {
   return data?.map((item) => item.tag_id) ?? [];
 }
 
+export async function findBillBySlug(slug: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to fetch bill by slug: ${error.message}`);
+  }
+
+  return data;
+}
+
 export async function createBillRecord(insertData: BillInsert) {
   const supabase = createAdminClient();
   const { data, error } = await supabase

@@ -7,6 +7,7 @@ import {
   createBillsTags,
   deleteBillsTags,
   findBillById,
+  findBillBySlug,
   findBillContentsByBillId,
   findBillsTagsByBillId,
   updateBillRecord,
@@ -55,6 +56,26 @@ export function registerBillsTools(server: McpServer): void {
         findBillById(billId),
         findBillContentsByBillId(billId),
         findBillsTagsByBillId(billId),
+      ]);
+      return jsonResult({ bill, contents, tagIds });
+    }
+  );
+
+  server.registerTool(
+    "get_bill_by_slug",
+    {
+      title: "slugで議案を検索",
+      description:
+        "指定slugの議案本体、bill_contents（ふつう/難しい）、紐づくtag_idを返す。slugが一致する議案がない場合はエラーになる。",
+      inputSchema: {
+        slug: z.string().max(200).describe("議案のslug"),
+      },
+    },
+    async ({ slug }) => {
+      const bill = await findBillBySlug(slug);
+      const [contents, tagIds] = await Promise.all([
+        findBillContentsByBillId(bill.id),
+        findBillsTagsByBillId(bill.id),
       ]);
       return jsonResult({ bill, contents, tagIds });
     }
