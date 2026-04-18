@@ -153,11 +153,15 @@ Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-l
   1. **Conflict確認**: `gh pr view <番号> --json mergeable,mergeStateStatus` でマージ可能か確認。conflictがあれば解消してpushする。
   2. **CI確認**: `gh pr checks <番号>` でCIの状態を確認。失敗があれば原因を調査し修正してpushする。CIが実行中の場合は完了まで待つ。
   3. **CodeRabbitレビュー確認**: CodeRabbitのレビューが届くまで待ってからコメントを確認する。レビューは通常2〜3分で届く。`gh api repos/{owner}/{repo}/pulls/{number}/comments` でコメントを取得し、空なら少し待って再取得する。**Minor以上（Minor/Major/Critical）の指摘はすべて対応が必須。** 対応とは「修正してpush」または「スキップ理由を該当コメントに返信」のいずれか。Nitpickのみスキップ可。
-  4. **対応済みコメントのresolve（必須）**: 修正をpushした後、対応済みのレビューコメントをGraphQL APIでresolveする。まず `gh api graphql` でスレッド一覧を取得し、`resolveReviewThread` mutationで対応済みスレッドをresolveする。
+  4. **対応済みコメントへの返信とresolve（必須）**: 対応済みコメント（修正pushした場合・スキップした場合の両方）に対して、該当コメントへ返信した上でGraphQL APIでresolveする。返信なしで黙ってresolveするのは禁止。
      ```bash
-     # スレッド一覧取得（isResolved=falseのものが未resolve）
+     # 1. 該当コメントに返信（対応内容の概要を記載、修正の場合はコミットSHAを含める）
+     gh api repos/{owner}/{repo}/pulls/{number}/comments -X POST \
+       -F in_reply_to=<コメントID> \
+       -f body='修正しました (<コミットSHA>)。<対応内容の要約>'
+     # 2. スレッド一覧取得（isResolved=falseのものが未resolve）
      gh api graphql -f query='{ repository(owner: "{owner}", name: "{repo}") { pullRequest(number: <番号>) { reviewThreads(first: 50) { nodes { id isResolved comments(first: 1) { nodes { body path } } } } } } }'
-     # 対応済みスレッドをresolve
+     # 3. 対応済みスレッドをresolve
      gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "<スレッドID>"}) { thread { isResolved } } }'
      ```
 
