@@ -6,7 +6,9 @@ import { updateSession } from "@/lib/supabase/middleware";
 export async function middleware(request: NextRequest) {
   // MCP エンドポイントはBearerトークンで独自認証する。Supabase auth の呼び出しを避けるため
   // updateSession() より前にバイパスする。
-  if (request.nextUrl.pathname.startsWith("/api/mcp")) {
+  // NOTE: `startsWith("/api/mcp")` だと `/api/mcpfoo` も一致するため、境界を意識した比較にする。
+  const pathname = request.nextUrl.pathname;
+  if (pathname === "/api/mcp" || pathname.startsWith("/api/mcp/")) {
     return NextResponse.next();
   }
 
