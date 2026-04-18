@@ -21,7 +21,7 @@ export function createAdminMcpHandler() {
       },
     },
     {
-      basePath: "/api/mcp",
+      basePath: "/api",
       verboseLogs: process.env.NODE_ENV !== "production",
     }
   );

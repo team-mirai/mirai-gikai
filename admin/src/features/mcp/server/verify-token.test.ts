@@ -17,7 +17,7 @@ describe("verifyMcpToken", () => {
   });
 
   it("正しいBearerトークンでAuthInfoを返す", async () => {
-    const req = new Request("http://localhost/api/mcp/mcp");
+    const req = new Request("http://localhost/api/mcp");
     const result = await verifyMcpToken(req, "test-token");
 
     expect(result).toEqual({
@@ -28,29 +28,29 @@ describe("verifyMcpToken", () => {
   });
 
   it("誤ったトークンだとundefinedを返す", async () => {
-    const req = new Request("http://localhost/api/mcp/mcp");
+    const req = new Request("http://localhost/api/mcp");
     expect(await verifyMcpToken(req, "wrong")).toBeUndefined();
   });
 
   it("トークン長が違う場合もundefinedを返す", async () => {
-    const req = new Request("http://localhost/api/mcp/mcp");
+    const req = new Request("http://localhost/api/mcp");
     expect(await verifyMcpToken(req, "test-token-longer")).toBeUndefined();
   });
 
   it("トークン未指定だとundefinedを返す", async () => {
-    const req = new Request("http://localhost/api/mcp/mcp");
+    const req = new Request("http://localhost/api/mcp");
     expect(await verifyMcpToken(req)).toBeUndefined();
   });
 
   it("環境変数が未設定ならundefinedを返す", async () => {
     delete process.env.ADMIN_MCP_TOKEN;
-    const req = new Request("http://localhost/api/mcp/mcp");
+    const req = new Request("http://localhost/api/mcp");
     expect(await verifyMcpToken(req, "any")).toBeUndefined();
   });
 
   it("環境変数が空文字ならundefinedを返す", async () => {
     process.env.ADMIN_MCP_TOKEN = "";
-    const req = new Request("http://localhost/api/mcp/mcp");
+    const req = new Request("http://localhost/api/mcp");
     expect(await verifyMcpToken(req, "")).toBeUndefined();
   });
 });
