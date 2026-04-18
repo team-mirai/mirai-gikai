@@ -31,12 +31,26 @@ export function registerBillsTools(server: McpServer): void {
     {
       title: "議案一覧を取得",
       description:
-        "mirai議会adminに登録されているすべての議案を返す。各議案にdiet_session名も含む。",
-      inputSchema: {},
+        "mirai議会adminに登録されている議案を返す。各議案にdiet_session名も含む。publish_status / status でフィルタ可能。",
+      inputSchema: {
+        publish_status: z
+          .enum(["draft", "published", "coming_soon"])
+          .optional()
+          .describe("公開ステータスでフィルタ"),
+        status: billUpdateSchema.shape.status
+          .optional()
+          .describe("審議ステータスでフィルタ"),
+      },
     },
-    async () => {
+    async ({ publish_status, status }) => {
       const bills = await findBillsWithDietSessions();
-      return jsonResult(bills);
+      const filtered = bills.filter((bill) => {
+        if (publish_status && bill.publish_status !== publish_status)
+          return false;
+        if (status && bill.status !== status) return false;
+        return true;
+      });
+      return jsonResult(filtered);
     }
   );
 
@@ -69,12 +83,7 @@ export function registerBillsTools(server: McpServer): void {
       inputSchema: billCreateSchema.shape,
     },
     async (input) => {
-      const inserted = await createBillRecord({
-        ...input,
-        published_at: input.published_at
-          ? new Date(input.published_at).toISOString()
-          : null,
-      });
+      const inserted = await createBillRecord(input);
       await invalidateBillsCache();
       return jsonResult({ ok: true, bill: inserted });
     }
@@ -94,9 +103,6 @@ export function registerBillsTools(server: McpServer): void {
     async ({ billId, ...rest }) => {
       await updateBillRecord(billId, {
         ...rest,
-        published_at: rest.published_at
-          ? new Date(rest.published_at).toISOString()
-          : null,
         updated_at: new Date().toISOString(),
       });
       await invalidateBillsCache();
