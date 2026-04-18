@@ -27,11 +27,19 @@ export async function findAllTagsWithBillCount() {
   return data;
 }
 
-export async function createTagRecord(input: { label: string }) {
+export async function createTagRecord(input: {
+  label: string;
+  description?: string | null;
+  featured_priority?: number | null;
+}) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("tags")
-    .insert({ label: input.label })
+    .insert({
+      label: input.label,
+      description: input.description ?? null,
+      featured_priority: input.featured_priority ?? null,
+    })
     .select()
     .single();
 

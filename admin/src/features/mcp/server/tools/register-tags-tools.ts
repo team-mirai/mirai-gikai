@@ -30,17 +30,24 @@ export function registerTagsTools(server: McpServer): void {
     "create_tag",
     {
       title: "タグを作成",
-      description: "新しいタグを作成する。labelは必須。",
+      description:
+        "新しいタグを作成する。labelは必須。description / featured_priority は任意。",
       inputSchema: {
         label: z.string().min(1),
+        description: z.string().nullable().optional(),
+        featured_priority: z.number().int().nullable().optional(),
       },
     },
-    async ({ label }) => {
+    async ({ label, description, featured_priority }) => {
       const trimmed = label.trim();
       if (trimmed.length === 0) {
         return jsonResult({ ok: false, error: "タグ名を入力してください" });
       }
-      const result = await createTagRecord({ label: trimmed });
+      const result = await createTagRecord({
+        label: trimmed,
+        description: description ?? null,
+        featured_priority: featured_priority ?? null,
+      });
       if (result.error) {
         return jsonResult({
           ok: false,
