@@ -83,7 +83,12 @@ export function registerBillsTools(server: McpServer): void {
       inputSchema: billCreateSchema.shape,
     },
     async (input) => {
-      const inserted = await createBillRecord(input);
+      const inserted = await createBillRecord({
+        ...input,
+        submitted_date: input.submitted_date
+          ? `${input.submitted_date}T00:00:00+09:00`
+          : null,
+      });
       await invalidateBillsCache();
       return jsonResult({ ok: true, bill: inserted });
     }
@@ -103,6 +108,9 @@ export function registerBillsTools(server: McpServer): void {
     async ({ billId, ...rest }) => {
       await updateBillRecord(billId, {
         ...rest,
+        submitted_date: rest.submitted_date
+          ? `${rest.submitted_date}T00:00:00+09:00`
+          : null,
         updated_at: new Date().toISOString(),
       });
       await invalidateBillsCache();
