@@ -7,9 +7,9 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error("環境変数 NEXT_PUBLIC_SUPABASE_URL が設定されていません");
 }
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
   throw new Error(
-    "環境変数 NEXT_PUBLIC_SUPABASE_ANON_KEY が設定されていません"
+    "環境変数 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY が設定されていません"
   );
 }
 
@@ -58,7 +58,7 @@ export const env = {
   webUrl: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000",
   adminUrl: process.env.ADMIN_URL || "http://localhost:3001",
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  supabasePublishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   revalidateSecret: process.env.REVALIDATE_SECRET,
   analytics: {
     gaTrackingId: process.env.NEXT_PUBLIC_GA_TRACKING_ID,

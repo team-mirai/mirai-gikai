@@ -1,30 +1,33 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../packages/supabase/types/supabase.types";
 
-// ── 環境変数（ローカルSupabaseの既定値をデフォルトに） ──
+// ── 環境変数（`.env` または CI が供給。`npx supabase status` で確認） ──
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "http://127.0.0.1:54421";
-const SERVICE_ROLE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ??
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
-const ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+const SECRET_KEY = requireEnv("SUPABASE_SECRET_KEY");
+const PUBLISHABLE_KEY = requireEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(
+      `環境変数 ${name} が未設定です。ローカル実行時は \`.env\` をコピーし、\`npx supabase status\` で値を確認してください。`
+    );
+  }
+  return value;
+}
 
 // ── クライアント ──
-/** service_role 権限のクライアント（RLS バイパス） */
-export const adminClient = createClient<Database>(
-  SUPABASE_URL,
-  SERVICE_ROLE_KEY
-);
+/** secret key クライアント（RLS バイパス） */
+export const adminClient = createClient<Database>(SUPABASE_URL, SECRET_KEY);
 
-/** anon 権限のクライアント（RLS 適用） */
+/** publishable key クライアント（RLS 適用） */
 export function getAnonClient() {
-  return createClient<Database>(SUPABASE_URL, ANON_KEY);
+  return createClient<Database>(SUPABASE_URL, PUBLISHABLE_KEY);
 }
 
 /** 認証済みクライアントを取得 */
 export async function getAuthenticatedClient(email: string, password: string) {
-  const client = createClient<Database>(SUPABASE_URL, ANON_KEY);
+  const client = createClient<Database>(SUPABASE_URL, PUBLISHABLE_KEY);
   const { error } = await client.auth.signInWithPassword({
     email,
     password,

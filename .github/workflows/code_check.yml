@@ -36,7 +36,7 @@ jobs:
         run: pnpm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-build-check
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_dummy-for-build-check
 
       - name: Run Test with Coverage
         run: pnpm run test:coverage
