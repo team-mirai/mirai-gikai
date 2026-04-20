@@ -59,6 +59,15 @@ export const previewTokenService = {
   },
 
   /**
+   * 既存の有効なトークンを取得するか、なければ新規発行する
+   */
+  async getOrCreateToken(billId: string): Promise<PreviewTokenInfo> {
+    const existing = await this.getValidToken(billId);
+    if (existing) return existing;
+    return this.createToken(billId);
+  },
+
+  /**
    * トークンを検証する
    */
   async validateToken(billId: string, token: string): Promise<boolean> {
