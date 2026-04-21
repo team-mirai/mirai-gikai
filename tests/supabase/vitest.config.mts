@@ -24,6 +24,7 @@ export default defineConfig({
         __dirname,
         "../../packages/supabase/src"
       ),
+      "server-only": path.resolve(__dirname, "server-only-stub.ts"),
     },
   },
 });

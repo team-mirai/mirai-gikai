@@ -109,7 +109,10 @@ export async function closeOtherPublicConfigs(
     query.neq("id", excludeConfigId);
   }
 
-  await query;
+  const { error } = await query;
+  if (error) {
+    throw new Error(`Failed to close interview configs: ${error.message}`);
+  }
 }
 
 export async function createInterviewConfigRecord(params: {
