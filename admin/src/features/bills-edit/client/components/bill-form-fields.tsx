@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
 import type { Control } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -26,6 +27,7 @@ import {
 } from "@/features/bills/shared/types";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
 import type { BillCreateInput } from "../../shared/types";
+import { shouldAutoCloseInterviewOnBillStatus } from "../../shared/utils/should-auto-close-interview";
 import { ThumbnailUpload } from "./thumbnail-upload";
 
 const BILL_STATUS_OPTIONS: Array<{ value: BillStatus; label: string }> = [
@@ -98,6 +100,14 @@ export function BillFormFields({
               <FormDescription>
                 現在の審議状況を選択してください
               </FormDescription>
+              {shouldAutoCloseInterviewOnBillStatus(field.value) && (
+                <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded flex items-start gap-2">
+                  <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+                  <span>
+                    保存すると、この議案に紐づく公開中のインタビューは自動でクローズされます。
+                  </span>
+                </p>
+              )}
               <FormMessage />
             </FormItem>
           )}
