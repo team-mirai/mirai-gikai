@@ -64,23 +64,23 @@ export function registerTagsTools(server: McpServer): void {
     {
       title: "タグを更新",
       description:
-        "指定IDのタグを更新する。label(必須) と任意で description / featured_priority を変更できる。",
+        "指定IDのタグを更新する（PATCH方式）。指定したフィールドのみ更新され、省略したフィールドは既存値を維持する。明示的にnullを渡すとクリアできる。",
       inputSchema: {
         id: z.string().uuid(),
-        label: z.string().min(1),
+        label: z.string().min(1).optional(),
         description: z.string().nullable().optional(),
         featured_priority: z.number().int().nullable().optional(),
       },
     },
     async ({ id, label, description, featured_priority }) => {
-      const trimmed = label.trim();
-      if (trimmed.length === 0) {
+      const trimmed = label?.trim();
+      if (trimmed !== undefined && trimmed.length === 0) {
         return jsonResult({ ok: false, error: "タグ名を入力してください" });
       }
       const result = await updateTagRecord(id, {
         label: trimmed,
-        description: description ?? null,
-        featured_priority: featured_priority ?? null,
+        description,
+        featured_priority,
       });
       if (result.error) {
         return jsonResult({
