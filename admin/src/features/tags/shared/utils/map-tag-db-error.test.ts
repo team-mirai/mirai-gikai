@@ -15,6 +15,14 @@ describe("mapTagDbError", () => {
     expect(mapTagDbError(error, "削除")).toBe("タグが見つかりません");
   });
 
+  it("EMPTY_UPDATEコード（空更新）で専用メッセージを返す", () => {
+    const error = {
+      code: "EMPTY_UPDATE",
+      message: "更新するフィールドがありません",
+    };
+    expect(mapTagDbError(error, "更新")).toBe("更新するフィールドがありません");
+  });
+
   it("未知のエラーコードでは操作名付きの汎用メッセージを返す", () => {
     const error = { code: "42501", message: "permission denied" };
     expect(mapTagDbError(error, "作成")).toBe(

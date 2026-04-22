@@ -16,5 +16,8 @@ export function mapTagDbError(error: DbError, operation: TagOperation): string {
   if (error.code === "PGRST116") {
     return "タグが見つかりません";
   }
+  if (error.code === "EMPTY_UPDATE") {
+    return "更新するフィールドがありません";
+  }
   return `タグの${operation}に失敗しました: ${error.message}`;
 }
