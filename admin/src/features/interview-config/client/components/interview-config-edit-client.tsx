@@ -67,86 +67,89 @@ export function InterviewConfigEditClient({
   // 質問一覧の現在値を取得するための ref（シミュレーション機能で使用）
   const getQuestionsRef = useRef<(() => InterviewQuestionInput[]) | null>(null);
 
-  const getFormThemes = useCallback(
-    () => getFormValuesRef.current?.().themes ?? [],
-    []
+  /** 新規configを即時作成する（テーマ未確定でも質問を保存できるようにするため） */
+  const createConfigIfNeeded = useCallback(
+    async (themes: string[]): Promise<string | null> => {
+      if (configId) return configId;
+
+      const formValues = getFormValuesRef.current?.();
+      const result = await createInterviewConfig(billId, {
+        name: formValues?.name || "AI生成設定",
+        status: "closed",
+        mode: (formValues?.mode as "loop" | "bulk") || "loop",
+        themes,
+        knowledge_source: formValues?.knowledge_source || "",
+        chat_model: formValues?.chat_model || null,
+        estimated_duration: formValues?.estimated_duration ?? null,
+      });
+      if (!result.success) {
+        toast.error(result.error || "設定の作成に失敗しました");
+        return null;
+      }
+      const newConfigId = result.data.id;
+      setConfigId(newConfigId);
+      toast.success("インタビュー設定を自動作成しました");
+      window.history.replaceState(
+        null,
+        "",
+        routes.billInterviewEdit(billId, newConfigId)
+      );
+      return newConfigId;
+    },
+    [billId, configId]
   );
 
-  // テーマ確定時: configがなければ自動作成、あれば更新
+  // 質問確定時: configがなければ先に作成してから質問を保存する（テーマ未確定でもOK）
+  const handleQuestionsConfirmed = useCallback(
+    async (confirmedQuestions: InterviewQuestionInput[]) => {
+      setAiGeneratedQuestions(confirmedQuestions);
+
+      const targetConfigId = await createConfigIfNeeded([]);
+      if (!targetConfigId) return;
+
+      const result = await saveInterviewQuestions(
+        targetConfigId,
+        confirmedQuestions
+      );
+      if (result.success) {
+        toast.success(`${confirmedQuestions.length}件の質問を保存しました`);
+        router.refresh();
+      } else {
+        toast.error(result.error || "質問の保存に失敗しました");
+      }
+    },
+    [createConfigIfNeeded, router]
+  );
+
+  // テーマ確定時: configがなければ作成、あれば更新
   const handleThemesConfirmed = useCallback(
     async (themes: string[]) => {
       setAiGeneratedThemes(themes);
 
       if (!configId) {
-        // 新規: configを自動作成
-        const formValues = getFormValuesRef.current?.();
-        const result = await createInterviewConfig(billId, {
-          name: formValues?.name || "AI生成設定",
-          status: "closed",
-          mode: (formValues?.mode as "loop" | "bulk") || "loop",
-          themes,
-          knowledge_source: formValues?.knowledge_source || "",
-          chat_model: formValues?.chat_model || null,
-          estimated_duration: formValues?.estimated_duration ?? null,
-        });
-        if (result.success) {
-          setConfigId(result.data.id);
-          toast.success("インタビュー設定を自動作成しました");
-          // URLを編集ページに置き換え（ページ遷移なし）
-          window.history.replaceState(
-            null,
-            "",
-            routes.billInterviewEdit(billId, result.data.id)
-          );
-        } else {
-          toast.error(result.error || "設定の作成に失敗しました");
-        }
-      } else {
-        // 既存: テーマを更新
-        const formValues = getFormValuesRef.current?.();
-        await updateInterviewConfig(configId, {
-          name: formValues?.name || initialConfig?.name || "",
-          status: initialConfig?.status || "closed",
-          mode:
-            (formValues?.mode as "loop" | "bulk") ||
-            initialConfig?.mode ||
-            "loop",
-          themes,
-          knowledge_source:
-            formValues?.knowledge_source ||
-            initialConfig?.knowledge_source ||
-            "",
-          chat_model:
-            formValues?.chat_model ?? initialConfig?.chat_model ?? null,
-          estimated_duration:
-            formValues?.estimated_duration ??
-            initialConfig?.estimated_duration ??
-            null,
-        });
+        await createConfigIfNeeded(themes);
+        return;
       }
-    },
-    [billId, configId, initialConfig]
-  );
 
-  // 質問確定時: configがあれば直接保存
-  const handleQuestionsConfirmed = useCallback(
-    async (confirmedQuestions: InterviewQuestionInput[]) => {
-      setAiGeneratedQuestions(confirmedQuestions);
-
-      if (configId) {
-        const result = await saveInterviewQuestions(
-          configId,
-          confirmedQuestions
-        );
-        if (result.success) {
-          toast.success(`${confirmedQuestions.length}件の質問を保存しました`);
-          router.refresh();
-        } else {
-          toast.error(result.error || "質問の保存に失敗しました");
-        }
-      }
+      const formValues = getFormValuesRef.current?.();
+      await updateInterviewConfig(configId, {
+        name: formValues?.name || initialConfig?.name || "",
+        status: initialConfig?.status || "closed",
+        mode:
+          (formValues?.mode as "loop" | "bulk") ||
+          initialConfig?.mode ||
+          "loop",
+        themes,
+        knowledge_source:
+          formValues?.knowledge_source || initialConfig?.knowledge_source || "",
+        chat_model: formValues?.chat_model ?? initialConfig?.chat_model ?? null,
+        estimated_duration:
+          formValues?.estimated_duration ??
+          initialConfig?.estimated_duration ??
+          null,
+      });
     },
-    [configId, router]
+    [configId, createConfigIfNeeded, initialConfig]
   );
 
   return (
@@ -203,9 +206,8 @@ export function InterviewConfigEditClient({
                 follow_up_guide: q.follow_up_guide ?? undefined,
                 quick_replies: q.quick_replies ?? undefined,
               }))}
-              onThemesConfirmed={handleThemesConfirmed}
               onQuestionsConfirmed={handleQuestionsConfirmed}
-              getFormThemes={getFormThemes}
+              onThemesConfirmed={handleThemesConfirmed}
             />
           </div>
         </div>

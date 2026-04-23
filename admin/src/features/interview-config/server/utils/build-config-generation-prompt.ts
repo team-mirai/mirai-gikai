@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { ConfigGenerationStage } from "../../shared/schemas";
+import { DEFAULT_QUESTIONS_TEMPLATE } from "../../shared/utils/default-questions-template";
 
 interface ExistingQuestion {
   question: string;
@@ -14,10 +15,10 @@ interface BuildPromptParams {
   billSummary: string;
   billContent: string;
   stage: ConfigGenerationStage;
-  confirmedThemes?: string[];
   knowledgeSource?: string;
   existingThemes?: string[];
   existingQuestions?: ExistingQuestion[];
+  confirmedQuestions?: ExistingQuestion[];
 }
 
 export function buildConfigGenerationPrompt(params: BuildPromptParams): string {
@@ -27,10 +28,10 @@ export function buildConfigGenerationPrompt(params: BuildPromptParams): string {
     billSummary,
     billContent,
     stage,
-    confirmedThemes,
     knowledgeSource,
     existingThemes,
     existingQuestions,
+    confirmedQuestions,
   } = params;
 
   const billSection = `## 法案情報
@@ -48,39 +49,52 @@ ${billContent}`;
 法案に関する市民の意見を効果的に収集するためのインタビューテーマと質問を提案します。
 管理者と対話しながら、より良いインタビュー設定を一緒に作り上げてください。`;
 
-  if (stage === "theme_proposal") {
-    const existingThemesSection =
-      existingThemes && existingThemes.length > 0
-        ? `\n## 現在設定されているテーマ\n${existingThemes.map((t) => `- ${t}`).join("\n")}\n\n管理者は既存のテーマのブラッシュアップを希望しています。既存テーマを踏まえて改善提案をしてください。`
-        : "";
+  if (stage === "default_questions") {
+    const q1 = DEFAULT_QUESTIONS_TEMPLATE.find(
+      (e) => e.kind === "generated" && e.slot === "q1"
+    );
+    const q4 = DEFAULT_QUESTIONS_TEMPLATE.find(
+      (e) => e.kind === "generated" && e.slot === "q4"
+    );
+    if (q1?.kind !== "generated" || q4?.kind !== "generated") {
+      throw new Error("Template slots q1/q4 not found");
+    }
 
     return `${baseRole}
 
 ${billSection}
-${knowledgeSection}${existingThemesSection}
+${knowledgeSection}
 ## あなたの役割
-この法案について、市民インタビューで扱うべきテーマを3〜5個提案してください。
+この法案に合わせた **Q1（法案との関わり・立場）** と **Q4（特に気になっている点）** の質問を生成してください。
+それ以外の質問は固定のテンプレートを使うため、あなたはこの2問のみ出力してください。
 
-## テーマ提案のガイドライン
-- 法案の主要論点をカバーする
-- 市民の生活や仕事への影響に関連する
-- 賛否両論を引き出せるテーマにする
-- 具体的かつ分かりやすい表現にする
-- ナレッジソースがある場合は、その情報も考慮してテーマを設計する
+## Q1 サンプル（あくまで参考。法案に合わせて適切に差し替えること）
+- 質問文: ${q1.sample_question}
+- フォローアップ指針: ${q1.sample_follow_up_guide}
+- クイックリプライ例: ${q1.sample_quick_replies.join(" / ")}
+
+## Q4 サンプル（あくまで参考。法案に合わせて適切に差し替えること）
+- 質問文: ${q4.sample_question}
+- フォローアップ指針: ${q4.sample_follow_up_guide}
+- クイックリプライ例: ${q4.sample_quick_replies.join(" / ")}
+
+## 生成ガイドライン
+- **Q1**: インタビュー冒頭のラポール形成と回答者の立場把握が目的。この法案にどのように関わっているか（仕事・生活・サービス利用など）を短く聞く形にする。
+  - クイックリプライは、この法案の影響を受けそうな立場・属性を5件挙げる（「一般市民として関心がある」のような汎用枠を1つ含めること）。
+  - フォローアップ指針には「回答から専門知識レベルを判断し以降の深さや用語を調整する」旨と、この法案ならではの深掘り例を必ず含める。
+- **Q4**: 法案の主要論点の中から、市民が気になりそうな観点を5件抽出してクイックリプライにする。
+  - 論点は法案の内容に固有のもの（条文・制度・対象など）とし、抽象論にしない。
+  - 質問文は「今回の法案で、あなたが特に気になっている点はどれですか。」に類する開かれた表現。
+  - フォローアップ指針には「1つに絞ってもらうこと」「迷う場合は一番強いものを選んでもらうこと」を含める。
+- クイックリプライは必ず5件、各20文字以内を目安に簡潔な名詞句・体言止めで。
 
 ## 出力形式
-- text: 提案の概要説明（なぜこれらのテーマを選んだかを簡潔に）
-- themes: テーマの配列（3〜5個）
-
-管理者からの修正要望があれば、それに応じてテーマを調整してください。
-修正する場合は、修正後の全テーマを themes に含めてください。`;
+- text: 生成意図の短い説明（このQ1・Q4がなぜこの法案に適しているか）
+- q1: { question, follow_up_guide, quick_replies }
+- q4: { question, follow_up_guide, quick_replies }`;
   }
 
   if (stage === "question_proposal") {
-    const themesSection = confirmedThemes
-      ? `## 確定テーマ\n${confirmedThemes.map((t) => `- ${t}`).join("\n")}`
-      : "## テーマ\n（テーマ未設定）";
-
     const existingQuestionsSection =
       existingQuestions && existingQuestions.length > 0
         ? `\n## 現在設定されている質問\n${existingQuestions.map((q, i) => `${i + 1}. ${q.question}${q.follow_up_guide ? `\n   フォローアップ指針: ${q.follow_up_guide}` : ""}${q.quick_replies?.length ? `\n   選択肢: ${q.quick_replies.join(", ")}` : ""}`).join("\n")}\n\n管理者は既存の質問のブラッシュアップを希望しています。既存質問を踏まえて改善提案をしてください。`
@@ -89,30 +103,15 @@ ${knowledgeSection}${existingThemesSection}
     return `${baseRole}
 
 ${billSection}
-${knowledgeSection}
-${themesSection}${existingQuestionsSection}
+${knowledgeSection}${existingQuestionsSection}
 
 ## あなたの役割
-確定したテーマに基づいて、インタビュー質問を提案してください。
+管理者の要望に沿って、インタビュー質問をブラッシュアップしてください。
 
 ## 質問提案のガイドライン
-
-### ラポール形成・専門知識レベル確認（最初の1〜2問）
-質問リストの最初に、ラポール形成と専門知識レベルの確認を目的とした質問を1〜2問配置してください。
-これらの質問は、インタビュー冒頭で回答者との信頼関係を築き、どの程度の専門知識を持っているかを把握するためのものです。
-以下の観点を含めてください:
-- 法案との関わり（例: 「この法案のテーマについて、どのような関わりがありますか？」）
-- 日々の業務・生活との関係（例: 「普段のお仕事や暮らしの中で、この分野とどの程度関係がありますか？」）
-- 知識レベルの確認（例: 「この分野について、どの程度ご存知ですか？」）
-これらの質問にも適切なクイックリプライを付けてください（例: 「専門的に関わっている」「業務で関係がある」「暮らしに影響がある」「一般市民として関心がある」等）。
-follow_up_guideには「回答内容から専門知識レベルを判断し、以降の質問の深さや用語の使い方を調整してください」といったフォローアップ指針を含めてください。
-
-### 本題の質問（ラポール形成質問の後）
-- 各テーマから少なくとも1つの質問を作成する
-- ラポール形成質問と合わせて合計5〜8個の質問を提案する
+- **1つの質問には必ず1つの問いだけを含めること**。複数の論点を1つの質問文に詰め込まない。
 - 自由回答を促す開かれた質問にする
-- **1つの質問には必ず1つの問いだけを含めること**。複数の論点や観点を1つの質問文に詰め込まない。聞きたいことが複数ある場合は別々の質問に分割する。悪い例:「〜の不安はありますか？必要な支援は何だと思いますか？」→ これは2つの質問に分けるべき
-- 各質問に適切なクイックリプライ（3〜5個）を用意する
+- 各質問にクイックリプライ（3〜5個）を用意するのが望ましい
 - 必要に応じてフォローアップ指針を添える
 - ナレッジソースがある場合は、その情報も踏まえた質問にする
 
@@ -122,11 +121,42 @@ follow_up_guideには「回答内容から専門知識レベルを判断し、�
 - quick_replies: クイックリプライの選択肢（任意、3〜5個）
 
 ## 出力形式
-- text: 提案の概要説明（質問の構成意図など）
-- questions: 質問オブジェクトの配列
+- text: 提案の概要説明（調整意図など）
+- questions: 質問オブジェクトの配列（修正後の全質問を必ず含めること）`;
+  }
 
-管理者からの修正要望があれば、それに応じて質問を調整してください。
-修正する場合は、修正後の全質問を questions に含めてください。`;
+  if (stage === "theme_proposal") {
+    const confirmedQuestionsSection =
+      confirmedQuestions && confirmedQuestions.length > 0
+        ? `\n## 確定済みの質問\n${confirmedQuestions.map((q, i) => `${i + 1}. ${q.question}${q.quick_replies?.length ? `\n   選択肢: ${q.quick_replies.join(", ")}` : ""}`).join("\n")}\n`
+        : "";
+
+    const existingThemesSection =
+      existingThemes && existingThemes.length > 0
+        ? `\n## 現在設定されているテーマ\n${existingThemes.map((t) => `- ${t}`).join("\n")}\n\n管理者は既存のテーマのブラッシュアップを希望しています。既存テーマを踏まえて改善提案をしてください。`
+        : "";
+
+    return `${baseRole}
+
+${billSection}
+${knowledgeSection}${confirmedQuestionsSection}${existingThemesSection}
+## あなたの役割
+確定済みの質問内容と法案情報をもとに、このインタビューで扱うテーマを提案してください。
+テーマは、後段の分析で論点を集計・分類するためのラベルとして使われます。
+
+## テーマ提案のガイドライン
+- 確定質問で実際に聞かれている論点を漏れなくカバーする
+- 法案の主要論点に対応するテーマにする
+- 市民の生活や仕事への影響に関連する
+- 具体的かつ分かりやすい表現にする
+- 件数は法案内容と質問に応じて3〜6件程度を目安とする（固定ではない）
+
+## 出力形式
+- text: 提案の概要説明（なぜこれらのテーマにしたか）
+- themes: テーマの配列
+
+管理者からの修正要望があれば、それに応じてテーマを調整してください。
+修正する場合は、修正後の全テーマを themes に含めてください。`;
   }
 
   return baseRole;
