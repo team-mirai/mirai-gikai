@@ -50,6 +50,11 @@ describe("buildConfigGenerationPrompt", () => {
       const result = buildConfigGenerationPrompt(params);
       expect(result).toContain("5件");
     });
+
+    it("クイックリプライの括弧書き禁止ルールを含む", () => {
+      const result = buildConfigGenerationPrompt(params);
+      expect(result).toContain("括弧書きの補足");
+    });
   });
 
   describe("theme_proposalステージ", () => {
@@ -153,6 +158,11 @@ describe("buildConfigGenerationPrompt", () => {
       expect(result).toContain("question: 質問文");
       expect(result).toContain("follow_up_guide: フォローアップ指針");
       expect(result).toContain("quick_replies: クイックリプライの選択肢");
+    });
+
+    it("クイックリプライの括弧書き禁止ルールを含む", () => {
+      const result = buildConfigGenerationPrompt(questionParams);
+      expect(result).toContain("括弧書きの補足");
     });
 
     it("ナレッジソースありの場合、ナレッジセクションを含む", () => {
