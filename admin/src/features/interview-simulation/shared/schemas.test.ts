@@ -183,9 +183,9 @@ describe("multiSimulationRunRequestSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("themes 要素が 200 文字を超えると拒否", () => {
+  it("themes 要素が 2_000 文字を超えると拒否", () => {
     const body = baseValidRequest();
-    body.improvedConfig.themes = ["a".repeat(201)];
+    body.improvedConfig.themes = ["a".repeat(2_001)];
     const result = multiSimulationRunRequestSchema.safeParse(body);
     expect(result.success).toBe(false);
   });

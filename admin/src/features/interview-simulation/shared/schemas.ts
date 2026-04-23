@@ -312,7 +312,7 @@ export const multiSimulationRunRequestSchema = z
       .object({
         mode: z.enum(["loop", "bulk"]),
         themes: z
-          .array(z.string().max(SHORT_TEXT_MAX))
+          .array(z.string().max(MEDIUM_TEXT_MAX))
           .max(SMALL_ARRAY_MAX)
           .nullable(),
         knowledgeSource: z.string().max(LONG_TEXT_MAX).nullable(),
