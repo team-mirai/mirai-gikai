@@ -281,15 +281,15 @@ function buildPreviewQuestions(
         quick_replies?: string[];
       }
     | undefined;
-  const q4 = partial.q4 as
+  const q2 = partial.q2 as
     | {
         question?: string;
         follow_up_guide?: string;
         quick_replies?: string[];
       }
     | undefined;
-  if (!q1 && !q4) return undefined;
-  return buildQuestionsFromTemplate({ q1, q4 });
+  if (!q1 && !q2) return undefined;
+  return buildQuestionsFromTemplate({ q1, q2 });
 }
 
 function StageStep({

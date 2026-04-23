@@ -32,17 +32,17 @@ describe("buildConfigGenerationPrompt", () => {
       stage: "default_questions" as const,
     };
 
-    it("Q1/Q4 のサンプルをプロンプトに含める", () => {
+    it("Q1/Q2 のサンプルをプロンプトに含める", () => {
       const result = buildConfigGenerationPrompt(params);
       expect(result).toContain("Q1 サンプル");
-      expect(result).toContain("Q4 サンプル");
-      expect(result).toContain("この法案にどういう立場で関わっていますか");
+      expect(result).toContain("Q2 サンプル");
+      expect(result).toContain("テーマを選んでください");
     });
 
-    it("出力形式に q1 / q4 を指定する", () => {
+    it("出力形式に q1 / q2 を指定する", () => {
       const result = buildConfigGenerationPrompt(params);
       expect(result).toContain("q1:");
-      expect(result).toContain("q4:");
+      expect(result).toContain("q2:");
       expect(result).toContain("question, follow_up_guide, quick_replies");
     });
 

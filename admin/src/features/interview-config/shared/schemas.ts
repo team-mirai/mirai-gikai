@@ -30,11 +30,9 @@ const generatedQuestionSchema = z.object({
 export const defaultQuestionsGenerationSchema = z.object({
   text: z.string().describe("AIの説明テキスト"),
   q1: generatedQuestionSchema.describe(
-    "Q1（法案との関わり・立場）の法案別生成"
+    "Q1（関心のあるテーマの選択）の法案別生成"
   ),
-  q4: generatedQuestionSchema.describe(
-    "Q4（特に気になっている点）の法案別生成"
-  ),
+  q2: generatedQuestionSchema.describe("Q2（立場・関わり方）の法案別生成"),
 });
 
 export type DefaultQuestionsGeneration = z.infer<
@@ -98,7 +96,7 @@ export const configGenerationResponseSchema = z.object({
     )
     .optional(),
   q1: quickRepliesGenerationShape.optional(),
-  q4: quickRepliesGenerationShape.optional(),
+  q2: quickRepliesGenerationShape.optional(),
   stage: configGenerationStageSchema.optional(),
 });
 

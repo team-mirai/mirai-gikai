@@ -5,62 +5,61 @@ import {
 } from "./default-questions-template";
 
 describe("DEFAULT_QUESTIONS_TEMPLATE", () => {
-  it("contains exactly 6 entries", () => {
-    expect(DEFAULT_QUESTIONS_TEMPLATE).toHaveLength(6);
+  it("contains exactly 7 entries", () => {
+    expect(DEFAULT_QUESTIONS_TEMPLATE).toHaveLength(7);
   });
 
-  it("has Q1 and Q4 as generated slots, others as fixed", () => {
+  it("has Q1/Q2 as generated slots, others as fixed", () => {
     const kinds = DEFAULT_QUESTIONS_TEMPLATE.map((e) => e.kind);
     expect(kinds).toEqual([
       "generated",
-      "fixed",
-      "fixed",
       "generated",
+      "fixed",
+      "fixed",
+      "fixed",
       "fixed",
       "fixed",
     ]);
     const slots = DEFAULT_QUESTIONS_TEMPLATE.filter(
       (e) => e.kind === "generated"
     ).map((e) => (e.kind === "generated" ? e.slot : null));
-    expect(slots).toEqual(["q1", "q4"]);
+    expect(slots).toEqual(["q1", "q2"]);
   });
 });
 
 describe("buildQuestionsFromTemplate", () => {
   it("uses samples when no LLM input is provided", () => {
     const result = buildQuestionsFromTemplate({});
-    expect(result).toHaveLength(6);
+    expect(result).toHaveLength(7);
 
-    // Q1 falls back to sample
-    expect(result[0].question).toBe(
-      "この法案にどういう立場で関わっていますか。"
-    );
-    expect(result[0].quick_replies).toContain("一般市民として関心がある");
+    // Q1 サンプル（テーマ選択）
+    expect(result[0].question).toContain("テーマを選んでください");
+    expect(result[0].quick_replies?.length).toBeGreaterThan(0);
 
-    // Q2 固定
-    expect(result[1].question).toContain("ご存知");
-    expect(result[1].quick_replies).toEqual([
+    // Q2 サンプル（立場・関わり方）
+    expect(result[1].question).toContain("立場");
+    expect(result[1].quick_replies).toContain("一般市民として関心がある");
+
+    // Q3 固定: 認知度
+    expect(result[2].question).toContain("ご存知");
+    expect(result[2].quick_replies).toEqual([
       "よく知っている",
       "概要は知っている",
       "聞いたことはある",
       "ほとんど知らない",
     ]);
 
-    // Q5, Q6 は quick_replies 無し
+    // Q5, Q6, Q7 は quick_replies 無し
     expect(result[4].quick_replies).toBeUndefined();
     expect(result[5].quick_replies).toBeUndefined();
+    expect(result[6].quick_replies).toBeUndefined();
   });
 
-  it("applies LLM-generated content for Q1 and Q4", () => {
+  it("applies LLM-generated content for Q1 and Q2", () => {
     const result = buildQuestionsFromTemplate({
       q1: {
-        question: "この教育法案にどういう立場で関わっていますか。",
-        follow_up_guide: "教育現場での役割を具体化してください。",
-        quick_replies: ["教員", "保護者", "学生", "教育行政", "その他"],
-      },
-      q4: {
-        question: "この法案で特に気になっている点は？",
-        follow_up_guide: "一つに絞って選んでください。",
+        question: "この教育法案で関心のあるテーマを選んでください。",
+        follow_up_guide: "次の質問で深掘りします。",
         quick_replies: [
           "カリキュラム変更",
           "予算配分",
@@ -69,29 +68,34 @@ describe("buildQuestionsFromTemplate", () => {
           "地域格差",
         ],
       },
+      q2: {
+        question: "この教育法案における立場を教えてください。",
+        follow_up_guide: "教育現場での役割を具体化してください。",
+        quick_replies: ["教員", "保護者", "学生", "教育行政", "その他"],
+      },
     });
 
     expect(result[0].question).toBe(
-      "この教育法案にどういう立場で関わっていますか。"
+      "この教育法案で関心のあるテーマを選んでください。"
     );
-    expect(result[0].quick_replies).toEqual([
+    expect(result[0].quick_replies).toHaveLength(5);
+    expect(result[1].question).toBe(
+      "この教育法案における立場を教えてください。"
+    );
+    expect(result[1].quick_replies).toEqual([
       "教員",
       "保護者",
       "学生",
       "教育行政",
       "その他",
     ]);
-    expect(result[3].quick_replies).toHaveLength(5);
   });
 
   it("falls back to sample when LLM input fields are empty strings", () => {
     const result = buildQuestionsFromTemplate({
       q1: { question: "   ", follow_up_guide: "", quick_replies: [] },
     });
-    expect(result[0].question).toBe(
-      "この法案にどういう立場で関わっていますか。"
-    );
-    // サンプル quick_replies にフォールバック
+    expect(result[0].question).toContain("テーマを選んでください");
     expect(result[0].quick_replies?.length).toBeGreaterThan(0);
   });
 
@@ -104,8 +108,8 @@ describe("buildQuestionsFromTemplate", () => {
 
   it("does not mutate the template quick_replies array", () => {
     const result = buildQuestionsFromTemplate({});
-    result[1].quick_replies?.push("mutated");
+    result[2].quick_replies?.push("mutated");
     const result2 = buildQuestionsFromTemplate({});
-    expect(result2[1].quick_replies).not.toContain("mutated");
+    expect(result2[2].quick_replies).not.toContain("mutated");
   });
 });
