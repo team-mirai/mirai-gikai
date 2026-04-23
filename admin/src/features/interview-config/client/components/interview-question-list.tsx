@@ -68,15 +68,13 @@ export function InterviewQuestionList({
     [interviewConfigId]
   );
 
-  // AI生成質問の反映
+  // 保存は親側で実行するためここでは state 反映のみ（二重保存による race condition 防止）
   useEffect(() => {
     if (aiGeneratedQuestions && aiGeneratedQuestions.length > 0) {
       setQuestions(aiGeneratedQuestions);
-      saveQuestions(aiGeneratedQuestions);
       onAiQuestionsApplied?.();
-      toast.success(`AIが${aiGeneratedQuestions.length}件の質問を生成しました`);
     }
-  }, [aiGeneratedQuestions, saveQuestions, onAiQuestionsApplied]);
+  }, [aiGeneratedQuestions, onAiQuestionsApplied]);
 
   const handleAdd = (newQuestion: InterviewQuestionInput) => {
     const newQuestions = [...questions, newQuestion];
