@@ -191,10 +191,11 @@ export function ConfigGenerationChat({
         </div>
       )}
 
-      {/* ブラッシュアップモードでまだ提案がない場合は、テーマへ直接スキップできる */}
+      {/* 初期ブラッシュアップモード（既存config を開いた直後）でのみ、テーマへ直接スキップできる */}
       {!isLoading &&
         proposedQuestions.length === 0 &&
         stage === "question_proposal" &&
+        messages.length <= 1 &&
         ((existingQuestions?.length ?? 0) > 0 ||
           (existingThemes?.length ?? 0) > 0) && (
           <div className="px-6 py-3 border-t">
@@ -328,9 +329,9 @@ function StageStep({
         variant="outline"
         className={`${colorClass} cursor-pointer hover:opacity-80`}
       >
-        <button type="button" onClick={onClick}>
+        <Button type="button" variant="ghost" onClick={onClick}>
           {content}
-        </button>
+        </Button>
       </Badge>
     );
   }
