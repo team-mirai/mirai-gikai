@@ -32,18 +32,18 @@ describe("buildConfigGenerationPrompt", () => {
       stage: "default_questions" as const,
     };
 
-    it("Q1/Q2 のサンプルをプロンプトに含める", () => {
+    it("Q1/Q2 の固定質問文をプロンプトに含める", () => {
       const result = buildConfigGenerationPrompt(params);
-      expect(result).toContain("Q1 サンプル");
-      expect(result).toContain("Q2 サンプル");
+      expect(result).toContain("Q1 固定の質問文");
+      expect(result).toContain("Q2 固定の質問文");
       expect(result).toContain("テーマを選んでください");
+      expect(result).toContain("立場・関わり方");
     });
 
-    it("出力形式に q1 / q2 を指定する", () => {
+    it("出力形式に q1 / q2 を配列で指定する", () => {
       const result = buildConfigGenerationPrompt(params);
-      expect(result).toContain("q1:");
-      expect(result).toContain("q2:");
-      expect(result).toContain("question, follow_up_guide, quick_replies");
+      expect(result).toContain("q1: string[]");
+      expect(result).toContain("q2: string[]");
     });
 
     it("クイックリプライを5件指定する指示を含む", () => {
@@ -54,6 +54,12 @@ describe("buildConfigGenerationPrompt", () => {
     it("クイックリプライの括弧書き禁止ルールを含む", () => {
       const result = buildConfigGenerationPrompt(params);
       expect(result).toContain("括弧書きの補足");
+    });
+
+    it("「その他（自由記述）」を LLM 出力に含めない指示", () => {
+      const result = buildConfigGenerationPrompt(params);
+      expect(result).toContain("その他（自由記述）");
+      expect(result).toContain("出力に含めない");
     });
   });
 

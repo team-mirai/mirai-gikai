@@ -7,10 +7,7 @@ import {
   configGenerationResponseSchema,
 } from "../../shared/schemas";
 import type { InterviewQuestionInput } from "../../shared/types";
-import {
-  buildQuestionsFromTemplate,
-  type GeneratedQuestionInput,
-} from "../../shared/utils/default-questions-template";
+import { buildQuestionsFromTemplate } from "../../shared/utils/default-questions-template";
 
 interface ChatMessage {
   id: string;
@@ -67,8 +64,8 @@ export function useConfigGenerationChat({
       // default_questions ステージ: テンプレと合成して proposedQuestions に
       if (q1 || q2) {
         const merged = buildQuestionsFromTemplate({
-          q1: q1 as GeneratedQuestionInput | undefined,
-          q2: q2 as GeneratedQuestionInput | undefined,
+          q1: q1 as string[] | undefined,
+          q2: q2 as string[] | undefined,
         });
         setMessages((prev) => [
           ...prev,

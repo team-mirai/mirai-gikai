@@ -274,20 +274,8 @@ export function ConfigGenerationChat({
 function buildPreviewQuestions(
   partial: Record<string, unknown>
 ): InterviewQuestionInput[] | undefined {
-  const q1 = partial.q1 as
-    | {
-        question?: string;
-        follow_up_guide?: string;
-        quick_replies?: string[];
-      }
-    | undefined;
-  const q2 = partial.q2 as
-    | {
-        question?: string;
-        follow_up_guide?: string;
-        quick_replies?: string[];
-      }
-    | undefined;
+  const q1 = partial.q1 as string[] | undefined;
+  const q2 = partial.q2 as string[] | undefined;
   if (!q1 && !q2) return undefined;
   return buildQuestionsFromTemplate({ q1, q2 });
 }
@@ -305,19 +293,17 @@ function StageStep({
   completed: boolean;
   onClick?: () => void;
 }) {
-  const colorClass = active
-    ? "bg-primary/10 text-primary border-primary/30"
-    : completed
-      ? "bg-green-50 text-green-700 border-green-200"
+  const colorClass = completed
+    ? "bg-green-50 text-green-700 border-green-200"
+    : active
+      ? "bg-primary/10 text-primary border-primary/30"
       : "bg-muted text-muted-foreground border-border";
 
   const content = (
     <>
-      {completed ? (
-        <Check className="size-3" />
-      ) : (
-        <span className="text-[10px] font-semibold tabular-nums">{step}</span>
-      )}
+      <span className="flex size-3 items-center justify-center text-[10px] font-semibold tabular-nums">
+        {completed ? <Check className="size-3" /> : step}
+      </span>
       <span>{label}</span>
     </>
   );
@@ -329,7 +315,12 @@ function StageStep({
         variant="outline"
         className={`${colorClass} cursor-pointer hover:opacity-80`}
       >
-        <Button type="button" variant="ghost" onClick={onClick}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onClick}
+          className="h-auto gap-1 px-2 py-0.5 text-xs font-medium"
+        >
           {content}
         </Button>
       </Badge>

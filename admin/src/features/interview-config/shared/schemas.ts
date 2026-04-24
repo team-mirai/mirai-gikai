@@ -17,22 +17,21 @@ export const configGenerationStageSchema = z.enum([
 export type ConfigGenerationStage = z.infer<typeof configGenerationStageSchema>;
 
 /**
- * 初期テンプレート用: 法案ごとに Q1 / Q4 を全文生成する
+ * 初期テンプレート用: 法案ごとに Q1 / Q2 の quick_replies のみ LLM 生成する。
+ * 質問文・フォローアップ指針は固定のためここでは出力しない。
  */
-const generatedQuestionSchema = z.object({
-  question: z.string().describe("質問文"),
-  follow_up_guide: z.string().describe("フォローアップ指針"),
-  quick_replies: z
-    .array(z.string())
-    .describe("クイックリプライの選択肢（5件）"),
-});
-
 export const defaultQuestionsGenerationSchema = z.object({
   text: z.string().describe("AIの説明テキスト"),
-  q1: generatedQuestionSchema.describe(
-    "Q1（関心のあるテーマの選択）の法案別生成"
-  ),
-  q2: generatedQuestionSchema.describe("Q2（立場・関わり方）の法案別生成"),
+  q1: z
+    .array(z.string())
+    .describe(
+      "Q1（関心のあるテーマ選択）のクイックリプライ（5件、法案固有の論点名）"
+    ),
+  q2: z
+    .array(z.string())
+    .describe(
+      "Q2（立場・関わり方）のクイックリプライ（5件、法案の影響を受ける立場・属性）"
+    ),
 });
 
 export type DefaultQuestionsGeneration = z.infer<
@@ -77,12 +76,6 @@ export type QuestionProposal = z.infer<typeof questionProposalSchema>;
  * クライアント側で使う統一レスポンススキーマ
  * stage フィールドはサーバー側で injectJsonFields により注入される
  */
-const quickRepliesGenerationShape = z.object({
-  question: z.string().optional(),
-  follow_up_guide: z.string().optional(),
-  quick_replies: z.array(z.string()).optional(),
-});
-
 export const configGenerationResponseSchema = z.object({
   text: z.string(),
   themes: z.array(z.string()).optional(),
@@ -95,8 +88,8 @@ export const configGenerationResponseSchema = z.object({
       })
     )
     .optional(),
-  q1: quickRepliesGenerationShape.optional(),
-  q2: quickRepliesGenerationShape.optional(),
+  q1: z.array(z.string()).optional(),
+  q2: z.array(z.string()).optional(),
   stage: configGenerationStageSchema.optional(),
 });
 

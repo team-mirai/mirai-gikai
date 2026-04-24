@@ -1,19 +1,21 @@
-import { trimOrNull } from "@/lib/utils/normalize-string";
 import type { InterviewQuestionInput } from "../types";
 
 /**
- * LLM で法案ごとに全文生成する質問のスロット。
- * これらの質問は `question` / `follow_up_guide` / `quick_replies` すべてを
- * 法案内容に合わせて差し替えることを想定している（テンプレはサンプル扱い）。
- *
- * - q1: 関心のあるテーマの選択
- * - q2: 立場・関わり方の選択
+ * クイックリプライのみを LLM で法案別に生成するスロット。
+ * 質問文・フォローアップ指針は固定文言を使う。
  */
-export type GeneratedQuestionSlot = "q1" | "q2";
+export type QuickRepliesSlot = "q1" | "q2";
+
+/** 「その他（自由記述）」として各スロットの末尾に必ず加える固定選択肢 */
+export const OTHER_FREE_TEXT_OPTION = "その他（自由記述）";
 
 /**
- * 固定質問（テンプレートそのまま使う）の定義
+ * 深掘り過剰を抑えるため、自由回答系の質問（Q4〜Q7）のフォローアップ指針に
+ * 共通で付与する末尾ルール。
  */
+export const FOLLOW_UP_DEPTH_LIMIT_RULE =
+  "具体的なキーワードを含む回答を得られた場合は深掘りをやめて次の質問に行く。なるべく一度の質問で回答者から具体的な回答を得るようにこころがけ、ダラダラと質問を続けない。回答者とのやりとりは最大3往復までにとどめる。";
+
 export type FixedQuestionTemplate = {
   kind: "fixed";
   question: string;
@@ -22,68 +24,69 @@ export type FixedQuestionTemplate = {
 };
 
 /**
- * LLM 生成質問（スロット）の定義。
- * `sample_*` は LLM へのサンプルとして渡し、出力もこの形式に寄せる。
+ * クイックリプライのみ法案ごとに LLM 生成するタイプ。
+ * 質問文とフォローアップ指針は固定文言。
  */
-export type GeneratedQuestionTemplate = {
-  kind: "generated";
-  slot: GeneratedQuestionSlot;
-  /** サンプルの質問文（LLM への参考として渡す） */
-  sample_question: string;
-  /** サンプルのフォローアップ指針 */
-  sample_follow_up_guide: string;
-  /** サンプルのクイックリプライ */
+export type QuickRepliesSlotTemplate = {
+  kind: "quick_replies_slot";
+  slot: QuickRepliesSlot;
+  /** 固定の質問文 */
+  question: string;
+  /** 固定のフォローアップ指針 */
+  follow_up_guide: string;
+  /** LLM 生成のサンプル／フォールバック用 */
   sample_quick_replies: string[];
 };
 
 export type DefaultQuestionTemplateEntry =
   | FixedQuestionTemplate
-  | GeneratedQuestionTemplate;
+  | QuickRepliesSlotTemplate;
 
 /**
  * インタビュー質問テンプレート（7問固定）
  *
- * - Q1: 関心のあるテーマ選択（法案ごとに LLM で全文生成）
- * - Q2: 立場・関わり方（法案ごとに LLM で全文生成）
- * - Q3, Q4, Q5, Q6, Q7: 固定文言
+ * - Q1, Q2: 質問文・follow_up_guide は固定、quick_replies のみ LLM 生成
+ * - Q3, Q4: 固定の質問と選択肢
+ * - Q5, Q6, Q7: 固定の質問（自由回答）
  */
 export const DEFAULT_QUESTIONS_TEMPLATE: readonly DefaultQuestionTemplateEntry[] =
   [
     {
-      kind: "generated",
+      kind: "quick_replies_slot",
       slot: "q1",
-      sample_question:
+      question:
         "今回の法改正のうち、あなたが特に関係がある、または意見を伝えたいテーマを選んでください。",
-      sample_follow_up_guide:
-        "選んだテーマはQ5で深掘りします。ここでは1つに絞ってもらい、迷う場合は「一番関心が強いもの」を選んでもらってください。",
+      follow_up_guide:
+        "回答で選ばれたテーマを以降の深掘りの前提にしてください。この質問で「その他」以外のクイックリプライの選択肢が選ばれた場合、または「その他（自由記述）」が選ばれ、その内容について記述をもらった場合は、速やかにQ2に進む。「その他」が選ばれた場合は、記事だけでなくナレッジソースの資料も参考にしながら、何の話をしているのか特定する。「その他」が選ばれた場合は、選択肢を限定せず、「ありがとうございます。「その他（自由記述）」とのことですが、どのような点について関心がありますか？」と尋ねる。キーワードを受け取ったら速やかに次の質問にいく。",
       sample_quick_replies: [
         "AI開発でのデータ利用",
         "同意なしのデータ利用",
         "こどもの個人情報",
         "顔データの扱い",
         "違反時の罰則と救済",
+        OTHER_FREE_TEXT_OPTION,
       ],
     },
     {
-      kind: "generated",
+      kind: "quick_replies_slot",
       slot: "q2",
-      sample_question:
-        "この法案について、あなたはどんな立場・関わり方に近いですか？",
-      sample_follow_up_guide:
-        "回答内容から専門知識レベルを判断し、以降の質問の深さや用語の使い方を調整してください。差し支えなければ、具体的な関わり方を一言だけ追加で聞いてください。",
+      question: "この法案について、あなたはどんな立場・関わり方に近いですか？",
+      follow_up_guide:
+        "回答内容から専門知識レベルを判断し、以降の質問の深さや用語の使い方を調整してください。この質問で「その他」以外のクイックリプライの選択肢が選ばれた場合、または「その他（自由記述）」が選ばれ、その内容について記述をもらった場合は、速やかに次の問に進む。",
       sample_quick_replies: [
         "仕事で個人情報を扱う",
         "AI・データ分析に関わる",
         "こどもの保護者",
         "顔認証サービスをよく使う",
         "一般市民として関心がある",
+        OTHER_FREE_TEXT_OPTION,
       ],
     },
     {
       kind: "fixed",
       question: "今回の法案について、現時点でどの程度ご存知ですか。",
       follow_up_guide:
-        "回答内容から専門知識レベルを判断し、以降の質問の深さや用語の使い方を調整してください。理解度が高くない場合は、以降の質問で制度名を出す前に短い要約を挟んでください。",
+        "回答内容から専門知識レベルを判断し、以降の質問の深さや用語の使い方を調整する。この質問自体での深掘りは行わない。理解度が高くない場合のみ、以降の質問で制度名を出す前に短い要約を1文だけ挟む。",
       quick_replies: [
         "よく知っている",
         "概要は知っている",
@@ -94,8 +97,7 @@ export const DEFAULT_QUESTIONS_TEMPLATE: readonly DefaultQuestionTemplateEntry[]
     {
       kind: "fixed",
       question: "今回の法案について、全体としてどのように評価していますか。",
-      follow_up_guide:
-        "評価の理由を1点だけ具体例で聞いてください。賛否が割れる場合は、どの論点が評価を左右したかを確認してください。",
+      follow_up_guide: `評価の理由を1〜2点だけ短く聞く。賛否が割れる論点があれば、どの論点が評価を左右したかを1回確認する。\n${FOLLOW_UP_DEPTH_LIMIT_RULE}`,
       quick_replies: [
         "良いと思う",
         "どちらかといえば良い",
@@ -109,43 +111,31 @@ export const DEFAULT_QUESTIONS_TEMPLATE: readonly DefaultQuestionTemplateEntry[]
       kind: "fixed",
       question:
         "Q1で選んだテーマについて、なぜ／どのような点が気になりますか？具体的に教えてください。",
-      follow_up_guide:
-        "Q1で選んだテーマに即して具体化してもらってください。「どんな場面を想像したか」「どの立場での懸念か」などで深掘りできます。",
+      follow_up_guide: `Q1で選んだテーマに即した具体論を引き出す中心的な質問。必要に応じて「どんな場面を想像したか」「どの立場での懸念か」などで具体化する。\n${FOLLOW_UP_DEPTH_LIMIT_RULE}`,
     },
     {
       kind: "fixed",
       question: "その点が気になるのはなぜですか。",
-      follow_up_guide:
-        "背景にある経験や価値観を具体化してください。必要なら「どんな場面を想像したか」を聞いてください。",
+      follow_up_guide: `背景にある経験や価値観を具体化してもらう。必要なら「どんな場面を想像したか」を聞いてもよい。\n${FOLLOW_UP_DEPTH_LIMIT_RULE}`,
     },
     {
       kind: "fixed",
       question:
         "最後に、この制度を設計する人に、何か一つ伝えるとしたらそれは何ですか？",
-      follow_up_guide:
-        "要望・条件・優先順位のどれかに整理してもらうと具体化します。可能なら「それが実現したら評価はどう変わるか」を最後に確認してください。",
+      follow_up_guide: `要望を端的に受け止める。可能なら「それが実現したら評価はどう変わるか」を1度だけ確認する。\n${FOLLOW_UP_DEPTH_LIMIT_RULE}`,
     },
   ];
 
 /**
- * LLM による生成質問のスロット入力
- */
-export type GeneratedQuestionInput = {
-  question?: string;
-  follow_up_guide?: string;
-  quick_replies?: string[];
-};
-
-/**
- * テンプレートと LLM 生成結果を合成して質問配列を組み立てる。
+ * テンプレートと LLM 生成の quick_replies を合成して質問配列を組み立てる。
  *
- * 生成スロット（Q1/Q2）に LLM 応答が入っていればそれを使い、
- * 入っていなければサンプル値でフォールバックする。
- * 固定質問はテンプレートそのまま。
+ * - Q1/Q2: 固定の質問文・follow_up_guide + LLM 生成の quick_replies
+ *   （LLM 応答が無ければサンプルで代替。末尾に「その他（自由記述）」を必ず付与）
+ * - 固定質問はそのまま。
  */
 export function buildQuestionsFromTemplate(params: {
-  q1?: GeneratedQuestionInput;
-  q2?: GeneratedQuestionInput;
+  q1?: string[];
+  q2?: string[];
 }): InterviewQuestionInput[] {
   const { q1, q2 } = params;
 
@@ -161,19 +151,22 @@ export function buildQuestionsFromTemplate(params: {
       return out;
     }
 
-    const input = entry.slot === "q1" ? q1 : q2;
-    const question = trimOrNull(input?.question) ?? entry.sample_question;
-    const followUp =
-      trimOrNull(input?.follow_up_guide) ?? entry.sample_follow_up_guide;
-    const replies =
-      input?.quick_replies?.filter((r) => r.trim().length > 0) ?? [];
-    const finalReplies =
-      replies.length > 0 ? replies : entry.sample_quick_replies;
-
+    const generated = (entry.slot === "q1" ? q1 : q2)?.filter(
+      (r) => typeof r === "string" && r.trim().length > 0
+    );
+    const base =
+      generated && generated.length > 0
+        ? generated.map((r) => r.trim())
+        : [
+            ...entry.sample_quick_replies.filter(
+              (r) => r !== OTHER_FREE_TEXT_OPTION
+            ),
+          ];
+    const withoutOther = base.filter((r) => r !== OTHER_FREE_TEXT_OPTION);
     return {
-      question,
-      follow_up_guide: followUp,
-      quick_replies: [...finalReplies],
+      question: entry.question,
+      follow_up_guide: entry.follow_up_guide,
+      quick_replies: [...withoutOther, OTHER_FREE_TEXT_OPTION],
     };
   });
 }
