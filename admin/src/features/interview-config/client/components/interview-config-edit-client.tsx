@@ -149,9 +149,10 @@ export function InterviewConfigEditClient({
       if (!targetConfigId) return;
 
       // 既存 / 直前に作成済みだった場合はテーマを上書き更新（create は themes=[] で呼ばれる場合がある）
+      // create と同じフォールバックを使って、未入力時に name/mode が空で上書きされるのを防ぐ。
       const formValues = getFormValuesRef.current?.();
       const result = await updateInterviewConfig(targetConfigId, {
-        name: formValues?.name || initialConfig?.name || "",
+        name: formValues?.name || initialConfig?.name || "AI生成設定",
         status: initialConfig?.status || "closed",
         mode:
           (formValues?.mode as "loop" | "bulk") ||
