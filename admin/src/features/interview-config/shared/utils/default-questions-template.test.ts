@@ -28,12 +28,28 @@ describe("DEFAULT_QUESTIONS_TEMPLATE", () => {
     expect(slots).toEqual(["q1", "q2"]);
   });
 
-  it("Q4〜Q7 のフォローアップ指針に3往復ルールが含まれる", () => {
-    // index 3=Q4(評価), 4=Q5(具体化), 5=Q6(理由), 6=Q7(設計者へ)
-    for (const i of [3, 4, 5, 6]) {
+  it("Q4/Q5/Q7 のフォローアップ指針に3往復ルールが含まれる", () => {
+    // index 3=Q4(評価), 4=Q5(具体化), 6=Q7(設計者へ)
+    for (const i of [3, 4, 6]) {
       expect(DEFAULT_QUESTIONS_TEMPLATE[i].follow_up_guide).toContain(
         FOLLOW_UP_DEPTH_LIMIT_RULE
       );
+    }
+  });
+
+  it("Q6 は運用ハードルを問う質問で、5往復まで許容する独自ルールを持つ", () => {
+    const q6 = DEFAULT_QUESTIONS_TEMPLATE[5];
+    expect(q6.kind).toBe("fixed");
+    expect(q6.question).toContain("法案");
+    expect(q6.question).toContain("ハードル");
+    expect(q6.question).toContain("個人・事業者・組織");
+    expect(q6.follow_up_guide).toContain("最大5往復");
+    if (q6.kind === "fixed") {
+      expect(q6.quick_replies).toEqual([
+        "はい（十分考慮されている／ハードルは小さい）",
+        "いいえ（考慮が不十分／ハードルが大きい）",
+        "わからない",
+      ]);
     }
   });
 });
@@ -59,9 +75,9 @@ describe("buildQuestionsFromTemplate", () => {
       "ほとんど知らない",
     ]);
 
-    // Q5, Q6, Q7 は quick_replies 無し
+    // Q5, Q7 は quick_replies 無し、Q6 は「はい／いいえ／わからない」
     expect(result[4].quick_replies).toBeUndefined();
-    expect(result[5].quick_replies).toBeUndefined();
+    expect(result[5].quick_replies).toHaveLength(3);
     expect(result[6].quick_replies).toBeUndefined();
   });
 
