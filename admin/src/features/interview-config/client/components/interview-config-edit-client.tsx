@@ -67,36 +67,57 @@ export function InterviewConfigEditClient({
   // 質問一覧の現在値を取得するための ref（シミュレーション機能で使用）
   const getQuestionsRef = useRef<(() => InterviewQuestionInput[]) | null>(null);
 
+  // 新規config 作成の race condition 対策。
+  // state (configId) は setConfigId 後の render を待つため、in-flight の
+  // 作成リクエストと作成済み ID を ref で同期的に共有する。
+  const createdConfigIdRef = useRef<string | undefined>(initialConfig?.id);
+  const createConfigPromiseRef = useRef<Promise<string | null> | null>(null);
+
   /** 新規configを即時作成する（テーマ未確定でも質問を保存できるようにするため） */
   const createConfigIfNeeded = useCallback(
     async (themes: string[]): Promise<string | null> => {
-      if (configId) return configId;
+      // 既に作成済みならそれを返す
+      if (createdConfigIdRef.current) return createdConfigIdRef.current;
+      // 作成中なら同じ Promise を共有（concurrent呼び出しの重複作成防止）
+      if (createConfigPromiseRef.current) return createConfigPromiseRef.current;
 
-      const formValues = getFormValuesRef.current?.();
-      const result = await createInterviewConfig(billId, {
-        name: formValues?.name || "AI生成設定",
-        status: "closed",
-        mode: (formValues?.mode as "loop" | "bulk") || "loop",
-        themes,
-        knowledge_source: formValues?.knowledge_source || "",
-        chat_model: formValues?.chat_model || null,
-        estimated_duration: formValues?.estimated_duration ?? null,
-      });
-      if (!result.success) {
-        toast.error(result.error || "設定の作成に失敗しました");
-        return null;
-      }
-      const newConfigId = result.data.id;
-      setConfigId(newConfigId);
-      toast.success("インタビュー設定を自動作成しました");
-      window.history.replaceState(
-        null,
-        "",
-        routes.billInterviewEdit(billId, newConfigId)
-      );
-      return newConfigId;
+      const promise = (async () => {
+        try {
+          const formValues = getFormValuesRef.current?.();
+          const result = await createInterviewConfig(billId, {
+            name: formValues?.name || "AI生成設定",
+            status: "closed",
+            mode: (formValues?.mode as "loop" | "bulk") || "loop",
+            themes,
+            knowledge_source: formValues?.knowledge_source || "",
+            chat_model: formValues?.chat_model || null,
+            estimated_duration: formValues?.estimated_duration ?? null,
+          });
+          if (!result.success) {
+            toast.error(result.error || "設定の作成に失敗しました");
+            return null;
+          }
+          const newConfigId = result.data.id;
+          createdConfigIdRef.current = newConfigId;
+          setConfigId(newConfigId);
+          toast.success("インタビュー設定を自動作成しました");
+          window.history.replaceState(
+            null,
+            "",
+            routes.billInterviewEdit(billId, newConfigId)
+          );
+          return newConfigId;
+        } finally {
+          // 失敗時は再試行できるように、未作成なら promise 参照を解放
+          if (!createdConfigIdRef.current) {
+            createConfigPromiseRef.current = null;
+          }
+        }
+      })();
+      createConfigPromiseRef.current = promise;
+      return promise;
     },
-    [billId, configId]
+    [billId]
   );
 
   // 質問確定時: configがなければ先に作成してから質問を保存する（テーマ未確定でもOK）
@@ -123,14 +144,13 @@ export function InterviewConfigEditClient({
   // テーマ確定時: configがなければ作成、あれば更新
   const handleThemesConfirmed = useCallback(
     async (themes: string[]) => {
-      if (!configId) {
-        const newConfigId = await createConfigIfNeeded(themes);
-        if (newConfigId) setAiGeneratedThemes(themes);
-        return;
-      }
+      // ref を優先して参照することで、state 更新待ちの間に二重作成されるのを防ぐ
+      const targetConfigId = await createConfigIfNeeded(themes);
+      if (!targetConfigId) return;
 
+      // 既存 / 直前に作成済みだった場合はテーマを上書き更新（create は themes=[] で呼ばれる場合がある）
       const formValues = getFormValuesRef.current?.();
-      const result = await updateInterviewConfig(configId, {
+      const result = await updateInterviewConfig(targetConfigId, {
         name: formValues?.name || initialConfig?.name || "",
         status: initialConfig?.status || "closed",
         mode:
@@ -152,7 +172,7 @@ export function InterviewConfigEditClient({
         toast.error(result.error || "テーマの更新に失敗しました");
       }
     },
-    [configId, createConfigIfNeeded, initialConfig]
+    [createConfigIfNeeded, initialConfig]
   );
 
   return (
