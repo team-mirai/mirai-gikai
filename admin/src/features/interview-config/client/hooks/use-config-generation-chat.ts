@@ -218,7 +218,7 @@ export function useConfigGenerationChat({
       return;
     }
 
-    // 新規: テンプレ + LLMでQ1/Q4を生成
+    // 新規: テンプレ + LLMでQ1/Q2を生成
     setMessages([
       {
         id: "greeting",

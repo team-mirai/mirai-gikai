@@ -103,6 +103,23 @@ describe("buildQuestionsFromTemplate", () => {
     expect(result[0].quick_replies?.at(-1)).toBe(OTHER_FREE_TEXT_OPTION);
   });
 
+  it("falls back to sample when LLM returns only OTHER_FREE_TEXT_OPTION", () => {
+    const result = buildQuestionsFromTemplate({
+      q1: [OTHER_FREE_TEXT_OPTION],
+    });
+    // 「その他」しか返らなかった場合、選択肢が1件にならないようサンプルにフォールバック
+    expect(result[0].quick_replies?.length).toBeGreaterThan(1);
+    expect(result[0].quick_replies?.at(-1)).toBe(OTHER_FREE_TEXT_OPTION);
+  });
+
+  it("falls back to sample when LLM returns only blank strings", () => {
+    const result = buildQuestionsFromTemplate({
+      q1: ["   ", "", OTHER_FREE_TEXT_OPTION],
+    });
+    expect(result[0].quick_replies?.length).toBeGreaterThan(1);
+    expect(result[0].quick_replies?.at(-1)).toBe(OTHER_FREE_TEXT_OPTION);
+  });
+
   it("does not mutate the template quick_replies array", () => {
     const result = buildQuestionsFromTemplate({});
     result[2].quick_replies?.push("mutated");

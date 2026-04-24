@@ -94,7 +94,7 @@ export function ConfigGenerationChat({
   const isThemeStage =
     stage === "theme_proposal" || stage === "theme_confirmed";
 
-  // default_questions ステージのストリーミング中は Q1/Q4 の途中出力を組み立ててプレビュー
+  // default_questions ステージのストリーミング中は Q1/Q2 の途中出力を組み立ててプレビュー
   const streamingQuestions = useMemo<
     InterviewQuestionInput[] | undefined
   >(() => {
@@ -269,7 +269,7 @@ export function ConfigGenerationChat({
 
 /**
  * default_questions ステージのストリーム中オブジェクトから、
- * Q1/Q4 の途中結果を使って 6 問のプレビューを組み立てる。
+ * Q1/Q2 の途中結果を使って 7 問のプレビューを組み立てる。
  */
 function buildPreviewQuestions(
   partial: Record<string, unknown>

@@ -151,22 +151,22 @@ export function buildQuestionsFromTemplate(params: {
       return out;
     }
 
-    const generated = (entry.slot === "q1" ? q1 : q2)?.filter(
-      (r) => typeof r === "string" && r.trim().length > 0
-    );
-    const base =
-      generated && generated.length > 0
-        ? generated.map((r) => r.trim())
-        : [
-            ...entry.sample_quick_replies.filter(
-              (r) => r !== OTHER_FREE_TEXT_OPTION
-            ),
-          ];
-    const withoutOther = base.filter((r) => r !== OTHER_FREE_TEXT_OPTION);
+    // LLM が返した選択肢から、空白・「その他（自由記述）」を除いた実質的な選択肢を抽出。
+    // 全て空 / 「その他」のみだった場合はサンプルにフォールバックする。
+    const userChoices = ((entry.slot === "q1" ? q1 : q2) ?? [])
+      .filter((r) => typeof r === "string" && r.trim().length > 0)
+      .map((r) => r.trim())
+      .filter((r) => r !== OTHER_FREE_TEXT_OPTION);
+    const finalChoices =
+      userChoices.length > 0
+        ? userChoices
+        : entry.sample_quick_replies.filter(
+            (r) => r !== OTHER_FREE_TEXT_OPTION
+          );
     return {
       question: entry.question,
       follow_up_guide: entry.follow_up_guide,
-      quick_replies: [...withoutOther, OTHER_FREE_TEXT_OPTION],
+      quick_replies: [...finalChoices, OTHER_FREE_TEXT_OPTION],
     };
   });
 }
