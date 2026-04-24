@@ -269,15 +269,15 @@ export function ConfigGenerationChat({
 
 /**
  * default_questions ステージのストリーム中オブジェクトから、
- * Q1/Q2 の途中結果を使って 7 問のプレビューを組み立てる。
+ * topics/stance の途中結果を使って 7 問のプレビューを組み立てる。
  */
 function buildPreviewQuestions(
   partial: Record<string, unknown>
 ): InterviewQuestionInput[] | undefined {
-  const q1 = partial.q1 as string[] | undefined;
-  const q2 = partial.q2 as string[] | undefined;
-  if (!q1 && !q2) return undefined;
-  return buildQuestionsFromTemplate({ q1, q2 });
+  const topics = partial.topics as string[] | undefined;
+  const stance = partial.stance as string[] | undefined;
+  if (!topics && !stance) return undefined;
+  return buildQuestionsFromTemplate({ topics, stance });
 }
 
 function StageStep({

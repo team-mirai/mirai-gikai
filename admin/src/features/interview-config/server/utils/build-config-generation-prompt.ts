@@ -50,17 +50,17 @@ ${billContent}`;
 管理者と対話しながら、より良いインタビュー設定を一緒に作り上げてください。`;
 
   if (stage === "default_questions") {
-    const q1 = DEFAULT_QUESTIONS_TEMPLATE.find(
-      (e) => e.kind === "quick_replies_slot" && e.slot === "q1"
+    const topicsEntry = DEFAULT_QUESTIONS_TEMPLATE.find(
+      (e) => e.kind === "quick_replies_slot" && e.slot === "topics"
     );
-    const q2 = DEFAULT_QUESTIONS_TEMPLATE.find(
-      (e) => e.kind === "quick_replies_slot" && e.slot === "q2"
+    const stanceEntry = DEFAULT_QUESTIONS_TEMPLATE.find(
+      (e) => e.kind === "quick_replies_slot" && e.slot === "stance"
     );
     if (
-      q1?.kind !== "quick_replies_slot" ||
-      q2?.kind !== "quick_replies_slot"
+      topicsEntry?.kind !== "quick_replies_slot" ||
+      stanceEntry?.kind !== "quick_replies_slot"
     ) {
-      throw new Error("Template slots q1/q2 not found");
+      throw new Error("Template slots topics/stance not found");
     }
 
     return `${baseRole}
@@ -68,38 +68,37 @@ ${billContent}`;
 ${billSection}
 ${knowledgeSection}
 ## あなたの役割
-この法案に合わせた **Q1（関心のあるテーマの選択）** と **Q2（立場・関わり方）** の **クイックリプライ選択肢のみ** を生成してください。
+この法案に合わせた **2種類のクイックリプライ選択肢** を生成してください。
 質問文・フォローアップ指針は固定テンプレートを使うため、あなたは選択肢配列だけ出力します。
 
-**重要**: \`q1\` にはテーマ（論点）の選択肢、\`q2\` には立場・関わり方の選択肢を入れてください。逆にすると不整合になります。
+## 出力する2種類
+1. \`topics\`（Q1 で使う「関心のあるテーマ／論点」の選択肢）
+   - 対応する質問: 「${topicsEntry.question}」
+   - **論点・テーマ名**を並べる（例: 「AI利用」「罰則」「データ保護」のような条文・制度・対象の名前）
+   - 立場や属性は絶対に入れない。
+2. \`stance\`（Q2 で使う「立場・関わり方」の選択肢）
+   - 対応する質問: 「${stanceEntry.question}」
+   - **立場・属性**を並べる（例: 「仕事で〜」「〜の利用者」「〜の保護者」のような人の属性を表す語）
+   - 論点・テーマは絶対に入れない。
+   - 汎用枠として「一般市民として関心がある」を必ず1件含める。
 
-## Q1 固定の質問文
-「${q1.question}」
-→ これに対するクイックリプライ選択肢を出してください。
-
-## Q2 固定の質問文
-「${q2.question}」
-→ これに対するクイックリプライ選択肢を出してください。
+**特に重要**: \`topics\` と \`stance\` を絶対に取り違えないこと。次のサンプル出力のどちらがどちらか照合してから出力してください。
 
 ## サンプル（あくまで参考。法案に合わせて差し替えること）
-- Q1 サンプル選択肢: ${q1.sample_quick_replies.join(" / ")}
-- Q2 サンプル選択肢: ${q2.sample_quick_replies.join(" / ")}
+- topics サンプル（論点）: ${topicsEntry.sample_quick_replies.join(" / ")}
+- stance サンプル（立場）: ${stanceEntry.sample_quick_replies.join(" / ")}
 
 ## 生成ガイドライン
-- **Q1（テーマ選択）**: 法案の主要論点の中から、市民が関心を持ちそうな **テーマ（＝法案の論点名）** を5件挙げる。「AI利用」「罰則」「データ保護」のような論点名。
-  - 論点は法案の内容に固有のもの（条文・制度・対象など）とし、抽象論にしない。
-  - 立場や属性ではなく、**論点**にすること。
-- **Q2（立場・関わり方）**: この法案の影響を受けそうな **立場・属性** を5件挙げる。「仕事で〜」「〜の利用者」「〜の保護者」のような人の属性を表す語。
-  - 「一般市民として関心がある」のような汎用的な立場を1件必ず含める。
-  - 論点ではなく、**立場・属性**にすること。
+- \`topics\`: 法案の主要論点の中から、市民が関心を持ちそうなテーマを5件。論点は法案の内容に固有のもの（条文・制度・対象など）とし、抽象論にしない。
+- \`stance\`: この法案の影響を受けそうな立場・属性を5件。「一般市民として関心がある」を1件必ず含める。
 - 各スロットとも5件挙げること（末尾の「その他（自由記述）」はコード側で自動付与するため**出力に含めない**）。
 - 選択肢は各20文字以内を目安に簡潔に。
 - **括弧書きの補足（例: 「データ消失（障害・ランサム等）」）は使わない**。選択肢は単一の短い語句のみ。
 
 ## 出力形式
-- text: 生成意図の短い説明（このQ1・Q2の選択肢がなぜこの法案に適しているか）
-- q1: string[] （Q1 のクイックリプライ、5件）
-- q2: string[] （Q2 のクイックリプライ、5件）`;
+- text: 生成意図の短い説明
+- topics: string[] （論点の選択肢、5件）
+- stance: string[] （立場の選択肢、5件）`;
   }
 
   if (stage === "question_proposal") {

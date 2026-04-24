@@ -34,16 +34,16 @@ describe("buildConfigGenerationPrompt", () => {
 
     it("Q1/Q2 の固定質問文をプロンプトに含める", () => {
       const result = buildConfigGenerationPrompt(params);
-      expect(result).toContain("Q1 固定の質問文");
-      expect(result).toContain("Q2 固定の質問文");
+      expect(result).toContain("topics");
+      expect(result).toContain("stance");
       expect(result).toContain("テーマを選んでください");
       expect(result).toContain("立場・関わり方");
     });
 
-    it("出力形式に q1 / q2 を配列で指定する", () => {
+    it("出力形式に topics / stance を配列で指定する", () => {
       const result = buildConfigGenerationPrompt(params);
-      expect(result).toContain("q1: string[]");
-      expect(result).toContain("q2: string[]");
+      expect(result).toContain("topics: string[]");
+      expect(result).toContain("stance: string[]");
     });
 
     it("クイックリプライを5件指定する指示を含む", () => {

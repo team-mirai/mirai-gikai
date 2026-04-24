@@ -3,8 +3,11 @@ import type { InterviewQuestionInput } from "../types";
 /**
  * クイックリプライのみを LLM で法案別に生成するスロット。
  * 質問文・フォローアップ指針は固定文言を使う。
+ *
+ * - topics: 関心のあるテーマ（論点）選択肢（Q1 で使う）
+ * - stance: 立場・関わり方の選択肢（Q2 で使う）
  */
-export type QuickRepliesSlot = "q1" | "q2";
+export type QuickRepliesSlot = "topics" | "stance";
 
 /** 「その他（自由記述）」として各スロットの末尾に必ず加える固定選択肢 */
 export const OTHER_FREE_TEXT_OPTION = "その他（自由記述）";
@@ -53,7 +56,7 @@ export const DEFAULT_QUESTIONS_TEMPLATE: readonly DefaultQuestionTemplateEntry[]
   [
     {
       kind: "quick_replies_slot",
-      slot: "q1",
+      slot: "topics",
       question:
         "今回の法改正のうち、あなたが特に関係がある、または意見を伝えたいテーマを選んでください。",
       follow_up_guide:
@@ -69,7 +72,7 @@ export const DEFAULT_QUESTIONS_TEMPLATE: readonly DefaultQuestionTemplateEntry[]
     },
     {
       kind: "quick_replies_slot",
-      slot: "q2",
+      slot: "stance",
       question: "この法案について、あなたはどんな立場・関わり方に近いですか？",
       follow_up_guide:
         "回答内容から専門知識レベルを判断し、以降の質問の深さや用語の使い方を調整してください。この質問で「その他」以外のクイックリプライの選択肢が選ばれた場合、または「その他（自由記述）」が選ばれ、その内容について記述をもらった場合は、速やかに次の問に進む。",
@@ -141,10 +144,10 @@ export const DEFAULT_QUESTIONS_TEMPLATE: readonly DefaultQuestionTemplateEntry[]
  * - 固定質問はそのまま。
  */
 export function buildQuestionsFromTemplate(params: {
-  q1?: string[];
-  q2?: string[];
+  topics?: string[];
+  stance?: string[];
 }): InterviewQuestionInput[] {
-  const { q1, q2 } = params;
+  const { topics, stance } = params;
 
   return DEFAULT_QUESTIONS_TEMPLATE.map((entry) => {
     if (entry.kind === "fixed") {
@@ -160,7 +163,7 @@ export function buildQuestionsFromTemplate(params: {
 
     // LLM が返した選択肢から、空白・「その他（自由記述）」を除いた実質的な選択肢を抽出。
     // 全て空 / 「その他」のみだった場合はサンプルにフォールバックする。
-    const userChoices = ((entry.slot === "q1" ? q1 : q2) ?? [])
+    const userChoices = ((entry.slot === "topics" ? topics : stance) ?? [])
       .filter((r) => typeof r === "string" && r.trim().length > 0)
       .map((r) => r.trim())
       .filter((r) => r !== OTHER_FREE_TEXT_OPTION);

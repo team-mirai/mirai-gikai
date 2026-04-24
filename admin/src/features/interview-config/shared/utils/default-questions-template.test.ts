@@ -25,7 +25,7 @@ describe("DEFAULT_QUESTIONS_TEMPLATE", () => {
     const slots = DEFAULT_QUESTIONS_TEMPLATE.filter(
       (e) => e.kind === "quick_replies_slot"
     ).map((e) => (e.kind === "quick_replies_slot" ? e.slot : null));
-    expect(slots).toEqual(["q1", "q2"]);
+    expect(slots).toEqual(["topics", "stance"]);
   });
 
   it("Q4/Q5/Q7 のフォローアップ指針に3往復ルールが含まれる", () => {
@@ -83,8 +83,14 @@ describe("buildQuestionsFromTemplate", () => {
 
   it("applies LLM-generated quick_replies and appends その他", () => {
     const result = buildQuestionsFromTemplate({
-      q1: ["カリキュラム変更", "予算配分", "教員負担", "入試制度", "地域格差"],
-      q2: ["教員", "保護者", "学生", "教育行政", "その他業界関係者"],
+      topics: [
+        "カリキュラム変更",
+        "予算配分",
+        "教員負担",
+        "入試制度",
+        "地域格差",
+      ],
+      stance: ["教員", "保護者", "学生", "教育行政", "その他業界関係者"],
     });
 
     expect(result[0].quick_replies).toEqual([
@@ -107,21 +113,21 @@ describe("buildQuestionsFromTemplate", () => {
 
   it("deduplicates and drops 「その他（自由記述）」 from LLM input", () => {
     const result = buildQuestionsFromTemplate({
-      q1: ["A", OTHER_FREE_TEXT_OPTION, "B"],
+      topics: ["A", OTHER_FREE_TEXT_OPTION, "B"],
     });
     // LLM が その他 を含めてもコード側で正規化され末尾に 1 回だけ付く
     expect(result[0].quick_replies).toEqual(["A", "B", OTHER_FREE_TEXT_OPTION]);
   });
 
   it("falls back to sample when LLM provides empty array", () => {
-    const result = buildQuestionsFromTemplate({ q1: [] });
+    const result = buildQuestionsFromTemplate({ topics: [] });
     expect(result[0].quick_replies?.length).toBeGreaterThan(1);
     expect(result[0].quick_replies?.at(-1)).toBe(OTHER_FREE_TEXT_OPTION);
   });
 
   it("falls back to sample when LLM returns only OTHER_FREE_TEXT_OPTION", () => {
     const result = buildQuestionsFromTemplate({
-      q1: [OTHER_FREE_TEXT_OPTION],
+      topics: [OTHER_FREE_TEXT_OPTION],
     });
     // 「その他」しか返らなかった場合、選択肢が1件にならないようサンプルにフォールバック
     expect(result[0].quick_replies?.length).toBeGreaterThan(1);
@@ -130,7 +136,7 @@ describe("buildQuestionsFromTemplate", () => {
 
   it("falls back to sample when LLM returns only blank strings", () => {
     const result = buildQuestionsFromTemplate({
-      q1: ["   ", "", OTHER_FREE_TEXT_OPTION],
+      topics: ["   ", "", OTHER_FREE_TEXT_OPTION],
     });
     expect(result[0].quick_replies?.length).toBeGreaterThan(1);
     expect(result[0].quick_replies?.at(-1)).toBe(OTHER_FREE_TEXT_OPTION);
@@ -145,8 +151,8 @@ describe("buildQuestionsFromTemplate", () => {
 
   it("Q1/Q2 の question と follow_up_guide は固定の文言を返す", () => {
     const result = buildQuestionsFromTemplate({
-      q1: ["x", "y"],
-      q2: ["a", "b"],
+      topics: ["x", "y"],
+      stance: ["a", "b"],
     });
     // 固定質問文
     expect(result[0].question).toBe(

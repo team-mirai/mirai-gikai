@@ -59,13 +59,13 @@ export function useConfigGenerationChat({
     onFinish: ({ object: finishedObject, error: finishedError }) => {
       if (finishedError || !finishedObject) return;
 
-      const { text, themes, questions, q1, q2 } = finishedObject;
+      const { text, themes, questions, topics, stance } = finishedObject;
 
       // default_questions ステージ: テンプレと合成して proposedQuestions に
-      if (q1 || q2) {
+      if (topics || stance) {
         const merged = buildQuestionsFromTemplate({
-          q1: q1 as string[] | undefined,
-          q2: q2 as string[] | undefined,
+          topics: topics as string[] | undefined,
+          stance: stance as string[] | undefined,
         });
         setMessages((prev) => [
           ...prev,
