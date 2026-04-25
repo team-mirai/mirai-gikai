@@ -162,9 +162,9 @@ describe("multiSimulationRunRequestSchema", () => {
     }
   });
 
-  it("knowledgeSource が 20000 文字を超えると拒否", () => {
+  it("knowledgeSource が 40000 文字を超えると拒否", () => {
     const body = baseValidRequest();
-    body.improvedConfig.knowledgeSource = "a".repeat(20_001);
+    body.improvedConfig.knowledgeSource = "a".repeat(40_001);
     const result = multiSimulationRunRequestSchema.safeParse(body);
     expect(result.success).toBe(false);
   });

@@ -10,7 +10,7 @@ import { MAX_PERSONA_SLOTS } from "./constants";
 const ID_MAX = 100;
 const SHORT_TEXT_MAX = 200;
 const MEDIUM_TEXT_MAX = 2_000;
-const LONG_TEXT_MAX = 20_000;
+const LONG_TEXT_MAX = 40_000;
 const SMALL_ARRAY_MAX = 20;
 const MEDIUM_ARRAY_MAX = 50;
 
