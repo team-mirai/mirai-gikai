@@ -13,8 +13,9 @@ export type QuickRepliesSlot = "topics" | "stance";
 export const OTHER_FREE_TEXT_OPTION = "その他（自由記述）";
 
 /**
- * 深掘り過剰を抑えるため、自由回答系の質問（Q4〜Q7）のフォローアップ指針に
- * 共通で付与する末尾ルール。
+ * 深掘り過剰を抑えるため、自由回答系の質問のフォローアップ指針に共通で付与する末尾ルール。
+ * 適用先は Q4 / Q5 / Q7。Q6 は許容往復数が 5 と異なるため、本定数を参照せず
+ * インラインで独自ルール（最大5往復）を記述している。
  */
 export const FOLLOW_UP_DEPTH_LIMIT_RULE =
   "具体的なキーワードを含む回答を得られた場合は深掘りをやめて次の質問に行く。なるべく一度の質問で回答者から具体的な回答を得るようにこころがけ、長々と質問を続けない。回答者とのやりとりは最大3往復までにとどめる。";
@@ -49,8 +50,8 @@ export type DefaultQuestionTemplateEntry =
  * インタビュー質問テンプレート（7問固定）
  *
  * - Q1, Q2: 質問文・follow_up_guide は固定、quick_replies のみ LLM 生成
- * - Q3, Q4: 固定の質問と選択肢
- * - Q5, Q6, Q7: 固定の質問（自由回答）
+ * - Q3, Q4, Q6: 固定の質問と選択肢
+ * - Q5, Q7: 固定の質問（自由回答）
  */
 export const DEFAULT_QUESTIONS_TEMPLATE: readonly DefaultQuestionTemplateEntry[] =
   [
