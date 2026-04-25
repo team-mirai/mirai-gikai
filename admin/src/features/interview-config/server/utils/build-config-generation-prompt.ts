@@ -136,7 +136,7 @@ ${knowledgeSection}${existingQuestionsSection}
   if (stage === "theme_proposal") {
     const confirmedQuestionsSection =
       confirmedQuestions && confirmedQuestions.length > 0
-        ? `\n## 確定済みの質問\n${confirmedQuestions.map((q, i) => `${i + 1}. ${q.question}${q.quick_replies?.length ? `\n   選択肢: ${q.quick_replies.join(", ")}` : ""}`).join("\n")}\n`
+        ? `\n## 確定済みの質問\n${confirmedQuestions.map((q, i) => `${i + 1}. ${q.question}${q.follow_up_guide ? `\n   フォローアップ指針: ${q.follow_up_guide}` : ""}${q.quick_replies?.length ? `\n   選択肢: ${q.quick_replies.join(", ")}` : ""}`).join("\n")}\n`
         : "";
 
     const existingThemesSection =

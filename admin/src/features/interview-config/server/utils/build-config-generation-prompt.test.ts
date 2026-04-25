@@ -78,12 +78,17 @@ describe("buildConfigGenerationPrompt", () => {
       const result = buildConfigGenerationPrompt({
         ...baseParams,
         confirmedQuestions: [
-          { question: "質問A", quick_replies: ["選択肢1", "選択肢2"] },
+          {
+            question: "質問A",
+            follow_up_guide: "フォローアップ指針A",
+            quick_replies: ["選択肢1", "選択肢2"],
+          },
           { question: "質問B" },
         ],
       });
       expect(result).toContain("## 確定済みの質問");
       expect(result).toContain("1. 質問A");
+      expect(result).toContain("フォローアップ指針: フォローアップ指針A");
       expect(result).toContain("選択肢: 選択肢1, 選択肢2");
       expect(result).toContain("2. 質問B");
     });
