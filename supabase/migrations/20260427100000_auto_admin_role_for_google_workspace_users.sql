@@ -11,7 +11,7 @@ BEGIN
   INTO user_email, user_provider, current_roles
   FROM auth.users WHERE id = target_user_id;
 
-  IF user_email LIKE '%@team-mir.ai'
+  IF user_email ILIKE '%@team-mir.ai'
     AND user_provider = 'google'
     AND (current_roles IS NULL OR NOT current_roles @> '["admin"]')
   THEN
@@ -19,7 +19,7 @@ BEGIN
     SET raw_app_meta_data = jsonb_set(
       COALESCE(raw_app_meta_data, '{}'::jsonb),
       '{roles}',
-      '["admin"]'
+      COALESCE(raw_app_meta_data->'roles', '[]'::jsonb) || '["admin"]'::jsonb
     )
     WHERE id = target_user_id;
     RETURN true;
@@ -47,9 +47,9 @@ UPDATE auth.users
 SET raw_app_meta_data = jsonb_set(
   COALESCE(raw_app_meta_data, '{}'::jsonb),
   '{roles}',
-  '["admin"]'
+  COALESCE(raw_app_meta_data->'roles', '[]'::jsonb) || '["admin"]'::jsonb
 )
-WHERE email LIKE '%@team-mir.ai'
+WHERE email ILIKE '%@team-mir.ai'
   AND raw_app_meta_data->>'provider' = 'google'
   AND (
     raw_app_meta_data->'roles' IS NULL

@@ -882,6 +882,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_admin_role_if_eligible: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       bulk_publish_reports: {
         Args: {
           p_config_id: string
