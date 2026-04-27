@@ -191,26 +191,6 @@ export async function countSessionsByConfigIds(
   return result;
 }
 
-export async function countAllSessionsByConfigId(): Promise<
-  Record<string, number>
-> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("interview_sessions")
-    .select("interview_config_id");
-
-  if (error) {
-    throw new Error(`Failed to count sessions: ${error.message}`);
-  }
-
-  const result: Record<string, number> = {};
-  for (const row of data) {
-    result[row.interview_config_id] =
-      (result[row.interview_config_id] ?? 0) + 1;
-  }
-  return result;
-}
-
 export async function deleteInterviewConfigRecord(
   configId: string
 ): Promise<void> {
