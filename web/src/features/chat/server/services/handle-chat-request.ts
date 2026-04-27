@@ -2,9 +2,9 @@ import { openai } from "@ai-sdk/openai";
 import type { Database } from "@mirai-gikai/supabase";
 import {
   convertToModelMessages,
+  type LanguageModel,
   streamText,
   tool,
-  type LanguageModel,
   type UIMessage,
 } from "ai";
 import { z } from "zod";
@@ -16,13 +16,13 @@ import {
 } from "@/features/chat/shared/constants";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
+import { AI_MODELS } from "@/lib/ai/models";
 import { env } from "@/lib/env";
 import {
   type CompiledPrompt,
   createPromptProvider,
   type PromptProvider,
 } from "@/lib/prompt";
-import { AI_MODELS } from "@/lib/ai/models";
 import { isWithinDailyCostLimit, recordChatUsage } from "./cost-tracker";
 import {
   checkSystemDailyCostLimit,
@@ -89,10 +89,16 @@ export async function handleChatRequest({
     console.error("Cost limit check error:", error);
   }
 
+  // ナレッジソース挿入とインタビュー提案判定で共有するため、1回だけ取得する。
+  const interviewConfig = context.billContext
+    ? (await findPublicInterviewConfigByBillId(context.billContext.id)).data
+    : null;
+
   // Build prompt configuration
   const { promptName, promptResult } = await buildPrompt(
     context,
-    promptProvider
+    promptProvider,
+    interviewConfig
   );
   // Model configuration
   const model = deps?.model ?? AI_MODELS.gpt4o;
@@ -100,9 +106,10 @@ export async function handleChatRequest({
     typeof model === "string" ? model : (model.modelId ?? "unknown");
 
   // Determine if interview suggestion should be enabled
-  const shouldSuggestInterview = await determineShouldSuggestInterview(
+  const shouldSuggestInterview = determineShouldSuggestInterview(
     context,
-    messages
+    messages,
+    interviewConfig
   );
 
   // Build system prompt with interview suggestion instructions
@@ -175,12 +182,16 @@ function extractChatContext(
   };
 }
 
+type InterviewConfigRow =
+  Database["public"]["Tables"]["interview_configs"]["Row"];
+
 /**
  * コンテキストに基づいてプロンプトを組み立てる
  */
 async function buildPrompt(
   context: ChatMessageMetadata,
-  promptProvider: PromptProvider
+  promptProvider: PromptProvider,
+  interviewConfig: InterviewConfigRow | null
 ) {
   // Determine prompt name
   const promptName =
@@ -197,6 +208,7 @@ async function buildPrompt(
           billTitle: context.billContext?.bill_content?.title ?? "",
           billSummary: context.billContext?.bill_content?.summary ?? "",
           billContent: context.billContext?.bill_content?.content ?? "",
+          knowledgeSource: pickKnowledgeSourceForChat(interviewConfig),
         };
 
   // Fetch prompt from Langfuse
@@ -307,15 +319,16 @@ const INTERVIEW_SUGGESTION_PROMPT = `
  *
  * 以下のすべてを満たす場合にtrueを返す:
  * - 法案ページである
- * - サーバー側でインタビュー設定が公開状態であることを確認
+ * - 公開状態のインタビュー設定が存在する
  * - 会話中にまだsuggest_interviewツールが呼び出されていない
  *
  * NOTE: インタビュー回答済みでも導線を表示する（再回答の促進のため）
  */
-async function determineShouldSuggestInterview(
+function determineShouldSuggestInterview(
   context: ChatMessageMetadata,
-  messages: UIMessage<ChatMessageMetadata>[]
-): Promise<boolean> {
+  messages: UIMessage<ChatMessageMetadata>[],
+  interviewConfig: InterviewConfigRow | null
+): boolean {
   if (!context.billContext) {
     return false;
   }
@@ -324,11 +337,16 @@ async function determineShouldSuggestInterview(
     return false;
   }
 
-  // サーバー側でインタビュー設定の存在を検証（クライアント側のメタデータを信頼しない）
-  const { data: interviewConfig } = await findPublicInterviewConfigByBillId(
-    context.billContext.id
-  );
   return !!interviewConfig;
+}
+
+function pickKnowledgeSourceForChat(
+  interviewConfig: InterviewConfigRow | null
+): string {
+  if (!interviewConfig?.use_knowledge_source_in_chat) {
+    return "";
+  }
+  return interviewConfig.knowledge_source ?? "";
 }
 
 /**

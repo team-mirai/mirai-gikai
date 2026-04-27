@@ -1,19 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import type { LanguageModelUsage, UIMessage } from "ai";
 import {
   adminClient,
-  createTestUser,
+  cleanupTestBill,
   cleanupTestUser,
+  createTestBill,
+  createTestUser,
   type TestUser,
 } from "@test-utils/utils";
+import type { LanguageModelUsage, UIMessage } from "ai";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { BillWithContent } from "@/features/bills/shared/types";
+import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { createStreamMock } from "@/test-utils/mock-language-model";
 import { createMockPromptProvider } from "@/test-utils/mock-prompt-provider";
-import {
-  handleChatRequest,
-  type ChatMessageMetadata,
-} from "./handle-chat-request";
-import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { recordChatUsage } from "./cost-tracker";
+import {
+  type ChatMessageMetadata,
+  handleChatRequest,
+} from "./handle-chat-request";
 
 /**
  * Response のボディストリームを全て読み込み、テキストとして返す。
@@ -200,6 +203,115 @@ describe("handleChatRequest 統合テスト", () => {
 
       expect(usageEvents).toHaveLength(1);
       expect(usageEvents?.[0].session_id).toBeNull();
+    });
+  });
+
+  describe("AIチャットへのナレッジソース挿入", () => {
+    /**
+     * use_knowledge_source_in_chat フラグの ON/OFF と
+     * knowledge_source 文字列が、buildPrompt の variables にどう反映されるかを検証する。
+     */
+    async function runChatAndCaptureVariables(opts: {
+      billId: string;
+      userId: string;
+    }) {
+      const billContext = {
+        id: opts.billId,
+        name: "テスト法案",
+      } as unknown as BillWithContent;
+      const messages: UIMessage<ChatMessageMetadata>[] = [
+        {
+          id: "test-msg-1",
+          role: "user",
+          parts: [{ type: "text", text: "テスト質問" }],
+          metadata: {
+            difficultyLevel: "normal",
+            sessionId: "",
+            billContext,
+          },
+        },
+      ];
+
+      const captured: { variables?: Record<string, string> } = {};
+      const trackingPromptProvider = {
+        getPrompt: async (
+          _name: string,
+          variables?: Record<string, string>
+        ) => {
+          captured.variables = variables;
+          return { content: "system prompt", metadata: "{}" };
+        },
+      };
+
+      const response = await handleChatRequest({
+        messages,
+        userId: opts.userId,
+        deps: {
+          model: createStreamMock(["ok"]),
+          promptProvider: trackingPromptProvider,
+        },
+      });
+      await consumeResponseStream(response);
+
+      return captured.variables ?? {};
+    }
+
+    it("use_knowledge_source_in_chat=true で knowledge_source が variables.knowledgeSource に渡る", async () => {
+      const bill = await createTestBill();
+      try {
+        await adminClient.from("interview_configs").insert({
+          bill_id: bill.id,
+          status: "public",
+          name: `test-${Date.now()}`,
+          knowledge_source: "補足知識テキスト",
+          use_knowledge_source_in_chat: true,
+        });
+
+        const variables = await runChatAndCaptureVariables({
+          billId: bill.id,
+          userId: testUser.id,
+        });
+
+        expect(variables.knowledgeSource).toBe("補足知識テキスト");
+      } finally {
+        await cleanupTestBill(bill.id);
+      }
+    });
+
+    it("use_knowledge_source_in_chat=false なら variables.knowledgeSource は空文字列", async () => {
+      const bill = await createTestBill();
+      try {
+        await adminClient.from("interview_configs").insert({
+          bill_id: bill.id,
+          status: "public",
+          name: `test-${Date.now()}`,
+          knowledge_source: "見せたくない補足",
+          use_knowledge_source_in_chat: false,
+        });
+
+        const variables = await runChatAndCaptureVariables({
+          billId: bill.id,
+          userId: testUser.id,
+        });
+
+        expect(variables.knowledgeSource).toBe("");
+      } finally {
+        await cleanupTestBill(bill.id);
+      }
+    });
+
+    it("該当billに公開interview_configが無い場合は variables.knowledgeSource は空文字列", async () => {
+      const bill = await createTestBill();
+      try {
+        const variables = await runChatAndCaptureVariables({
+          billId: bill.id,
+          userId: testUser.id,
+        });
+
+        expect(variables.knowledgeSource).toBe("");
+      } finally {
+        await cleanupTestBill(bill.id);
+      }
     });
   });
 

@@ -57,6 +57,7 @@ export function InterviewConfigEditClient({
     | (() => {
         name: string;
         knowledge_source: string;
+        use_knowledge_source_in_chat: boolean;
         mode: string;
         themes: string[];
         chat_model: string | null;
@@ -86,6 +87,8 @@ export function InterviewConfigEditClient({
           mode: (formValues?.mode as "loop" | "bulk") || "loop",
           themes,
           knowledge_source: formValues?.knowledge_source || "",
+          use_knowledge_source_in_chat:
+            formValues?.use_knowledge_source_in_chat ?? false,
           chat_model: formValues?.chat_model || null,
           estimated_duration: formValues?.estimated_duration ?? null,
         });
@@ -116,6 +119,10 @@ export function InterviewConfigEditClient({
             formValues?.knowledge_source ||
             initialConfig?.knowledge_source ||
             "",
+          use_knowledge_source_in_chat:
+            formValues?.use_knowledge_source_in_chat ??
+            initialConfig?.use_knowledge_source_in_chat ??
+            false,
           chat_model:
             formValues?.chat_model ?? initialConfig?.chat_model ?? null,
           estimated_duration:

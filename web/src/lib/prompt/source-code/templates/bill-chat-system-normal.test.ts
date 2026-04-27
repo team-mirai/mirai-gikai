@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 import { buildBillChatSystemNormalPrompt } from "./bill-chat-system-normal";
 
 describe("buildBillChatSystemNormalPrompt", () => {
-  it("4つのパラメータがプロンプトに埋め込まれる", () => {
+  it("4つの議案パラメータがプロンプトに埋め込まれる", () => {
     const result = buildBillChatSystemNormalPrompt(
       "テスト法案名",
       "テスト法案タイトル",
       "テスト法案要約",
-      "テスト法案詳細"
+      "テスト法案詳細",
+      ""
     );
 
     expect(result).toContain("テスト法案名");
@@ -17,15 +18,36 @@ describe("buildBillChatSystemNormalPrompt", () => {
   });
 
   it("難易度「ふつう」セクションが含まれる", () => {
-    const result = buildBillChatSystemNormalPrompt("a", "b", "c", "d");
+    const result = buildBillChatSystemNormalPrompt("a", "b", "c", "d", "");
 
     expect(result).toContain("回答の難易度：ふつう");
   });
 
   it("みらい議会の説明が含まれる", () => {
-    const result = buildBillChatSystemNormalPrompt("a", "b", "c", "d");
+    const result = buildBillChatSystemNormalPrompt("a", "b", "c", "d", "");
 
     expect(result).toContain("みらい議会");
     expect(result).toContain("チームみらい");
+  });
+
+  it("knowledgeSourceが空のとき補足ナレッジセクションは含まれない", () => {
+    const result = buildBillChatSystemNormalPrompt("a", "b", "c", "d", "");
+
+    expect(result).not.toContain("補足ナレッジ");
+    expect(result).not.toContain("<knowledge_source>");
+  });
+
+  it("knowledgeSourceが指定されたとき補足ナレッジセクションに埋め込まれる", () => {
+    const result = buildBillChatSystemNormalPrompt(
+      "a",
+      "b",
+      "c",
+      "d",
+      "補足知識テキスト"
+    );
+
+    expect(result).toContain("補足ナレッジ");
+    expect(result).toContain("<knowledge_source>");
+    expect(result).toContain("補足知識テキスト");
   });
 });

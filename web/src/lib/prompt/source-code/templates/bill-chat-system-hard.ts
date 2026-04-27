@@ -1,3 +1,4 @@
+import { buildKnowledgeSourceSection } from "./knowledge-source-section";
 import {
   COMMON_RULES,
   MIRAI_GIKAI_OVERVIEW,
@@ -13,12 +14,14 @@ import {
  * @param billTitle - 法案タイトル
  * @param billSummary - 法案要約
  * @param billContent - 法案詳細内容
+ * @param knowledgeSource - 補足ナレッジ（空文字列ならセクションを出力しない）
  */
 export function buildBillChatSystemHardPrompt(
   billName: string,
   billTitle: string,
   billSummary: string,
-  billContent: string
+  billContent: string,
+  knowledgeSource = ""
 ): string {
   return `あなたは「みらい議会」プラットフォーム上で動作する中立的なAIアシスタントです。
 
@@ -36,7 +39,7 @@ ${MIRAI_GIKAI_OVERVIEW}
 - タイトル: ${billTitle}
 - 要約: ${billSummary}
 - 詳細: ${billContent}
-
+${buildKnowledgeSourceSection(knowledgeSource)}
 ## 回答の難易度：難しい（専門用語を含む詳細な内容）
 - 専門用語を正確に使用し、詳細で網羅的な説明をしてください
 - 法律的な背景や制度的な文脈も含めて説明してください

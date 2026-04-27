@@ -104,4 +104,28 @@ describe("SourceCodePromptProvider", () => {
 
     expect(result.content).toContain("みらい議会");
   });
+
+  it("knowledgeSource を渡すと bill-chat-system-normal のプロンプトに反映される", async () => {
+    const result = await provider.getPrompt("bill-chat-system-normal", {
+      billName: "a",
+      billTitle: "b",
+      billSummary: "c",
+      billContent: "d",
+      knowledgeSource: "ナレッジ補足テキスト",
+    });
+
+    expect(result.content).toContain("補足ナレッジ");
+    expect(result.content).toContain("ナレッジ補足テキスト");
+  });
+
+  it("knowledgeSource 未指定なら bill-chat-system-normal に補足ナレッジは出ない", async () => {
+    const result = await provider.getPrompt("bill-chat-system-normal", {
+      billName: "a",
+      billTitle: "b",
+      billSummary: "c",
+      billContent: "d",
+    });
+
+    expect(result.content).not.toContain("補足ナレッジ");
+  });
 });

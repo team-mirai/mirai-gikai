@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { routes } from "@/lib/routes";
 import { generateInterviewPreviewUrl } from "../../server/actions/generate-interview-preview-url";
@@ -59,6 +60,7 @@ interface InterviewConfigFormProps {
     | (() => {
         name: string;
         knowledge_source: string;
+        use_knowledge_source_in_chat: boolean;
         mode: string;
         themes: string[];
         chat_model: string | null;
@@ -88,6 +90,8 @@ export function InterviewConfigForm({
       mode: config?.mode || "loop",
       themes: config?.themes || [],
       knowledge_source: config?.knowledge_source || "",
+      use_knowledge_source_in_chat:
+        config?.use_knowledge_source_in_chat ?? false,
       chat_model: config?.chat_model || null,
       estimated_duration: isNew ? 10 : (config?.estimated_duration ?? null),
     },
@@ -101,6 +105,7 @@ export function InterviewConfigForm({
         return {
           name: values.name,
           knowledge_source: values.knowledge_source || "",
+          use_knowledge_source_in_chat: values.use_knowledge_source_in_chat,
           mode: values.mode,
           themes: values.themes || [],
           chat_model: values.chat_model || null,
@@ -405,9 +410,32 @@ export function InterviewConfigForm({
                       />
                     </FormControl>
                     <FormDescription>
-                      AIが質問を生成する際に参照する情報を入力してください。法案コンテンツは自動で読み込まれます。
+                      AIインタビューで質問生成に参照する情報を入力してください。法案コンテンツは自動で読み込まれます。AIチャットでの利用は下のスイッチで制御します。
                     </FormDescription>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="use_knowledge_source_in_chat"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start gap-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        AIチャットでもナレッジソースを使用する
+                      </FormLabel>
+                      <FormDescription>
+                        ONにすると、法案ページのAIチャットのシステムプロンプトに上記ナレッジソースが追加されます。AIインタビューでは常に使用されます。
+                      </FormDescription>
+                    </div>
                   </FormItem>
                 )}
               />
