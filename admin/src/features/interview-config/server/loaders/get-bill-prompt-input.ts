@@ -30,7 +30,10 @@ export async function getBillPromptInputForBill(
         : null,
     };
   } catch (error) {
-    console.error("Failed to fetch bill contents for prompt preview:", error);
+    console.error(
+      `Failed to fetch bill contents for prompt preview (billId=${bill.id}):`,
+      error
+    );
     return { name: bill.name, bill_content: null };
   }
 }

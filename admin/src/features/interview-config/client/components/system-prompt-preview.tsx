@@ -28,7 +28,7 @@ interface SystemPromptPreviewProps {
 
 interface BuildPromptParams {
   bill: PromptBillInput;
-  mode: string;
+  mode: "loop" | "bulk";
   themes: string[];
   knowledgeSource: string;
   estimatedDuration: number | null;

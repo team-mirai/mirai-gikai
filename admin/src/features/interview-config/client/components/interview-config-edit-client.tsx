@@ -85,7 +85,7 @@ export function InterviewConfigEditClient({
           const result = await createInterviewConfig(billId, {
             name: formValues?.name || "AI生成設定",
             status: "closed",
-            mode: formValues?.mode || "loop",
+            mode: formValues?.mode ?? "loop",
             themes,
             knowledge_source: formValues?.knowledge_source || "",
             chat_model: formValues?.chat_model || null,
@@ -152,7 +152,7 @@ export function InterviewConfigEditClient({
       const result = await updateInterviewConfig(targetConfigId, {
         name: formValues?.name || initialConfig?.name || "AI生成設定",
         status: initialConfig?.status || "closed",
-        mode: formValues?.mode || initialConfig?.mode || "loop",
+        mode: formValues?.mode ?? initialConfig?.mode ?? "loop",
         themes,
         knowledge_source:
           formValues?.knowledge_source || initialConfig?.knowledge_source || "",
