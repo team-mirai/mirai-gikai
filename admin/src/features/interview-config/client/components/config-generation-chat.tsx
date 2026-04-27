@@ -1,12 +1,22 @@
 "use client";
 
-import { Bot, Check, Loader2, Send, Sparkles } from "lucide-react";
+import {
+  Bot,
+  Check,
+  ChevronRight,
+  Loader2,
+  Send,
+  Sparkles,
+  Square,
+} from "lucide-react";
 import type { FormEvent } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { InterviewQuestionInput } from "../../shared/types";
+import { buildQuestionsFromTemplate } from "../../shared/utils/default-questions-template";
 import { useConfigGenerationChat } from "../hooks/use-config-generation-chat";
 
 interface ConfigGenerationChatProps {
@@ -16,7 +26,6 @@ interface ConfigGenerationChatProps {
   existingQuestions?: InterviewQuestionInput[];
   onThemesConfirmed: (themes: string[]) => void;
   onQuestionsConfirmed: (questions: InterviewQuestionInput[]) => void;
-  getFormThemes?: () => string[];
 }
 
 export function ConfigGenerationChat({
@@ -26,7 +35,6 @@ export function ConfigGenerationChat({
   existingQuestions,
   onThemesConfirmed,
   onQuestionsConfirmed,
-  getFormThemes,
 }: ConfigGenerationChatProps) {
   const {
     input,
@@ -39,11 +47,12 @@ export function ConfigGenerationChat({
     proposedThemes,
     proposedQuestions,
     startGeneration,
+    stopGeneration,
     handleSubmit,
-    confirmThemes,
     confirmQuestions,
-    skipToQuestions,
-    switchToThemes,
+    confirmThemes,
+    switchToQuestions,
+    skipToThemes,
   } = useConfigGenerationChat({
     billId,
     configId,
@@ -78,6 +87,23 @@ export function ConfigGenerationChat({
     handleSubmit(input);
   };
 
+  const isQuestionStage =
+    stage === "default_questions" ||
+    stage === "question_proposal" ||
+    stage === "question_confirmed";
+  const isThemeStage =
+    stage === "theme_proposal" || stage === "theme_confirmed";
+
+  // default_questions ステージのストリーミング中は Q1/Q2 の途中出力を組み立ててプレビュー
+  const streamingQuestions = useMemo<
+    InterviewQuestionInput[] | undefined
+  >(() => {
+    if (isLoading && stage === "default_questions" && object) {
+      return buildPreviewQuestions(object);
+    }
+    return object?.questions as InterviewQuestionInput[] | undefined;
+  }, [isLoading, stage, object]);
+
   return (
     <Card className="flex flex-col h-[calc(100vh-200px)] sticky top-4">
       <CardHeader className="pb-3">
@@ -86,33 +112,23 @@ export function ConfigGenerationChat({
           AIで設定を生成
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          法案内容に基づいてテーマと質問を提案します
+          法案内容に合わせて質問とテーマを提案します
         </p>
-        {/* ステージ表示（クリックで切替可能） */}
-        <div className="flex gap-2 pt-1">
-          <StageBadge
-            label="テーマ提案"
-            active={stage === "theme_proposal"}
-            completed={
-              stage === "theme_confirmed" ||
-              stage === "question_proposal" ||
-              stage === "question_confirmed"
-            }
-            onClick={
-              stage !== "theme_proposal" && stage !== "question_confirmed"
-                ? switchToThemes
-                : undefined
-            }
-          />
-          <StageBadge
+        {/* ステージステッパー（クリックで切替可能） */}
+        <div className="flex items-center gap-1 pt-2">
+          <StageStep
             label="質問提案"
-            active={stage === "question_proposal"}
-            completed={stage === "question_confirmed"}
-            onClick={
-              stage === "theme_proposal"
-                ? () => skipToQuestions(getFormThemes?.() ?? [])
-                : undefined
-            }
+            step={1}
+            active={isQuestionStage}
+            completed={isThemeStage}
+            onClick={isThemeStage && !isLoading ? switchToQuestions : undefined}
+          />
+          <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+          <StageStep
+            label="テーマ提案"
+            step={2}
+            active={isThemeStage}
+            completed={stage === "theme_confirmed"}
           />
         </div>
       </CardHeader>
@@ -140,7 +156,7 @@ export function ConfigGenerationChat({
           <AssistantMessage
             content={object.text || ""}
             themes={object.themes as string[] | undefined}
-            questions={object.questions as InterviewQuestionInput[] | undefined}
+            questions={streamingQuestions}
             isStreaming
           />
         )}
@@ -159,7 +175,37 @@ export function ConfigGenerationChat({
         )}
       </CardContent>
 
-      {/* 確定ボタン */}
+      {/* 確定ボタン: 質問 */}
+      {!isLoading && proposedQuestions.length > 0 && isQuestionStage && (
+        <div className="px-6 py-3 border-t space-y-2">
+          <p className="text-sm text-gray-600">
+            提案された質問を確定してテーマ提案に進みますか？
+          </p>
+          <Button
+            onClick={() => confirmQuestions(proposedQuestions)}
+            className="w-full"
+          >
+            <Check className="mr-2 h-4 w-4" />
+            質問を確定してテーマ提案へ
+          </Button>
+        </div>
+      )}
+
+      {/* 初期ブラッシュアップモード（既存config を開いた直後）でのみ、テーマへ直接スキップできる */}
+      {!isLoading &&
+        proposedQuestions.length === 0 &&
+        stage === "question_proposal" &&
+        messages.length <= 1 &&
+        ((existingQuestions?.length ?? 0) > 0 ||
+          (existingThemes?.length ?? 0) > 0) && (
+          <div className="px-6 py-3 border-t">
+            <Button variant="outline" onClick={skipToThemes} className="w-full">
+              テーマ提案を実行
+            </Button>
+          </div>
+        )}
+
+      {/* 確定ボタン: テーマ */}
       {!isLoading &&
         proposedThemes.length > 0 &&
         stage === "theme_proposal" && (
@@ -172,99 +218,119 @@ export function ConfigGenerationChat({
               className="w-full"
             >
               <Check className="mr-2 h-4 w-4" />
-              テーマを確定して質問生成へ
+              テーマを確定してフォームに反映
             </Button>
           </div>
         )}
 
-      {!isLoading &&
-        proposedQuestions.length > 0 &&
-        stage === "question_proposal" && (
-          <div className="px-6 py-3 border-t">
-            <p className="text-sm text-gray-600 mb-2">
-              提案された質問を確定しますか？
-            </p>
-            <Button
-              onClick={() => confirmQuestions(proposedQuestions)}
-              className="w-full"
-            >
-              <Check className="mr-2 h-4 w-4" />
-              質問を確定してフォームに反映
-            </Button>
-          </div>
-        )}
-
-      {stage === "question_confirmed" && (
+      {stage === "theme_confirmed" && (
         <div className="px-6 py-3 border-t">
           <p className="text-sm text-green-700 bg-green-50 p-3 rounded">
-            テーマと質問をフォームに反映しました。
+            質問とテーマをフォームに反映しました。
             内容を確認・調整してください。
           </p>
         </div>
       )}
 
-      {/* テキスト入力 */}
-      {stage !== "question_confirmed" && (
-        <form
-          onSubmit={handleFormSubmit}
-          className="px-6 pb-4 pt-2 border-t flex gap-2"
-        >
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="修正の要望を入力..."
-            disabled={isLoading}
-          />
+      {/* テキスト入力 / 停止ボタン */}
+      <form
+        onSubmit={handleFormSubmit}
+        className="px-6 pb-4 pt-2 border-t flex gap-2"
+      >
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={
+            isThemeStage
+              ? "テーマへの修正要望を入力..."
+              : "質問への修正要望を入力..."
+          }
+          disabled={isLoading}
+        />
+        {isLoading ? (
           <Button
-            type="submit"
+            type="button"
             size="icon"
-            disabled={isLoading || !input.trim()}
+            variant="outline"
+            onClick={stopGeneration}
+            aria-label="生成を停止"
           >
+            <Square className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button type="submit" size="icon" disabled={!input.trim()}>
             <Send className="h-4 w-4" />
           </Button>
-        </form>
-      )}
+        )}
+      </form>
     </Card>
   );
 }
 
-function StageBadge({
+/**
+ * default_questions ステージのストリーム中オブジェクトから、
+ * topics/stance の途中結果を使って 7 問のプレビューを組み立てる。
+ */
+function buildPreviewQuestions(
+  partial: Record<string, unknown>
+): InterviewQuestionInput[] | undefined {
+  const topics = partial.topics as string[] | undefined;
+  const stance = partial.stance as string[] | undefined;
+  if (!topics && !stance) return undefined;
+  return buildQuestionsFromTemplate({ topics, stance });
+}
+
+function StageStep({
   label,
+  step,
   active,
   completed,
   onClick,
 }: {
   label: string;
+  step: number;
   active: boolean;
   completed: boolean;
   onClick?: () => void;
 }) {
-  const baseClass = `text-xs px-2 py-1 rounded-full inline-flex items-center ${
-    completed
-      ? "bg-green-100 text-green-800"
-      : active
-        ? "bg-blue-100 text-blue-800"
-        : "bg-gray-100 text-gray-500"
-  }`;
+  const colorClass = completed
+    ? "bg-green-50 text-green-700 border-green-200"
+    : active
+      ? "bg-primary/10 text-primary border-primary/30"
+      : "bg-muted text-muted-foreground border-border";
+
+  const content = (
+    <>
+      <span className="flex size-3 items-center justify-center text-[10px] font-semibold tabular-nums">
+        {completed ? <Check className="size-3" /> : step}
+      </span>
+      <span>{label}</span>
+    </>
+  );
 
   if (onClick) {
     return (
-      <button
-        type="button"
-        className={`${baseClass} cursor-pointer hover:opacity-80`}
-        onClick={onClick}
+      <Badge
+        asChild
+        variant="outline"
+        className={`${colorClass} cursor-pointer hover:opacity-80`}
       >
-        {completed && <Check className="h-3 w-3 mr-1" />}
-        {label}
-      </button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onClick}
+          className="h-auto gap-1 px-2 py-0.5 text-xs font-medium"
+        >
+          {content}
+        </Button>
+      </Badge>
     );
   }
 
   return (
-    <span className={baseClass}>
-      {completed && <Check className="h-3 w-3 mr-1" />}
-      {label}
-    </span>
+    <Badge variant="outline" className={colorClass}>
+      {content}
+    </Badge>
   );
 }
 

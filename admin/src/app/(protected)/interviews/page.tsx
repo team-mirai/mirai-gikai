@@ -3,7 +3,7 @@ import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
 import { AllInterviewConfigList } from "@/features/interviews/server/components/all-interview-config-list";
 import {
   getAllInterviewConfigs,
-  getAllSessionCounts,
+  getSessionCountsForConfigs,
 } from "@/features/interviews/server/loaders/get-all-interview-configs";
 import { routes } from "@/lib/routes";
 
@@ -14,10 +14,10 @@ export default async function InterviewsPage() {
     redirect(routes.login());
   }
 
-  const [configs, sessionCounts] = await Promise.all([
-    getAllInterviewConfigs(),
-    getAllSessionCounts(),
-  ]);
+  const configs = await getAllInterviewConfigs();
+  const sessionCounts = await getSessionCountsForConfigs(
+    configs.map((config) => config.id)
+  );
 
   return (
     <div className="container mx-auto py-8">

@@ -52,16 +52,16 @@ export type PromptKind = (typeof PROMPT_KIND)[keyof typeof PROMPT_KIND];
  * タイムアウト時は withTimeoutRetry 側で LLM_MAX_ATTEMPTS 回までリトライする。
  */
 export const LLM_TIMEOUT_MS = {
-  /** インタビュアー / インタビュイーの 1 ターン生成。短文なので 20s で十分 */
-  interviewTurn: 20_000,
+  /** インタビュアー / インタビュイーの 1 ターン生成。短文だが knowledge source を含む長文プロンプトに耐える余裕を持たせる */
+  interviewTurn: 40_000,
   /** Summary フェーズのレポート生成（transcript 全体を読むのでやや長め） */
-  summary: 30_000,
+  summary: 60_000,
   /** ペルソナ生成（report 抽出 / bill 生成とも）。推論量が多め */
-  persona: 60_000,
+  persona: 120_000,
   /** 満足度評価（transcript 全体を読む） */
-  satisfaction: 45_000,
+  satisfaction: 90_000,
   /** 総合評価（全ペルソナの情報を横断） */
-  overallEvaluation: 60_000,
+  overallEvaluation: 120_000,
 } as const;
 
 /** LLM 呼び出しの最大試行回数（1 = リトライなし、2 = 1 回リトライ） */

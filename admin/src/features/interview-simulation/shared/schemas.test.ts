@@ -162,9 +162,9 @@ describe("multiSimulationRunRequestSchema", () => {
     }
   });
 
-  it("knowledgeSource が 20000 文字を超えると拒否", () => {
+  it("knowledgeSource が 40000 文字を超えると拒否", () => {
     const body = baseValidRequest();
-    body.improvedConfig.knowledgeSource = "a".repeat(20_001);
+    body.improvedConfig.knowledgeSource = "a".repeat(40_001);
     const result = multiSimulationRunRequestSchema.safeParse(body);
     expect(result.success).toBe(false);
   });
@@ -183,9 +183,9 @@ describe("multiSimulationRunRequestSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("themes 要素が 200 文字を超えると拒否", () => {
+  it("themes 要素が 2_000 文字を超えると拒否", () => {
     const body = baseValidRequest();
-    body.improvedConfig.themes = ["a".repeat(201)];
+    body.improvedConfig.themes = ["a".repeat(2_001)];
     const result = multiSimulationRunRequestSchema.safeParse(body);
     expect(result.success).toBe(false);
   });
