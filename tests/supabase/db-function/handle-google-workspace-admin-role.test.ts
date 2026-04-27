@@ -1,7 +1,9 @@
 import { execSync } from "node:child_process";
 import { describe, expect, it, afterEach } from "vitest";
 
-const DB_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+const DB_URL =
+  process.env.SUPABASE_DB_URL ??
+  "postgresql://postgres:postgres@127.0.0.1:54432/postgres";
 
 /**
  * GoTrue Admin API はトリガーの変更を上書きするため、
