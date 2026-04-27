@@ -1,5 +1,6 @@
 "use client";
 
+import type { PromptBillInput } from "@mirai-gikai/shared/interview-prompts/types";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -15,17 +16,21 @@ import {
 } from "../../server/actions/upsert-interview-config";
 import type {
   InterviewConfig,
+  InterviewConfigFormValues,
   InterviewQuestion,
   InterviewQuestionInput,
 } from "../../shared/types";
 import { ConfigGenerationChat } from "./config-generation-chat";
 import { InterviewConfigForm } from "./interview-config-form";
 import { InterviewQuestionList } from "./interview-question-list";
+import { SystemPromptPreview } from "./system-prompt-preview";
 
 interface InterviewConfigEditClientProps {
   billId: string;
   config: InterviewConfig | null;
   questions: InterviewQuestion[];
+  /** プロンプトプレビュー用の Bill 情報 */
+  billPromptInput: PromptBillInput;
   completedReports: CompletedReportListItem[];
   /** レポート一覧が上限で切り詰められたか（シミュレーション UI の警告表示用） */
   completedReportsTruncated?: boolean;
@@ -37,6 +42,7 @@ export function InterviewConfigEditClient({
   billId,
   config: initialConfig,
   questions,
+  billPromptInput,
   completedReports,
   completedReportsTruncated = false,
   completedReportsLimit,
@@ -53,17 +59,9 @@ export function InterviewConfigEditClient({
   >(null);
 
   // フォームの値を取得するためのref
-  const getFormValuesRef = useRef<
-    | (() => {
-        name: string;
-        knowledge_source: string;
-        mode: string;
-        themes: string[];
-        chat_model: string | null;
-        estimated_duration: number | null;
-      })
-    | null
-  >(null);
+  const getFormValuesRef = useRef<(() => InterviewConfigFormValues) | null>(
+    null
+  );
   // 質問一覧の現在値を取得するための ref（シミュレーション機能で使用）
   const getQuestionsRef = useRef<(() => InterviewQuestionInput[]) | null>(null);
 
@@ -87,7 +85,7 @@ export function InterviewConfigEditClient({
           const result = await createInterviewConfig(billId, {
             name: formValues?.name || "AI生成設定",
             status: "closed",
-            mode: (formValues?.mode as "loop" | "bulk") || "loop",
+            mode: formValues?.mode || "loop",
             themes,
             knowledge_source: formValues?.knowledge_source || "",
             chat_model: formValues?.chat_model || null,
@@ -154,10 +152,7 @@ export function InterviewConfigEditClient({
       const result = await updateInterviewConfig(targetConfigId, {
         name: formValues?.name || initialConfig?.name || "AI生成設定",
         status: initialConfig?.status || "closed",
-        mode:
-          (formValues?.mode as "loop" | "bulk") ||
-          initialConfig?.mode ||
-          "loop",
+        mode: formValues?.mode || initialConfig?.mode || "loop",
         themes,
         knowledge_source:
           formValues?.knowledge_source || initialConfig?.knowledge_source || "",
@@ -182,6 +177,7 @@ export function InterviewConfigEditClient({
     <Tabs defaultValue="edit" className="w-full">
       <TabsList>
         <TabsTrigger value="edit">設定編集</TabsTrigger>
+        <TabsTrigger value="prompt">プロンプトプレビュー</TabsTrigger>
         <TabsTrigger value="simulation" disabled={!configId}>
           シミュレーション
           {!configId && "（保存後に有効）"}
@@ -235,6 +231,20 @@ export function InterviewConfigEditClient({
             />
           </div>
         </div>
+      </TabsContent>
+
+      <TabsContent
+        value="prompt"
+        forceMount
+        className="mt-4 data-[state=inactive]:hidden"
+      >
+        <SystemPromptPreview
+          bill={billPromptInput}
+          initialConfig={initialConfig}
+          initialQuestions={questions}
+          getFormValuesRef={getFormValuesRef}
+          getQuestionsRef={getQuestionsRef}
+        />
       </TabsContent>
 
       {configId ? (

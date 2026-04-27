@@ -64,4 +64,17 @@ export type InterviewQuestionsInput = z.infer<
   typeof interviewQuestionsInputSchema
 >;
 
+/**
+ * 編集中フォームの現在値を親 / 兄弟コンポーネントから読み取るための共通型。
+ * `getFormValuesRef` 経由で受け渡しされる。
+ */
+export type InterviewConfigFormValues = {
+  name: string;
+  knowledge_source: string;
+  mode: "loop" | "bulk";
+  themes: string[];
+  chat_model: string | null;
+  estimated_duration: number | null;
+};
+
 export { arrayToText, textToArray } from "../utils/array-text-conversion";

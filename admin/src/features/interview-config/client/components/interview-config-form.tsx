@@ -39,6 +39,7 @@ import {
 import {
   arrayToText,
   type InterviewConfig,
+  type InterviewConfigFormValues,
   type InterviewConfigInput,
   interviewConfigSchema,
   textToArray,
@@ -55,17 +56,7 @@ interface InterviewConfigFormProps {
   aiGeneratedThemes?: string[] | null;
   onAiThemesApplied?: () => void;
   onConfigCreated?: (configId: string) => Promise<void>;
-  getFormValuesRef?: MutableRefObject<
-    | (() => {
-        name: string;
-        knowledge_source: string;
-        mode: string;
-        themes: string[];
-        chat_model: string | null;
-        estimated_duration: number | null;
-      })
-    | null
-  >;
+  getFormValuesRef?: MutableRefObject<(() => InterviewConfigFormValues) | null>;
 }
 
 export function InterviewConfigForm({
