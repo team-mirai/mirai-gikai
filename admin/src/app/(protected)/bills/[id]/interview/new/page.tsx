@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { InterviewConfigEditClient } from "@/features/interview-config/client/components/interview-config-edit-client";
+import { getBillPromptInputForBill } from "@/features/interview-config/server/loaders/get-bill-prompt-input";
 import { routes } from "@/lib/routes";
 
 interface InterviewNewPageProps {
@@ -22,6 +23,8 @@ export default async function InterviewNewPage({
   if (!bill) {
     notFound();
   }
+
+  const billPromptInput = await getBillPromptInputForBill(bill);
 
   return (
     <div>
@@ -48,6 +51,7 @@ export default async function InterviewNewPage({
         billId={bill.id}
         config={null}
         questions={[]}
+        billPromptInput={billPromptInput}
         completedReports={[]}
       />
     </div>

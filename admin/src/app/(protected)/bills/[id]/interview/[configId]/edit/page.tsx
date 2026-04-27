@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
+import { getBillPromptInputForBill } from "@/features/interview-config/server/loaders/get-bill-prompt-input";
 import { InterviewConfigEditClient } from "@/features/interview-config/client/components/interview-config-edit-client";
 import { getInterviewConfigById } from "@/features/interview-config/server/loaders/get-interview-config";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
@@ -30,10 +31,12 @@ export default async function InterviewEditPage({
     notFound();
   }
 
-  const [questions, completedReportsResult] = await Promise.all([
-    getInterviewQuestions(config.id),
-    getCompletedReportsForBill(bill.id),
-  ]);
+  const [questions, completedReportsResult, billPromptInput] =
+    await Promise.all([
+      getInterviewQuestions(config.id),
+      getCompletedReportsForBill(bill.id),
+      getBillPromptInputForBill(bill),
+    ]);
 
   return (
     <div>
@@ -61,6 +64,7 @@ export default async function InterviewEditPage({
         billId={bill.id}
         config={config}
         questions={questions}
+        billPromptInput={billPromptInput}
         completedReports={completedReportsResult.reports}
         completedReportsTruncated={completedReportsResult.isTruncated}
         completedReportsLimit={completedReportsResult.limit}
