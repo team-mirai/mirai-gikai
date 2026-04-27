@@ -22,7 +22,6 @@ describe("buildKnowledgeSourceSection", () => {
   it("前後の空白はトリムされる", () => {
     const result = buildKnowledgeSourceSection("  内容  \n\n");
 
-    expect(result).toContain("内容");
-    expect(result).not.toMatch(/<knowledge_source>\s+ {2}内容/);
+    expect(result).toContain("<knowledge_source>\n内容\n</knowledge_source>");
   });
 });
