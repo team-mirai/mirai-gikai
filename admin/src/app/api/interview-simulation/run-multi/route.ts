@@ -49,6 +49,7 @@ async function buildPipelineParams(params: MultiSimulationRunRequest) {
 
   const bill: PromptBillInput = {
     name: billData.bill.name,
+    knowledge_source: billData.bill.knowledge_source,
     bill_content: {
       title: billData.billTitle,
       summary: billData.billSummary,
@@ -75,7 +76,6 @@ async function buildPipelineParams(params: MultiSimulationRunRequest) {
         bill,
         interviewConfig: {
           themes: params.improvedConfig.themes,
-          knowledge_source: params.improvedConfig.knowledgeSource,
         },
         questions: improvedQuestions,
         mode: params.improvedConfig.mode,

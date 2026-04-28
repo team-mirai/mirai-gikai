@@ -49,6 +49,8 @@ export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
       is_featured: bill.is_featured,
       is_review_completed: bill.is_review_completed,
       diet_session_id: defaultDietSessionId,
+      knowledge_source: bill.knowledge_source ?? "",
+      use_knowledge_source_in_chat: bill.use_knowledge_source_in_chat,
     },
   });
 

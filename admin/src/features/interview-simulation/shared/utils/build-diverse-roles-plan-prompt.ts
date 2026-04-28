@@ -39,7 +39,7 @@ export function buildDiverseRolesPlanPrompt(
   const billSummary = bill?.bill_content?.summary || "";
   const billContent = bill?.bill_content?.content || "";
   const themes = interviewConfig?.themes || [];
-  const knowledgeSource = interviewConfig?.knowledge_source || "";
+  const knowledgeSource = bill?.knowledge_source || "";
 
   const slotLines = slotsToPlan
     .map((slot, i) => {

@@ -26,7 +26,7 @@ export function buildBulkModeSystemPrompt(
   const billSummary = bill?.bill_content?.summary || "";
   const billContent = bill?.bill_content?.content || "";
   const themes = interviewConfig?.themes || [];
-  const knowledgeSource = interviewConfig?.knowledge_source || "";
+  const knowledgeSource = bill?.knowledge_source || "";
 
   // Bulk Mode: follow_up_guide を含めない
   const questionsText = questions

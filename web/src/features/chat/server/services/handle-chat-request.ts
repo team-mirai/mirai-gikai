@@ -14,7 +14,9 @@ import {
   SUGGEST_INTERVIEW_TOOL_NAME,
   SUGGEST_INTERVIEW_TOOL_TYPE,
 } from "@/features/chat/shared/constants";
+import { findPublishedBillById } from "@/features/bills/server/repositories/bill-repository";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import { pickChatKnowledgeSource } from "@/features/chat/shared/utils/pick-chat-knowledge-source";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
 import { env } from "@/lib/env";
 import {
@@ -189,15 +191,24 @@ async function buildPrompt(
       : `bill-chat-system-${context.difficultyLevel}`;
 
   // Prepare prompt variables
-  const variables: Record<string, string> =
-    context.pageContext?.type === "home"
-      ? { billSummary: JSON.stringify(context.pageContext.bills ?? "") }
-      : {
-          billName: context.billContext?.name ?? "",
-          billTitle: context.billContext?.bill_content?.title ?? "",
-          billSummary: context.billContext?.bill_content?.summary ?? "",
-          billContent: context.billContext?.bill_content?.content ?? "",
-        };
+  // knowledge_source / use_knowledge_source_in_chat はクライアント側のメタデータを信頼せず、
+  // 必ずサーバー側で bill を再取得して決定する（管理画面トグルの強制と非公開ナレッジ流出防止）
+  let variables: Record<string, string>;
+  if (context.pageContext?.type === "home") {
+    variables = {
+      billSummary: JSON.stringify(context.pageContext.bills ?? ""),
+    };
+  } else {
+    const billId = context.billContext?.id;
+    const serverBill = billId ? await findPublishedBillById(billId) : null;
+    variables = {
+      billName: context.billContext?.name ?? "",
+      billTitle: context.billContext?.bill_content?.title ?? "",
+      billSummary: context.billContext?.bill_content?.summary ?? "",
+      billContent: context.billContext?.bill_content?.content ?? "",
+      knowledgeSource: pickChatKnowledgeSource(serverBill),
+    };
+  }
 
   // Fetch prompt from Langfuse
   try {

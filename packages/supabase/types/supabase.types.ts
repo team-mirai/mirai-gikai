@@ -82,6 +82,7 @@ export type Database = {
           id: string
           is_featured: boolean
           is_review_completed: boolean
+          knowledge_source: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
@@ -96,6 +97,7 @@ export type Database = {
           submitted_date: string | null
           thumbnail_url: string | null
           updated_at: string
+          use_knowledge_source_in_chat: boolean
         }
         Insert: {
           created_at?: string
@@ -103,6 +105,7 @@ export type Database = {
           id?: string
           is_featured?: boolean
           is_review_completed?: boolean
+          knowledge_source?: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
@@ -117,6 +120,7 @@ export type Database = {
           submitted_date?: string | null
           thumbnail_url?: string | null
           updated_at?: string
+          use_knowledge_source_in_chat?: boolean
         }
         Update: {
           created_at?: string
@@ -124,6 +128,7 @@ export type Database = {
           id?: string
           is_featured?: boolean
           is_review_completed?: boolean
+          knowledge_source?: string | null
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
@@ -138,6 +143,7 @@ export type Database = {
           submitted_date?: string | null
           thumbnail_url?: string | null
           updated_at?: string
+          use_knowledge_source_in_chat?: boolean
         }
         Relationships: [
           {
@@ -338,7 +344,6 @@ export type Database = {
           created_at: string
           estimated_duration: number | null
           id: string
-          knowledge_source: string | null
           mode: Database["public"]["Enums"]["interview_mode_enum"]
           name: string
           status: Database["public"]["Enums"]["interview_config_status_enum"]
@@ -351,7 +356,6 @@ export type Database = {
           created_at?: string
           estimated_duration?: number | null
           id?: string
-          knowledge_source?: string | null
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
           name: string
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
@@ -364,7 +368,6 @@ export type Database = {
           created_at?: string
           estimated_duration?: number | null
           id?: string
-          knowledge_source?: string | null
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
           name?: string
           status?: Database["public"]["Enums"]["interview_config_status_enum"]

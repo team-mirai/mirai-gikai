@@ -13,7 +13,6 @@ export async function POST(req: Request) {
   const {
     messages,
     billId,
-    configId,
     stage,
     existingThemes,
     existingQuestions,
@@ -21,7 +20,6 @@ export async function POST(req: Request) {
   }: {
     messages: Array<{ role: string; content: string }>;
     billId: string;
-    configId?: string;
     stage: Extract<
       ConfigGenerationStage,
       "default_questions" | "question_proposal" | "theme_proposal"
@@ -50,7 +48,6 @@ export async function POST(req: Request) {
     return await handleConfigGeneration({
       messages,
       billId,
-      configId,
       stage,
       existingThemes,
       existingQuestions,

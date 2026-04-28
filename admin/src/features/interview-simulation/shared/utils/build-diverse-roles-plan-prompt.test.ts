@@ -3,6 +3,7 @@ import { buildDiverseRolesPlanPrompt } from "./build-diverse-roles-plan-prompt";
 
 const baseBill = {
   name: "宇宙ビジネス促進法案",
+  knowledge_source: "業界団体ヒアリング",
   bill_content: {
     title: "民間宇宙射場の整備促進",
     summary: "民間事業者の射場運用を支援する",
@@ -12,7 +13,6 @@ const baseBill = {
 
 const baseConfig = {
   themes: ["射場の安全性", "地域経済への影響"],
-  knowledge_source: "業界団体ヒアリング",
 };
 
 describe("buildDiverseRolesPlanPrompt", () => {
@@ -77,8 +77,8 @@ describe("buildDiverseRolesPlanPrompt", () => {
 
   it("テーマ未設定時は明示する", () => {
     const out = buildDiverseRolesPlanPrompt({
-      bill: baseBill,
-      interviewConfig: { themes: [], knowledge_source: null },
+      bill: { ...baseBill, knowledge_source: null },
+      interviewConfig: { themes: [] },
       slotsToPlan: [{}, {}],
     });
     expect(out).toContain("（テーマ未設定）");

@@ -54,6 +54,10 @@ const billBaseSchema = z.object({
     .transform((val) => (val === "" ? null : val))
     .nullable()
     .optional(),
+  knowledge_source: z
+    .string()
+    .max(40_000, "ナレッジソースは40,000文字以内で入力してください"),
+  use_knowledge_source_in_chat: z.boolean(),
 });
 
 // 更新用スキーマ（既存）

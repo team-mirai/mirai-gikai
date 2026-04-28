@@ -51,7 +51,6 @@ export async function createInterviewConfig(
       status: validatedData.status,
       mode: validatedData.mode,
       themes: validatedData.themes || null,
-      knowledge_source: validatedData.knowledge_source || null,
       chat_model: validatedData.chat_model || null,
       estimated_duration: validatedData.estimated_duration ?? null,
     });
@@ -98,7 +97,6 @@ export async function updateInterviewConfig(
       status: validatedData.status,
       mode: validatedData.mode,
       themes: validatedData.themes || null,
-      knowledge_source: validatedData.knowledge_source || null,
       chat_model: validatedData.chat_model || null,
       estimated_duration: validatedData.estimated_duration ?? null,
       updated_at: new Date().toISOString(),
@@ -151,7 +149,6 @@ export async function duplicateInterviewConfig(
         status: "closed" as const,
         mode: originalConfig.mode as "loop" | "bulk",
         themes: originalConfig.themes,
-        knowledge_source: originalConfig.knowledge_source,
         chat_model: originalConfig.chat_model,
         estimated_duration: originalConfig.estimated_duration,
       });

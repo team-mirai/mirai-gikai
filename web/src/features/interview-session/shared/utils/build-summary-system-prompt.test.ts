@@ -25,6 +25,8 @@ const makeBill = (
   status_order: BILL_STATUS_ORDER.introduced,
   publish_status_order: 2,
   thumbnail_url: null,
+  knowledge_source: null,
+  use_knowledge_source_in_chat: false,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   bill_content: {
