@@ -14,7 +14,10 @@ import {
   SUGGEST_INTERVIEW_TOOL_NAME,
   SUGGEST_INTERVIEW_TOOL_TYPE,
 } from "@/features/chat/shared/constants";
-import { findPublishedBillById } from "@/features/bills/server/repositories/bill-repository";
+import {
+  findBillContentByDifficulty,
+  findPublishedBillById,
+} from "@/features/bills/server/repositories/bill-repository";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { pickChatKnowledgeSource } from "@/features/chat/shared/utils/pick-chat-knowledge-source";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
@@ -191,8 +194,9 @@ async function buildPrompt(
       : `bill-chat-system-${context.difficultyLevel}`;
 
   // Prepare prompt variables
-  // knowledge_source / use_knowledge_source_in_chat はクライアント側のメタデータを信頼せず、
-  // 必ずサーバー側で bill を再取得して決定する（管理画面トグルの強制と非公開ナレッジ流出防止）
+  // bill 関連の変数はクライアント側のメタデータを信頼せず、必ずサーバー側で再取得した
+  // 公開済みデータのみから組み立てる（管理画面トグルの強制と非公開ナレッジ流出防止）。
+  // 公開済み bill が引けない場合は bill コンテキスト自体を空にする。
   let variables: Record<string, string>;
   if (context.pageContext?.type === "home") {
     variables = {
@@ -200,12 +204,17 @@ async function buildPrompt(
     };
   } else {
     const billId = context.billContext?.id;
-    const serverBill = billId ? await findPublishedBillById(billId) : null;
+    const [serverBill, serverContent] = billId
+      ? await Promise.all([
+          findPublishedBillById(billId),
+          findBillContentByDifficulty(billId, context.difficultyLevel),
+        ])
+      : [null, null];
     variables = {
-      billName: context.billContext?.name ?? "",
-      billTitle: context.billContext?.bill_content?.title ?? "",
-      billSummary: context.billContext?.bill_content?.summary ?? "",
-      billContent: context.billContext?.bill_content?.content ?? "",
+      billName: serverBill?.name ?? "",
+      billTitle: serverContent?.title ?? "",
+      billSummary: serverContent?.summary ?? "",
+      billContent: serverContent?.content ?? "",
       knowledgeSource: pickChatKnowledgeSource(serverBill),
     };
   }

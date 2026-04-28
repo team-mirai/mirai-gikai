@@ -21,7 +21,7 @@ FROM (
   FROM interview_configs
   WHERE knowledge_source IS NOT NULL
     AND btrim(knowledge_source) <> ''
-  ORDER BY bill_id, (status = 'public') DESC, updated_at DESC
+  ORDER BY bill_id, (status = 'public') DESC, updated_at DESC, id DESC
 ) sub
 WHERE b.id = sub.bill_id;
 

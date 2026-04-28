@@ -136,7 +136,15 @@ async function seedDatabase() {
     for (const bill of insertedBills) {
       const ks = knowledgeSourceByBillName[bill.name];
       if (!ks) continue;
-      await supabase.from("bills").update(ks).eq("id", bill.id);
+      const { error: ksError } = await supabase
+        .from("bills")
+        .update(ks)
+        .eq("id", bill.id);
+      if (ksError) {
+        throw new Error(
+          `Failed to update knowledge_source for bill ${bill.name} (${bill.id}): ${ksError.message}`
+        );
+      }
     }
 
     // Insert bill_contents

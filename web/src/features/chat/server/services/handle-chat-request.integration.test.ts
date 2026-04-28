@@ -207,7 +207,7 @@ describe("handleChatRequest 統合テスト", () => {
       }
     });
 
-    it("クライアント側で knowledge_source を偽装してもサーバー側のDB値が優先される", async () => {
+    it("クライアント側で bill 関連フィールドを偽装してもサーバー側のDB値が優先される", async () => {
       const bill = await createTestBill({ publish_status: "published" });
       await adminClient
         .from("bills")
@@ -216,6 +216,13 @@ describe("handleChatRequest 統合テスト", () => {
           use_knowledge_source_in_chat: false,
         })
         .eq("id", bill.id);
+      await adminClient.from("bill_contents").insert({
+        bill_id: bill.id,
+        difficulty_level: "normal",
+        title: "サーバー側タイトル",
+        summary: "サーバー側要約",
+        content: "サーバー側本文",
+      });
 
       try {
         const receivedVariables: Array<Record<string, string> | undefined> = [];
@@ -232,7 +239,12 @@ describe("handleChatRequest 統合テスト", () => {
         const messages = createTestMessages({
           billContext: {
             id: bill.id,
-            name: bill.name,
+            name: "クライアント側で書き換えた名称",
+            bill_content: {
+              title: "クライアント側で書き換えたタイトル",
+              summary: "クライアント側で書き換えた要約",
+              content: "クライアント側で書き換えた本文",
+            },
             knowledge_source: "クライアントから注入した秘密",
             use_knowledge_source_in_chat: true,
           } as unknown as ChatMessageMetadata["billContext"],
@@ -246,6 +258,10 @@ describe("handleChatRequest 統合テスト", () => {
         await consumeResponseStream(response);
 
         expect(receivedVariables[0]?.knowledgeSource).toBe("");
+        expect(receivedVariables[0]?.billName).toBe(bill.name);
+        expect(receivedVariables[0]?.billTitle).toBe("サーバー側タイトル");
+        expect(receivedVariables[0]?.billSummary).toBe("サーバー側要約");
+        expect(receivedVariables[0]?.billContent).toBe("サーバー側本文");
       } finally {
         await cleanupTestBill(bill.id);
       }
