@@ -66,7 +66,7 @@ export const bills: BillInsert[] = [
     submitted_date: "2025-08-01T09:00:00+09:00",
     publish_status: "published",
     is_featured: true,
-    thumbnail_url: "https://placehold.co/600x400",
+    thumbnail_url: "https://placehold.co/600x400.png",
   },
   {
     name: "こども家庭庁予算大幅増額法案",
@@ -76,7 +76,7 @@ export const bills: BillInsert[] = [
     submitted_date: "2025-01-20T10:00:00+09:00",
     publish_status: "published",
     is_featured: true,
-    thumbnail_url: "https://placehold.co/600x400",
+    thumbnail_url: "https://placehold.co/600x400.png",
   },
   {
     name: "18歳選挙権完全実施法案",
@@ -86,7 +86,7 @@ export const bills: BillInsert[] = [
     submitted_date: "2025-02-01T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
-    thumbnail_url: "https://placehold.co/600x400",
+    thumbnail_url: "https://placehold.co/600x400.png",
   },
   {
     name: "学校給食無償化促進法案",
@@ -96,7 +96,7 @@ export const bills: BillInsert[] = [
     submitted_date: "2025-01-10T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
-    thumbnail_url: "https://placehold.co/600x400",
+    thumbnail_url: "https://placehold.co/600x400.png",
   },
   // 第218回国会用の追加法案（デザイン確認用）- ループで生成
   ...Array.from({ length: 4 }, (_, i) => ({
@@ -109,7 +109,7 @@ export const bills: BillInsert[] = [
     submitted_date: `2025-08-0${i + 1}T09:00:00+09:00`,
     publish_status: "published" as const,
     is_featured: false,
-    thumbnail_url: "https://placehold.co/600x400",
+    thumbnail_url: "https://placehold.co/600x400.png",
   })),
   {
     name: "船荷証券の電子化に関する法律案",
@@ -119,7 +119,7 @@ export const bills: BillInsert[] = [
     submitted_date: "2025-09-15T09:00:00+09:00",
     publish_status: "published",
     is_featured: false,
-    thumbnail_url: "https://placehold.co/600x400",
+    thumbnail_url: "https://placehold.co/600x400.png",
   },
   {
     name: "中学生・高校生向けプログラミング教育必修化法案",
@@ -129,7 +129,7 @@ export const bills: BillInsert[] = [
     submitted_date: "2024-11-15T10:00:00+09:00",
     publish_status: "published",
     is_featured: false,
-    thumbnail_url: "https://placehold.co/600x400",
+    thumbnail_url: "https://placehold.co/600x400.png",
   },
 ];
 
