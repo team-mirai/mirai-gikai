@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -58,13 +58,28 @@ export function CopyConfigToBillDialog({
     [bills, currentBillId, query]
   );
 
-  const handleOpenChange = (next: boolean) => {
-    if (!next && isSubmitting) return;
-    if (!next) {
-      setQuery("");
+  // 検索で見えなくなった選択肢をそのまま送信できないようにクリアする。
+  useEffect(() => {
+    if (selectedBillId && !filtered.some((b) => b.id === selectedBillId)) {
       setSelectedBillId(null);
     }
-    onOpenChange(next);
+  }, [filtered, selectedBillId]);
+
+  const closeDialog = () => {
+    setQuery("");
+    setSelectedBillId(null);
+    onOpenChange(false);
+  };
+
+  const handleOpenChange = (next: boolean) => {
+    if (next) {
+      onOpenChange(true);
+      return;
+    }
+    // 送信中は Escape やオーバーレイクリックでの閉じ操作をブロックする。
+    // 成功時は handleSubmit が closeDialog() を直接呼ぶ。
+    if (isSubmitting) return;
+    closeDialog();
   };
 
   const handleSubmit = async () => {
@@ -76,13 +91,14 @@ export function CopyConfigToBillDialog({
       });
       if (result.success) {
         toast.success("他法案へインタビュー設定を複製しました");
-        handleOpenChange(false);
+        setIsSubmitting(false);
+        closeDialog();
         router.push(
           routes.billInterviewEdit(result.data.billId, result.data.id) as Route
         );
-      } else {
-        toast.error(result.error || "複製に失敗しました");
+        return;
       }
+      toast.error(result.error || "複製に失敗しました");
     } catch (error) {
       console.error("Copy interview config to bill error:", error);
       toast.error("予期しないエラーが発生しました");
