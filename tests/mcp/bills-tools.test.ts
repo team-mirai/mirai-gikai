@@ -141,6 +141,8 @@ describe("MCP bills tools", () => {
         submitted_date: "2025-04-01",
         is_featured: false,
         is_review_completed: false,
+        knowledge_source: "",
+        use_knowledge_source_in_chat: false,
       });
 
       expect(result.ok).toBe(true);
@@ -169,6 +171,8 @@ describe("MCP bills tools", () => {
         submitted_date: "",
         is_featured: false,
         is_review_completed: false,
+        knowledge_source: "",
+        use_knowledge_source_in_chat: false,
       });
       billIds.push(result.bill.id);
 
@@ -194,6 +198,8 @@ describe("MCP bills tools", () => {
         status_note: null,
         is_featured: false,
         is_review_completed: true,
+        knowledge_source: "",
+        use_knowledge_source_in_chat: false,
       });
       expect(result.ok).toBe(true);
 
