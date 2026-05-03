@@ -183,6 +183,31 @@ describe("MCP bills tools", () => {
         .single();
       expect(data?.submitted_date).toBeNull();
     });
+
+    it("knowledge_source / use_knowledge_source_in_chat を省略しても作成できる", async () => {
+      const result = await registry.callTool<{
+        ok: boolean;
+        bill: { id: string };
+      }>("create_bill", {
+        name: `MCP作成テスト省略-${Date.now()}`,
+        status: "introduced",
+        originating_house: "HR",
+        status_note: null,
+        is_featured: false,
+        is_review_completed: false,
+      });
+      expect(result.ok).toBe(true);
+      billIds.push(result.bill.id);
+
+      const { data } = await adminClient
+        .from("bills")
+        .select("knowledge_source, use_knowledge_source_in_chat")
+        .eq("id", result.bill.id)
+        .single();
+      // 省略時は DB のデフォルト（NULL / false）が入る
+      expect(data?.knowledge_source).toBeNull();
+      expect(data?.use_knowledge_source_in_chat).toBe(false);
+    });
   });
 
   describe("update_bill", () => {
@@ -212,6 +237,37 @@ describe("MCP bills tools", () => {
       expect(data?.status).toBe("enacted");
       expect(data?.originating_house).toBe("HC");
       expect(data?.is_review_completed).toBe(true);
+    });
+
+    it("knowledge_source / use_knowledge_source_in_chat を省略しても更新できる", async () => {
+      const bill = await createTestBill({ name: "ナレッジ無し更新前" });
+      billIds.push(bill.id);
+      // 既存値を持たせておき、省略しても上書きされない（または DB デフォルト挙動）を確認する
+      await adminClient
+        .from("bills")
+        .update({
+          knowledge_source: "既存ナレッジ",
+          use_knowledge_source_in_chat: true,
+        })
+        .eq("id", bill.id);
+
+      const result = await registry.callTool<{ ok: boolean }>("update_bill", {
+        billId: bill.id,
+        name: "ナレッジ無し更新後",
+        status: "introduced",
+        originating_house: "HR",
+        status_note: null,
+        is_featured: false,
+        is_review_completed: false,
+      });
+      expect(result.ok).toBe(true);
+
+      const { data } = await adminClient
+        .from("bills")
+        .select("name")
+        .eq("id", bill.id)
+        .single();
+      expect(data?.name).toBe("ナレッジ無し更新後");
     });
   });
 
