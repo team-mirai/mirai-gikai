@@ -18,10 +18,11 @@ export function getBillDetailLink(
  */
 export function getInterviewLPLink(
   billId: string,
-  previewToken?: string
+  previewToken?: string,
+  previewConfigId?: string
 ): string {
   if (previewToken) {
-    return routes.previewInterviewLP(billId, previewToken);
+    return routes.previewInterviewLP(billId, previewToken, previewConfigId);
   }
   return routes.interviewLP(billId);
 }
@@ -31,10 +32,15 @@ export function getInterviewLPLink(
  */
 export function getInterviewDisclosureLink(
   billId: string,
-  previewToken?: string
+  previewToken?: string,
+  previewConfigId?: string
 ): string {
   if (previewToken) {
-    return routes.previewInterviewDisclosure(billId, previewToken);
+    return routes.previewInterviewDisclosure(
+      billId,
+      previewToken,
+      previewConfigId
+    );
   }
   return routes.interviewDisclosure(billId);
 }
@@ -44,10 +50,11 @@ export function getInterviewDisclosureLink(
  */
 export function getInterviewChatLink(
   billId: string,
-  previewToken?: string
+  previewToken?: string,
+  previewConfigId?: string
 ): string {
   if (previewToken) {
-    return routes.previewInterviewChat(billId, previewToken);
+    return routes.previewInterviewChat(billId, previewToken, previewConfigId);
   }
   return routes.interviewChat(billId);
 }

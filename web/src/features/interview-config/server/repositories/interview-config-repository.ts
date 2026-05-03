@@ -18,6 +18,21 @@ export async function findPublicInterviewConfigByBillId(billId: string) {
 }
 
 /**
+ * config_idからインタビュー設定を取得（ステータス問わず）。
+ * プレビューモードで編集中の非公開設定を直接指定したいときに使う。
+ */
+export async function findInterviewConfigById(configId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_configs")
+    .select("*")
+    .eq("id", configId)
+    .single();
+
+  return { data, error };
+}
+
+/**
  * bill_idから最新のインタビュー設定を取得（ステータス問わず）
  */
 export async function findLatestInterviewConfigByBillId(billId: string) {

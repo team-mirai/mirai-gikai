@@ -22,6 +22,8 @@ interface InterviewLPPageProps {
   interviewConfig: InterviewConfig;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  /** プレビュー時に編集中の configId を維持する（disclosure/chat に引き継ぐ） */
+  previewConfigId?: string;
   userReports?: UserReportsResult | null;
 }
 
@@ -71,11 +73,13 @@ function _InterviewLPHero({
   billId,
   sessionInfo,
   previewToken,
+  previewConfigId,
 }: {
   bill: BillWithContent;
   billId: string;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  previewConfigId?: string;
 }) {
   const billLink = getBillDetailLink(billId, previewToken);
 
@@ -124,6 +128,7 @@ function _InterviewLPHero({
             billId={billId}
             sessionInfo={sessionInfo}
             previewToken={previewToken}
+            previewConfigId={previewConfigId}
           />
         </div>
       )}
@@ -258,11 +263,17 @@ function _InterviewNoticeSection() {
 function _InterviewDisclosureLink({
   billId,
   previewToken,
+  previewConfigId,
 }: {
   billId: string;
   previewToken?: string;
+  previewConfigId?: string;
 }) {
-  const disclosureLink = getInterviewDisclosureLink(billId, previewToken);
+  const disclosureLink = getInterviewDisclosureLink(
+    billId,
+    previewToken,
+    previewConfigId
+  );
 
   return (
     <div className="w-full max-w-[560px] mx-auto">
@@ -280,10 +291,12 @@ function _InterviewFooterActions({
   billId,
   sessionInfo,
   previewToken,
+  previewConfigId,
 }: {
   billId: string;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  previewConfigId?: string;
 }) {
   const billLink = getBillDetailLink(billId, previewToken);
 
@@ -293,6 +306,7 @@ function _InterviewFooterActions({
         billId={billId}
         sessionInfo={sessionInfo}
         previewToken={previewToken}
+        previewConfigId={previewConfigId}
       />
       <Link href={billLink as Route}>
         <Button variant="outline" className="w-full">
@@ -309,6 +323,7 @@ export function InterviewLPPage({
   interviewConfig,
   sessionInfo,
   previewToken,
+  previewConfigId,
   userReports,
 }: InterviewLPPageProps) {
   return (
@@ -320,13 +335,18 @@ export function InterviewLPPage({
           billId={bill.id}
           sessionInfo={sessionInfo}
           previewToken={previewToken}
+          previewConfigId={previewConfigId}
         />
         {userReports && userReports.reports.length > 0 && (
           <PastReportsSection reports={userReports.reports} />
         )}
         {sessionInfo?.status === "completed" && sessionInfo?.reportId && (
           <div className="w-full max-w-[560px]">
-            <NewInterviewButton billId={bill.id} previewToken={previewToken} />
+            <NewInterviewButton
+              billId={bill.id}
+              previewToken={previewToken}
+              previewConfigId={previewConfigId}
+            />
           </div>
         )}
         <_InterviewOverviewSection
@@ -342,11 +362,13 @@ export function InterviewLPPage({
         <_InterviewDisclosureLink
           billId={bill.id}
           previewToken={previewToken}
+          previewConfigId={previewConfigId}
         />
         <_InterviewFooterActions
           billId={bill.id}
           sessionInfo={sessionInfo}
           previewToken={previewToken}
+          previewConfigId={previewConfigId}
         />
       </div>
     </div>

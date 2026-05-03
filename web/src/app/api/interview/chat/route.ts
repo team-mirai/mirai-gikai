@@ -19,11 +19,13 @@ export async function POST(req: Request) {
     billId,
     currentStage,
     isRetry,
+    interviewConfigId,
   }: {
     messages: Array<{ role: string; content: string }>;
     billId: string;
     currentStage: "chat" | "summary" | "summary_complete";
     isRetry?: boolean;
+    interviewConfigId?: string;
   } = body;
 
   const {
@@ -49,6 +51,7 @@ export async function POST(req: Request) {
       billId,
       currentStage,
       isRetry,
+      interviewConfigId,
       userId: user.id,
     });
   } catch (error) {

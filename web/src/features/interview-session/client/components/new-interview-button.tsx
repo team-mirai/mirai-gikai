@@ -11,18 +11,24 @@ import { getInterviewChatLink } from "@/features/interview-config/shared/utils/i
 interface NewInterviewButtonProps {
   billId: string;
   previewToken?: string;
+  previewConfigId?: string;
 }
 
 export function NewInterviewButton({
   billId,
   previewToken,
+  previewConfigId,
 }: NewInterviewButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClick = () => {
     setIsLoading(true);
-    const chatLink = getInterviewChatLink(billId, previewToken);
+    const chatLink = getInterviewChatLink(
+      billId,
+      previewToken,
+      previewConfigId
+    );
     router.push(chatLink as Route);
   };
 

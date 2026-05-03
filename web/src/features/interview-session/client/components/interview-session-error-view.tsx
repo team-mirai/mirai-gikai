@@ -9,6 +9,7 @@ import { getInterviewLPLink } from "@/features/interview-config/shared/utils/int
 interface InterviewSessionErrorViewProps {
   billId: string;
   previewToken?: string;
+  previewConfigId?: string;
   message?: string;
 }
 
@@ -18,9 +19,10 @@ interface InterviewSessionErrorViewProps {
 export function InterviewSessionErrorView({
   billId,
   previewToken,
+  previewConfigId,
   message = "インタビューの開始または再開中に問題が発生しました。一度インタビューのトップ画面に戻ってから、再度お試しください。",
 }: InterviewSessionErrorViewProps) {
-  const lpLink = getInterviewLPLink(billId, previewToken);
+  const lpLink = getInterviewLPLink(billId, previewToken, previewConfigId);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">

@@ -17,6 +17,7 @@ interface InterviewPreviewChatPageProps {
   }>;
   searchParams: Promise<{
     token?: string;
+    configId?: string;
   }>;
 }
 
@@ -49,7 +50,10 @@ export default async function InterviewPreviewChatPage({
   params,
   searchParams,
 }: InterviewPreviewChatPageProps) {
-  const [{ id: billId }, { token }] = await Promise.all([params, searchParams]);
+  const [{ id: billId }, { token, configId }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   // トークン検証
   const isValidToken = await validatePreviewToken(billId, token);
@@ -60,7 +64,7 @@ export default async function InterviewPreviewChatPage({
   // 法案と非公開設定を取得（管理者用ローダーで非公開法案も取得可能にする）
   const [bill, interviewConfig] = await Promise.all([
     getBillByIdAdmin(billId),
-    getInterviewConfigAdmin(billId),
+    getInterviewConfigAdmin(billId, configId),
   ]);
 
   if (!bill || !interviewConfig) {
@@ -94,6 +98,7 @@ export default async function InterviewPreviewChatPage({
           sessionStartedAt={session.started_at}
           hasRated={session.rating != null}
           previewToken={token}
+          previewConfigId={configId}
         />
       </>
     );
@@ -102,7 +107,11 @@ export default async function InterviewPreviewChatPage({
     return (
       <>
         <PreviewBanner />
-        <InterviewSessionErrorView billId={billId} previewToken={token} />
+        <InterviewSessionErrorView
+          billId={billId}
+          previewToken={token}
+          previewConfigId={configId}
+        />
       </>
     );
   }

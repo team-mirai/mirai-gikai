@@ -28,4 +28,9 @@ export interface InterviewChatRequestParams {
   currentStage: "chat" | "summary" | "summary_complete";
   isRetry?: boolean;
   nextQuestionId?: string;
+  /**
+   * プレビューモードで非公開 config を直接指定するときのみ渡す。
+   * 通常のユーザー経路では未指定で、サーバー側が公開設定を解決する。
+   */
+  interviewConfigId?: string;
 }

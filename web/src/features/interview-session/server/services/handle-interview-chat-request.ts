@@ -59,7 +59,10 @@ export type InterviewChatDeps = {
   /** テスト時にcookies依存をバイパスするための法案取得関数 */
   getBill?: (billId: string) => Promise<BillWithContent | null>;
   /** テスト時にnext/cache依存をバイパスするためのインタビュー設定取得関数 */
-  getInterviewConfig?: (billId: string) => Promise<InterviewConfig | null>;
+  getInterviewConfig?: (
+    billId: string,
+    configId?: string
+  ) => Promise<InterviewConfig | null>;
 };
 
 /**
@@ -73,6 +76,7 @@ export async function handleInterviewChatRequest({
   billId,
   currentStage,
   isRetry = false,
+  interviewConfigId,
   userId,
   deps,
 }: InterviewChatRequestParams & {
@@ -96,7 +100,7 @@ export async function handleInterviewChatRequest({
     deps?.getInterviewConfig ?? getInterviewConfigAdmin;
   const getBillFn = deps?.getBill ?? getBillByIdAdmin;
   const [interviewConfig, bill] = await Promise.all([
-    getInterviewConfigFn(billId),
+    getInterviewConfigFn(billId, interviewConfigId),
     getBillFn(billId),
   ]);
 
