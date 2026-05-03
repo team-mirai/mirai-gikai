@@ -33,4 +33,9 @@ export interface InterviewChatRequestParams {
    * 通常のユーザー経路では未指定で、サーバー側が公開設定を解決する。
    */
   interviewConfigId?: string;
+  /**
+   * プレビューモードで `interviewConfigId` を有効化するための認可トークン。
+   * 同じ bill に紐づく有効なトークンが無いと API 側で拒否される。
+   */
+  previewToken?: string;
 }

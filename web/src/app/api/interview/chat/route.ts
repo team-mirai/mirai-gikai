@@ -1,3 +1,4 @@
+import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import {
   checkSystemDailyCostLimit,
@@ -20,12 +21,14 @@ export async function POST(req: Request) {
     currentStage,
     isRetry,
     interviewConfigId,
+    previewToken,
   }: {
     messages: Array<{ role: string; content: string }>;
     billId: string;
     currentStage: "chat" | "summary" | "summary_complete";
     isRetry?: boolean;
     interviewConfigId?: string;
+    previewToken?: string;
   } = body;
 
   const {
@@ -41,6 +44,22 @@ export async function POST(req: Request) {
     return jsonResponse({ error: "billId is required" }, 400);
   }
 
+  // 非公開 config を直接プレビューしたい時のみ interviewConfigId を受け付ける。
+  // 認可: 同じ bill に紐づく有効なプレビュートークンが必須（無検証で受け取ると
+  // 任意ユーザーが configId を知っているだけで非公開 config の prompt/model
+  // を引き出せてしまうため）。
+  let resolvedInterviewConfigId: string | undefined;
+  if (interviewConfigId) {
+    const isValidPreview = await validatePreviewToken(billId, previewToken);
+    if (!isValidPreview) {
+      return jsonResponse(
+        { error: "Invalid preview token for interviewConfigId" },
+        403
+      );
+    }
+    resolvedInterviewConfigId = interviewConfigId;
+  }
+
   try {
     // システム全体の予算上限チェック（日次・月次）
     await checkSystemDailyCostLimit();
@@ -51,7 +70,7 @@ export async function POST(req: Request) {
       billId,
       currentStage,
       isRetry,
-      interviewConfigId,
+      interviewConfigId: resolvedInterviewConfigId,
       userId: user.id,
     });
   } catch (error) {
