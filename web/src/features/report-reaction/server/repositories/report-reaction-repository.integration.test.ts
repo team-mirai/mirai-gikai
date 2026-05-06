@@ -84,12 +84,14 @@ describe("getReportPublicStatus 統合テスト", () => {
   });
 
   afterEach(async () => {
-    const cleanupResults = await Promise.allSettled([
-      ...billIds.map((billId) => cleanupTestBill(billId)),
+    const billCleanupResults = await Promise.allSettled(
+      billIds.map((billId) => cleanupTestBill(billId))
+    );
+    billIds.length = 0;
+    const userCleanupResults = await Promise.allSettled([
       cleanupTestUser(testUser.id),
     ]);
-    billIds.length = 0;
-    const rejected = cleanupResults.filter(
+    const rejected = [...billCleanupResults, ...userCleanupResults].filter(
       (result): result is PromiseRejectedResult => result.status === "rejected"
     );
     if (rejected.length > 0) {
