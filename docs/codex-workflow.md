@@ -4,6 +4,7 @@ tracker:
   team_key: "GIKAI"
   required_labels:
     - "ai-task"
+  github_repo: "team-mirai/mirai-gikai"
   active_states:
     - Todo
     - In Progress
@@ -24,6 +25,16 @@ workspace:
 hooks:
   after_create: |
     git clone --depth 1 https://github.com/team-mirai/mirai-gikai .
+    if [ -n "$SYMPHONY_WORKFLOW_DIR" ]; then
+      src_root="$(cd "$SYMPHONY_WORKFLOW_DIR/.." && pwd)"
+      for envpath in .env admin/.env; do
+        src="$src_root/$envpath"
+        if [ -f "$src" ]; then
+          mkdir -p "$(dirname "$envpath")"
+          cp "$src" "$envpath"
+        fi
+      done
+    fi
     if command -v corepack >/dev/null 2>&1; then
       corepack enable >/dev/null 2>&1 || true
     fi
@@ -44,9 +55,9 @@ agent:
 codex:
   command: codex --config shell_environment_policy.inherit=all --config 'model="gpt-5.5"' --config model_reasoning_effort=xhigh app-server
   approval_policy: never
-  thread_sandbox: workspace-write
+  thread_sandbox: danger-full-access
   turn_sandbox_policy:
-    type: workspaceWrite
+    type: dangerFullAccess
 ---
 
 あなたは Linear チケット `{{ issue.identifier }}` の作業を担当します。
@@ -243,21 +254,59 @@ Description:
       - 結果の `HEAD` short SHA。
 10. コンテキストを圧縮し、実行に進む。
 
-## Step 1.5: 取り込んだコメントへの承認シグナル
+## Step 1.5: 取り込んだコメントの分類と応答
 
-workpad 整合時に前回ターン以降に追加された人間コメントを取り込んだ場合、そのコメントに対して承認シグナルを必ず残す。人間が Linear UI 上で「読まれた／反映された」と確認できるため:
+workpad 整合時に前回ターン以降に追加された人間コメントを取り込んだら、各コメントを分類してから応答する。同じチャネルに応答することで、Linear / GitHub PR コメントだけで Symphony と会話できるようにする。
 
-- `✅` リアクション: workpad の Plan / Acceptance Criteria / Validation を更新してこのコメントを反映済み。
-- `👀` リアクション: 読んで検討したが、今ターンでは workpad に反映していない（追加情報待ち、後続ターンに持ち越し、スコープ外と判断、など）。
-- 短いスレッド返信: nuance を伝える必要がある場合（部分適用と理由、保留と理由、確認質問、フォローアップ提案など）。
+### 分類
 
-ルール:
+各アクション可能コメントを以下のいずれかに振り分ける（エージェント自身の `## Codex Workpad`、bot サマリ `みらいいぬ自動調査` / `coderabbitai` などは対象外）:
 
-- バッチではなくコメント単位で承認する。workpad に影響したコメント 1 件ごとに、リアクションまたは返信を残す。
-- 利用可能な Linear ツールを使う（Linear MCP `mcp__linear__*` のリアクション／コメント mutation を優先。なければ `linear_graphql` の `commentReactionCreate` または `commentCreate`）。
+- **質問 / 状況確認**: 「何してる？」「なぜ X？」「進捗は？」「テストはどこ？」など、回答を求めるコメント。期待される出力は答えであってコード変更ではない。
+- **情報共有 / FYI**: 「明日リリースします」「staging URL が変わった」など、対応不要のコンテキスト共有。
+- **フィードバック / 指示**: 「統合テストに書き直して」「このバグ直して」「方針 X で行こう」など、コード・テスト・docs・運用の挙動を変えてほしいコメント。
+- **混在**: 質問と指示が同じ本文に含まれるケース。
+
+### 分類別の応答
+
+**質問 / 状況確認**:
+
+1. workpad、最近の commit (`git log`)、PR 状態 (`gh pr view`)、テスト結果、参照ファイルなどから具体的・事実ベースの回答を組み立てる。commit SHA、ファイル: 行番号、PR チェック名などを引用する。憶測や「以下を試します」風のお茶濁しは禁止。回答が手元にないなら、まず調べてから答える、または明示的に「分からないので確認させてください」と書く。
+2. **質問が来たのと同じチャネル**に回答を投稿:
+   - Linear コメント → Linear MCP `commentCreate` で質問の comment id を `parentId` にして返信（スレッド機能がない場合はトップレベル）。回答を workpad に書いて済ませない。
+   - GitHub PR トップレベルコメント → `gh pr comment <pr> --body "..."`。
+   - GitHub PR インラインレビューコメント → `gh api repos/<owner>/<repo>/pulls/<pr>/comments/<comment_id>/replies -f body=...` でスレッドを保つ。
+3. 質問コメントに `✅` リアクション（回答済み）。
+4. workpad の `Notes` に 1 行追加（`Answered question on Linear comment <id>: <one-line summary>`）。後続ターンが履歴を辿れるように。
+5. **コード変更、ブランチ更新、push を行わない**。turn を終了し、issue は現在のステートのまま（PR 添付済みなら `Human PR Review`、それ以外は元のステート）。
+
+**情報共有 / FYI**:
+
+1. `👀` リアクション（読了）。
+2. workpad の `Notes` に 1 行記録。
+3. 返信なし、コード変更なし、ステート移動なし（元のステートのまま）。
+
+**フィードバック / 指示**:
+
+1. workpad の Plan / Acceptance Criteria / Validation を更新して新しい方向性を反映。
+2. `✅` リアクション（計画に取り込み済み）。
+3. nuance を伝える必要がある場合のみスレッド返信（部分適用と理由、明示的な保留と理由、確認質問など）。
+4. 通常の execution / PR feedback sweep フローに進んで実装する。
+
+**混在**:
+
+- 質問部分は「質問」の応答方式（返信＋ ✅）。
+- 指示部分は「フィードバック」の応答方式（workpad 更新＋実装）。
+- リアクションは ✅ ひとつで両方カバー。
+
+### 全分類に共通するルール
+
+- バッチではなくコメント単位で応答する。workpad に影響したコメント 1 件ごとに、リアクションまたは返信を残す。
+- 利用可能な Linear ツールを使う（Linear MCP `mcp__linear__*` のリアクション／コメント mutation を優先。なければ `linear_graphql` の `commentReactionCreate` / `commentCreate`）。
 - 重複しない。エージェントが前のターンで既にリアクションしているコメントはスキップ。同じ論点に対する返信が既にスレッドにある場合もスキップ。
-- エージェント自身の `## Codex Workpad` コメント、および bot サマリ（例: `みらいいぬ自動調査`）は対象外。これらは人間からの指示ではない。
+- エージェント自身の `## Codex Workpad` コメント、および bot サマリは対象外。これらは人間からの指示ではない。
 - このステップは workpad 整合時に 1 ターンに 1 回実行する。実装作業に入る前に必ず通すこと（長尺ターンになっても人間がリアクションを早く見られるようにするため）。
+- 質問のみ・FYI のみのターンでは issue ステートを動かさない。エージェントの仕事は答えること／読むことであり、頼まれていない作業を「対応中」として claim しない。
 
 ## PR フィードバックスイーププロトコル（必須）
 
