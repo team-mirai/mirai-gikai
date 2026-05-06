@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import type { InterviewReportData } from "../../shared/schemas";
 import type { InterviewReport } from "../../shared/types";
 import { extractReportFromMessage } from "../../shared/utils/report-extraction";
@@ -12,6 +13,7 @@ import { evaluateModerationScore } from "./evaluate-moderation-score";
 
 type CompleteInterviewSessionParams = {
   sessionId: string;
+  isPublicByUser?: boolean;
 };
 
 /**
@@ -19,6 +21,7 @@ type CompleteInterviewSessionParams = {
  */
 export async function completeInterviewSession({
   sessionId,
+  isPublicByUser,
 }: CompleteInterviewSessionParams): Promise<InterviewReport> {
   // メッセージ履歴を取得（新しい順）
   const messages = await findInterviewMessagesBySessionIdDesc(sessionId);
@@ -85,6 +88,12 @@ export async function completeInterviewSession({
   // レポートを保存（UPSERT）
   // content_richnessはZodスキーマでバリデーション済み（totalは0-100の整数）
   // moderation_statusはgenerated columnのためscoreのみ保存
+  const shouldAutoPublish = isReportAutoPublishEligible({
+    isPublicByUser: isPublicByUser ?? false,
+    moderationScore,
+    totalContentRichness: reportData.content_richness.total,
+  });
+
   const report = await upsertInterviewReport({
     interview_session_id: sessionId,
     summary: reportData.summary,
@@ -96,6 +105,10 @@ export async function completeInterviewSession({
     content_richness: reportData.content_richness,
     moderation_score: moderationScore,
     moderation_reasoning: moderationReasoning,
+    ...(typeof isPublicByUser === "boolean"
+      ? { is_public_by_user: isPublicByUser }
+      : {}),
+    ...(shouldAutoPublish ? { is_public_by_admin: true } : {}),
   });
 
   // セッションを完了

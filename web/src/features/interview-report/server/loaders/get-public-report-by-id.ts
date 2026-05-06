@@ -1,8 +1,10 @@
 import "server-only";
 
+import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { cache } from "react";
 import type { InterviewReport } from "../../shared/types";
 import {
+  countPublicReportsByBillId,
   findBillWithContentById,
   findMessagesBySessionId,
   findPublicReportWithSessionById,
@@ -53,6 +55,10 @@ export const getPublicReportById = cache(
     }
 
     const billId = session.interview_configs.bill_id;
+    const publicReportCount = await countPublicReportsByBillId(billId);
+    if (!shouldDisplayPublicReports(publicReportCount)) {
+      return null;
+    }
 
     const [bill, messages] = await Promise.all([
       findBillWithContentById(billId),

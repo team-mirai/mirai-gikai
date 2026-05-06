@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isPublicReportVisible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
   getAuthenticatedUser,
   isSessionOwner,
@@ -7,6 +8,7 @@ import {
 import type { InterviewMessage } from "@/features/interview-session/shared/types";
 import type { InterviewReport } from "../../shared/types";
 import {
+  countPublicReportsByBillId,
   findBillWithContentById,
   findMessagesBySessionId,
   findReportWithSessionById,
@@ -61,11 +63,20 @@ export async function getReportWithMessages(
 
   // Authorization check: public OR owner
   const isOwner = userId ? isSessionOwner(session.user_id, userId) : false;
-  const isPublic = report.is_public_by_user;
+  const billId = session.interview_configs.bill_id;
 
-  if (!isPublic && !isOwner) {
-    console.error("Unauthorized access to interview report chat log");
-    return null;
+  if (!isOwner) {
+    const publicReportCount = await countPublicReportsByBillId(billId);
+    const isPublic = isPublicReportVisible({
+      isPublicByAdmin: report.is_public_by_admin,
+      isPublicByUser: report.is_public_by_user,
+      publicReportCount,
+    });
+
+    if (!isPublic) {
+      console.error("Unauthorized access to interview report chat log");
+      return null;
+    }
   }
 
   // Fetch messages
@@ -80,7 +91,7 @@ export async function getReportWithMessages(
   // Fetch bill info
   let bill: Awaited<ReturnType<typeof findBillWithContentById>>;
   try {
-    bill = await findBillWithContentById(session.interview_configs.bill_id);
+    bill = await findBillWithContentById(billId);
   } catch (error) {
     console.error("Failed to fetch bill:", error);
     return null;
@@ -91,7 +102,7 @@ export async function getReportWithMessages(
   return {
     report: {
       ...reportData,
-      bill_id: session.interview_configs.bill_id,
+      bill_id: billId,
       session_started_at: session.started_at,
       session_completed_at: session.completed_at,
     },

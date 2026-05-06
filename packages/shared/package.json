@@ -39,6 +39,10 @@
       "types": "./src/content-richness/content-richness-instructions.ts",
       "default": "./src/content-richness/content-richness-instructions.ts"
     },
+    "./report-publication/auto-publish": {
+      "types": "./src/report-publication/auto-publish.ts",
+      "default": "./src/report-publication/auto-publish.ts"
+    },
     "./interview-prompts/types": {
       "types": "./src/interview-prompts/types.ts",
       "default": "./src/interview-prompts/types.ts"

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { updateReportPublicSetting } from "@/features/interview-report/server/repositories/interview-report-repository";
 import { completeInterviewSession } from "@/features/interview-session/server/services/complete-interview-session";
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
 
@@ -18,11 +17,8 @@ export async function POST(req: Request) {
   try {
     const report = await completeInterviewSession({
       sessionId,
+      isPublicByUser: typeof isPublic === "boolean" ? isPublic : undefined,
     });
-
-    if (typeof isPublic === "boolean") {
-      await updateReportPublicSetting(report.id, isPublic);
-    }
 
     return NextResponse.json({ report });
   } catch (error) {

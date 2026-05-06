@@ -1,5 +1,6 @@
 import "server-only";
 
+import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import type { SortOrder } from "../../shared/utils/sort-order";
 import type {
   StanceCounts,
@@ -17,6 +18,13 @@ export type PaginatedPublicReportsResult = {
   reports: PublicInterviewReport[];
   stanceCounts: StanceCounts;
   hasMore: boolean;
+};
+
+const emptyStanceCounts: StanceCounts = {
+  all: 0,
+  for: 0,
+  against: 0,
+  neutral: 0,
 };
 
 function mapRawReports(
@@ -42,15 +50,7 @@ export async function getInitialPublicReportsByBillId(
   sortOrder: SortOrder = "recommended"
 ): Promise<PaginatedPublicReportsResult> {
   const stanceParam = stance === "all" ? undefined : stance;
-  const [rawReports, stanceRows] = await Promise.all([
-    findPublicReportsByBillId(billId, PAGE_SIZE + 1, 0, stanceParam, sortOrder),
-    countPublicReportsByStance(billId),
-  ]);
-
-  const hasMore = rawReports.length > PAGE_SIZE;
-  const reports = mapRawReports(
-    hasMore ? rawReports.slice(0, PAGE_SIZE) : rawReports
-  );
+  const stanceRows = await countPublicReportsByStance(billId);
 
   const stanceCounts: StanceCounts = {
     all: 0,
@@ -59,13 +59,33 @@ export async function getInitialPublicReportsByBillId(
     neutral: 0,
   };
   for (const row of stanceRows) {
-    const key = row.stance as StanceFilter;
-    if (key in stanceCounts && key !== "all") {
+    const key = row.stance as StanceFilter | null;
+    if (key && key in stanceCounts && key !== "all") {
       stanceCounts[key] = Number(row.count);
     }
     // null stance を含む全件を all に加算
     stanceCounts.all += Number(row.count);
   }
+
+  if (!shouldDisplayPublicReports(stanceCounts.all)) {
+    return {
+      reports: [],
+      stanceCounts: { ...emptyStanceCounts },
+      hasMore: false,
+    };
+  }
+
+  const rawReports = await findPublicReportsByBillId(
+    billId,
+    PAGE_SIZE + 1,
+    0,
+    stanceParam,
+    sortOrder
+  );
+  const hasMore = rawReports.length > PAGE_SIZE;
+  const reports = mapRawReports(
+    hasMore ? rawReports.slice(0, PAGE_SIZE) : rawReports
+  );
 
   return { reports, stanceCounts, hasMore };
 }
@@ -79,6 +99,15 @@ export async function getPublicReportsByBillIdPaginated(
   stance: StanceFilter = "all",
   sortOrder: SortOrder = "recommended"
 ): Promise<{ reports: PublicInterviewReport[]; hasMore: boolean }> {
+  const stanceRows = await countPublicReportsByStance(billId);
+  const totalCount = stanceRows.reduce(
+    (sum, row) => sum + Number(row.count),
+    0
+  );
+  if (!shouldDisplayPublicReports(totalCount)) {
+    return { reports: [], hasMore: false };
+  }
+
   const stanceParam = stance === "all" ? undefined : stance;
   const rawReports = await findPublicReportsByBillId(
     billId,

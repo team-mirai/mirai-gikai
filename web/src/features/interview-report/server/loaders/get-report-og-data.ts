@@ -1,8 +1,10 @@
 import "server-only";
 
+import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
-  findPublicReportWithSessionById,
+  countPublicReportsByBillId,
   findBillWithContentById,
+  findPublicReportWithSessionById,
 } from "../repositories/interview-report-repository";
 
 export interface ReportOgData {
@@ -31,6 +33,13 @@ export async function getReportOgData(
 
   let billName = "";
   if (session?.interview_configs) {
+    const publicReportCount = await countPublicReportsByBillId(
+      session.interview_configs.bill_id
+    );
+    if (!shouldDisplayPublicReports(publicReportCount)) {
+      return null;
+    }
+
     const bill = await findBillWithContentById(
       session.interview_configs.bill_id
     );
