@@ -1,8 +1,8 @@
 import "server-only";
 
-import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import type { InterviewReportData } from "../../shared/schemas";
 import type { InterviewReport } from "../../shared/types";
+import { buildCompletedInterviewReportInsert } from "../../shared/utils/complete-interview-report";
 import { extractReportFromMessage } from "../../shared/utils/report-extraction";
 import {
   findInterviewMessagesBySessionIdDesc,
@@ -41,18 +41,6 @@ export async function completeInterviewSession({
     throw new Error("No report found in conversation messages");
   }
 
-  // opinions にソースメッセージの内容を付与
-  const enrichedOpinions = reportData.opinions.map((opinion) => {
-    if (!opinion.source_message_id) {
-      return { ...opinion, source_message_content: null };
-    }
-    const sourceMsg = messages.find((m) => m.id === opinion.source_message_id);
-    return {
-      ...opinion,
-      source_message_content: sourceMsg?.content ?? null,
-    };
-  });
-
   // モデレーションスコアを評価（タイムアウト30秒）
   const MODERATION_TIMEOUT_MS = 30_000;
   let moderationScore: number | null = null;
@@ -88,28 +76,16 @@ export async function completeInterviewSession({
   // レポートを保存（UPSERT）
   // content_richnessはZodスキーマでバリデーション済み（totalは0-100の整数）
   // moderation_statusはgenerated columnのためscoreのみ保存
-  const shouldAutoPublish = isReportAutoPublishEligible({
-    isPublicByUser: isPublicByUser ?? false,
-    moderationScore,
-    totalContentRichness: reportData.content_richness.total,
-  });
-
-  const report = await upsertInterviewReport({
-    interview_session_id: sessionId,
-    summary: reportData.summary,
-    stance: reportData.stance,
-    role: reportData.role,
-    role_description: reportData.role_description,
-    role_title: reportData.role_title,
-    opinions: enrichedOpinions,
-    content_richness: reportData.content_richness,
-    moderation_score: moderationScore,
-    moderation_reasoning: moderationReasoning,
-    ...(typeof isPublicByUser === "boolean"
-      ? { is_public_by_user: isPublicByUser }
-      : {}),
-    ...(shouldAutoPublish ? { is_public_by_admin: true } : {}),
-  });
+  const report = await upsertInterviewReport(
+    buildCompletedInterviewReportInsert({
+      sessionId,
+      messages,
+      reportData,
+      moderationScore,
+      moderationReasoning,
+      isPublicByUser,
+    })
+  );
 
   // セッションを完了
   await updateInterviewSessionCompleted(sessionId);
