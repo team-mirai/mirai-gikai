@@ -22,12 +22,21 @@ workspace:
   root: ~/code/symphony-workspaces
 hooks:
   after_create: |
-    git clone --depth 1 https://github.com/muraikenta/symphony .
-    if command -v mise >/dev/null 2>&1; then
-      cd elixir && mise trust && mise exec -- mix deps.get
+    git clone --depth 1 https://github.com/team-mirai/mirai-gikai .
+    if command -v corepack >/dev/null 2>&1; then
+      corepack enable >/dev/null 2>&1 || true
+    fi
+    if command -v pnpm >/dev/null 2>&1; then
+      pnpm install --frozen-lockfile
     fi
   before_remove: |
-    cd elixir && mise exec -- mix workspace.before_remove
+    set -e
+    branch=$(git branch --show-current 2>/dev/null || true)
+    if [ -n "$branch" ] && command -v gh >/dev/null 2>&1; then
+      for pr in $(gh pr list --repo team-mirai/mirai-gikai --head "$branch" --state open --json number --jq '.[].number' 2>/dev/null); do
+        gh pr close "$pr" --repo team-mirai/mirai-gikai || true
+      done
+    fi
 agent:
   max_concurrent_agents: 10
   max_turns: 20
@@ -40,6 +49,14 @@ codex:
 ---
 
 あなたは Linear チケット `{{ issue.identifier }}` の作業を担当します。
+
+## Symphony 実行環境のオーバーライド
+
+このセッションは Symphony が用意した issue 専用のワークスペース（`/Users/muraikenta/code/symphony-workspaces/<issue-identifier>` 配下に clone された独立コピー）で実行されており、他チケットや他セッションから既に隔離されています。`AGENTS.md` の `git worktree add` 必須ルールは Claude Code / Codex CLI を単一リポジトリでインタラクティブに起動した時の隔離手段として書かれており、Symphony セッションでは **適用しません**（ワークスペースが二重隔離になるため不要）。
+
+- 新しい worktree を作らず、現在の作業ディレクトリ（このリポジトリの clone）でそのままブランチ作成・コミット・push してください。
+- ブランチは Linear の `gitBranchName` を優先して使い、未設定なら `<issue-identifier>-<short-description>` 形式で `develop`（無ければリポジトリの主要ブランチ）から切ってください。
+- `.git` 書き込み権限が必要な操作（`git checkout -b`, `git commit`, `git push`, `git fetch`）は問題なく実行できる前提で進めてください。それでも `Operation not permitted` などで書き込みに失敗する場合は blocked-access escape hatch に従ってください。
 
 {% if attempt %}
 継続コンテキスト:
