@@ -103,11 +103,21 @@ describe("updateReportPublicSetting 統合テスト", () => {
   });
 
   afterEach(async () => {
-    for (const billId of billIds) {
-      await cleanupTestBill(billId);
-    }
+    const cleanupResults = await Promise.allSettled([
+      ...billIds.map((billId) => cleanupTestBill(billId)),
+      cleanupTestUser(testUser.id),
+    ]);
     billIds.length = 0;
-    await cleanupTestUser(testUser.id);
+    const rejected = cleanupResults.filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+    if (rejected.length > 0) {
+      throw new Error(
+        `テストデータのクリーンアップに失敗しました: ${rejected
+          .map((result) => String(result.reason))
+          .join(", ")}`
+      );
+    }
   });
 
   it("公開許可時に自動公開条件を満たす未公開レポートを管理者公開にする", async () => {
