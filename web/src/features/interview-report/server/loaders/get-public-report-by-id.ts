@@ -64,7 +64,13 @@ export const getPublicReportById = cache(
       return null;
     }
 
-    const publicReportCount = await countPublicReportsByBillId(billId);
+    let publicReportCount: number;
+    try {
+      publicReportCount = await countPublicReportsByBillId(billId);
+    } catch (error) {
+      console.error("Failed to count public reports:", error);
+      return null;
+    }
     if (!shouldDisplayPublicReports(publicReportCount)) {
       return null;
     }

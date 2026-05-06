@@ -2,7 +2,10 @@ import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publicat
 import type { InterviewReportData } from "../schemas";
 import type { InterviewMessage, InterviewReportInsert } from "../types";
 
-type CompleteInterviewMessage = Pick<InterviewMessage, "id" | "content">;
+type CompleteInterviewMessage = Pick<
+  InterviewMessage,
+  "id" | "role" | "content"
+>;
 
 type BuildCompletedInterviewReportInsertParams = {
   sessionId: string;
@@ -25,10 +28,20 @@ export function buildCompletedInterviewReportInsert({
     if (!opinion.source_message_id) {
       return { ...opinion, source_message_content: null };
     }
-    const sourceMsg = messages.find((m) => m.id === opinion.source_message_id);
+    const sourceMsg = messages.find(
+      (m) => m.id === opinion.source_message_id && m.role === "user"
+    );
+    if (!sourceMsg) {
+      return {
+        ...opinion,
+        source_message_id: null,
+        source_message_content: null,
+      };
+    }
+
     return {
       ...opinion,
-      source_message_content: sourceMsg?.content ?? null,
+      source_message_content: sourceMsg.content,
     };
   });
 

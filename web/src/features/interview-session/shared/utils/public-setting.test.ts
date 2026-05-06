@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { parseUserPublicSetting } from "./public-setting";
+import {
+  isInvalidUserPublicSettingInput,
+  parseUserPublicSetting,
+} from "./public-setting";
 
 describe("parseUserPublicSetting", () => {
   it.each([
@@ -14,5 +17,15 @@ describe("parseUserPublicSetting", () => {
     expected,
   }) => {
     expect(parseUserPublicSetting(input)).toBe(expected);
+  });
+
+  it.each([
+    { input: undefined, expected: false },
+    { input: true, expected: false },
+    { input: false, expected: false },
+    { input: "true", expected: true },
+    { input: null, expected: true },
+  ])("不正なユーザー公開設定入力を判定する ($input)", ({ input, expected }) => {
+    expect(isInvalidUserPublicSettingInput(input)).toBe(expected);
   });
 });

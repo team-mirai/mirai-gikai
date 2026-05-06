@@ -51,8 +51,20 @@ export async function createPublicReportLoaderContext(
 
     return { user, billId: bill.id, configId: config.id };
   } catch (error) {
-    await cleanupTestBill(bill.id);
-    await cleanupTestUser(user.id);
+    const cleanupResults = await Promise.allSettled([
+      cleanupTestBill(bill.id),
+      cleanupTestUser(user.id),
+    ]);
+    const rejected = cleanupResults.filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+    if (rejected.length > 0) {
+      console.error(
+        `テストデータのクリーンアップに失敗しました: ${rejected
+          .map((result) => String(result.reason))
+          .join(", ")}`
+      );
+    }
     throw error;
   }
 }
@@ -133,15 +145,20 @@ export async function createPublicReports(
 
   if (options.messages) {
     const messages = options.messages;
-    await adminClient.from("interview_messages").insert(
-      sessions.flatMap((session) =>
-        messages.map((message) => ({
-          interview_session_id: session.id,
-          role: message.role,
-          content: message.content,
-        }))
-      )
-    );
+    const { error: messageError } = await adminClient
+      .from("interview_messages")
+      .insert(
+        sessions.flatMap((session) =>
+          messages.map((message) => ({
+            interview_session_id: session.id,
+            role: message.role,
+            content: message.content,
+          }))
+        )
+      );
+    if (messageError) {
+      throw new Error(`interview_messages 作成失敗: ${messageError.message}`);
+    }
   }
 
   return reports.map((report, index) => ({

@@ -38,12 +38,24 @@ export async function getReportOgData(
   let billName = "";
   const billId = getBillIdFromPublicReportSession(session);
   if (billId) {
-    const publicReportCount = await countPublicReportsByBillId(billId);
+    let publicReportCount: number;
+    try {
+      publicReportCount = await countPublicReportsByBillId(billId);
+    } catch (error) {
+      console.error("Failed to count public reports for OGP:", error);
+      return null;
+    }
     if (!shouldDisplayPublicReports(publicReportCount)) {
       return null;
     }
 
-    const bill = await findBillWithContentById(billId);
+    let bill: Awaited<ReturnType<typeof findBillWithContentById>>;
+    try {
+      bill = await findBillWithContentById(billId);
+    } catch (error) {
+      console.error("Failed to fetch bill for OGP:", error);
+      return null;
+    }
     const billContent = selectPrimaryBillContent(bill.bill_contents);
     billName = billContent?.title || bill.name;
   }

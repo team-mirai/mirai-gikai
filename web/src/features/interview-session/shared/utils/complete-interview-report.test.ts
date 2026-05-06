@@ -32,9 +32,14 @@ describe("buildCompletedInterviewReportInsert", () => {
       messages: [
         {
           id: "message-assistant-1",
+          role: "assistant",
           content: JSON.stringify({ report: reportData }),
         },
-        { id: "message-user-1", content: "この法案に賛成です" },
+        {
+          id: "message-user-1",
+          role: "user",
+          content: "この法案に賛成です",
+        },
       ],
       reportData,
       moderationScore: 29,
@@ -54,6 +59,30 @@ describe("buildCompletedInterviewReportInsert", () => {
     expect(insert.opinions).toEqual([
       expect.objectContaining({
         source_message_content: "この法案に賛成です",
+      }),
+    ]);
+  });
+
+  it("根拠IDがユーザーメッセージに解決できない場合は根拠をnullへ正規化する", () => {
+    const insert = buildCompletedInterviewReportInsert({
+      sessionId: "session-1",
+      messages: [
+        {
+          id: "message-user-1",
+          role: "assistant",
+          content: "assistantの本文",
+        },
+      ],
+      reportData,
+      moderationScore: 29,
+      moderationReasoning: "問題なし",
+      isPublicByUser: true,
+    });
+
+    expect(insert.opinions).toEqual([
+      expect.objectContaining({
+        source_message_id: null,
+        source_message_content: null,
       }),
     ]);
   });

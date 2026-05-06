@@ -1,7 +1,4 @@
-import {
-  isPublicReportVisible,
-  shouldDisplayPublicReports,
-} from "@mirai-gikai/shared/report-publication/auto-publish";
+import { isPublicReportVisible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import type { StanceCounts, StanceFilter } from "./stance-filter";
 
 export type RawPublicInterviewReport = {
