@@ -1,12 +1,15 @@
 import "server-only";
 
-import { isPublicReportVisible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
   getAuthenticatedUser,
   isSessionOwner,
 } from "@/features/interview-session/server/utils/verify-session-ownership";
 import type { InterviewMessage } from "@/features/interview-session/shared/types";
 import type { InterviewReport } from "../../shared/types";
+import {
+  canViewReportWithMessages,
+  selectPrimaryBillContent,
+} from "../../shared/utils/public-report-display";
 import {
   countPublicReportsByBillId,
   findBillWithContentById,
@@ -74,7 +77,8 @@ export async function getReportWithMessages(
       return null;
     }
 
-    const isPublic = isPublicReportVisible({
+    const isPublic = canViewReportWithMessages({
+      isOwner,
       isPublicByAdmin: report.is_public_by_admin,
       isPublicByUser: report.is_public_by_user,
       publicReportCount,
@@ -117,11 +121,7 @@ export async function getReportWithMessages(
       id: bill.id,
       name: bill.name,
       thumbnail_url: bill.thumbnail_url,
-      bill_content: bill.bill_contents
-        ? Array.isArray(bill.bill_contents)
-          ? bill.bill_contents[0]
-          : bill.bill_contents
-        : null,
+      bill_content: selectPrimaryBillContent(bill.bill_contents),
     },
   };
 }

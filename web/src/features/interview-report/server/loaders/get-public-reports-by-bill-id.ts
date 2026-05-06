@@ -2,19 +2,15 @@ import "server-only";
 
 import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
+  mapPublicInterviewReports,
+  type PublicInterviewReportDisplay,
+} from "../../shared/utils/public-report-display";
+import {
   countPublicReportsByBillId,
   findPublicReportsByBillId,
 } from "../repositories/interview-report-repository";
 
-export type PublicInterviewReport = {
-  id: string;
-  stance: string | null;
-  role: string | null;
-  role_title: string | null;
-  summary: string | null;
-  total_content_richness: number | null;
-  created_at: string;
-};
+export type PublicInterviewReport = PublicInterviewReportDisplay;
 
 export type PublicReportsResult = {
   reports: PublicInterviewReport[];
@@ -34,16 +30,7 @@ export async function getPublicReportsByBillId(
   }
 
   const rawReports = await findPublicReportsByBillId(billId, 3);
-
-  const reports: PublicInterviewReport[] = rawReports.map((r) => ({
-    id: r.id,
-    stance: r.stance,
-    role: r.role,
-    role_title: r.role_title,
-    summary: r.summary,
-    total_content_richness: r.total_content_richness,
-    created_at: r.created_at,
-  }));
+  const reports = mapPublicInterviewReports(rawReports);
 
   return { reports, totalCount };
 }

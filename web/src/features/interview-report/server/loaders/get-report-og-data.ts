@@ -6,6 +6,10 @@ import {
   findBillWithContentById,
   findPublicReportWithSessionById,
 } from "../repositories/interview-report-repository";
+import {
+  getBillIdFromPublicReportSession,
+  selectPrimaryBillContent,
+} from "../../shared/utils/public-report-display";
 
 export interface ReportOgData {
   summary: string;
@@ -32,22 +36,15 @@ export async function getReportOgData(
   } | null;
 
   let billName = "";
-  if (session?.interview_configs) {
-    const publicReportCount = await countPublicReportsByBillId(
-      session.interview_configs.bill_id
-    );
+  const billId = getBillIdFromPublicReportSession(session);
+  if (billId) {
+    const publicReportCount = await countPublicReportsByBillId(billId);
     if (!shouldDisplayPublicReports(publicReportCount)) {
       return null;
     }
 
-    const bill = await findBillWithContentById(
-      session.interview_configs.bill_id
-    );
-    const billContent = bill.bill_contents
-      ? Array.isArray(bill.bill_contents)
-        ? bill.bill_contents[0]
-        : bill.bill_contents
-      : null;
+    const bill = await findBillWithContentById(billId);
+    const billContent = selectPrimaryBillContent(bill.bill_contents);
     billName = billContent?.title || bill.name;
   }
 

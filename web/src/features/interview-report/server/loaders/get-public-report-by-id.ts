@@ -4,6 +4,11 @@ import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publicati
 import { cache } from "react";
 import type { InterviewReport } from "../../shared/types";
 import {
+  countUserMessageCharacters,
+  getBillIdFromPublicReportSession,
+  selectPrimaryBillContent,
+} from "../../shared/utils/public-report-display";
+import {
   countPublicReportsByBillId,
   findBillWithContentById,
   findMessagesBySessionId,
@@ -50,11 +55,15 @@ export const getPublicReportById = cache(
       interview_configs: { bill_id: string } | null;
     } | null;
 
-    if (!session?.interview_configs) {
+    if (!session) {
       return null;
     }
 
-    const billId = session.interview_configs.bill_id;
+    const billId = getBillIdFromPublicReportSession(session);
+    if (!billId) {
+      return null;
+    }
+
     const publicReportCount = await countPublicReportsByBillId(billId);
     if (!shouldDisplayPublicReports(publicReportCount)) {
       return null;
@@ -77,15 +86,9 @@ export const getPublicReportById = cache(
         name: bill.name,
         thumbnail_url: bill.thumbnail_url,
         share_thumbnail_url: bill.share_thumbnail_url,
-        bill_content: bill.bill_contents
-          ? Array.isArray(bill.bill_contents)
-            ? bill.bill_contents[0]
-            : bill.bill_contents
-          : null,
+        bill_content: selectPrimaryBillContent(bill.bill_contents),
       },
-      characterCount: messages
-        .filter((m) => m.role === "user")
-        .reduce((sum, m) => sum + m.content.length, 0),
+      characterCount: countUserMessageCharacters(messages),
     };
   }
 );

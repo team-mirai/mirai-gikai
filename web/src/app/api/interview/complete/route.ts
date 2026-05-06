@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { completeInterviewSession } from "@/features/interview-session/server/services/complete-interview-session";
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
+import { parseUserPublicSetting } from "@/features/interview-session/shared/utils/public-setting";
 
 export async function POST(req: Request) {
   const { sessionId, isPublic } = await req.json();
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
   try {
     const report = await completeInterviewSession({
       sessionId,
-      isPublicByUser: typeof isPublic === "boolean" ? isPublic : undefined,
+      isPublicByUser: parseUserPublicSetting(isPublic),
     });
 
     return NextResponse.json({ report });

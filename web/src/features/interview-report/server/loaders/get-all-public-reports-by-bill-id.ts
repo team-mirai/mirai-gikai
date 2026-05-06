@@ -7,6 +7,11 @@ import type {
   StanceFilter,
 } from "../../shared/utils/stance-filter";
 import {
+  buildPublicReportsPage,
+  buildStanceCounts,
+  createEmptyStanceCounts,
+} from "../../shared/utils/public-report-display";
+import {
   countPublicReportsByStance,
   findPublicReportsByBillId,
 } from "../repositories/interview-report-repository";
@@ -20,27 +25,6 @@ export type PaginatedPublicReportsResult = {
   hasMore: boolean;
 };
 
-const emptyStanceCounts: StanceCounts = {
-  all: 0,
-  for: 0,
-  against: 0,
-  neutral: 0,
-};
-
-function mapRawReports(
-  rawReports: Awaited<ReturnType<typeof findPublicReportsByBillId>>
-): PublicInterviewReport[] {
-  return rawReports.map((r) => ({
-    id: r.id,
-    stance: r.stance,
-    role: r.role,
-    role_title: r.role_title,
-    summary: r.summary,
-    total_content_richness: r.total_content_richness,
-    created_at: r.created_at,
-  }));
-}
-
 /**
  * 議案IDから公開インタビューレポートの初回ページとスタンスごとの件数を取得
  */
@@ -51,26 +35,12 @@ export async function getInitialPublicReportsByBillId(
 ): Promise<PaginatedPublicReportsResult> {
   const stanceParam = stance === "all" ? undefined : stance;
   const stanceRows = await countPublicReportsByStance(billId);
-
-  const stanceCounts: StanceCounts = {
-    all: 0,
-    for: 0,
-    against: 0,
-    neutral: 0,
-  };
-  for (const row of stanceRows) {
-    const key = row.stance as StanceFilter | null;
-    if (key && key in stanceCounts && key !== "all") {
-      stanceCounts[key] = Number(row.count);
-    }
-    // null stance を含む全件を all に加算
-    stanceCounts.all += Number(row.count);
-  }
+  const stanceCounts = buildStanceCounts(stanceRows);
 
   if (!shouldDisplayPublicReports(stanceCounts.all)) {
     return {
       reports: [],
-      stanceCounts: { ...emptyStanceCounts },
+      stanceCounts: createEmptyStanceCounts(),
       hasMore: false,
     };
   }
@@ -82,10 +52,7 @@ export async function getInitialPublicReportsByBillId(
     stanceParam,
     sortOrder
   );
-  const hasMore = rawReports.length > PAGE_SIZE;
-  const reports = mapRawReports(
-    hasMore ? rawReports.slice(0, PAGE_SIZE) : rawReports
-  );
+  const { reports, hasMore } = buildPublicReportsPage(rawReports, PAGE_SIZE);
 
   return { reports, stanceCounts, hasMore };
 }
@@ -116,11 +83,7 @@ export async function getPublicReportsByBillIdPaginated(
     stanceParam,
     sortOrder
   );
-
-  const hasMore = rawReports.length > PAGE_SIZE;
-  const reports = mapRawReports(
-    hasMore ? rawReports.slice(0, PAGE_SIZE) : rawReports
-  );
+  const { reports, hasMore } = buildPublicReportsPage(rawReports, PAGE_SIZE);
 
   return { reports, hasMore };
 }
