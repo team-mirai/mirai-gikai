@@ -90,6 +90,23 @@ describe("getReportWithMessages", () => {
     expect(findBillWithContentByIdMock).not.toHaveBeenCalled();
   });
 
+  it("所有者でなく公開済み件数取得に失敗したら null を返す", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const error = new Error("db error");
+    findReportWithSessionByIdMock.mockResolvedValue(createReport());
+    countPublicReportsByBillIdMock.mockRejectedValue(error);
+
+    await expect(getReportWithMessages("report-1")).resolves.toBeNull();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Failed to count public reports:",
+      error
+    );
+    expect(findMessagesBySessionIdMock).not.toHaveBeenCalled();
+    expect(findBillWithContentByIdMock).not.toHaveBeenCalled();
+  });
+
   it("所有者なら公開件数ゲートを迂回してチャットログを返す", async () => {
     getAuthenticatedUserMock.mockResolvedValue({
       authenticated: true,

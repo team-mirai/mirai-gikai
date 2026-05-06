@@ -66,7 +66,14 @@ export async function getReportWithMessages(
   const billId = session.interview_configs.bill_id;
 
   if (!isOwner) {
-    const publicReportCount = await countPublicReportsByBillId(billId);
+    let publicReportCount: number;
+    try {
+      publicReportCount = await countPublicReportsByBillId(billId);
+    } catch (error) {
+      console.error("Failed to count public reports:", error);
+      return null;
+    }
+
     const isPublic = isPublicReportVisible({
       isPublicByAdmin: report.is_public_by_admin,
       isPublicByUser: report.is_public_by_user,
