@@ -29,7 +29,7 @@ function createRequest(body: unknown) {
 
 describe("POST /api/interview/complete", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     verifySessionOwnershipMock.mockResolvedValue({
       authorized: true,
       userId: "user-1",

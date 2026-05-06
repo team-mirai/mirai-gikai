@@ -71,7 +71,7 @@ function arrangeReadableReport() {
 
 describe("getReportWithMessages", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     getAuthenticatedUserMock.mockResolvedValue({
       authenticated: false,
       error: "認証が必要です",

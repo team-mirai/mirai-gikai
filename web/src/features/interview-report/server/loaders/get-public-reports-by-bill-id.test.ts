@@ -32,7 +32,7 @@ function createRawReport(id: string): RawReport {
 
 describe("getPublicReportsByBillId", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("公開済み件数が表示閾値未満ならレポートを取得しない", async () => {

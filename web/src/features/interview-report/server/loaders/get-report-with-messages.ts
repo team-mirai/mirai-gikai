@@ -74,7 +74,6 @@ export async function getReportWithMessages(
     });
 
     if (!isPublic) {
-      console.error("Unauthorized access to interview report chat log");
       return null;
     }
   }

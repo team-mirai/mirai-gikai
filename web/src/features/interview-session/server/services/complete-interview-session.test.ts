@@ -61,7 +61,7 @@ const reportMessage = JSON.stringify({
 
 describe("completeInterviewSession", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     findInterviewMessagesBySessionIdDescMock.mockResolvedValue([
       {
         id: "message-assistant-1",
@@ -121,11 +121,9 @@ describe("completeInterviewSession", () => {
       isPublicByUser: false,
     });
 
-    expect(upsertInterviewReportMock).toHaveBeenCalledWith(
-      expect.not.objectContaining({
-        is_public_by_admin: true,
-      })
-    );
+    const firstArg = upsertInterviewReportMock.mock.calls[0]?.[0];
+    expect(firstArg).toBeDefined();
+    expect(firstArg).not.toHaveProperty("is_public_by_admin");
     expect(upsertInterviewReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
         is_public_by_user: false,

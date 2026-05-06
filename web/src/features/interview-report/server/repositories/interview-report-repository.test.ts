@@ -45,7 +45,7 @@ function arrangePublicSettingQuery({
 
 describe("updateReportPublicSetting", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("公開許可時に自動公開条件を満たす未公開レポートを管理者公開にする", async () => {

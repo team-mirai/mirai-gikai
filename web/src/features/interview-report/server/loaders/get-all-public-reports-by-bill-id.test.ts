@@ -41,7 +41,7 @@ function stanceRow(stance: string | null, count: number): StanceRow {
 
 describe("getInitialPublicReportsByBillId", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("公開済み件数が表示閾値未満なら空の初期ページを返す", async () => {
@@ -96,7 +96,7 @@ describe("getInitialPublicReportsByBillId", () => {
 
 describe("getPublicReportsByBillIdPaginated", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("公開済み件数が表示閾値未満ならページネーション結果を返さない", async () => {
@@ -104,7 +104,7 @@ describe("getPublicReportsByBillIdPaginated", () => {
       stanceRow("neutral", MIN_PUBLIC_REPORTS_FOR_DISPLAY - 1),
     ]);
 
-    const result = await getPublicReportsByBillIdPaginated("bill-1", 20);
+    const result = await getPublicReportsByBillIdPaginated("bill-1", PAGE_SIZE);
 
     expect(result).toEqual({ reports: [], hasMore: false });
     expect(findPublicReportsByBillIdMock).not.toHaveBeenCalled();
@@ -118,7 +118,7 @@ describe("getPublicReportsByBillIdPaginated", () => {
 
     const result = await getPublicReportsByBillIdPaginated(
       "bill-1",
-      20,
+      PAGE_SIZE,
       "for",
       "newest"
     );
@@ -126,7 +126,7 @@ describe("getPublicReportsByBillIdPaginated", () => {
     expect(findPublicReportsByBillIdMock).toHaveBeenCalledWith(
       "bill-1",
       PAGE_SIZE + 1,
-      20,
+      PAGE_SIZE,
       "for",
       "newest"
     );

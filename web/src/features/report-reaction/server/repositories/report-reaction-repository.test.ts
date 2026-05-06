@@ -42,7 +42,7 @@ function arrangeReportQuery(result: ReportPublicStatusResult) {
 
 describe("getReportPublicStatus", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("レポート取得に失敗したら false を返す", async () => {
@@ -67,7 +67,7 @@ describe("getReportPublicStatus", () => {
   });
 
   it("両公開フラグと表示件数ゲートを満たす場合だけ true を返す", async () => {
-    arrangeReportQuery({
+    const query = arrangeReportQuery({
       data: {
         is_public_by_admin: true,
         is_public_by_user: true,
@@ -82,7 +82,36 @@ describe("getReportPublicStatus", () => {
     );
 
     await expect(getReportPublicStatus("report-1")).resolves.toBe(true);
+    expect(query.from).toHaveBeenCalledWith("interview_report");
+    expect(query.select).toHaveBeenCalledWith(
+      "is_public_by_admin, is_public_by_user, interview_sessions!inner(interview_configs!inner(bill_id))"
+    );
+    expect(query.eq).toHaveBeenCalledWith("id", "report-1");
     expect(countPublicReportsByBillIdMock).toHaveBeenCalledWith("bill-1");
+  });
+
+  it.each([
+    { is_public_by_admin: false, is_public_by_user: true },
+    { is_public_by_admin: true, is_public_by_user: false },
+  ])("公開フラグが片側でも false なら false を返す (%o)", async ({
+    is_public_by_admin,
+    is_public_by_user,
+  }) => {
+    arrangeReportQuery({
+      data: {
+        is_public_by_admin,
+        is_public_by_user,
+        interview_sessions: {
+          interview_configs: { bill_id: "bill-1" },
+        },
+      },
+      error: null,
+    });
+    countPublicReportsByBillIdMock.mockResolvedValue(
+      MIN_PUBLIC_REPORTS_FOR_DISPLAY
+    );
+
+    await expect(getReportPublicStatus("report-1")).resolves.toBe(false);
   });
 
   it("公開済み件数が表示閾値未満なら false を返す", async () => {

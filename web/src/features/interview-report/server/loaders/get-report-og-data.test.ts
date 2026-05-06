@@ -40,7 +40,7 @@ function createPublicReport(): PublicReportRow {
 
 describe("getReportOgData", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("公開済み件数が表示閾値未満なら null を返す", async () => {
