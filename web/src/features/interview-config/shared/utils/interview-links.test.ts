@@ -68,9 +68,13 @@ describe("getPublicReportLink", () => {
 });
 
 describe("getInterviewChatLogLink", () => {
-  it("returns chat log path", () => {
-    expect(getInterviewChatLogLink("report-456")).toBe(
-      "/report/report-456/chat-log"
+  it("returns public report path because chat log is integrated there", () => {
+    expect(getInterviewChatLogLink("report-456")).toBe("/report/report-456");
+  });
+
+  it("returns public report path with from=opinions when from is specified", () => {
+    expect(getInterviewChatLogLink("report-456", "opinions")).toBe(
+      "/report/report-456?from=opinions"
     );
   });
 

@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import type { Route } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
 import type { ParsedOpinion as Opinion } from "../utils/format-utils";
 
@@ -11,7 +11,7 @@ interface OpinionsListProps {
   title?: string;
   footer?: ReactNode;
   reportId?: string;
-  chatLogFrom?: "complete";
+  chatLogFrom?: "complete" | "opinions";
 }
 
 export function OpinionsList({

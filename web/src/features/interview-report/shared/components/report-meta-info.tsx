@@ -16,7 +16,7 @@ interface ReportMetaInfoProps {
   characterCount: number;
   reactionData?: ReportReactionData;
   /** 遷移元のコンテキスト */
-  from?: "complete";
+  from?: "complete" | "opinions";
   /** trueの場合、会話ログへのリンクにしない */
   disableLink?: boolean;
 }
@@ -55,7 +55,9 @@ export function ReportMetaInfo({
           </p>
         ) : (
           <Link
-            href={getInterviewChatLogLink(reportId, from) as Route}
+            href={
+              `${getInterviewChatLogLink(reportId, from)}#chat-log` as Route
+            }
             className="text-xs font-normal"
           >
             インタビューの分量

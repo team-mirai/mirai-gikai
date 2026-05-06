@@ -4,10 +4,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { SpeechBubble } from "@/components/ui/speech-bubble";
 import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
-import { ReactionButtonsInline } from "@/features/report-reaction/client/components/reaction-buttons-inline";
 import type { ReportReactionData } from "@/features/report-reaction/shared/types";
 import { ShareArticleButton } from "../../client/components/share-article-button";
 import { BackToBillButton } from "./back-to-bill-button";
+import { ChatLogSection } from "./chat-log-section";
 import { IntervieweeInfo } from "./interviewee-info";
 import type { Opinion } from "./opinions-list";
 import { OpinionsList } from "./opinions-list";
@@ -24,6 +24,11 @@ interface ReportContentProps {
   roleTitle?: string | null;
   sessionStartedAt: string | null;
   characterCount: number;
+  messages?: Array<{
+    id: string;
+    role: string;
+    content: string;
+  }>;
   roleDescription: string | null;
   opinions: Opinion[];
   /** リアクションデータ（公開レポートで使用） */
@@ -50,6 +55,7 @@ export function ReportContent({
   roleTitle,
   sessionStartedAt,
   characterCount,
+  messages,
   roleDescription,
   opinions,
   reactionData,
@@ -76,7 +82,7 @@ export function ReportContent({
           sessionStartedAt={sessionStartedAt}
           characterCount={characterCount}
           reactionData={reactionData}
-          from={from === "complete" ? "complete" : undefined}
+          from={from}
         />
       </div>
 
@@ -88,14 +94,11 @@ export function ReportContent({
         opinions={opinions}
         title="💬主な意見"
         reportId={reportId}
-        chatLogFrom={from === "complete" ? "complete" : undefined}
+        chatLogFrom={from}
         footer={
           <Link
             href={
-              getInterviewChatLogLink(
-                reportId,
-                from === "complete" ? "complete" : undefined
-              ) as Route
+              `${getInterviewChatLogLink(reportId, from)}#chat-log` as Route
             }
             className="flex items-center justify-center gap-2.5 px-6 py-3 border border-gray-800 rounded-full"
           >
@@ -106,6 +109,8 @@ export function ReportContent({
           </Link>
         }
       />
+
+      {messages && <ChatLogSection messages={messages} />}
 
       {/* 追加セクション（有識者登録バナーなど） */}
       {children}

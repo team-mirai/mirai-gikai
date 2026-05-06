@@ -1,5 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
+import { redirect } from "next/navigation";
 import { ReportChatLogPage } from "@/features/interview-report/server/components/report-chat-log-page";
+import { routes } from "@/lib/routes";
 
 interface ChatLogPageProps {
   params: Promise<{
@@ -22,10 +24,14 @@ export default async function ChatLogPage({
   const { reportId } = await params;
   const { from } = await searchParams;
 
-  return (
-    <ReportChatLogPage
-      reportId={reportId}
-      from={from === "complete" ? "complete" : undefined}
-    />
-  );
+  if (from !== "complete") {
+    const publicReportPath =
+      from === "opinions"
+        ? `${routes.publicReport(reportId)}?from=opinions#chat-log`
+        : `${routes.publicReport(reportId)}#chat-log`;
+
+    redirect(publicReportPath as Route);
+  }
+
+  return <ReportChatLogPage reportId={reportId} from="complete" />;
 }
