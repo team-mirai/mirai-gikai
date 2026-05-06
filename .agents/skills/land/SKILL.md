@@ -87,7 +87,7 @@ gh pr merge --squash --subject "$pr_title" --body "$pr_body"
 推奨: asyncio ウォッチャーを使ってレビューコメント、CI、head 更新を並列に監視する:
 
 ```
-python3 .codex/skills/land/land_watch.py
+python3 .agents/skills/land/land_watch.py
 ```
 
 終了コード:
