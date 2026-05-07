@@ -1,9 +1,5 @@
-import { MessageSquareMore } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { SpeechBubble } from "@/components/ui/speech-bubble";
-import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
 import type { ReportReactionData } from "@/features/report-reaction/shared/types";
 import { ShareArticleButton } from "../../client/components/share-article-button";
 import { BackToBillButton } from "./back-to-bill-button";
@@ -95,19 +91,6 @@ export function ReportContent({
         title="💬主な意見"
         reportId={reportId}
         chatLogFrom={from}
-        footer={
-          <Link
-            href={
-              `${getInterviewChatLogLink(reportId, from)}#chat-log` as Route
-            }
-            className="flex items-center justify-center gap-2.5 px-6 py-3 border border-gray-800 rounded-full"
-          >
-            <MessageSquareMore className="w-6 h-6 text-gray-800" />
-            <span className="text-base font-bold text-gray-800">
-              すべての会話ログを読む
-            </span>
-          </Link>
-        }
       />
 
       {messages && <ChatLogSection messages={messages} />}
