@@ -93,7 +93,9 @@ export function ReportContent({
         chatLogFrom={from}
       />
 
-      {messages && <ChatLogSection messages={messages} />}
+      {messages && messages.length > 0 && (
+        <ChatLogSection messages={messages} />
+      )}
 
       {/* 追加セクション（有識者登録バナーなど） */}
       {children}
