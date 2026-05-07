@@ -113,8 +113,7 @@ export function CopyConfigToBillDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>他法案へ複製</AlertDialogTitle>
           <AlertDialogDescription>
-            「{configName}
-            」をコピー先の法案に複製します。コピー先では非公開状態で作成されます。
+            {`「${configName}」をコピー先の法案に複製します。コピー先では非公開状態で作成されます。`}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
