@@ -113,7 +113,6 @@ export interface SimulationMetrics {
 export interface TransientConfigSnapshot {
   mode: "loop" | "bulk";
   themes: string[] | null;
-  knowledgeSource: string | null;
   /** インタビュー目安時間（分）。本番の「## タイムマネジメント」セクションに反映される */
   estimatedDurationMinutes: number | null;
   questions: Array<{

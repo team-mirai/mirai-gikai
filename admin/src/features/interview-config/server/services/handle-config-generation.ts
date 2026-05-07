@@ -11,7 +11,6 @@ import {
   questionProposalSchema,
   themeProposalSchema,
 } from "../../shared/schemas";
-import { getInterviewConfigById } from "../loaders/get-interview-config";
 import { buildConfigGenerationPrompt } from "../utils/build-config-generation-prompt";
 
 interface ExistingQuestion {
@@ -23,7 +22,6 @@ interface ExistingQuestion {
 interface HandleConfigGenerationParams {
   messages: Array<{ role: string; content: string }>;
   billId: string;
-  configId?: string;
   stage: ConfigGenerationStage;
   existingThemes?: string[];
   existingQuestions?: ExistingQuestion[];
@@ -33,16 +31,14 @@ interface HandleConfigGenerationParams {
 export async function handleConfigGeneration({
   messages,
   billId,
-  configId,
   stage,
   existingThemes,
   existingQuestions,
   confirmedQuestions,
 }: HandleConfigGenerationParams) {
-  const [bill, billContents, config] = await Promise.all([
+  const [bill, billContents] = await Promise.all([
     getBillById(billId),
     getBillContents(billId),
-    configId ? getInterviewConfigById(configId) : null,
   ]);
 
   if (!bill) {
@@ -60,7 +56,7 @@ export async function handleConfigGeneration({
     billSummary: normalContent?.summary || "",
     billContent: normalContent?.content || "",
     stage,
-    knowledgeSource: config?.knowledge_source || undefined,
+    knowledgeSource: bill.knowledge_source ?? undefined,
     existingThemes,
     existingQuestions,
     confirmedQuestions,

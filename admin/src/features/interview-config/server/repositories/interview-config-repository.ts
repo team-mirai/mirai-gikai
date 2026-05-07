@@ -121,7 +121,6 @@ export async function createInterviewConfigRecord(params: {
   status: "public" | "closed";
   mode: "loop" | "bulk";
   themes: string[] | null;
-  knowledge_source: string | null;
   chat_model: string | null;
   estimated_duration: number | null;
 }): Promise<{ id: string }> {
@@ -146,7 +145,6 @@ export async function updateInterviewConfigRecord(
     status: "public" | "closed";
     mode: "loop" | "bulk";
     themes: string[] | null;
-    knowledge_source: string | null;
     chat_model: string | null;
     estimated_duration: number | null;
     updated_at: string;

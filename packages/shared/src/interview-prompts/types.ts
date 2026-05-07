@@ -15,6 +15,7 @@
  */
 export type PromptBillInput = {
   name?: string | null;
+  knowledge_source?: string | null;
   bill_content?: {
     title?: string | null;
     summary?: string | null;
@@ -27,7 +28,6 @@ export type PromptBillInput = {
  */
 export type InterviewConfig = {
   themes?: string[] | null;
-  knowledge_source?: string | null;
   [key: string]: unknown;
 } | null;
 

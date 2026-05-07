@@ -82,7 +82,9 @@ export function VersionList({ versions, billId, configId }: VersionListProps) {
                     : "-"}
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">
-                  {new Date(version.created_at).toLocaleString("ja-JP")}
+                  {new Date(version.created_at).toLocaleString("ja-JP", {
+                    timeZone: "Asia/Tokyo",
+                  })}
                 </td>
                 <td className="px-4 py-3 text-sm text-right">
                   {version.status === "completed" && (

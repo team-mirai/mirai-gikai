@@ -58,7 +58,6 @@ interface InterviewConfigFormProps {
   getFormValuesRef?: MutableRefObject<
     | (() => {
         name: string;
-        knowledge_source: string;
         mode: string;
         themes: string[];
         chat_model: string | null;
@@ -87,7 +86,6 @@ export function InterviewConfigForm({
       status: config?.status || "closed",
       mode: config?.mode || "loop",
       themes: config?.themes || [],
-      knowledge_source: config?.knowledge_source || "",
       chat_model: config?.chat_model || null,
       estimated_duration: isNew ? 10 : (config?.estimated_duration ?? null),
     },
@@ -100,7 +98,6 @@ export function InterviewConfigForm({
         const values = form.getValues();
         return {
           name: values.name,
-          knowledge_source: values.knowledge_source || "",
           mode: values.mode,
           themes: values.themes || [],
           chat_model: values.chat_model || null,
@@ -385,27 +382,6 @@ export function InterviewConfigForm({
                     </FormControl>
                     <FormDescription>
                       質問テーマを1行ずつ入力してください
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="knowledge_source"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ナレッジソース</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="議案の詳細情報やチームみらいの仮説などの情報を入力"
-                        className="min-h-[200px] resize-y"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      AIが質問を生成する際に参照する情報を入力してください。法案コンテンツは自動で読み込まれます。
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

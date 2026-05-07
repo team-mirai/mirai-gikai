@@ -28,4 +28,23 @@ describe("buildBillChatSystemNormalPrompt", () => {
     expect(result).toContain("みらい議会");
     expect(result).toContain("チームみらい");
   });
+
+  it("knowledgeSource を渡すと <knowledge_source> セクションが含まれる", () => {
+    const result = buildBillChatSystemNormalPrompt(
+      "a",
+      "b",
+      "c",
+      "d",
+      "補足知識"
+    );
+
+    expect(result).toContain("補足ナレッジ");
+    expect(result).toContain("補足知識");
+  });
+
+  it("knowledgeSource を省略するとセクションごと出ない", () => {
+    const result = buildBillChatSystemNormalPrompt("a", "b", "c", "d");
+
+    expect(result).not.toContain("<knowledge_source>");
+  });
 });

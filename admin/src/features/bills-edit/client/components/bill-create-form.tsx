@@ -41,6 +41,8 @@ export function BillCreateForm({ dietSessions }: BillCreateFormProps) {
       is_featured: false,
       is_review_completed: false,
       diet_session_id: defaultDietSessionId,
+      knowledge_source: "",
+      use_knowledge_source_in_chat: false,
     },
   });
 

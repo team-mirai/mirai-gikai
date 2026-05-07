@@ -3,6 +3,7 @@ import { buildPersonaFromBillPrompt } from "./build-persona-from-bill-prompt";
 
 const baseBill = {
   name: "宇宙活動法改正案",
+  knowledge_source: "宇宙活動法の概要",
   bill_content: {
     title: "人工衛星等の打上げ及び人工衛星の管理に関する法律案",
     summary: "ロケットの打上げルールを見直す法律",
@@ -12,7 +13,6 @@ const baseBill = {
 
 const baseConfig = {
   themes: ["安全確保", "産業競争力"],
-  knowledge_source: "宇宙活動法の概要",
 };
 
 describe("buildPersonaFromBillPrompt", () => {
@@ -62,8 +62,8 @@ describe("buildPersonaFromBillPrompt", () => {
 
   it("テーマ未設定でも壊れない", () => {
     const result = buildPersonaFromBillPrompt({
-      bill: baseBill,
-      interviewConfig: { themes: [], knowledge_source: "" },
+      bill: { ...baseBill, knowledge_source: "" },
+      interviewConfig: { themes: [] },
     });
     expect(result).toContain("テーマ未設定");
     expect(result).toContain("知識ソース未設定");

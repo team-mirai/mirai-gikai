@@ -1,8 +1,15 @@
 import "server-only";
 
+import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { cache } from "react";
 import type { InterviewReport } from "../../shared/types";
 import {
+  countUserMessageCharacters,
+  getBillIdFromPublicReportSession,
+  selectPrimaryBillContent,
+} from "../../shared/utils/public-report-display";
+import {
+  countPublicReportsByBillId,
   findBillWithContentById,
   findMessagesBySessionId,
   findPublicReportWithSessionById,
@@ -48,11 +55,25 @@ export const getPublicReportById = cache(
       interview_configs: { bill_id: string } | null;
     } | null;
 
-    if (!session?.interview_configs) {
+    if (!session) {
       return null;
     }
 
-    const billId = session.interview_configs.bill_id;
+    const billId = getBillIdFromPublicReportSession(session);
+    if (!billId) {
+      return null;
+    }
+
+    let publicReportCount: number;
+    try {
+      publicReportCount = await countPublicReportsByBillId(billId);
+    } catch (error) {
+      console.error("Failed to count public reports:", error);
+      return null;
+    }
+    if (!shouldDisplayPublicReports(publicReportCount)) {
+      return null;
+    }
 
     const [bill, messages] = await Promise.all([
       findBillWithContentById(billId),
@@ -71,15 +92,9 @@ export const getPublicReportById = cache(
         name: bill.name,
         thumbnail_url: bill.thumbnail_url,
         share_thumbnail_url: bill.share_thumbnail_url,
-        bill_content: bill.bill_contents
-          ? Array.isArray(bill.bill_contents)
-            ? bill.bill_contents[0]
-            : bill.bill_contents
-          : null,
+        bill_content: selectPrimaryBillContent(bill.bill_contents),
       },
-      characterCount: messages
-        .filter((m) => m.role === "user")
-        .reduce((sum, m) => sum + m.content.length, 0),
+      characterCount: countUserMessageCharacters(messages),
     };
   }
 );

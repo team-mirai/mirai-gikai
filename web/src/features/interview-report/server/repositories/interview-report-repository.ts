@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import type { SortOrder } from "../../shared/utils/sort-order";
 
 /**
@@ -210,9 +211,38 @@ export async function updateReportPublicSetting(
   isPublic: boolean
 ) {
   const supabase = createAdminClient();
+
+  const { data: report, error: fetchError } = await supabase
+    .from("interview_report")
+    .select("is_public_by_admin, moderation_score, total_content_richness")
+    .eq("id", reportId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(
+      `Failed to fetch report for public setting: ${fetchError.message}`
+    );
+  }
+
+  const updateValues: {
+    is_public_by_user: boolean;
+    is_public_by_admin?: boolean;
+  } = { is_public_by_user: isPublic };
+
+  if (
+    !report.is_public_by_admin &&
+    isReportAutoPublishEligible({
+      isPublicByUser: isPublic,
+      moderationScore: report.moderation_score,
+      totalContentRichness: report.total_content_richness,
+    })
+  ) {
+    updateValues.is_public_by_admin = true;
+  }
+
   const { error } = await supabase
     .from("interview_report")
-    .update({ is_public_by_user: isPublic })
+    .update(updateValues)
     .eq("id", reportId);
 
   if (error) {

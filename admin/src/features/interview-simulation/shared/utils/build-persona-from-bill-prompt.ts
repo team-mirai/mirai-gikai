@@ -35,7 +35,7 @@ export function buildPersonaFromBillPrompt(
   const billSummary = bill?.bill_content?.summary || "";
   const billContent = bill?.bill_content?.content || "";
   const themes = interviewConfig?.themes || [];
-  const knowledgeSource = interviewConfig?.knowledge_source || "";
+  const knowledgeSource = bill?.knowledge_source || "";
 
   const stanceLine = stanceHint
     ? `- **スタンス（必須）**: ${STANCE_LABEL[stanceHint]}（stance フィールドは "${stanceHint}" にしてください）`

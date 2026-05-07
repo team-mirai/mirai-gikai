@@ -29,6 +29,8 @@ const makeBill = (
   status_order: BILL_STATUS_ORDER.introduced,
   publish_status_order: 2,
   thumbnail_url: null,
+  knowledge_source: "厚生労働省の報告書",
+  use_knowledge_source_in_chat: false,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   bill_content: {
@@ -64,7 +66,6 @@ const baseParams: InterviewPromptInput = {
   bill: makeBill(),
   interviewConfig: {
     themes: ["医療", "教育"],
-    knowledge_source: "厚生労働省の報告書",
   },
   questions: sampleQuestions,
   currentStage: "chat",
@@ -117,7 +118,7 @@ describe("buildLoopModeSystemPrompt", () => {
   it("知識ソース未設定の場合「（知識ソース未設定）」が含まれる", () => {
     const result = buildLoopModeSystemPrompt({
       ...baseParams,
-      interviewConfig: { themes: ["テーマ1"] },
+      bill: makeBill({ knowledge_source: null }),
     });
 
     expect(result).toContain("（知識ソース未設定）");

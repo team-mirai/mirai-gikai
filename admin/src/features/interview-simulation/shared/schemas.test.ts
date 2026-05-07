@@ -10,7 +10,6 @@ type ValidRequest = {
   improvedConfig: {
     mode: "loop" | "bulk";
     themes: string[] | null;
-    knowledgeSource: string | null;
     estimatedDurationMinutes: number | null;
     questions: Array<{
       id: string;
@@ -31,7 +30,6 @@ function baseValidRequest(): ValidRequest {
     improvedConfig: {
       mode: "loop",
       themes: ["テーマ A"],
-      knowledgeSource: "知識ソース",
       estimatedDurationMinutes: 30,
       questions: [
         {
@@ -160,13 +158,6 @@ describe("multiSimulationRunRequestSchema", () => {
         expect(slot.roleHint).toBeUndefined();
       }
     }
-  });
-
-  it("knowledgeSource が 40000 文字を超えると拒否", () => {
-    const body = baseValidRequest();
-    body.improvedConfig.knowledgeSource = "a".repeat(40_001);
-    const result = multiSimulationRunRequestSchema.safeParse(body);
-    expect(result.success).toBe(false);
   });
 
   it("question が 2000 文字を超えると拒否", () => {

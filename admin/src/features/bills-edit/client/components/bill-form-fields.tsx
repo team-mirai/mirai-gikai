@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   type BillStatus,
@@ -330,6 +331,46 @@ export function BillFormFields({
               <FormLabel>記事レビュー完了</FormLabel>
               <FormDescription>
                 未完了の場合、記事にレビュー中バナーが表示されます
+              </FormDescription>
+            </div>
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="knowledge_source"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>ナレッジソース</FormLabel>
+            <FormControl>
+              <Textarea
+                {...field}
+                value={field.value ?? ""}
+                placeholder="議案の補足情報やチームみらいの仮説などを入力"
+                className="min-h-[200px] resize-y"
+              />
+            </FormControl>
+            <FormDescription>
+              AIインタビュー（常時参照）と、AIチャット（下のトグルで参照可否を切替）で使われる補足情報です。最大40,000文字。
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="use_knowledge_source_in_chat"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-start gap-3 space-y-0 rounded-md border p-4">
+            <FormControl>
+              <Switch checked={field.value} onCheckedChange={field.onChange} />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>AIチャットでもナレッジソースを使用する</FormLabel>
+              <FormDescription>
+                ONにすると、議案ページのAIチャットのシステムプロンプトに上のナレッジソースが追加されます。AIインタビューでは常に使用されます。
               </FormDescription>
             </div>
           </FormItem>

@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { LanguageModelUsage, UIMessage } from "ai";
 import {
   adminClient,
+  cleanupTestBill,
+  createTestBill,
   createTestUser,
   cleanupTestUser,
   type TestUser,
@@ -119,6 +121,150 @@ describe("handleChatRequest 統合テスト", () => {
 
       expect(receivedPromptNames).toHaveLength(1);
       expect(receivedPromptNames[0]).toBe("bill-chat-system-normal");
+    });
+
+    it("公開済みbillでトグルONなら knowledgeSource がサーバー側で取得されてプロンプト変数に渡る", async () => {
+      const bill = await createTestBill({ publish_status: "published" });
+      await adminClient
+        .from("bills")
+        .update({
+          knowledge_source: "補足ナレッジ本文",
+          use_knowledge_source_in_chat: true,
+        })
+        .eq("id", bill.id);
+
+      try {
+        const receivedVariables: Array<Record<string, string> | undefined> = [];
+        const trackingPromptProvider = {
+          getPrompt: async (
+            _name: string,
+            variables?: Record<string, string>
+          ) => {
+            receivedVariables.push(variables);
+            return { content: "テスト", metadata: "{}" };
+          },
+        };
+        const mockModel = createStreamMock(["応答"]);
+        const messages = createTestMessages({
+          billContext: {
+            id: bill.id,
+            name: bill.name,
+          } as unknown as ChatMessageMetadata["billContext"],
+        });
+
+        const response = await handleChatRequest({
+          messages,
+          userId: testUser.id,
+          deps: { model: mockModel, promptProvider: trackingPromptProvider },
+        });
+        await consumeResponseStream(response);
+
+        expect(receivedVariables[0]?.knowledgeSource).toBe("補足ナレッジ本文");
+      } finally {
+        await cleanupTestBill(bill.id);
+      }
+    });
+
+    it("公開済みbillでトグルOFFなら knowledgeSource は空文字で渡る", async () => {
+      const bill = await createTestBill({ publish_status: "published" });
+      await adminClient
+        .from("bills")
+        .update({
+          knowledge_source: "本文があってもOFFなら無視",
+          use_knowledge_source_in_chat: false,
+        })
+        .eq("id", bill.id);
+
+      try {
+        const receivedVariables: Array<Record<string, string> | undefined> = [];
+        const trackingPromptProvider = {
+          getPrompt: async (
+            _name: string,
+            variables?: Record<string, string>
+          ) => {
+            receivedVariables.push(variables);
+            return { content: "テスト", metadata: "{}" };
+          },
+        };
+        const mockModel = createStreamMock(["応答"]);
+        const messages = createTestMessages({
+          billContext: {
+            id: bill.id,
+            name: bill.name,
+          } as unknown as ChatMessageMetadata["billContext"],
+        });
+
+        const response = await handleChatRequest({
+          messages,
+          userId: testUser.id,
+          deps: { model: mockModel, promptProvider: trackingPromptProvider },
+        });
+        await consumeResponseStream(response);
+
+        expect(receivedVariables[0]?.knowledgeSource).toBe("");
+      } finally {
+        await cleanupTestBill(bill.id);
+      }
+    });
+
+    it("クライアント側で bill 関連フィールドを偽装してもサーバー側のDB値が優先される", async () => {
+      const bill = await createTestBill({ publish_status: "published" });
+      await adminClient
+        .from("bills")
+        .update({
+          knowledge_source: null,
+          use_knowledge_source_in_chat: false,
+        })
+        .eq("id", bill.id);
+      await adminClient.from("bill_contents").insert({
+        bill_id: bill.id,
+        difficulty_level: "normal",
+        title: "サーバー側タイトル",
+        summary: "サーバー側要約",
+        content: "サーバー側本文",
+      });
+
+      try {
+        const receivedVariables: Array<Record<string, string> | undefined> = [];
+        const trackingPromptProvider = {
+          getPrompt: async (
+            _name: string,
+            variables?: Record<string, string>
+          ) => {
+            receivedVariables.push(variables);
+            return { content: "テスト", metadata: "{}" };
+          },
+        };
+        const mockModel = createStreamMock(["応答"]);
+        const messages = createTestMessages({
+          billContext: {
+            id: bill.id,
+            name: "クライアント側で書き換えた名称",
+            bill_content: {
+              title: "クライアント側で書き換えたタイトル",
+              summary: "クライアント側で書き換えた要約",
+              content: "クライアント側で書き換えた本文",
+            },
+            knowledge_source: "クライアントから注入した秘密",
+            use_knowledge_source_in_chat: true,
+          } as unknown as ChatMessageMetadata["billContext"],
+        });
+
+        const response = await handleChatRequest({
+          messages,
+          userId: testUser.id,
+          deps: { model: mockModel, promptProvider: trackingPromptProvider },
+        });
+        await consumeResponseStream(response);
+
+        expect(receivedVariables[0]?.knowledgeSource).toBe("");
+        expect(receivedVariables[0]?.billName).toBe(bill.name);
+        expect(receivedVariables[0]?.billTitle).toBe("サーバー側タイトル");
+        expect(receivedVariables[0]?.billSummary).toBe("サーバー側要約");
+        expect(receivedVariables[0]?.billContent).toBe("サーバー側本文");
+      } finally {
+        await cleanupTestBill(bill.id);
+      }
     });
 
     it("pageContext.type が home の場合は top-chat-system プロンプトが選択される", async () => {
