@@ -74,11 +74,7 @@ export function getPublicReportLink(
   return base;
 }
 
-/**
- * インタビュー会話ログの表示先へのリンクを取得
- * @param from - 遷移元のコンテキスト。"complete" の場合は完了ページ内、"opinions" の場合は公開レポート一覧からの戻り文脈を維持する
- */
-export function getInterviewChatLogLink(
+function getReportLinkForChatLogContext(
   reportId: string,
   from?: "complete" | "opinions"
 ): string {
@@ -89,4 +85,27 @@ export function getInterviewChatLogLink(
     return getPublicReportLink(reportId, "opinions");
   }
   return routes.publicReport(reportId);
+}
+
+/**
+ * インタビュー会話ログの表示先へのリンクを取得
+ * @param from - 遷移元のコンテキスト。"complete" の場合は完了ページ内、"opinions" の場合は公開レポート一覧からの戻り文脈を維持する
+ */
+export function getInterviewChatLogLink(
+  reportId: string,
+  from?: "complete" | "opinions"
+): string {
+  return `${getReportLinkForChatLogContext(reportId, from)}#chat-log`;
+}
+
+/**
+ * インタビュー会話ログ内の個別メッセージへのリンクを取得
+ * @param from - 遷移元のコンテキスト。"complete" の場合は完了ページ内、"opinions" の場合は公開レポート一覧からの戻り文脈を維持する
+ */
+export function getInterviewMessageLink(
+  reportId: string,
+  messageId: string,
+  from?: "complete" | "opinions"
+): string {
+  return `${getReportLinkForChatLogContext(reportId, from)}#message-${messageId}`;
 }

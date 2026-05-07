@@ -55,9 +55,7 @@ export function ReportMetaInfo({
           </p>
         ) : (
           <Link
-            href={
-              `${getInterviewChatLogLink(reportId, from)}#chat-log` as Route
-            }
+            href={getInterviewChatLogLink(reportId, from) as Route}
             className="text-xs font-normal"
           >
             インタビューの分量
