@@ -26,6 +26,10 @@ export type InterviewConfigResult =
   | { success: true; data: { id: string } }
   | { success: false; error: string };
 
+export type DuplicateInterviewConfigResult =
+  | { success: true; data: { id: string; billId: string } }
+  | { success: false; error: string };
+
 /**
  * 新しいインタビュー設定を作成する
  */
@@ -120,10 +124,15 @@ export async function updateInterviewConfig(
 
 /**
  * インタビュー設定を複製する（質問も含めてコピー）
+ *
+ * `options.targetBillId` を渡すと別の法案にコピーする。
+ * 省略時は同じ法案内で複製する（従来動作）。
+ * いずれの場合も新しい設定は status="closed" で作成する。
  */
 export async function duplicateInterviewConfig(
-  configId: string
-): Promise<InterviewConfigResult> {
+  configId: string,
+  options?: { targetBillId?: string }
+): Promise<DuplicateInterviewConfigResult> {
   try {
     await requireAdmin();
 
@@ -140,11 +149,13 @@ export async function duplicateInterviewConfig(
     // 元の質問を取得
     const originalQuestions = await findInterviewQuestionsByConfigId(configId);
 
+    const targetBillId = options?.targetBillId ?? originalConfig.bill_id;
+
     // 新しい設定を作成（ステータスは非公開で複製）
     let newConfig: { id: string };
     try {
       newConfig = await createInterviewConfigRecord({
-        bill_id: originalConfig.bill_id,
+        bill_id: targetBillId,
         name: `${originalConfig.name}（コピー）`,
         status: "closed" as const,
         mode: originalConfig.mode as "loop" | "bulk",
@@ -181,7 +192,7 @@ export async function duplicateInterviewConfig(
     // web側のキャッシュを無効化
     await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);
 
-    return { success: true, data: { id: newConfig.id } };
+    return { success: true, data: { id: newConfig.id, billId: targetBillId } };
   } catch (error) {
     console.error("Duplicate interview config error:", error);
     return {
