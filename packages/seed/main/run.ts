@@ -353,7 +353,7 @@ async function seedDatabase() {
           }
 
           console.log(`✅ Inserted demo data`);
-          console.log(`   Demo report URL: /report/${DEMO_REPORT_ID}/chat-log`);
+          console.log(`   Demo report URL: /report/${DEMO_REPORT_ID}#chat-log`);
 
           // Insert additional demo sessions, messages, and reports (for 4 role types)
           console.log("🎭 Inserting additional demo data for all role types...");
@@ -392,10 +392,16 @@ async function seedDatabase() {
           }
 
           console.log(`✅ Inserted additional demo data for all 4 role types`);
-          console.log(`   subject_expert: /report/${DEMO_REPORT_ID}/chat-log`);
-          console.log(`   work_related: /report/${DEMO_REPORT_ID_WORK}/chat-log`);
-          console.log(`   daily_life_affected: /report/${DEMO_REPORT_ID_DAILY}/chat-log`);
-          console.log(`   general_citizen: /report/${DEMO_REPORT_ID_CITIZEN}/chat-log`);
+          console.log(`   subject_expert: /report/${DEMO_REPORT_ID}#chat-log`);
+          console.log(
+            `   work_related: /report/${DEMO_REPORT_ID_WORK}#chat-log`
+          );
+          console.log(
+            `   daily_life_affected: /report/${DEMO_REPORT_ID_DAILY}#chat-log`
+          );
+          console.log(
+            `   general_citizen: /report/${DEMO_REPORT_ID_CITIZEN}#chat-log`
+          );
         }
       }
     } else {

@@ -35,7 +35,8 @@ export const routes = {
   // ── レポート ──────────────────────────────────────
   publicReport: (reportId: string) => `/report/${reportId}` as const,
   reportComplete: (reportId: string) => `/report/${reportId}/complete` as const,
-  reportChatLog: (reportId: string) => `/report/${reportId}/chat-log` as const,
+  legacyReportChatLog: (reportId: string) =>
+    `/report/${reportId}/chat-log` as const,
 
   // ── 国会セッション ────────────────────────────────
   kokkaiSessionBills: (slug: string) => `/kokkai/${slug}/bills` as const,

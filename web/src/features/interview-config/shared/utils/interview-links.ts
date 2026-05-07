@@ -76,14 +76,14 @@ export function getPublicReportLink(
 
 /**
  * インタビュー会話ログの表示先へのリンクを取得
- * @param from - 遷移元のコンテキスト。"complete" の場合は所有者向けの会話ログページを指し、"opinions" の場合は公開レポート一覧からの戻り文脈を維持する
+ * @param from - 遷移元のコンテキスト。"complete" の場合は完了ページ内、"opinions" の場合は公開レポート一覧からの戻り文脈を維持する
  */
 export function getInterviewChatLogLink(
   reportId: string,
   from?: "complete" | "opinions"
 ): string {
   if (from === "complete") {
-    return `${routes.reportChatLog(reportId)}?from=complete`;
+    return routes.reportComplete(reportId);
   }
   if (from === "opinions") {
     return getPublicReportLink(reportId, "opinions");

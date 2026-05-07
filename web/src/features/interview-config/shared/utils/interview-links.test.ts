@@ -78,9 +78,9 @@ describe("getInterviewChatLogLink", () => {
     );
   });
 
-  it("returns chat log path with from=complete when from is specified", () => {
+  it("returns report complete path when from=complete is specified", () => {
     expect(getInterviewChatLogLink("report-456", "complete")).toBe(
-      "/report/report-456/chat-log?from=complete"
+      "/report/report-456/complete"
     );
   });
 });
