@@ -239,6 +239,90 @@ describe("MCP bills tools", () => {
       expect(data?.is_review_completed).toBe(true);
     });
 
+    it("billId 以外を省略すると updated_at だけが更新される", async () => {
+      const bill = await createTestBill({
+        name: "部分更新元",
+        status: "introduced",
+        originating_house: "HR",
+      });
+      billIds.push(bill.id);
+
+      const result = await registry.callTool<{ ok: boolean }>("update_bill", {
+        billId: bill.id,
+      });
+      expect(result.ok).toBe(true);
+
+      const { data } = await adminClient
+        .from("bills")
+        .select("name, status, originating_house")
+        .eq("id", bill.id)
+        .single();
+      expect(data?.name).toBe("部分更新元");
+      expect(data?.status).toBe("introduced");
+      expect(data?.originating_house).toBe("HR");
+    });
+
+    it("一部のフィールドのみ指定した場合、他のフィールドは変更されない", async () => {
+      const bill = await createTestBill({
+        name: "更新前の名前",
+        status: "introduced",
+        originating_house: "HR",
+        is_featured: false,
+      });
+      billIds.push(bill.id);
+      await adminClient
+        .from("bills")
+        .update({
+          submitted_date: "2025-04-01T00:00:00+09:00",
+          status_note: "初期備考",
+        })
+        .eq("id", bill.id);
+
+      const result = await registry.callTool<{ ok: boolean }>("update_bill", {
+        billId: bill.id,
+        name: "更新後の名前のみ",
+      });
+      expect(result.ok).toBe(true);
+
+      const { data } = await adminClient
+        .from("bills")
+        .select(
+          "name, status, originating_house, is_featured, submitted_date, status_note"
+        )
+        .eq("id", bill.id)
+        .single();
+      expect(data?.name).toBe("更新後の名前のみ");
+      expect(data?.status).toBe("introduced");
+      expect(data?.originating_house).toBe("HR");
+      expect(data?.is_featured).toBe(false);
+      expect(data?.status_note).toBe("初期備考");
+      expect(new Date(data?.submitted_date ?? "").toISOString()).toBe(
+        new Date("2025-04-01T00:00:00+09:00").toISOString()
+      );
+    });
+
+    it("submitted_date に空文字を指定すると null に更新される", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+      await adminClient
+        .from("bills")
+        .update({ submitted_date: "2025-04-01T00:00:00+09:00" })
+        .eq("id", bill.id);
+
+      const result = await registry.callTool<{ ok: boolean }>("update_bill", {
+        billId: bill.id,
+        submitted_date: "",
+      });
+      expect(result.ok).toBe(true);
+
+      const { data } = await adminClient
+        .from("bills")
+        .select("submitted_date")
+        .eq("id", bill.id)
+        .single();
+      expect(data?.submitted_date).toBeNull();
+    });
+
     it("knowledge_source / use_knowledge_source_in_chat を省略しても更新できる", async () => {
       const bill = await createTestBill({ name: "ナレッジ無し更新前" });
       billIds.push(bill.id);
