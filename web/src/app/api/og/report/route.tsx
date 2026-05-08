@@ -9,6 +9,8 @@ import { truncateText } from "@/features/interview-report/shared/utils/truncate-
  */
 const OG_SUMMARY_MAX_LENGTH = 100;
 const OG_BILL_NAME_MAX_LENGTH = 40;
+const OG_BILL_NAME_WIDTH = 820;
+const OG_BILL_NAME_MAX_HEIGHT = 96;
 
 const FONT_FETCH_TIMEOUT_MS = 3000;
 
@@ -166,10 +168,14 @@ export async function GET(request: Request) {
           <div
             style={{
               display: "flex",
+              width: OG_BILL_NAME_WIDTH,
+              maxHeight: OG_BILL_NAME_MAX_HEIGHT,
               fontSize: 32,
               fontWeight: 800,
               color: "#0f8472",
               lineHeight: 1.5,
+              overflow: "hidden",
+              wordBreak: "break-all",
             }}
           >
             {truncatedBillName}
