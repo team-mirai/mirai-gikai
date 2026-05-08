@@ -76,6 +76,7 @@ describe("GET /api/og/report", () => {
 
     await GET(new Request("http://localhost/api/og/report?id=report-1"));
 
+    expect(mocks.imageResponse).toHaveBeenCalledTimes(1);
     const [element] = mocks.imageResponse.mock.calls[0];
     const billNameElement = findBillNameElement(element, billName);
 
