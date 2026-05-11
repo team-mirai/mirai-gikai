@@ -6,6 +6,7 @@ import {
 } from "@/features/chat/server/services/system-cost-guard";
 import { chatErrorToResponse } from "@/features/chat/server/utils/chat-error-response";
 import { handleInterviewChatRequest } from "@/features/interview-session/server/services/handle-interview-chat-request";
+import { resolvePreviewInterviewConfigId } from "@/features/interview-session/shared/utils/resolve-preview-interview-config-id";
 import { jsonResponse } from "@/lib/api/response";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
@@ -44,20 +45,15 @@ export async function POST(req: Request) {
     return jsonResponse({ error: "billId is required" }, 400);
   }
 
-  // 非公開 config を直接プレビューしたい時のみ interviewConfigId を受け付ける。
-  // 認可: 同じ bill に紐づく有効なプレビュートークンが必須（無検証で受け取ると
-  // 任意ユーザーが configId を知っているだけで非公開 config の prompt/model
-  // を引き出せてしまうため）。
-  let resolvedInterviewConfigId: string | undefined;
-  if (interviewConfigId) {
-    const isValidPreview = await validatePreviewToken(billId, previewToken);
-    if (!isValidPreview) {
-      return jsonResponse(
-        { error: "Invalid preview token for interviewConfigId" },
-        403
-      );
-    }
-    resolvedInterviewConfigId = interviewConfigId;
+  const resolvedConfigId = await resolvePreviewInterviewConfigId(
+    { billId, interviewConfigId, previewToken },
+    validatePreviewToken
+  );
+  if (!resolvedConfigId.ok) {
+    return jsonResponse(
+      { error: "Invalid preview token for interviewConfigId" },
+      403
+    );
   }
 
   try {
@@ -70,7 +66,7 @@ export async function POST(req: Request) {
       billId,
       currentStage,
       isRetry,
-      interviewConfigId: resolvedInterviewConfigId,
+      interviewConfigId: resolvedConfigId.interviewConfigId,
       userId: user.id,
     });
   } catch (error) {
