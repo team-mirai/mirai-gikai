@@ -74,7 +74,7 @@ describe("getInterviewConfigAdmin 統合テスト", () => {
 
   describe("configId を指定しない場合", () => {
     it("公開中の設定があれば公開中の設定を返す", async () => {
-      const { data: publicConfig } = await adminClient
+      const { data: publicConfig, error } = await adminClient
         .from("interview_configs")
         .insert({
           bill_id: billId,
@@ -83,7 +83,8 @@ describe("getInterviewConfigAdmin 統合テスト", () => {
         })
         .select()
         .single();
-      if (!publicConfig) throw new Error("public config 作成失敗");
+      if (!publicConfig)
+        throw new Error(`public config 作成失敗: ${error?.message}`);
 
       // 同じ bill に別の closed 設定も作成しておく（こちらは返されてはいけない）
       await adminClient.from("interview_configs").insert({
