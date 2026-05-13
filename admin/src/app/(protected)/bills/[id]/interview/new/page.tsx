@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
 import { InterviewConfigEditClient } from "@/features/interview-config/client/components/interview-config-edit-client";
+import { generateDefaultConfigName } from "@/features/interview-config/shared/utils/default-config-name";
 import { routes } from "@/lib/routes";
 
 interface InterviewNewPageProps {
@@ -24,7 +25,10 @@ export default async function InterviewNewPage({
     notFound();
   }
 
-  const initialName = admin?.email?.split("@")[0] || null;
+  const username = admin?.email?.split("@")[0] || null;
+  const initialName = username
+    ? `${generateDefaultConfigName()} (${username})`
+    : null;
 
   return (
     <div>
