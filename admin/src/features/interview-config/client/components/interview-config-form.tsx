@@ -65,6 +65,8 @@ interface InterviewConfigFormProps {
       })
     | null
   >;
+  /** 新規作成時の設定名初期値（ログインユーザー名） */
+  initialName?: string | null;
 }
 
 export function InterviewConfigForm({
@@ -74,6 +76,7 @@ export function InterviewConfigForm({
   onAiThemesApplied,
   onConfigCreated,
   getFormValuesRef,
+  initialName,
 }: InterviewConfigFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,7 +85,7 @@ export function InterviewConfigForm({
   const form = useForm<InterviewConfigInput>({
     resolver: zodResolver(interviewConfigSchema),
     defaultValues: {
-      name: config?.name || generateDefaultConfigName(),
+      name: config?.name || initialName || generateDefaultConfigName(),
       status: config?.status || "closed",
       mode: config?.mode || "loop",
       themes: config?.themes || [],

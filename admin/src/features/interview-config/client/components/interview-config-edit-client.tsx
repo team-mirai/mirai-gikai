@@ -31,6 +31,7 @@ interface InterviewConfigEditClientProps {
   completedReportsTruncated?: boolean;
   /** 切り詰め上限値 */
   completedReportsLimit?: number;
+  initialName?: string | null;
 }
 
 export function InterviewConfigEditClient({
@@ -40,6 +41,7 @@ export function InterviewConfigEditClient({
   completedReports,
   completedReportsTruncated = false,
   completedReportsLimit,
+  initialName,
 }: InterviewConfigEditClientProps) {
   const router = useRouter();
   const [configId, setConfigId] = useState<string | undefined>(
@@ -198,6 +200,7 @@ export function InterviewConfigEditClient({
               aiGeneratedThemes={aiGeneratedThemes}
               onAiThemesApplied={() => setAiGeneratedThemes(null)}
               getFormValuesRef={getFormValuesRef}
+              initialName={initialName}
             />
             {configId ? (
               <InterviewQuestionList

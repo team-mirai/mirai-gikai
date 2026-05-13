@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
+import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
 import { InterviewConfigEditClient } from "@/features/interview-config/client/components/interview-config-edit-client";
 import { routes } from "@/lib/routes";
 
@@ -17,11 +18,13 @@ export default async function InterviewNewPage({
   params,
 }: InterviewNewPageProps) {
   const { id } = await params;
-  const bill = await getBillById(id);
+  const [bill, admin] = await Promise.all([getBillById(id), getCurrentAdmin()]);
 
   if (!bill) {
     notFound();
   }
+
+  const initialName = admin?.email?.split("@")[0] || null;
 
   return (
     <div>
@@ -49,6 +52,7 @@ export default async function InterviewNewPage({
         config={null}
         questions={[]}
         completedReports={[]}
+        initialName={initialName}
       />
     </div>
   );
