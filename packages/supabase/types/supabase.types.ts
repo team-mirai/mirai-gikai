@@ -780,6 +780,13 @@ export type Database = {
             referencedRelation: "topic_analysis_topics"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "topic_analysis_classifications_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "topic_analysis_versions"
+            referencedColumns: ["id"]
+          },
         ]
       }
       topic_analysis_topics: {
@@ -810,7 +817,15 @@ export type Database = {
           sort_order?: number
           version_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "topic_analysis_topics_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "topic_analysis_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       topic_analysis_versions: {
         Row: {

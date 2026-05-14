@@ -3,6 +3,7 @@
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { InterviewProgress } from "../../shared/utils/calc-interview-progress";
+import { isLoopFamilyMode } from "../../shared/utils/is-loop-family-mode";
 
 const RATING_WIDGET_THRESHOLD = 65;
 
@@ -28,7 +29,7 @@ export function useInterviewRating({
   useEffect(() => {
     if (
       !ratingTriggered.current &&
-      (mode === "loop" || mode === "targeted") &&
+      isLoopFamilyMode(mode) &&
       progress &&
       progress.percentage >= RATING_WIDGET_THRESHOLD
     ) {
