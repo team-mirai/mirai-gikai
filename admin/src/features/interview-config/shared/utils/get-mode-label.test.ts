@@ -9,4 +9,8 @@ describe("getModeLabel", () => {
   it("bulkを一括と表示する", () => {
     expect(getModeLabel("bulk")).toBe("一括");
   });
+
+  it("targetedをターゲットと表示する", () => {
+    expect(getModeLabel("targeted")).toBe("ターゲット");
+  });
 });

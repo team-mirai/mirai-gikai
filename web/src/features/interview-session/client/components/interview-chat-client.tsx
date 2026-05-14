@@ -1,5 +1,6 @@
 "use client";
 
+import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { useCallback, useMemo, useState } from "react";
 import {
   Conversation,
@@ -31,7 +32,7 @@ interface InterviewChatClientProps {
     content: string;
     created_at: string;
   }>;
-  mode?: "loop" | "bulk";
+  mode?: InterviewMode;
   totalQuestions?: number;
   estimatedDuration?: number | null;
   sessionStartedAt?: string;
@@ -91,7 +92,8 @@ export function InterviewChatClient({
 
   const billDetailLink = getBillDetailLink(billId, previewToken);
 
-  const showProgressBar = mode === "loop" && progress !== null;
+  const showProgressBar =
+    (mode === "loop" || mode === "targeted") && progress !== null;
   const timerMinutes =
     remainingMinutes !== null && stage === "chat" && !timeUpDismissed
       ? remainingMinutes

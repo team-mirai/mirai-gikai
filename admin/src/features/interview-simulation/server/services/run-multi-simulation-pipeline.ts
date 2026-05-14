@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import type {
+  InterviewMode,
   PromptBillInput,
   InterviewConfig as PromptInterviewConfig,
   InterviewQuestion as PromptInterviewQuestion,
@@ -37,7 +38,7 @@ interface ImprovedPromptInputs {
   bill: PromptBillInput;
   interviewConfig: PromptInterviewConfig;
   questions: PromptInterviewQuestion[];
-  mode: "loop" | "bulk";
+  mode: InterviewMode;
   estimatedDurationMinutes: number | null;
 }
 

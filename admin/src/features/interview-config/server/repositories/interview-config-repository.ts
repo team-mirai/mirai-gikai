@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { InterviewConfig, InterviewQuestion } from "../../shared/types";
 
@@ -119,7 +120,7 @@ export async function createInterviewConfigRecord(params: {
   bill_id: string;
   name: string;
   status: "public" | "closed";
-  mode: "loop" | "bulk";
+  mode: InterviewMode;
   themes: string[] | null;
   chat_model: string | null;
   estimated_duration: number | null;
@@ -143,7 +144,7 @@ export async function updateInterviewConfigRecord(
   params: {
     name: string;
     status: "public" | "closed";
-    mode: "loop" | "bulk";
+    mode: InterviewMode;
     themes: string[] | null;
     chat_model: string | null;
     estimated_duration: number | null;

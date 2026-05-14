@@ -5,10 +5,12 @@ import type { getInterviewConfig } from "@/features/interview-config/server/load
 import type { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { bulkModeLogic } from "./interview-logic/bulk-mode";
 import { loopModeLogic } from "./interview-logic/loop-mode";
+import { targetedModeLogic } from "./interview-logic/targeted-mode";
 
 const modeLogicMap = {
   bulk: bulkModeLogic,
   loop: loopModeLogic,
+  targeted: targetedModeLogic,
 } as const;
 
 /**

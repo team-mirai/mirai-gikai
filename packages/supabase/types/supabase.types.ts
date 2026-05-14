@@ -425,6 +425,7 @@ export type Database = {
           question: string
           question_order: number
           quick_replies: string[] | null
+          target_audience: string | null
           updated_at: string
         }
         Insert: {
@@ -435,6 +436,7 @@ export type Database = {
           question: string
           question_order: number
           quick_replies?: string[] | null
+          target_audience?: string | null
           updated_at?: string
         }
         Update: {
@@ -445,6 +447,7 @@ export type Database = {
           question?: string
           question_order?: number
           quick_replies?: string[] | null
+          target_audience?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -777,13 +780,6 @@ export type Database = {
             referencedRelation: "topic_analysis_topics"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "topic_analysis_classifications_version_id_fkey"
-            columns: ["version_id"]
-            isOneToOne: false
-            referencedRelation: "topic_analysis_versions"
-            referencedColumns: ["id"]
-          },
         ]
       }
       topic_analysis_topics: {
@@ -814,15 +810,7 @@ export type Database = {
           sort_order?: number
           version_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "topic_analysis_topics_version_id_fkey"
-            columns: ["version_id"]
-            isOneToOne: false
-            referencedRelation: "topic_analysis_versions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       topic_analysis_versions: {
         Row: {
@@ -1076,7 +1064,7 @@ export type Database = {
         | "misunderstood"
         | "too_many_questions"
         | "other"
-      interview_mode_enum: "loop" | "bulk"
+      interview_mode_enum: "loop" | "bulk" | "targeted"
       interview_report_role_enum:
         | "subject_expert"
         | "work_related"
@@ -1242,7 +1230,7 @@ export const Constants = {
         "too_many_questions",
         "other",
       ],
-      interview_mode_enum: ["loop", "bulk"],
+      interview_mode_enum: ["loop", "bulk", "targeted"],
       interview_report_role_enum: [
         "subject_expert",
         "work_related",

@@ -278,11 +278,15 @@ export function InterviewConfigForm({
                       <SelectContent>
                         <SelectItem value="loop">逐次深掘り（loop）</SelectItem>
                         <SelectItem value="bulk">一括深掘り（bulk）</SelectItem>
+                        <SelectItem value="targeted">
+                          対象者指定（targeted）
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
                       loop: 質問ごとに深掘り / bulk:
-                      事前定義質問を先にすべて消化してから深掘り
+                      事前定義質問を先にすべて消化してから深掘り / targeted:
+                      質問ごとに対象者条件を設定し、該当しないインタビュイーにはスキップ
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

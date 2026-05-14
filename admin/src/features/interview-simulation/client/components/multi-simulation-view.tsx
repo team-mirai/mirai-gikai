@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  type InterviewMode,
+  INTERVIEW_MODES,
+} from "@mirai-gikai/shared/interview-prompts/types";
 import { Loader2, Play, Settings2, Square } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -122,7 +126,9 @@ export function MultiSimulationView({
     }
 
     const snapshot: TransientConfigSnapshot = {
-      mode: formValues.mode === "bulk" ? "bulk" : "loop",
+      mode: (INTERVIEW_MODES as readonly string[]).includes(formValues.mode)
+        ? (formValues.mode as InterviewMode)
+        : "loop",
       themes:
         formValues.themes.length > 0
           ? formValues.themes.filter((t) => t.length > 0)
@@ -136,6 +142,7 @@ export function MultiSimulationView({
             ? q.quick_replies
             : null,
         follow_up_guide: q.follow_up_guide ?? null,
+        target_audience: q.target_audience ?? null,
       })),
     };
 

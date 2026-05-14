@@ -1,3 +1,4 @@
+import { INTERVIEW_MODES } from "@mirai-gikai/shared/interview-prompts/types";
 import { z } from "zod";
 import { AI_MODELS, type AiModel } from "@/lib/ai/models";
 import { MAX_PERSONA_SLOTS } from "./constants";
@@ -309,7 +310,7 @@ export const multiSimulationRunRequestSchema = z
       .max(MAX_PERSONA_SLOTS, `ペルソナは最大 ${MAX_PERSONA_SLOTS} 件までです`),
     improvedConfig: z
       .object({
-        mode: z.enum(["loop", "bulk"]),
+        mode: z.enum(INTERVIEW_MODES),
         themes: z
           .array(z.string().max(MEDIUM_TEXT_MAX))
           .max(SMALL_ARRAY_MAX)
@@ -326,6 +327,11 @@ export const multiSimulationRunRequestSchema = z
                   .max(SMALL_ARRAY_MAX)
                   .nullable(),
                 follow_up_guide: z.string().max(MEDIUM_TEXT_MAX).nullable(),
+                target_audience: z
+                  .string()
+                  .max(MEDIUM_TEXT_MAX)
+                  .nullable()
+                  .optional(),
               })
               .strict()
           )
