@@ -31,6 +31,7 @@ interface InterviewConfigEditClientProps {
   completedReportsTruncated?: boolean;
   /** 切り詰め上限値 */
   completedReportsLimit?: number;
+  initialName?: string | null;
 }
 
 export function InterviewConfigEditClient({
@@ -40,6 +41,7 @@ export function InterviewConfigEditClient({
   completedReports,
   completedReportsTruncated = false,
   completedReportsLimit,
+  initialName,
 }: InterviewConfigEditClientProps) {
   const router = useRouter();
   const [configId, setConfigId] = useState<string | undefined>(
@@ -56,7 +58,6 @@ export function InterviewConfigEditClient({
   const getFormValuesRef = useRef<
     | (() => {
         name: string;
-        knowledge_source: string;
         mode: string;
         themes: string[];
         chat_model: string | null;
@@ -89,7 +90,6 @@ export function InterviewConfigEditClient({
             status: "closed",
             mode: (formValues?.mode as "loop" | "bulk") || "loop",
             themes,
-            knowledge_source: formValues?.knowledge_source || "",
             chat_model: formValues?.chat_model || null,
             estimated_duration: formValues?.estimated_duration ?? null,
           });
@@ -159,8 +159,6 @@ export function InterviewConfigEditClient({
           initialConfig?.mode ||
           "loop",
         themes,
-        knowledge_source:
-          formValues?.knowledge_source || initialConfig?.knowledge_source || "",
         chat_model: formValues?.chat_model ?? initialConfig?.chat_model ?? null,
         estimated_duration:
           formValues?.estimated_duration ??
@@ -202,6 +200,7 @@ export function InterviewConfigEditClient({
               aiGeneratedThemes={aiGeneratedThemes}
               onAiThemesApplied={() => setAiGeneratedThemes(null)}
               getFormValuesRef={getFormValuesRef}
+              initialName={initialName}
             />
             {configId ? (
               <InterviewQuestionList

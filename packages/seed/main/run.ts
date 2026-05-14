@@ -118,6 +118,35 @@ async function seedDatabase() {
       console.log(`🔗 Linked ${bills218.length} bills to 218 diet session`);
     }
 
+    const knowledgeSourceByBillName: Record<
+      string,
+      { knowledge_source: string; use_knowledge_source_in_chat: boolean }
+    > = {
+      "ガソリン税暫定税率廃止法案": {
+        knowledge_source:
+          "この法案についてあなたの意見を聞かせてください。",
+        use_knowledge_source_in_chat: true,
+      },
+      "船荷証券の電子化に関する法律案": {
+        knowledge_source:
+          "船荷証券（B/L）の電子化に関する法律案について、あなたの意見を聞かせてください。",
+        use_knowledge_source_in_chat: true,
+      },
+    };
+    for (const bill of insertedBills) {
+      const ks = knowledgeSourceByBillName[bill.name];
+      if (!ks) continue;
+      const { error: ksError } = await supabase
+        .from("bills")
+        .update(ks)
+        .eq("id", bill.id);
+      if (ksError) {
+        throw new Error(
+          `Failed to update knowledge_source for bill ${bill.name} (${bill.id}): ${ksError.message}`
+        );
+      }
+    }
+
     // Insert bill_contents
     console.log("📚 Inserting bill contents...");
     const billContents = createBillContents(insertedBills);
@@ -324,7 +353,7 @@ async function seedDatabase() {
           }
 
           console.log(`✅ Inserted demo data`);
-          console.log(`   Demo report URL: /report/${DEMO_REPORT_ID}/chat-log`);
+          console.log(`   Demo report URL: /report/${DEMO_REPORT_ID}#chat-log`);
 
           // Insert additional demo sessions, messages, and reports (for 4 role types)
           console.log("🎭 Inserting additional demo data for all role types...");
@@ -363,10 +392,16 @@ async function seedDatabase() {
           }
 
           console.log(`✅ Inserted additional demo data for all 4 role types`);
-          console.log(`   subject_expert: /report/${DEMO_REPORT_ID}/chat-log`);
-          console.log(`   work_related: /report/${DEMO_REPORT_ID_WORK}/chat-log`);
-          console.log(`   daily_life_affected: /report/${DEMO_REPORT_ID_DAILY}/chat-log`);
-          console.log(`   general_citizen: /report/${DEMO_REPORT_ID_CITIZEN}/chat-log`);
+          console.log(`   subject_expert: /report/${DEMO_REPORT_ID}#chat-log`);
+          console.log(
+            `   work_related: /report/${DEMO_REPORT_ID_WORK}#chat-log`
+          );
+          console.log(
+            `   daily_life_affected: /report/${DEMO_REPORT_ID_DAILY}#chat-log`
+          );
+          console.log(
+            `   general_citizen: /report/${DEMO_REPORT_ID_CITIZEN}#chat-log`
+          );
         }
       }
     } else {

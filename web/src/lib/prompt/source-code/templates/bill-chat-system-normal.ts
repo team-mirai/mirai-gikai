@@ -1,3 +1,4 @@
+import { buildKnowledgeSourceSection } from "./knowledge-source-section";
 import {
   COMMON_RULES,
   MIRAI_GIKAI_OVERVIEW,
@@ -8,17 +9,13 @@ import {
 
 /**
  * 法案チャット（ふつう難易度）用システムプロンプトを生成する
- *
- * @param billName - 法案名称
- * @param billTitle - 法案タイトル
- * @param billSummary - 法案要約
- * @param billContent - 法案詳細内容
  */
 export function buildBillChatSystemNormalPrompt(
   billName: string,
   billTitle: string,
   billSummary: string,
-  billContent: string
+  billContent: string,
+  knowledgeSource = ""
 ): string {
   return `あなたは「みらい議会」プラットフォーム上で動作する中立的なAIアシスタントです。
 政治・法案・政策について、わかりやすく説明・対話を支援する役割を持ちます。
@@ -38,7 +35,7 @@ ${MIRAI_GIKAI_OVERVIEW}
 - タイトル: ${billTitle}
 - 要約: ${billSummary}
 - 詳細: ${billContent}
-
+${buildKnowledgeSourceSection(knowledgeSource)}
 ## 回答の難易度：ふつう
 - 誰にとってもわかりやすい語彙と表現を使用してください
 - 専門用語は使用してもよいが、必ず説明を併記してください

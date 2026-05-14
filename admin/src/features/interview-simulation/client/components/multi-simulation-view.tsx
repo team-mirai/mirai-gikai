@@ -39,7 +39,6 @@ interface MultiSimulationViewProps {
   getFormValues: () => {
     mode: string;
     themes: string[];
-    knowledge_source: string;
     chat_model: string | null;
     estimated_duration: number | null;
   } | null;
@@ -127,10 +126,6 @@ export function MultiSimulationView({
       themes:
         formValues.themes.length > 0
           ? formValues.themes.filter((t) => t.length > 0)
-          : null,
-      knowledgeSource:
-        formValues.knowledge_source.trim().length > 0
-          ? formValues.knowledge_source
           : null,
       estimatedDurationMinutes: formValues.estimated_duration,
       questions: currentQuestions.map((q, index) => ({

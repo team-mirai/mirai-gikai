@@ -16,7 +16,7 @@ interface ReportMetaInfoProps {
   characterCount: number;
   reactionData?: ReportReactionData;
   /** 遷移元のコンテキスト */
-  from?: "complete";
+  from?: "complete" | "opinions";
   /** trueの場合、会話ログへのリンクにしない */
   disableLink?: boolean;
 }

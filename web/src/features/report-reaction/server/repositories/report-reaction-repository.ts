@@ -1,11 +1,13 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { isPublicReportVisible } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { countPublicReportsByBillId } from "@/features/interview-report/server/repositories/interview-report-repository";
 import type { ReactionCounts, ReactionType } from "../../shared/types";
 
 /**
  * レポートが公開されているか確認する
- * ユーザー公開設定(is_public_by_user)と管理者公開設定(is_public_by_admin)の両方がtrueの場合のみ公開
+ * ユーザー/管理者の公開設定と公開済み件数の表示ゲートを満たす場合のみ公開
  */
 export async function getReportPublicStatus(
   reportId: string
@@ -13,7 +15,9 @@ export async function getReportPublicStatus(
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("interview_report")
-    .select("is_public_by_admin, is_public_by_user")
+    .select(
+      "is_public_by_admin, is_public_by_user, interview_sessions!inner(interview_configs!inner(bill_id))"
+    )
     .eq("id", reportId)
     .single();
 
@@ -21,7 +25,20 @@ export async function getReportPublicStatus(
     return false;
   }
 
-  return data.is_public_by_admin && data.is_public_by_user;
+  const session = data.interview_sessions as {
+    interview_configs: { bill_id: string } | null;
+  } | null;
+  const billId = session?.interview_configs?.bill_id;
+  if (!billId) {
+    return false;
+  }
+
+  const publicReportCount = await countPublicReportsByBillId(billId);
+  return isPublicReportVisible({
+    isPublicByAdmin: data.is_public_by_admin,
+    isPublicByUser: data.is_public_by_user,
+    publicReportCount,
+  });
 }
 
 /**

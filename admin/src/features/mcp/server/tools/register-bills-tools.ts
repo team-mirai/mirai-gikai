@@ -120,18 +120,23 @@ export function registerBillsTools(server: McpServer): void {
     {
       title: "議案を更新",
       description:
-        "指定IDの議案のメタ情報（name, status, originating_house 等）を更新する。",
+        "指定IDの議案のメタ情報（name, status, originating_house 等）を部分更新する。指定したフィールドのみが更新され、省略したフィールドは変更されない。",
       inputSchema: {
         billId: z.string().uuid(),
-        ...billUpdateSchema.shape,
+        ...billUpdateSchema.partial().shape,
       },
     },
-    async ({ billId, ...rest }) => {
+    async ({ billId, submitted_date, ...rest }) => {
+      const definedFields = Object.fromEntries(
+        Object.entries(rest).filter(([, value]) => value !== undefined)
+      );
       await updateBillRecord(billId, {
-        ...rest,
-        submitted_date: rest.submitted_date
-          ? `${rest.submitted_date}T00:00:00+09:00`
-          : null,
+        ...definedFields,
+        ...(submitted_date !== undefined && {
+          submitted_date: submitted_date
+            ? `${submitted_date}T00:00:00+09:00`
+            : null,
+        }),
         updated_at: new Date().toISOString(),
       });
       await invalidateBillsCache();

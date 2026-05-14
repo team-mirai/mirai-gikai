@@ -1,13 +1,24 @@
 import { NextResponse } from "next/server";
-import { updateReportPublicSetting } from "@/features/interview-report/server/repositories/interview-report-repository";
 import { completeInterviewSession } from "@/features/interview-session/server/services/complete-interview-session";
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
+import {
+  isInvalidUserPublicSettingInput,
+  parseUserPublicSetting,
+} from "@/features/interview-session/shared/utils/public-setting";
 
 export async function POST(req: Request) {
   const { sessionId, isPublic } = await req.json();
+  const isPublicByUser = parseUserPublicSetting(isPublic);
 
   if (!sessionId) {
     return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
+  }
+
+  if (isInvalidUserPublicSettingInput(isPublic)) {
+    return NextResponse.json(
+      { error: "Invalid isPublic value" },
+      { status: 400 }
+    );
   }
 
   const ownershipResult = await verifySessionOwnership(sessionId);
@@ -18,11 +29,8 @@ export async function POST(req: Request) {
   try {
     const report = await completeInterviewSession({
       sessionId,
+      isPublicByUser,
     });
-
-    if (typeof isPublic === "boolean") {
-      await updateReportPublicSetting(report.id, isPublic);
-    }
 
     return NextResponse.json({ report });
   } catch (error) {

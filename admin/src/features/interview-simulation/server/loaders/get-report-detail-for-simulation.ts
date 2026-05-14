@@ -173,6 +173,7 @@ export async function getReportDetailForSimulation(
 
   const bill: PromptBillInput = {
     name: billData.bill.name,
+    knowledge_source: billData.bill.knowledge_source,
     bill_content: {
       title: billData.billTitle,
       summary: billData.billSummary,
@@ -182,7 +183,6 @@ export async function getReportDetailForSimulation(
 
   const promptInterviewConfig: PromptInterviewConfig = {
     themes: interviewConfig.themes ?? null,
-    knowledge_source: interviewConfig.knowledge_source ?? null,
   };
 
   const promptQuestions: PromptInterviewQuestion[] = (questions ?? []).map(
