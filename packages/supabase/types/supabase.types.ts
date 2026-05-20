@@ -1044,6 +1044,7 @@ export type Database = {
           stance_for_count: number
           stance_neutral_count: number
           total_cost_usd: number
+          total_duration_seconds: number
           total_sessions: number
         }[]
       }
