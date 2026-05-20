@@ -3,6 +3,7 @@
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidateTag } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import { verifyConfigBelongsToBill } from "../services/verify-config-belongs-to-bill";
 
 interface BulkPublishParams {
   configId: string;
@@ -15,23 +16,6 @@ interface BulkPublishResult {
   success: boolean;
   updatedCount?: number;
   error?: string;
-}
-
-async function verifyConfigBelongsToBill(
-  configId: string,
-  billId: string
-): Promise<void> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("interview_configs")
-    .select("id")
-    .eq("id", configId)
-    .eq("bill_id", billId)
-    .single();
-
-  if (error || !data) {
-    throw new Error("指定されたインタビュー設定はこの議案に属していません");
-  }
 }
 
 export async function bulkPublishReportsAction(
