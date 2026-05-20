@@ -183,4 +183,66 @@ describe("buildInterviewTsv", () => {
     expect(cells[5]).toBe("");
     expect(cells[13]).toBe("");
   });
+
+  it("先頭が = + - @ の値は ' を前置して数式評価を防ぐ", () => {
+    const tsv = buildInterviewTsv([
+      buildSession({
+        interview_report: {
+          id: "r1",
+          interview_session_id: "session-1",
+          stance: null,
+          role: null,
+          role_title: null,
+          role_description: null,
+          moderation_score: null,
+          moderation_status: null,
+          moderation_reasoning: null,
+          content_richness: null,
+          total_content_richness: null,
+          opinions: null,
+          summary: "=SUM(A1:A2)",
+          is_public_by_user: false,
+          is_public_by_admin: false,
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:10:00Z",
+        },
+        interview_messages: [
+          {
+            id: "m1",
+            interview_session_id: "session-1",
+            role: "user",
+            content: "=1+1",
+            created_at: "2026-01-01T00:01:00Z",
+          },
+          {
+            id: "m2",
+            interview_session_id: "session-1",
+            role: "user",
+            content: "@cmd",
+            created_at: "2026-01-01T00:02:00Z",
+          },
+          {
+            id: "m3",
+            interview_session_id: "session-1",
+            role: "user",
+            content: "-1",
+            created_at: "2026-01-01T00:03:00Z",
+          },
+          {
+            id: "m4",
+            interview_session_id: "session-1",
+            role: "user",
+            content: "+SUM",
+            created_at: "2026-01-01T00:04:00Z",
+          },
+        ],
+      }),
+    ]);
+    const rows = tsv.split("\n");
+    expect(rows[1].split("\t")[13]).toBe("'=SUM(A1:A2)");
+    expect(rows[1].split("\t")[16]).toBe("'=1+1");
+    expect(rows[2].split("\t")[16]).toBe("'@cmd");
+    expect(rows[3].split("\t")[16]).toBe("'-1");
+    expect(rows[4].split("\t")[16]).toBe("'+SUM");
+  });
 });

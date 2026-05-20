@@ -33,7 +33,9 @@ const COLUMNS = [
 function escapeTsvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
   const str = typeof value === "string" ? value : String(value);
-  return str.replace(/[\t\r\n]+/g, " ");
+  const normalized = str.replace(/[\t\r\n]+/g, " ");
+  // Google Sheets 等の数式インジェクション対策: 先頭が = + - @ なら ' を前置
+  return /^[=+\-@]/.test(normalized) ? `'${normalized}` : normalized;
 }
 
 export function buildInterviewTsv(sessions: InterviewSessionForTsv[]): string {
