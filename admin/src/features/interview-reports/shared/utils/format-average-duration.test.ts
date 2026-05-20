@@ -73,7 +73,7 @@ describe("formatTotalDurationSeconds", () => {
     );
   });
 
-  it("returns dash for sub-minute total", () => {
+  it("returns 0分 for sub-minute total", () => {
     expect(formatTotalDurationSeconds(30)).toBe("0分");
   });
 });
