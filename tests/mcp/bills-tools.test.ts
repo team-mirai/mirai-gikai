@@ -269,6 +269,42 @@ describe("MCP bills tools", () => {
         .single();
       expect(data?.name).toBe("ナレッジ無し更新後");
     });
+
+    it("status を enacted に変更すると、紐づく公開中インタビューが自動で closed になる", async () => {
+      const bill = await createTestBill({ name: "成立前" });
+      billIds.push(bill.id);
+
+      const { data: config, error: configError } = await adminClient
+        .from("interview_configs")
+        .insert({
+          bill_id: bill.id,
+          status: "public",
+          name: "公開中インタビュー",
+        })
+        .select()
+        .single();
+      if (configError || !config) {
+        throw new Error(`interview_config 作成失敗: ${configError?.message}`);
+      }
+
+      const result = await registry.callTool<{ ok: boolean }>("update_bill", {
+        billId: bill.id,
+        name: "成立後",
+        status: "enacted",
+        originating_house: "HR",
+        status_note: null,
+        is_featured: false,
+        is_review_completed: true,
+      });
+      expect(result.ok).toBe(true);
+
+      const { data: updatedConfig } = await adminClient
+        .from("interview_configs")
+        .select("status")
+        .eq("id", config.id)
+        .single();
+      expect(updatedConfig?.status).toBe("closed");
+    });
   });
 
   describe("update_bill_publish_status", () => {
