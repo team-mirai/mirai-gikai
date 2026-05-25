@@ -2,6 +2,7 @@ import "server-only";
 
 import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { cache } from "react";
+import type { InterviewMessage } from "@/features/interview-session/shared/types";
 import type { InterviewReport } from "../../shared/types";
 import {
   countUserMessageCharacters,
@@ -27,6 +28,7 @@ export type PublicReportData = InterviewReport & {
     bill_content: { title: string } | null;
   };
   characterCount: number;
+  messages: InterviewMessage[];
 };
 
 /**
@@ -95,6 +97,7 @@ export const getPublicReportById = cache(
         bill_content: selectPrimaryBillContent(bill.bill_contents),
       },
       characterCount: countUserMessageCharacters(messages),
+      messages,
     };
   }
 );

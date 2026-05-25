@@ -6,6 +6,8 @@ export function getModeLabel(mode: InterviewConfig["mode"]): string {
       return "ループ";
     case "bulk":
       return "一括";
+    case "targeted":
+      return "ターゲット";
     default:
       return mode;
   }

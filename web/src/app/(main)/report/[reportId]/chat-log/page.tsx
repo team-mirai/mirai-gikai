@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
-import { ReportChatLogPage } from "@/features/interview-report/server/components/report-chat-log-page";
+import type { Route } from "next";
+import { redirect } from "next/navigation";
+import { routes } from "@/lib/routes";
 
 interface ChatLogPageProps {
   params: Promise<{
@@ -10,11 +11,6 @@ interface ChatLogPageProps {
   }>;
 }
 
-export const metadata: Metadata = {
-  title: "会話ログ - インタビューレポート",
-  description: "AIインタビューの会話ログ",
-};
-
 export default async function ChatLogPage({
   params,
   searchParams,
@@ -22,10 +18,11 @@ export default async function ChatLogPage({
   const { reportId } = await params;
   const { from } = await searchParams;
 
-  return (
-    <ReportChatLogPage
-      reportId={reportId}
-      from={from === "complete" ? "complete" : undefined}
-    />
-  );
+  const reportPath =
+    from === "complete"
+      ? routes.reportComplete(reportId)
+      : routes.publicReport(reportId);
+  const search = from === "opinions" ? "?from=opinions" : "";
+
+  redirect(`${reportPath}${search}#chat-log` as Route);
 }

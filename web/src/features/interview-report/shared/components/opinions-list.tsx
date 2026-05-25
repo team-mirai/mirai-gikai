@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
 import type { Route } from "next";
 import Link from "next/link";
-import { getInterviewChatLogLink } from "@/features/interview-config/shared/utils/interview-links";
+import type { ReactNode } from "react";
+import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
 import type { ParsedOpinion as Opinion } from "../utils/format-utils";
 
 export type { Opinion };
@@ -11,7 +11,7 @@ interface OpinionsListProps {
   title?: string;
   footer?: ReactNode;
   reportId?: string;
-  chatLogFrom?: "complete";
+  chatLogFrom?: "complete" | "opinions";
 }
 
 export function OpinionsList({
@@ -48,7 +48,11 @@ export function OpinionsList({
             {reportId && opinion.source_message_id && (
               <Link
                 href={
-                  `${getInterviewChatLogLink(reportId, chatLogFrom)}#message-${opinion.source_message_id}` as Route
+                  getInterviewMessageLink(
+                    reportId,
+                    opinion.source_message_id,
+                    chatLogFrom
+                  ) as Route
                 }
                 className="text-[15px] leading-6 text-mirai-text-muted underline"
               >

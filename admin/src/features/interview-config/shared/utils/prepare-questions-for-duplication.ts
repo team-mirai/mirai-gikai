@@ -13,6 +13,7 @@ export function prepareQuestionsForDuplication(
     question: q.question,
     follow_up_guide: q.follow_up_guide,
     quick_replies: q.quick_replies,
+    target_audience: q.target_audience,
     question_order: q.question_order,
   }));
 }

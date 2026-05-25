@@ -1,3 +1,4 @@
+import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import type { AiModel } from "@/lib/ai/models";
 import type { PromptKind } from "../constants";
 import type {
@@ -111,7 +112,7 @@ export interface SimulationMetrics {
  * 本番の「編集した config を保存せずにテストする」ユースケース向け。
  */
 export interface TransientConfigSnapshot {
-  mode: "loop" | "bulk";
+  mode: InterviewMode;
   themes: string[] | null;
   /** インタビュー目安時間（分）。本番の「## タイムマネジメント」セクションに反映される */
   estimatedDurationMinutes: number | null;
@@ -121,6 +122,8 @@ export interface TransientConfigSnapshot {
     question: string;
     quick_replies: string[] | null;
     follow_up_guide: string | null;
+    /** 対象者条件（任意）。targeted モード時にのみ意味を持つ */
+    target_audience?: string | null;
   }>;
 }
 

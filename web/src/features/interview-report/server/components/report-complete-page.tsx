@@ -112,6 +112,7 @@ export async function ReportCompletePage({
             roleTitle={report.role_title}
             sessionStartedAt={report.session_started_at}
             characterCount={characterCount}
+            messages={messages}
             roleDescription={report.role_description}
             opinions={opinions}
           >

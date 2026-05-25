@@ -59,6 +59,10 @@
       "types": "./src/interview-prompts/bulk-mode.ts",
       "default": "./src/interview-prompts/bulk-mode.ts"
     },
+    "./interview-prompts/targeted-mode": {
+      "types": "./src/interview-prompts/targeted-mode.ts",
+      "default": "./src/interview-prompts/targeted-mode.ts"
+    },
     "./interview-prompts/summary": {
       "types": "./src/interview-prompts/summary.ts",
       "default": "./src/interview-prompts/summary.ts"

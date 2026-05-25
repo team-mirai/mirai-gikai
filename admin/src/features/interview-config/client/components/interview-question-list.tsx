@@ -37,6 +37,7 @@ export function InterviewQuestionList({
       question: q.question,
       follow_up_guide: q.follow_up_guide || undefined,
       quick_replies: q.quick_replies || undefined,
+      target_audience: q.target_audience || undefined,
     }))
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -166,6 +167,14 @@ export function InterviewQuestionList({
                                     {question.quick_replies.join(", ")}
                                   </div>
                                 )}
+                              {question.target_audience && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">
+                                    対象者条件:
+                                  </span>{" "}
+                                  {question.target_audience}
+                                </div>
+                              )}
                             </div>
                             <div className="flex gap-2 flex-shrink-0">
                               <Button

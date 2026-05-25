@@ -16,6 +16,7 @@ import {
   type ChangeEventHandler,
   Children,
   type ComponentProps,
+  type CompositionEventHandler,
   createContext,
   type FormEvent,
   type FormEventHandler,
@@ -464,17 +465,37 @@ export type PromptInputTextareaProps = ComponentProps<typeof Textarea> & {
   submitOnEnter?: boolean;
 };
 
+// Safari (WebKit) は IME 変換確定の Enter で compositionend 直後に
+// isComposing=false / keyCode=13 の余分な keydown を発火するため、
+// その短い時間窓内の Enter は送信扱いにしない。
+// Safari の余分な keydown は ~1 フレーム以内に発火するので、
+// 100ms は十分安全側に倒した値。
+const COMPOSITION_END_GUARD_MS = 100;
+
 export const PromptInputTextarea = ({
   onChange,
+  onCompositionEnd,
   className,
   placeholder = "What would you like to know?",
   submitOnEnter = false,
   ...props
 }: PromptInputTextareaProps) => {
+  const compositionEndAtRef = useRef<number>(0);
+
+  const handleCompositionEnd: CompositionEventHandler<HTMLTextAreaElement> = (
+    e
+  ) => {
+    compositionEndAtRef.current = Date.now();
+    onCompositionEnd?.(e);
+  };
+
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
     if (e.key === "Enter") {
-      // Don't submit if IME composition is in progress
       if (e.nativeEvent.isComposing) {
+        return;
+      }
+
+      if (Date.now() - compositionEndAtRef.current < COMPOSITION_END_GUARD_MS) {
         return;
       }
 
@@ -512,6 +533,7 @@ export const PromptInputTextarea = ({
       onChange={(e) => {
         onChange?.(e);
       }}
+      onCompositionEnd={handleCompositionEnd}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
       {...props}

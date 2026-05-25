@@ -120,10 +120,10 @@ export function registerBillsTools(server: McpServer): void {
     {
       title: "議案を更新",
       description:
-        "指定IDの議案のメタ情報（name, status, originating_house 等）を更新する。",
+        "指定IDの議案のメタ情報（name, status, originating_house 等）を部分更新する。指定したフィールドのみが更新され、省略したフィールドは変更されない。",
       inputSchema: {
         billId: z.string().uuid(),
-        ...billUpdateSchema.shape,
+        ...billUpdateSchema.partial().shape,
       },
     },
     async ({ billId, ...rest }) => {

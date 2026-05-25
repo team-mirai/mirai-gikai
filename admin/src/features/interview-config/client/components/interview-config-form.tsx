@@ -65,6 +65,8 @@ interface InterviewConfigFormProps {
       })
     | null
   >;
+  /** 新規作成時の設定名初期値（ログインユーザー名） */
+  initialName?: string | null;
 }
 
 export function InterviewConfigForm({
@@ -74,6 +76,7 @@ export function InterviewConfigForm({
   onAiThemesApplied,
   onConfigCreated,
   getFormValuesRef,
+  initialName,
 }: InterviewConfigFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,7 +85,7 @@ export function InterviewConfigForm({
   const form = useForm<InterviewConfigInput>({
     resolver: zodResolver(interviewConfigSchema),
     defaultValues: {
-      name: config?.name || generateDefaultConfigName(),
+      name: config?.name || initialName || generateDefaultConfigName(),
       status: config?.status || "closed",
       mode: config?.mode || "loop",
       themes: config?.themes || [],
@@ -275,11 +278,15 @@ export function InterviewConfigForm({
                       <SelectContent>
                         <SelectItem value="loop">逐次深掘り（loop）</SelectItem>
                         <SelectItem value="bulk">一括深掘り（bulk）</SelectItem>
+                        <SelectItem value="targeted">
+                          対象者指定（targeted）
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
                       loop: 質問ごとに深掘り / bulk:
-                      事前定義質問を先にすべて消化してから深掘り
+                      事前定義質問を先にすべて消化してから深掘り / targeted:
+                      質問ごとに対象者条件を設定し、該当しないインタビュイーにはスキップ
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

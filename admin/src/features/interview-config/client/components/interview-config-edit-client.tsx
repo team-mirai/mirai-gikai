@@ -1,5 +1,6 @@
 "use client";
 
+import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ interface InterviewConfigEditClientProps {
   completedReportsTruncated?: boolean;
   /** 切り詰め上限値 */
   completedReportsLimit?: number;
+  initialName?: string | null;
 }
 
 export function InterviewConfigEditClient({
@@ -40,6 +42,7 @@ export function InterviewConfigEditClient({
   completedReports,
   completedReportsTruncated = false,
   completedReportsLimit,
+  initialName,
 }: InterviewConfigEditClientProps) {
   const router = useRouter();
   const [configId, setConfigId] = useState<string | undefined>(
@@ -86,7 +89,7 @@ export function InterviewConfigEditClient({
           const result = await createInterviewConfig(billId, {
             name: formValues?.name || "AI生成設定",
             status: "closed",
-            mode: (formValues?.mode as "loop" | "bulk") || "loop",
+            mode: (formValues?.mode as InterviewMode) || "loop",
             themes,
             chat_model: formValues?.chat_model || null,
             estimated_duration: formValues?.estimated_duration ?? null,
@@ -153,9 +156,7 @@ export function InterviewConfigEditClient({
         name: formValues?.name || initialConfig?.name || "AI生成設定",
         status: initialConfig?.status || "closed",
         mode:
-          (formValues?.mode as "loop" | "bulk") ||
-          initialConfig?.mode ||
-          "loop",
+          (formValues?.mode as InterviewMode) || initialConfig?.mode || "loop",
         themes,
         chat_model: formValues?.chat_model ?? initialConfig?.chat_model ?? null,
         estimated_duration:
@@ -198,6 +199,7 @@ export function InterviewConfigEditClient({
               aiGeneratedThemes={aiGeneratedThemes}
               onAiThemesApplied={() => setAiGeneratedThemes(null)}
               getFormValuesRef={getFormValuesRef}
+              initialName={initialName}
             />
             {configId ? (
               <InterviewQuestionList

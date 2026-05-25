@@ -13,6 +13,7 @@ export function prepareQuestionsForInsert(
     question: question.question,
     follow_up_guide: question.follow_up_guide || null,
     quick_replies: question.quick_replies || null,
+    target_audience: question.target_audience || null,
     question_order: index + 1,
   }));
 }

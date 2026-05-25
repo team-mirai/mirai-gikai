@@ -27,6 +27,7 @@ async function createTestSession(
   configId: string,
   userId: string,
   overrides: Partial<{
+    started_at: string;
     completed_at: string;
     rating: number;
   }> = {}
@@ -43,6 +44,20 @@ async function createTestSession(
     .single();
   if (error) throw new Error(`interview_session 作成失敗: ${error.message}`);
   return data;
+}
+
+async function insertInterviewMessage(
+  sessionId: string,
+  createdAt: string,
+  role: "assistant" | "user" = "user"
+) {
+  const { error } = await adminClient.from("interview_messages").insert({
+    interview_session_id: sessionId,
+    role,
+    content: `dropout test ${createdAt}`,
+    created_at: createdAt,
+  });
+  if (error) throw new Error(`interview_messages 作成失敗: ${error.message}`);
 }
 
 async function createTestReport(
@@ -423,6 +438,58 @@ describe("get_interview_statistics() 関数", () => {
     expect(Number(data?.[0].avg_cost_usd)).toBeCloseTo(0.05, 4);
   });
 
+  it("総所要時間を完了セッションと途中離脱セッションの両方で集計する", async () => {
+    const bill = await createTestBill();
+    billIds.push(bill.id);
+    const config = await createTestInterviewConfig(bill.id);
+
+    const base = new Date("2026-05-20T00:00:00.000Z").getTime();
+    const iso = (offsetSec: number) =>
+      new Date(base + offsetSec * 1000).toISOString();
+
+    // 完了セッション: 300秒
+    await createTestSession(config.id, testUser.id, {
+      started_at: iso(0),
+      completed_at: iso(300),
+    });
+    // 完了セッション: 120秒
+    await createTestSession(config.id, testUser.id, {
+      started_at: iso(0),
+      completed_at: iso(120),
+    });
+    // 途中離脱（未完了）: 最終メッセージ 180秒
+    const dropout = await createTestSession(config.id, testUser.id, {
+      started_at: iso(0),
+    });
+    await insertInterviewMessage(dropout.id, iso(60));
+    await insertInterviewMessage(dropout.id, iso(180));
+    // 途中離脱（メッセージなし）: 計算対象外
+    await createTestSession(config.id, testUser.id, {
+      started_at: iso(0),
+    });
+
+    const { data, error } = await adminClient.rpc("get_interview_statistics", {
+      p_config_id: config.id,
+    });
+
+    expect(error).toBeNull();
+    // 300 + 120 + 180 = 600
+    expect(Number(data?.[0].total_duration_seconds)).toBeCloseTo(600, 0);
+  });
+
+  it("該当セッションが無い場合 total_duration_seconds は 0", async () => {
+    const bill = await createTestBill();
+    billIds.push(bill.id);
+    const config = await createTestInterviewConfig(bill.id);
+
+    const { data, error } = await adminClient.rpc("get_interview_statistics", {
+      p_config_id: config.id,
+    });
+
+    expect(error).toBeNull();
+    expect(Number(data?.[0].total_duration_seconds)).toBe(0);
+  });
+
   it("存在しないconfig_idではすべてゼロ/NULLの行を返す", async () => {
     const { data, error } = await adminClient.rpc("get_interview_statistics", {
       p_config_id: "00000000-0000-0000-0000-000000000000",
@@ -434,5 +501,6 @@ describe("get_interview_statistics() 関数", () => {
     expect(data?.[0].completed_sessions).toBe(0);
     expect(data?.[0].avg_rating).toBeNull();
     expect(data?.[0].stance_for_count).toBe(0);
+    expect(Number(data?.[0].total_duration_seconds)).toBe(0);
   });
 });

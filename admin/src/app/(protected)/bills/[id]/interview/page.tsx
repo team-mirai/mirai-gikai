@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { getBills } from "@/features/bills/server/loaders/get-bills";
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { InterviewConfigList } from "@/features/interview-config/client/components/interview-config-list";
 import {
@@ -20,9 +21,14 @@ export default async function InterviewListPage({
   params,
 }: InterviewListPageProps) {
   const { id } = await params;
-  const [bill, configs] = await Promise.all([
+  const [bill, configs, allBillsResult] = await Promise.all([
     getBillById(id),
     getInterviewConfigs(id),
+    // 他法案コピー用のセカンダリ UI 用途。失敗しても本ページのコア機能は維持したいため、握り潰して空配列にフォールバックする。
+    getBills().catch((error) => {
+      console.error("Failed to load bills for copy dialog:", error);
+      return [];
+    }),
   ]);
 
   if (!bill) {
@@ -32,6 +38,8 @@ export default async function InterviewListPage({
   const sessionCounts = await getSessionCountsByConfigIds(
     configs.map((c) => c.id)
   );
+
+  const billOptions = allBillsResult.map((b) => ({ id: b.id, name: b.name }));
 
   return (
     <div>
@@ -56,6 +64,7 @@ export default async function InterviewListPage({
         billId={bill.id}
         configs={configs}
         sessionCounts={sessionCounts}
+        bills={billOptions}
       />
     </div>
   );

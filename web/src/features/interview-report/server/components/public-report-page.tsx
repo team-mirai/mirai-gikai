@@ -65,6 +65,7 @@ export async function PublicReportPage({
           roleTitle={data.role_title}
           sessionStartedAt={data.session_started_at}
           characterCount={data.characterCount}
+          messages={data.messages}
           roleDescription={data.role_description}
           opinions={opinions}
           from={from}
