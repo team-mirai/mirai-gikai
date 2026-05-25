@@ -1,1 +1,1 @@
-export type InterviewMode = "loop" | "bulk";
+export type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";

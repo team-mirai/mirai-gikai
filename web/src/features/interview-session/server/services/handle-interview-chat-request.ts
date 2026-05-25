@@ -40,12 +40,14 @@ import {
 import { collectAskedQuestionIds } from "../utils/interview-logic";
 import { bulkModeLogic } from "../utils/interview-logic/bulk-mode";
 import { loopModeLogic } from "../utils/interview-logic/loop-mode";
+import { targetedModeLogic } from "../utils/interview-logic/targeted-mode";
 import { saveInterviewMessage } from "./save-interview-message";
 
 // モードロジックのマップ
 const modeLogicMap = {
   bulk: bulkModeLogic,
   loop: loopModeLogic,
+  targeted: targetedModeLogic,
 } as const;
 
 /** テスト時にモック注入するための外部依存 */

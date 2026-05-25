@@ -1,6 +1,7 @@
 import "server-only";
 
 import type {
+  InterviewMode,
   PromptBillInput,
   InterviewConfig as PromptInterviewConfig,
   InterviewQuestion as PromptInterviewQuestion,
@@ -22,7 +23,7 @@ export interface ReportDetailForSimulation {
   bill: PromptBillInput;
   interviewConfig: PromptInterviewConfig;
   questions: PromptInterviewQuestion[];
-  mode: "loop" | "bulk";
+  mode: InterviewMode;
   /** 保存済み config の estimated_duration（分）。本番のタイムマネジメント用 */
   estimatedDurationMinutes: number | null;
 }
@@ -191,18 +192,16 @@ export async function getReportDetailForSimulation(
       question: q.question,
       quick_replies: q.quick_replies ?? null,
       follow_up_guide: q.follow_up_guide ?? null,
+      target_audience: q.target_audience ?? null,
     })
   );
-
-  const mode: "loop" | "bulk" =
-    interviewConfig.mode === "bulk" ? "bulk" : "loop";
 
   return {
     snapshot,
     bill,
     interviewConfig: promptInterviewConfig,
     questions: promptQuestions,
-    mode,
+    mode: interviewConfig.mode,
     estimatedDurationMinutes: interviewConfig.estimated_duration ?? null,
   };
 }

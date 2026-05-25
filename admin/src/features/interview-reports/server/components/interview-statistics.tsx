@@ -5,6 +5,7 @@ import {
   Clock,
   DollarSign,
   Eye,
+  Hourglass,
   MessageSquare,
   Star,
   Target,
@@ -13,7 +14,10 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import type { InterviewStatistics as InterviewStatisticsType } from "../../shared/types";
-import { formatDurationSeconds } from "../../shared/utils/format-average-duration";
+import {
+  formatDurationSeconds,
+  formatTotalDurationSeconds,
+} from "../../shared/utils/format-average-duration";
 
 interface InterviewStatisticsProps {
   statistics: InterviewStatisticsType;
@@ -246,7 +250,7 @@ export function InterviewStatistics({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <StatCard
           icon={<MessageSquare className="h-5 w-5" />}
           label="平均メッセージ数"
@@ -261,6 +265,12 @@ export function InterviewStatistics({
           icon={<Clock className="h-5 w-5" />}
           label="所要時間（中央値）"
           value={formatDurationSeconds(stats.medianDurationSeconds)}
+        />
+        <StatCard
+          icon={<Hourglass className="h-5 w-5" />}
+          label="総所要時間"
+          value={formatTotalDurationSeconds(stats.totalDurationSeconds)}
+          sub="途中離脱を含む"
         />
         <StatCard
           icon={<Eye className="h-5 w-5" />}

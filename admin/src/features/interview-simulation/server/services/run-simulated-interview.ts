@@ -3,7 +3,9 @@ import "server-only";
 import { buildBulkModeSystemPrompt } from "@mirai-gikai/shared/interview-prompts/bulk-mode";
 import { buildLoopModeSystemPrompt } from "@mirai-gikai/shared/interview-prompts/loop-mode";
 import { buildSummarySystemPrompt } from "@mirai-gikai/shared/interview-prompts/summary";
+import { buildTargetedModeSystemPrompt } from "@mirai-gikai/shared/interview-prompts/targeted-mode";
 import type {
+  InterviewMode,
   PromptBillInput,
   InterviewConfig as PromptInterviewConfig,
   InterviewQuestion as PromptInterviewQuestion,
@@ -75,7 +77,7 @@ interface RunSimulatedInterviewParams {
     bill: PromptBillInput;
     interviewConfig: PromptInterviewConfig;
     questions: PromptInterviewQuestion[];
-    mode: "loop" | "bulk";
+    mode: InterviewMode;
   };
   /** Summary フェーズ用モデル。省略時は interviewerModel と同じ */
   summaryModel?: AiModel;
@@ -112,6 +114,12 @@ function pickNextQuestionIdForBulk(
   return questions.find((q) => !askedQuestionIds.has(q.id))?.id;
 }
 
+const MODE_PROMPT_BUILDERS = {
+  bulk: buildBulkModeSystemPrompt,
+  loop: buildLoopModeSystemPrompt,
+  targeted: buildTargetedModeSystemPrompt,
+} as const satisfies Record<InterviewMode, unknown>;
+
 /**
  * 本番と同じ builder を呼んで、現在のターンの system prompt を構築する。
  * 毎ターン fresh にビルドすることで、refresh によるセクション差し替え漏れを防ぐ。
@@ -121,10 +129,7 @@ function buildInterviewerSystemPromptForTurn(
   askedQuestionIds: Set<string>,
   remainingMinutes: number | null | undefined
 ): string {
-  const builder =
-    promptInputs.mode === "bulk"
-      ? buildBulkModeSystemPrompt
-      : buildLoopModeSystemPrompt;
+  const builder = MODE_PROMPT_BUILDERS[promptInputs.mode];
   const nextQuestionId =
     promptInputs.mode === "bulk"
       ? pickNextQuestionIdForBulk(promptInputs.questions, askedQuestionIds)

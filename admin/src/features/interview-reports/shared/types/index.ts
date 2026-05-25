@@ -110,6 +110,7 @@ export type InterviewStatistics = {
   roleGeneralCitizen: number;
   avgMessageCount: number | null;
   medianDurationSeconds: number | null;
+  totalDurationSeconds: number;
   publicByUserCount: number;
   publicRate: number;
   feedbackIrrelevantQuestions: number;

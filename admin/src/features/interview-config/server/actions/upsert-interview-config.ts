@@ -1,5 +1,6 @@
 "use server";
 
+import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import {
   invalidateWebCache,
@@ -158,7 +159,7 @@ export async function duplicateInterviewConfig(
         bill_id: targetBillId,
         name: `${originalConfig.name}（コピー）`,
         status: "closed" as const,
-        mode: originalConfig.mode as "loop" | "bulk",
+        mode: originalConfig.mode as InterviewMode,
         themes: originalConfig.themes,
         chat_model: originalConfig.chat_model,
         estimated_duration: originalConfig.estimated_duration,

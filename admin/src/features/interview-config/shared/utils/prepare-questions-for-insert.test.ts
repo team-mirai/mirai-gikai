@@ -7,6 +7,7 @@ const questions: InterviewQuestionInput[] = [
     question: "質問A",
     follow_up_guide: "指示A",
     quick_replies: ["選択肢1", "選択肢2"],
+    target_audience: "専門家",
   },
   {
     question: "質問B",
@@ -15,6 +16,7 @@ const questions: InterviewQuestionInput[] = [
     question: "質問C",
     follow_up_guide: undefined,
     quick_replies: undefined,
+    target_audience: undefined,
   },
 ];
 
@@ -38,14 +40,17 @@ describe("prepareQuestionsForInsert", () => {
     expect(result[0].question).toBe("質問A");
     expect(result[0].follow_up_guide).toBe("指示A");
     expect(result[0].quick_replies).toEqual(["選択肢1", "選択肢2"]);
+    expect(result[0].target_audience).toBe("専門家");
   });
 
-  it("未設定のfollow_up_guide/quick_repliesをnullに変換する", () => {
+  it("未設定のfollow_up_guide/quick_replies/target_audienceをnullに変換する", () => {
     const result = prepareQuestionsForInsert(questions, "config-123");
     expect(result[1].follow_up_guide).toBeNull();
     expect(result[1].quick_replies).toBeNull();
+    expect(result[1].target_audience).toBeNull();
     expect(result[2].follow_up_guide).toBeNull();
     expect(result[2].quick_replies).toBeNull();
+    expect(result[2].target_audience).toBeNull();
   });
 
   it("空配列を渡すと空配列を返す", () => {

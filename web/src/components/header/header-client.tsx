@@ -36,7 +36,12 @@ export function HeaderClient({ difficultyLevel }: HeaderClientProps) {
                 width={42}
                 height={36}
               />
-              <div className="text-xl font-bold">みらい議会</div>
+              <Image
+                src="/img/service-logo.svg"
+                alt="みらい議会"
+                width={115}
+                height={21}
+              />
             </Link>
           </div>
 

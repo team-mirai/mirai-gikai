@@ -16,6 +16,7 @@ describe("mapInterviewStatistics", () => {
     role_general_citizen_count: 35,
     avg_message_count: 12.3,
     median_duration_seconds: 345,
+    total_duration_seconds: 27600,
     public_by_user_count: 60,
     feedback_irrelevant_questions: 5,
     feedback_not_aligned: 3,
@@ -43,6 +44,7 @@ describe("mapInterviewStatistics", () => {
     expect(result.roleGeneralCitizen).toBe(35);
     expect(result.avgMessageCount).toBe(12.3);
     expect(result.medianDurationSeconds).toBe(345);
+    expect(result.totalDurationSeconds).toBe(27600);
     expect(result.publicByUserCount).toBe(60);
     expect(result.publicRate).toBe(75);
     expect(result.feedbackIrrelevantQuestions).toBe(5);
@@ -96,5 +98,14 @@ describe("mapInterviewStatistics", () => {
     expect(result.avgTotalContentRichness).toBeNull();
     expect(result.avgMessageCount).toBeNull();
     expect(result.medianDurationSeconds).toBeNull();
+  });
+
+  it("falls back to 0 when total_duration_seconds is null", () => {
+    const result = mapInterviewStatistics({
+      ...baseRaw,
+      total_duration_seconds: null,
+    });
+
+    expect(result.totalDurationSeconds).toBe(0);
   });
 });
