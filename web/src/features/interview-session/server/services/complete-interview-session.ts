@@ -2,10 +2,15 @@ import "server-only";
 
 import type { InterviewReportData } from "../../shared/schemas";
 import type { InterviewReport } from "../../shared/types";
+import {
+  buildInterviewOpinionRows,
+  type InterviewOpinionSource,
+} from "../../shared/utils/build-interview-opinion-rows";
 import { buildCompletedInterviewReportInsert } from "../../shared/utils/complete-interview-report";
 import { extractReportFromMessage } from "../../shared/utils/report-extraction";
 import {
   findInterviewMessagesBySessionIdDesc,
+  syncInterviewOpinions,
   updateInterviewSessionCompleted,
   upsertInterviewReport,
 } from "../repositories/interview-session-repository";
@@ -86,6 +91,24 @@ export async function completeInterviewSession({
       isPublicByUser,
     })
   );
+
+  // interview_opinion（正規化プロジェクション）へ dual-write（§3.1）
+  // 失敗してもインタビュー完了はブロックしない（report の JSONB が正本）。
+  // 未同期分は Step2 のバックフィル（パスA）と日次再実行が結果整合的に取り込む。
+  try {
+    const storedOpinions = Array.isArray(report.opinions)
+      ? (report.opinions as InterviewOpinionSource[])
+      : [];
+    await syncInterviewOpinions(
+      report.id,
+      buildInterviewOpinionRows(report.id, storedOpinions)
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error(
+      `Failed to sync interview_opinion for session ${sessionId}: ${message}`
+    );
+  }
 
   // セッションを完了
   await updateInterviewSessionCompleted(sessionId);

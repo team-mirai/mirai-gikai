@@ -22,7 +22,7 @@ describe("extractReportFromMessage", () => {
     },
   };
 
-  it("有効なJSONからレポートを抽出する", () => {
+  it("有効なJSONからレポートを抽出する（新フィールドが無い旧メッセージは null 補完）", () => {
     const result = extractReportFromMessage(JSON.stringify(validReport));
     expect(result).not.toBeNull();
     expect(result?.summary).toBe("テスト要約");
@@ -30,6 +30,30 @@ describe("extractReportFromMessage", () => {
     expect(result?.role).toBe("general_citizen");
     expect(result?.opinions).toHaveLength(1);
     expect(result?.content_richness.total).toBe(75);
+    // 後方互換: 旧メッセージには無い新フィールドが null で補完される
+    expect(result?.opinions[0].contextual_quote).toBeNull();
+    expect(result?.opinions[0].bill_sentiment).toBeNull();
+  });
+
+  it("新フィールド付きメッセージは contextual_quote / bill_sentiment を保持する", () => {
+    const withNewFields = {
+      ...validReport,
+      report: {
+        ...validReport.report,
+        opinions: [
+          {
+            title: "意見1",
+            content: "内容1",
+            source_message_id: null,
+            contextual_quote: "（法案について）賛成だ",
+            bill_sentiment: "期待",
+          },
+        ],
+      },
+    };
+    const result = extractReportFromMessage(JSON.stringify(withNewFields));
+    expect(result?.opinions[0].contextual_quote).toBe("（法案について）賛成だ");
+    expect(result?.opinions[0].bill_sentiment).toBe("期待");
   });
 
   it("JSONでない文字列はnullを返す", () => {

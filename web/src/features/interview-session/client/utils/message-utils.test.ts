@@ -25,7 +25,15 @@ describe("convertPartialReport", () => {
       role: "general_citizen",
       role_description: "一般市民",
       role_title: "市民",
-      opinions: [{ title: "意見1", content: "内容1", source_message_id: null }],
+      opinions: [
+        {
+          title: "意見1",
+          content: "内容1",
+          source_message_id: null,
+          contextual_quote: null,
+          bill_sentiment: null,
+        },
+      ],
     });
   });
 
@@ -52,8 +60,20 @@ describe("convertPartialReport", () => {
       ],
     });
     expect(result?.opinions).toEqual([
-      { title: "意見1", content: "内容1", source_message_id: null },
-      { title: "意見2", content: "内容2", source_message_id: null },
+      {
+        title: "意見1",
+        content: "内容1",
+        source_message_id: null,
+        contextual_quote: null,
+        bill_sentiment: null,
+      },
+      {
+        title: "意見2",
+        content: "内容2",
+        source_message_id: null,
+        contextual_quote: null,
+        bill_sentiment: null,
+      },
     ]);
   });
 
@@ -72,7 +92,13 @@ describe("convertPartialReport", () => {
       opinions: [{ title: "タイトルのみ", content: undefined }],
     });
     expect(result?.opinions).toEqual([
-      { title: "タイトルのみ", content: "", source_message_id: null },
+      {
+        title: "タイトルのみ",
+        content: "",
+        source_message_id: null,
+        contextual_quote: null,
+        bill_sentiment: null,
+      },
     ]);
   });
 

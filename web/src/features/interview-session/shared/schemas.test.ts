@@ -25,7 +25,13 @@ const validReport = {
   role_description: "テストの役割説明",
   role_title: "研究者",
   opinions: [
-    { title: "テスト意見", content: "テスト内容", source_message_id: null },
+    {
+      title: "テスト意見",
+      content: "テスト内容",
+      source_message_id: null,
+      contextual_quote: null,
+      bill_sentiment: null,
+    },
   ],
   content_richness: validContentRichness,
 };
@@ -232,9 +238,27 @@ describe("interviewReportSchema", () => {
       const result = interviewReportSchema.parse({
         ...validReport,
         opinions: [
-          { title: "意見1", content: "内容1", source_message_id: null },
-          { title: "意見2", content: "内容2", source_message_id: "msg-1" },
-          { title: "意見3", content: "内容3", source_message_id: null },
+          {
+            title: "意見1",
+            content: "内容1",
+            source_message_id: null,
+            contextual_quote: null,
+            bill_sentiment: null,
+          },
+          {
+            title: "意見2",
+            content: "内容2",
+            source_message_id: "msg-1",
+            contextual_quote: "（テーマについて）意見2の根拠",
+            bill_sentiment: "期待",
+          },
+          {
+            title: "意見3",
+            content: "内容3",
+            source_message_id: null,
+            contextual_quote: null,
+            bill_sentiment: "懸念",
+          },
         ],
       });
       expect(result.opinions).toHaveLength(3);
@@ -273,6 +297,54 @@ describe("interviewReportSchema", () => {
       const result = interviewReportSchema.safeParse({
         ...validReport,
         opinions: [{ title: "タイトルのみ" }],
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("contextual_quote に null を許容する", () => {
+      const result = interviewReportSchema.parse({
+        ...validReport,
+        opinions: [
+          {
+            title: "意見",
+            content: "内容",
+            source_message_id: null,
+            contextual_quote: null,
+            bill_sentiment: null,
+          },
+        ],
+      });
+      expect(result.opinions[0].contextual_quote).toBeNull();
+    });
+
+    it.each(["期待", "懸念"])("bill_sentiment %s を受け入れる", (value) => {
+      const result = interviewReportSchema.parse({
+        ...validReport,
+        opinions: [
+          {
+            title: "意見",
+            content: "内容",
+            source_message_id: null,
+            contextual_quote: null,
+            bill_sentiment: value,
+          },
+        ],
+      });
+      expect(result.opinions[0].bill_sentiment).toBe(value);
+    });
+
+    it("bill_sentiment の無効な値を拒否する", () => {
+      const result = interviewReportSchema.safeParse({
+        ...validReport,
+        opinions: [
+          {
+            title: "意見",
+            content: "内容",
+            source_message_id: null,
+            contextual_quote: null,
+            bill_sentiment: "中立",
+          },
+        ],
       });
       expect(result.success).toBe(false);
     });

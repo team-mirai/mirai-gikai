@@ -13,6 +13,8 @@ const reportData = {
       title: "賛成の理由",
       content: "社会全体の利益になる",
       source_message_id: "message-user-1",
+      contextual_quote: null,
+      bill_sentiment: null,
     },
   ],
   content_richness: {
@@ -116,6 +118,8 @@ describe("buildCompletedInterviewReportInsert", () => {
             title: "根拠なし",
             content: "全体として賛成",
             source_message_id: null,
+            contextual_quote: null,
+            bill_sentiment: null,
           },
         ],
       },

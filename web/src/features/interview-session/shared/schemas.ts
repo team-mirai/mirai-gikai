@@ -13,6 +13,19 @@ const opinionSchema = z
       .string()
       .nullable()
       .describe("この意見の根拠となるユーザー発言のメッセージID"),
+    // ユーザー向けトピック分析で公開表示する文脈込み引用（§4.0）
+    contextual_quote: z
+      .string()
+      .nullable()
+      .describe(
+        "この意見の根拠となる引用。引用単体で意味が通じれば原文ママ、文脈が必要なら「（○○について）原文の発言」の形で自己完結させる。個人名などの固有名詞は含めない"
+      ),
+    bill_sentiment: z
+      .enum(["期待", "懸念"])
+      .nullable()
+      .describe(
+        "この意見が法案に対して示す期待か懸念か。どちらでもなければ null"
+      ),
   })
   .strict();
 
@@ -59,7 +72,7 @@ export const interviewReportSchema = z
       .array(opinionSchema)
       .max(3)
       .describe(
-        "ユーザーの具体的な主張（最大3件）。メインの主張を補強する内容を最低1つは含める。元の対話ログにないことは記載しない"
+        "ユーザーの具体的な主張（最大3件）。議案を検討する人にとって示唆として有益な順（具体性・建設性・独自性が高い順）に並べ、先頭ほど有益・重要な主張とする。元の対話ログにないことは記載しない"
       ),
     content_richness: contentRichnessResultSchema.describe(
       "インタビューの情報充実度評価"

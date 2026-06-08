@@ -39,6 +39,8 @@ export function convertPartialReport(
               title?: string;
               content?: string;
               source_message_id?: string | null;
+              contextual_quote?: string | null;
+              bill_sentiment?: "期待" | "懸念" | null;
             }
           | undefined
         > | null;
@@ -55,6 +57,8 @@ export function convertPartialReport(
           title: op.title ?? "",
           content: op.content ?? "",
           source_message_id: op.source_message_id ?? null,
+          contextual_quote: op.contextual_quote ?? null,
+          bill_sentiment: op.bill_sentiment ?? null,
         }))
         .filter((op) => op.title || op.content)
     : [];

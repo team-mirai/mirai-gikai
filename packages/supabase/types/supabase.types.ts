@@ -416,6 +416,53 @@ export type Database = {
           },
         ]
       }
+      interview_opinion: {
+        Row: {
+          bill_sentiment: string | null
+          content: string
+          contextual_quote: string | null
+          created_at: string
+          id: string
+          interview_report_id: string
+          opinion_index: number
+          richness: number | null
+          source_message_id: string | null
+          title: string
+        }
+        Insert: {
+          bill_sentiment?: string | null
+          content: string
+          contextual_quote?: string | null
+          created_at?: string
+          id?: string
+          interview_report_id: string
+          opinion_index: number
+          richness?: number | null
+          source_message_id?: string | null
+          title: string
+        }
+        Update: {
+          bill_sentiment?: string | null
+          content?: string
+          contextual_quote?: string | null
+          created_at?: string
+          id?: string
+          interview_report_id?: string
+          opinion_index?: number
+          richness?: number | null
+          source_message_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_opinion_interview_report_id_fkey"
+            columns: ["interview_report_id"]
+            isOneToOne: false
+            referencedRelation: "interview_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_questions: {
         Row: {
           created_at: string
