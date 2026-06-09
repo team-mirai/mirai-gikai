@@ -136,6 +136,12 @@ export async function createVersion(
     .single();
 
   if (error) {
+    // 一意制約違反（23505）= 同時実行で既に active な version が作られた／同一 version 番号が衝突した。
+    // one_active_version_per_bill による二重起動ガードに弾かれたケースなので、
+    // エラーにせず null を返して呼び出し側でスキップ扱いにする（TOCTOU 対策）。
+    if (error.code === "23505") {
+      return null;
+    }
     throw new Error(`Failed to create version: ${error.message}`);
   }
   return data;

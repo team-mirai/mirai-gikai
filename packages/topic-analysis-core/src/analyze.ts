@@ -54,10 +54,13 @@ async function executeMerge(versionId: string): Promise<void> {
 async function executeAssign(versionId: string): Promise<void> {
   await updateVersionStep(versionId, ANALYSIS_STEPS.ASSIGN);
   const progress = await loadProgress(versionId);
+  // final_topics と同様、target_opinions も欠落時は空配列にフォールバックして
+  // 非対称なクラッシュ（.length での TypeError 等）を避ける。
   const finalTopics = progress.final_topics ?? [];
+  const targetOpinions = progress.target_opinions ?? [];
 
   const assignments = await assignOpinions(
-    progress.target_opinions,
+    targetOpinions,
     finalTopics,
     progress.bill
   );
@@ -68,7 +71,7 @@ async function executeAssign(versionId: string): Promise<void> {
   );
 
   await saveTopicsAndAssignments(versionId, sortedTopics, pairs);
-  await finalizeVersion(versionId, progress.target_opinions.length);
+  await finalizeVersion(versionId, targetOpinions.length);
 }
 
 /**

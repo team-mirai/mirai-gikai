@@ -29,12 +29,17 @@ export async function POST(request: Request) {
 
   let billId: string;
   try {
-    billId = (await request.json()).billId;
+    const body: unknown = await request.json();
+    const rawBillId =
+      typeof body === "object" && body !== null
+        ? (body as { billId?: unknown }).billId
+        : undefined;
+    if (typeof rawBillId !== "string" || rawBillId.trim() === "") {
+      return json({ error: "billId is required" }, 400);
+    }
+    billId = rawBillId.trim();
   } catch {
     return json({ error: "Invalid JSON body" }, 400);
-  }
-  if (!billId) {
-    return json({ error: "billId is required" }, 400);
   }
 
   try {
@@ -54,12 +59,18 @@ export async function POST(request: Request) {
       }
     }
 
+    // 事前チェックは TOCTOU で破れるため、createVersion は
+    // one_active_version_per_bill の一意制約に弾かれたら null を返す。
+    // 同時 POST で負けた側はここでスキップ扱いにする（原子的ガード）。
     const version = await createVersion(
       billId,
       "manual",
       TOPIC_MODEL,
       PROMPT_VERSION
     );
+    if (!version) {
+      return json({ skipped: true, reason: "running" });
+    }
 
     try {
       await executeTopicAnalysisJob([
