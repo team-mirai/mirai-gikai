@@ -51,6 +51,18 @@ describe("parseAssistantMessageContent", () => {
       hasReport: false,
     });
   });
+
+  it("text 欠落でも report/next_stage を取りこぼさない（text は空文字）", () => {
+    const result = parseAssistantMessageContent(
+      JSON.stringify({ report: { summary: "x" }, next_stage: "summary_complete" })
+    );
+    expect(result).toEqual({
+      text: "",
+      quickReplies: null,
+      nextStage: "summary_complete",
+      hasReport: true,
+    });
+  });
 });
 
 describe("isReportTurn", () => {
@@ -65,6 +77,11 @@ describe("isReportTurn", () => {
   it("通常のチャットターンは false", () => {
     expect(isReportTurn(JSON.stringify({ text: "t", next_stage: "chat" }))).toBe(
       false
+    );
+  });
+  it("text 欠落のレポート提示ターンも true（再抽出から除外される）", () => {
+    expect(isReportTurn(JSON.stringify({ report: { summary: "x" } }))).toBe(
+      true
     );
   });
 });

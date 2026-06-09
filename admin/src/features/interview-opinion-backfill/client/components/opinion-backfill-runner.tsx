@@ -26,6 +26,8 @@ export function OpinionBackfillRunner() {
     }
     const data = (await res.json()) as BackfillStatus;
     setStatus(data);
+    // 取得成功時は残留エラー表示をクリアする。
+    setError(null);
     return data;
   }, []);
 
@@ -101,27 +103,27 @@ export function OpinionBackfillRunner() {
       {status && (
         <dl className="grid grid-cols-3 gap-4 text-sm">
           <div>
-            <dt className="text-gray-500">全レポート</dt>
+            <dt className="text-muted-foreground">全レポート</dt>
             <dd className="font-semibold tabular-nums">{status.total}</dd>
           </div>
           <div>
-            <dt className="text-gray-500">処理済み</dt>
+            <dt className="text-muted-foreground">処理済み</dt>
             <dd className="font-semibold tabular-nums">{status.processed}</dd>
           </div>
           <div>
-            <dt className="text-gray-500">未処理</dt>
+            <dt className="text-muted-foreground">未処理</dt>
             <dd className="font-semibold tabular-nums">{status.pending}</dd>
           </div>
         </dl>
       )}
 
       {isRunning && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           バックグラウンドで処理中です。状況は自動更新されます。
         </p>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }
