@@ -43,7 +43,9 @@ const defaultGenerateReport: GenerateReportFn = async ({ systemPrompt }) => {
 /**
  * 1レポートの意見を新プロンプトで再抽出し、opinions だけを更新する。
  * summary/stance/role/content_richness/moderation/公開フラグは保持する。
- * 失敗・スキップ時もウォーターマーク（opinions_reextracted_at）を進める。
+ * 成功時は更新とともに、恒久的にスキップ（セッション/設定/メッセージ無し）の場合も
+ * ウォーターマーク（opinions_reextracted_at）を進める。
+ * ただし生成・更新・同期の失敗時は進めない（次回再実行で再試行される）。
  */
 export async function reextractReportOpinions(
   target: BackfillTargetReport,
