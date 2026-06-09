@@ -15,6 +15,9 @@ on:
 
 jobs:
   build-and-deploy:
+    # GCP 未プロビジョニング（GCP_PROJECT_ID 未設定）の間はジョブごとスキップする。
+    # 変数を設定した時点から自動でデプロイが走り始める（未設定中に赤を出さない）。
+    if: ${{ vars.GCP_PROJECT_ID != '' }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
     env:
