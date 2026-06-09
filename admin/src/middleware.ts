@@ -19,6 +19,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ユーザー向けトピック分析の step（extract/merge/assign）も内部 Bearer 認証で
+  // 自己連鎖するため、ルート側検証に委ね middleware のセッション認証をバイパスする。
+  if (pathname.startsWith("/api/user-topic-analysis/steps/")) {
+    return NextResponse.next();
+  }
+
   const { supabaseResponse, user } = await updateSession(request);
 
   // OAuth コールバックはそのまま通す（Route Handler で処理する）
