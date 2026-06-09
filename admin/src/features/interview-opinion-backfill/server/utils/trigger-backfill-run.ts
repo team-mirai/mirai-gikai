@@ -13,20 +13,29 @@ export async function triggerBackfillRun(): Promise<void> {
   }
 
   const url = `${env.adminUrl}/api/interview-opinion-backfill/run`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${secret}`,
-    },
-    body: JSON.stringify({}),
-  });
+  // run ルートは即座に 202 を返す設計だが、内部APIのハング時に連鎖が
+  // ぶら下がらないよう明示タイムアウト（10s）を付ける。
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify({}),
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(
-      `Failed to trigger backfill run: ${response.status} ${text}`
-    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `Failed to trigger backfill run: ${response.status} ${text}`
+      );
+    }
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

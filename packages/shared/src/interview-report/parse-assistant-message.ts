@@ -19,14 +19,9 @@ export function parseAssistantMessageContent(
 ): ParsedAssistantMessage {
   try {
     const parsed = JSON.parse(content);
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      "text" in parsed &&
-      typeof parsed.text === "string"
-    ) {
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       const raw = parsed as {
-        text: string;
+        text?: unknown;
         quick_replies?: unknown;
         next_stage?: unknown;
         report?: unknown;
@@ -41,8 +36,10 @@ export function parseAssistantMessageContent(
         raw.next_stage === "summary_complete"
           ? raw.next_stage
           : null;
+      // text が欠落／非文字列のレポート提示ターンでも report/next_stage を
+      // 取りこぼさないよう、text の有無で早期分岐しない（欠落時は ""）。
       return {
-        text: raw.text,
+        text: typeof raw.text === "string" ? raw.text : "",
         quickReplies:
           quickReplies && quickReplies.length > 0 ? quickReplies : null,
         nextStage,

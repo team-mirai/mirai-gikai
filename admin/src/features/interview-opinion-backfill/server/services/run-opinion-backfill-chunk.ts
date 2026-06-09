@@ -24,7 +24,8 @@ export type BackfillChunkResult = {
 /**
  * 未再抽出レポートを1チャンク分（最大 CHUNK_SIZE 件）処理する。
  * チャンク内は CONCURRENCY 件ずつ並列実行する。
- * 成功・スキップ・失敗のいずれもウォーターマークを進めるため、remaining は必ず減少する。
+ * updated / skipped はウォーターマークを進める（前進）が、failed は進めず未処理として
+ * 残りうるため、remaining は必ずしも減少しない（呼び出し側で前進ゼロ時に停止する）。
  */
 export async function runOpinionBackfillChunk(
   deps: { generateReport?: GenerateReportFn } = {}
