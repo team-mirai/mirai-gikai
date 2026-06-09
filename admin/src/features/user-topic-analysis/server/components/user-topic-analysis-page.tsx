@@ -30,7 +30,7 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
       <h1 className="mb-1 text-2xl font-bold">ユーザー向けトピック分析</h1>
       <p className="mb-1 text-sm text-gray-600">議案: {bill.name}</p>
       <p className="mb-6 text-sm text-gray-500">
-        公開に同意された意見（モデレーションOK）のみを対象に、論点（トピック）を抽出・分類します。結果は非公開のまま品質確認用に蓄積されます。
+        公開に同意された意見（モデレーションOK）のみを対象に、論点（トピック）を抽出・分類します。
       </p>
 
       <section className="mb-8 rounded-lg border bg-white p-6">
