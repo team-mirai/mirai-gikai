@@ -38,6 +38,11 @@ CREATE TABLE topic_analysis_version (
 CREATE UNIQUE INDEX one_published_per_bill
   ON topic_analysis_version (bill_id) WHERE is_published;
 
+-- 実行中（pending/running）は bill ごとに最大1版（二重起動の原子的ガード・§5.3）。
+-- アプリ層の事前チェックは TOCTOU で破れるため、DB 側でも一意制約を持たせる。
+CREATE UNIQUE INDEX one_active_version_per_bill
+  ON topic_analysis_version (bill_id) WHERE status IN ('pending', 'running');
+
 CREATE INDEX idx_topic_analysis_version_bill ON topic_analysis_version(bill_id);
 
 -- トピック（§3.3）

@@ -1,9 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   createVersion,
   fetchTargetOpinions,
   getTopicsWithOpinions,
   saveTopicsAndAssignments,
+  updateVersionStatus,
 } from "../../admin/src/features/user-topic-analysis/server/repositories/user-topic-analysis-repository";
 import {
   adminClient,
@@ -13,6 +14,12 @@ import {
   createTestUser,
   type TestUser,
 } from "./utils";
+
+/** createVersion は競合時 null を返すため、テストでは非 null を強制する。 */
+function expectVersion<T>(v: T | null): T {
+  if (!v) throw new Error("createVersion unexpectedly returned null");
+  return v;
+}
 
 /** session + report + interview_opinion を作る。 */
 async function createReportWithOpinions(opts: {
@@ -86,6 +93,16 @@ describe("user-topic-analysis repository 統合テスト", () => {
     await cleanupTestUser(testUser.id);
   });
 
+  // one_active_version_per_bill により bill 内 active は1版まで。
+  // テスト間で active を残すと次の createVersion が弾かれるため終端させる。
+  afterEach(async () => {
+    await adminClient
+      .from("topic_analysis_version")
+      .update({ status: "failed" })
+      .eq("bill_id", billId)
+      .in("status", ["pending", "running"]);
+  });
+
   it("fetchTargetOpinions は公開同意済み×モデレーションOKの意見だけ返す（§8）", async () => {
     // A: public × ok（含まれる）
     const a = await createReportWithOpinions({
@@ -122,9 +139,25 @@ describe("user-topic-analysis repository 統合テスト", () => {
   });
 
   it("createVersion は bill 内で連番を振る", async () => {
-    const v1 = await createVersion(billId, "manual", "test-model", "v1");
-    const v2 = await createVersion(billId, "manual", "test-model", "v1");
+    const v1 = expectVersion(
+      await createVersion(billId, "manual", "test-model", "v1")
+    );
+    // active は1版までなので、次を作る前に v1 を終端させる。
+    await updateVersionStatus(v1.id, "completed");
+    const v2 = expectVersion(
+      await createVersion(billId, "manual", "test-model", "v1")
+    );
     expect(v2.version).toBe(v1.version + 1);
+  });
+
+  it("createVersion は active な version が既にあれば null を返す（二重起動ガード）", async () => {
+    const first = expectVersion(
+      await createVersion(billId, "manual", "test-model", "v1")
+    );
+    const second = await createVersion(billId, "manual", "test-model", "v1");
+    expect(second).toBeNull();
+    // first はまだ pending のまま（afterEach で終端される）
+    expect(first.status).toBe("pending");
   });
 
   it("saveTopicsAndAssignments がトピックと割当を保存し、件数降順で取得できる", async () => {
@@ -139,7 +172,9 @@ describe("user-topic-analysis repository 統合テスト", () => {
         { title: "o3", content: "3" },
       ],
     });
-    const version = await createVersion(billId, "manual", "m", "v1");
+    const version = expectVersion(
+      await createVersion(billId, "manual", "m", "v1")
+    );
 
     // topic0 に 2件、topic1 に 1件
     await saveTopicsAndAssignments(
@@ -169,7 +204,9 @@ describe("user-topic-analysis repository 統合テスト", () => {
       moderationScore: 5,
       opinions: [{ title: "dup", content: "d" }],
     });
-    const version = await createVersion(billId, "manual", "m", "v1");
+    const version = expectVersion(
+      await createVersion(billId, "manual", "m", "v1")
+    );
     const { data: topics } = await adminClient
       .from("topic")
       .insert([
