@@ -1,0 +1,11 @@
+# worker/Dockerfile はリポジトリルートをビルドコンテキストとして使う。
+# 不要・巨大・秘匿なものを除外する。
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/coverage
+.git
+**/*.log
+**/.env
+**/.env.*

@@ -1,11 +1,11 @@
 import "server-only";
 
-import { RunAnalysisButton } from "../../client/components/run-analysis-button";
 import {
   fetchBillContext,
   getTopicsWithOpinions,
   listVersionsByBill,
-} from "../repositories/user-topic-analysis-repository";
+} from "@mirai-gikai/topic-analysis-core/repository";
+import { RunAnalysisButton } from "../../client/components/run-analysis-button";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "待機中",

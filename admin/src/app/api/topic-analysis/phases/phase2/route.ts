@@ -1,5 +1,5 @@
-import { executePhase2 } from "@/features/topic-analysis/server/services/topic-analysis-orchestrator";
 import { updateVersionStatus } from "@/features/topic-analysis/server/repositories/topic-analysis-repository";
+import { executePhase2 } from "@/features/topic-analysis/server/services/topic-analysis-orchestrator";
 import {
   triggerNextPhase,
   verifyInternalAuth,

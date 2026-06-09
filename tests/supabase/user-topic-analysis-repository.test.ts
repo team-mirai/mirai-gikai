@@ -4,7 +4,7 @@ import {
   fetchTargetOpinions,
   getTopicsWithOpinions,
   saveTopicsAndAssignments,
-} from "../../admin/src/features/user-topic-analysis/server/repositories/user-topic-analysis-repository";
+} from "@mirai-gikai/topic-analysis-core/repository";
 import {
   adminClient,
   cleanupTestBill,

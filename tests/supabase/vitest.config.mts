@@ -24,6 +24,10 @@ export default defineConfig({
         __dirname,
         "../../packages/supabase/src"
       ),
+      "@mirai-gikai/topic-analysis-core/repository": path.resolve(
+        __dirname,
+        "../../packages/topic-analysis-core/src/repositories/repository.ts"
+      ),
       "server-only": path.resolve(__dirname, "server-only-stub.ts"),
     },
   },

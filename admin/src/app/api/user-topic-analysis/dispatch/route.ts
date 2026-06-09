@@ -1,14 +1,15 @@
-import { after } from "next/server";
-import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import {
-  createVersion,
-  findActiveVersionByBill,
-} from "@/features/user-topic-analysis/server/repositories/user-topic-analysis-repository";
-import { triggerStep } from "@/features/user-topic-analysis/server/utils/trigger-step";
 import {
   PROMPT_VERSION,
   TOPIC_MODEL,
-} from "@/features/user-topic-analysis/shared/constants";
+} from "@mirai-gikai/topic-analysis-core/constants";
+import {
+  createVersion,
+  findActiveVersionByBill,
+  isStaleActiveVersion,
+  updateVersionStatus,
+} from "@mirai-gikai/topic-analysis-core/repository";
+import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import { executeTopicAnalysisJob } from "@/lib/cloud-run-job";
 
 export const maxDuration = 60;
 
@@ -18,7 +19,7 @@ const json = (body: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
-/** ユーザー向けトピック分析の手動実行入口（Admin）。version 作成 → extract 起動。 */
+/** ユーザー向けトピック分析の手動実行入口（Admin）。version 作成 → Cloud Run Job 起動。 */
 export async function POST(request: Request) {
   try {
     await requireAdmin();
@@ -37,10 +38,20 @@ export async function POST(request: Request) {
   }
 
   try {
-    // 二重起動防止（§5.3）: running/pending があればスキップ
+    // 二重起動防止（§5.3）: running/pending があればスキップ。
+    // ただし Cloud Run 実行が worker 到達前に死んだ等で失効した行は failed に倒し、
+    // 再実行をブロックし続けないようにする（pending/running のままの残骸を自己回復）。
     const active = await findActiveVersionByBill(billId);
     if (active) {
-      return json({ skipped: true, versionId: active.id, reason: "running" });
+      if (isStaleActiveVersion(active, Date.now())) {
+        await updateVersionStatus(
+          active.id,
+          "failed",
+          "stale: execution did not start or did not complete in time"
+        );
+      } else {
+        return json({ skipped: true, versionId: active.id, reason: "running" });
+      }
     }
 
     const version = await createVersion(
@@ -50,15 +61,20 @@ export async function POST(request: Request) {
       PROMPT_VERSION
     );
 
-    after(async () => {
-      try {
-        await triggerStep("extract", version.id, billId);
-      } catch (error) {
-        // 起動 fetch のレスポンス喪失等は extract が走っている可能性があり曖昧。
-        // 誤って failed にして多重起動を招かないようログのみ（best-effort 連鎖）。
-        console.error("[UserTopicAnalysis] Failed to start extract:", error);
-      }
-    });
+    try {
+      await executeTopicAnalysisJob([
+        "--mode=analyze",
+        `--bill-id=${billId}`,
+        `--version-id=${version.id}`,
+      ]);
+    } catch (triggerError) {
+      // ジョブ起動に失敗した場合は version を failed にして残骸（pending のまま）を防ぐ。
+      const message =
+        triggerError instanceof Error ? triggerError.message : "trigger failed";
+      await updateVersionStatus(version.id, "failed", message);
+      console.error("[UserTopicAnalysis] Failed to trigger job:", triggerError);
+      return json({ error: message }, 502);
+    }
 
     return json({ versionId: version.id });
   } catch (error) {

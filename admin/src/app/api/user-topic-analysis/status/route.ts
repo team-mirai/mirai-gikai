@@ -1,5 +1,5 @@
+import { getVersionStatus } from "@mirai-gikai/topic-analysis-core/repository";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { getVersionStatus } from "@/features/user-topic-analysis/server/repositories/user-topic-analysis-repository";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {

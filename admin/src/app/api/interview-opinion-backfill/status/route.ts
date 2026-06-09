@@ -1,8 +1,8 @@
-import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import {
   countAllReports,
   countPendingReextraction,
-} from "@/features/interview-opinion-backfill/server/repositories/interview-opinion-backfill-repository";
+} from "@mirai-gikai/topic-analysis-core/repository";
+import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
