@@ -1,16 +1,8 @@
-import type { InterviewOpinionInsert } from "../types";
+import type { Database } from "@mirai-gikai/supabase";
+import type { InterviewOpinionSource } from "./schema";
 
-/**
- * interview_report.opinions(JSONB) に格納されている意見の形。
- * source_message_content など本テーブルに無いフィールドは無視する。
- */
-export type InterviewOpinionSource = {
-  title: string;
-  content: string;
-  source_message_id?: string | null;
-  contextual_quote?: string | null;
-  bill_sentiment?: string | null;
-};
+export type InterviewOpinionInsert =
+  Database["public"]["Tables"]["interview_opinion"]["Insert"];
 
 /**
  * レポートの意見配列から interview_opinion の upsert 行を生成する純粋関数。

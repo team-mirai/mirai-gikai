@@ -1,0 +1,34 @@
+import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import {
+  countAllReports,
+  countPendingReextraction,
+} from "@/features/interview-opinion-backfill/server/repositories/interview-opinion-backfill-repository";
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+
+/** 進捗（未処理件数 / 全件数）を返す。UI のポーリング用。 */
+export async function GET() {
+  try {
+    await requireAdmin();
+  } catch {
+    return json({ error: "Unauthorized" }, 401);
+  }
+
+  try {
+    const [pending, total] = await Promise.all([
+      countPendingReextraction(),
+      countAllReports(),
+    ]);
+    return json({ pending, total, processed: total - pending });
+  } catch (error) {
+    console.error("[OpinionBackfill] status failed:", error);
+    return json(
+      { error: error instanceof Error ? error.message : "status failed" },
+      500
+    );
+  }
+}

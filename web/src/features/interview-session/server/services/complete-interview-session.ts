@@ -1,16 +1,14 @@
 import "server-only";
 
+import { buildInterviewOpinionRows } from "@mirai-gikai/shared/interview-report/build-opinion-rows";
+import type { InterviewOpinionSource } from "@mirai-gikai/shared/interview-report/schema";
+import { syncInterviewOpinions } from "@mirai-gikai/shared/interview-report/sync-opinions";
 import type { InterviewReportData } from "../../shared/schemas";
 import type { InterviewReport } from "../../shared/types";
-import {
-  buildInterviewOpinionRows,
-  type InterviewOpinionSource,
-} from "../../shared/utils/build-interview-opinion-rows";
 import { buildCompletedInterviewReportInsert } from "../../shared/utils/complete-interview-report";
 import { extractReportFromMessage } from "../../shared/utils/report-extraction";
 import {
   findInterviewMessagesBySessionIdDesc,
-  syncInterviewOpinions,
   updateInterviewSessionCompleted,
   upsertInterviewReport,
 } from "../repositories/interview-session-repository";

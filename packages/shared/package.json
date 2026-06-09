@@ -66,7 +66,31 @@
     "./interview-prompts/summary": {
       "types": "./src/interview-prompts/summary.ts",
       "default": "./src/interview-prompts/summary.ts"
+    },
+    "./interview-report/schema": {
+      "types": "./src/interview-report/schema.ts",
+      "default": "./src/interview-report/schema.ts"
+    },
+    "./interview-report/parse-assistant-message": {
+      "types": "./src/interview-report/parse-assistant-message.ts",
+      "default": "./src/interview-report/parse-assistant-message.ts"
+    },
+    "./interview-report/build-opinion-rows": {
+      "types": "./src/interview-report/build-opinion-rows.ts",
+      "default": "./src/interview-report/build-opinion-rows.ts"
+    },
+    "./interview-report/enrich-opinions": {
+      "types": "./src/interview-report/enrich-opinions.ts",
+      "default": "./src/interview-report/enrich-opinions.ts"
+    },
+    "./interview-report/sync-opinions": {
+      "types": "./src/interview-report/sync-opinions.ts",
+      "default": "./src/interview-report/sync-opinions.ts"
     }
+  },
+  "dependencies": {
+    "@mirai-gikai/supabase": "workspace:*",
+    "server-only": "^0.0.1"
   },
   "peerDependencies": {
     "zod": "^4.0.0"

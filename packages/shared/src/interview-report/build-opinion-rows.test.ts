@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildInterviewOpinionRows } from "./build-interview-opinion-rows";
+import { buildInterviewOpinionRows } from "./build-opinion-rows";
 
 const REPORT_ID = "11111111-1111-1111-1111-111111111111";
 

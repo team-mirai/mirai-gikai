@@ -6,6 +6,7 @@ import type {
   InterviewConfig as PromptInterviewConfig,
   InterviewQuestion as PromptInterviewQuestion,
 } from "@mirai-gikai/shared/interview-prompts/types";
+import { parseAssistantMessageContent } from "@mirai-gikai/shared/interview-report/parse-assistant-message";
 import {
   findInterviewConfigById,
   findInterviewQuestionsByConfigId,
@@ -26,62 +27,6 @@ export interface ReportDetailForSimulation {
   mode: InterviewMode;
   /** 保存済み config の estimated_duration（分）。本番のタイムマネジメント用 */
   estimatedDurationMinutes: number | null;
-}
-
-/**
- * インタビュアーが返した assistant の content (JSON 文字列) から
- * text と quick_replies, next_stage を取り出す。
- * next_stage は summary / summary_complete 判定で使う。
- */
-function parseAssistantMessage(content: string): {
-  text: string;
-  quick_replies: string[] | null;
-  nextStage: "chat" | "summary" | "summary_complete" | null;
-  hasReport: boolean;
-} {
-  try {
-    const parsed = JSON.parse(content);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      "text" in parsed &&
-      typeof parsed.text === "string"
-    ) {
-      const raw = parsed as {
-        quick_replies?: unknown;
-        next_stage?: unknown;
-        report?: unknown;
-      };
-      const rawQr = raw.quick_replies;
-      const quick_replies = Array.isArray(rawQr)
-        ? rawQr.filter(
-            (v): v is string => typeof v === "string" && v.length > 0
-          )
-        : null;
-      const nextStageRaw = raw.next_stage;
-      const nextStage =
-        nextStageRaw === "chat" ||
-        nextStageRaw === "summary" ||
-        nextStageRaw === "summary_complete"
-          ? nextStageRaw
-          : null;
-      return {
-        text: parsed.text,
-        quick_replies:
-          quick_replies && quick_replies.length > 0 ? quick_replies : null,
-        nextStage,
-        hasReport: raw.report != null,
-      };
-    }
-  } catch {
-    /* JSON でない場合はそのまま */
-  }
-  return {
-    text: content,
-    quick_replies: null,
-    nextStage: null,
-    hasReport: false,
-  };
 }
 
 /**
@@ -117,7 +62,7 @@ export async function getReportDetailForSimulation(
   for (let i = 0; i < rawMessages.length; i++) {
     const m = rawMessages[i];
     if (m.role !== "assistant") continue;
-    const parsed = parseAssistantMessage(m.content);
+    const parsed = parseAssistantMessageContent(m.content);
     if (parsed.hasReport || parsed.nextStage === "summary_complete") {
       summaryCutoffIndex = i;
       break;
@@ -127,11 +72,11 @@ export async function getReportDetailForSimulation(
     const role: "interviewer" | "interviewee" =
       m.role === "assistant" ? "interviewer" : "interviewee";
     if (m.role === "assistant") {
-      const parsed = parseAssistantMessage(m.content);
+      const parsed = parseAssistantMessageContent(m.content);
       return {
         role,
         content: parsed.text,
-        quick_replies: parsed.quick_replies,
+        quick_replies: parsed.quickReplies,
       };
     }
     return { role, content: m.content, quick_replies: null };
