@@ -31,6 +31,13 @@ export default defineConfig({
         "../packages/supabase/src"
       ),
       "@test-utils": path.resolve(__dirname, "../tests/supabase"),
+      // `@mirai-gikai/shared` 等の workspace パッケージは vitest が externalize するため、
+      // それらが持つ `import "server-only"` は setup の vi.mock では捕まらない。
+      // 解決レベルで空 stub に差し替え、Next.js のランタイムガードを無効化する。
+      "server-only": path.resolve(
+        __dirname,
+        "../tests/supabase/server-only-stub.ts"
+      ),
     },
   },
 });
