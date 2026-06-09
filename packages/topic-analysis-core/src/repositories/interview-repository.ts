@@ -22,14 +22,16 @@ export async function findInterviewConfigById(configId: string) {
   return data;
 }
 
-/** インタビューセッションを取得する。 */
+/** インタビューセッションを取得する。存在しなければ null（呼び出し側でスキップ判定）。 */
 export async function findInterviewSessionById(sessionId: string) {
   const supabase = createAdminClient();
+  // 未存在を例外ではなく null で返すため maybeSingle を使う
+  // （reextract の「session not found → skipped」分岐を到達可能にする）。
   const { data, error } = await supabase
     .from("interview_sessions")
     .select("*")
     .eq("id", sessionId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     throw new Error(`Failed to fetch interview session: ${error.message}`);

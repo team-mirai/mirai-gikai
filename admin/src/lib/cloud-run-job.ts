@@ -51,6 +51,9 @@ export async function executeTopicAnalysisJob(
     body: JSON.stringify({
       overrides: { containerOverrides: [{ args }] },
     }),
+    // jobs:run は実行作成のみで即返るが、ネットワーク不調でハングしないよう
+    // 明示タイムアウト（15s）を付ける。
+    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {

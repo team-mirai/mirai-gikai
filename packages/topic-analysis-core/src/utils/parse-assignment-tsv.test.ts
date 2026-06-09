@@ -48,4 +48,11 @@ describe("parseAssignmentTsv", () => {
     expect(r.get(1)).toBeNull();
     expect(r.get(2)).toBeNull();
   });
+
+  it("バッククォート・引用符・末尾カンマを除去して照合する", () => {
+    const r = parseAssignmentTsv("1\t`t0`\n2\t\"t1\"\n3\tt2,", 3, valid);
+    expect(r.get(1)).toBe("t0");
+    expect(r.get(2)).toBe("t1");
+    expect(r.get(3)).toBe("t2");
+  });
 });

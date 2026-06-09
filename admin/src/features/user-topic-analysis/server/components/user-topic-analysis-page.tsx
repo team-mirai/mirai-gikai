@@ -67,7 +67,9 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
                     {v.source_opinion_count ?? "-"}
                   </td>
                   <td className="py-2 text-gray-500">
-                    {new Date(v.created_at).toLocaleString("ja-JP")}
+                    {new Date(v.created_at).toLocaleString("ja-JP", {
+                      timeZone: "Asia/Tokyo",
+                    })}
                   </td>
                 </tr>
               ))}

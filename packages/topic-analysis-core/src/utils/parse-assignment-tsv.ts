@@ -25,7 +25,9 @@ export function parseAssignmentTsv(
     const num = Number.parseInt(match[1], 10);
     if (num < 1 || num > batchSize) continue;
 
-    const token = match[2];
+    // LLM が `t0`（バッククォート）/ "t0" / t0, のような装飾を付けることがあるため、
+    // 記号類を除去して素のトークンに正規化してから照合する（不要な未分類を減らす）。
+    const token = match[2].replace(/[`"'.,;]/g, "");
     if (token === "null") {
       result.set(num, null);
       continue;
