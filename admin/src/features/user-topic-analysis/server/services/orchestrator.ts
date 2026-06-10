@@ -8,6 +8,7 @@ import {
   fetchTargetOpinions,
   finalizeVersion,
   loadProgress,
+  publishVersion,
   saveProgress,
   saveTopicsAndAssignments,
   updateVersionStatus,
@@ -74,4 +75,6 @@ export async function executeAssign(versionId: string): Promise<void> {
 
   await saveTopicsAndAssignments(versionId, sortedTopics, pairs);
   await finalizeVersion(versionId, targetOpinions.length);
+  // 既定動作（§7）: completed したらこの version を自動公開（旧公開版は降ろす）。
+  await publishVersion(versionId);
 }

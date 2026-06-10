@@ -1,5 +1,6 @@
 import "server-only";
 
+import { PublishToggleButton } from "../../client/components/publish-toggle-button";
 import { RunAnalysisButton } from "../../client/components/run-analysis-button";
 import {
   fetchBillContext,
@@ -51,6 +52,7 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
                 <th className="py-2">状態</th>
                 <th className="py-2">対象意見数</th>
                 <th className="py-2">作成</th>
+                <th className="py-2">公開</th>
               </tr>
             </thead>
             <tbody>
@@ -68,6 +70,24 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
                   </td>
                   <td className="py-2 text-gray-500">
                     {new Date(v.created_at).toLocaleString("ja-JP")}
+                  </td>
+                  <td className="py-2">
+                    {v.status === "completed" ? (
+                      <div className="flex items-center gap-2">
+                        {v.is_published && (
+                          <span className="font-medium text-primary">
+                            公開中
+                          </span>
+                        )}
+                        <PublishToggleButton
+                          versionId={v.id}
+                          billId={billId}
+                          isPublished={v.is_published}
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-gray-500">-</span>
+                    )}
                   </td>
                 </tr>
               ))}
