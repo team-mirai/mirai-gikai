@@ -288,41 +288,18 @@ export async function finalizeVersion(
 }
 
 /**
- * version を公開する（§7）。同 bill の他の公開版を先に降ろしてから対象を公開し、
- * one_published_per_bill（bill ごと公開は最大1版）の制約衝突を避ける。
+ * version を公開する（§7）。「旧公開版を降ろす → 対象を公開」を DB 関数で
+ * 単一トランザクション実行し、公開版が0件になる瞬間を外部から不可視にする
+ * （アプリ層で2回 update すると公開読み取りが一時的に404になるため・§8）。
+ * one_published_per_bill（bill ごと公開は最大1版）も満たす。
  */
 export async function publishVersion(versionId: string): Promise<void> {
   const supabase = createAdminClient();
-  const { data: target, error: targetError } = await supabase
-    .from("topic_analysis_version")
-    .select("bill_id")
-    .eq("id", versionId)
-    .single();
-  if (targetError) {
-    throw new Error(
-      `Failed to load version for publish: ${targetError.message}`
-    );
-  }
-
-  // 先に同 bill の現公開版を降ろす（部分ユニーク制約の衝突回避）
-  const { error: demoteError } = await supabase
-    .from("topic_analysis_version")
-    .update({ is_published: false })
-    .eq("bill_id", target.bill_id)
-    .eq("is_published", true)
-    .neq("id", versionId);
-  if (demoteError) {
-    throw new Error(
-      `Failed to demote published version: ${demoteError.message}`
-    );
-  }
-
-  const { error: publishError } = await supabase
-    .from("topic_analysis_version")
-    .update({ is_published: true })
-    .eq("id", versionId);
-  if (publishError) {
-    throw new Error(`Failed to publish version: ${publishError.message}`);
+  const { error } = await supabase.rpc("publish_topic_analysis_version", {
+    p_version_id: versionId,
+  });
+  if (error) {
+    throw new Error(`Failed to publish version: ${error.message}`);
   }
 }
 

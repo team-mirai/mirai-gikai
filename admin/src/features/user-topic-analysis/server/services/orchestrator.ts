@@ -76,5 +76,14 @@ export async function executeAssign(versionId: string): Promise<void> {
   await saveTopicsAndAssignments(versionId, sortedTopics, pairs);
   await finalizeVersion(versionId, targetOpinions.length);
   // 既定動作（§7）: completed したらこの version を自動公開（旧公開版は降ろす）。
-  await publishVersion(versionId);
+  // 分析自体は既に completed 済み。公開は付帯処理なので、失敗しても version を
+  // failed に倒さない（best-effort）。未公開なら Admin 手動公開でリカバリできる。
+  try {
+    await publishVersion(versionId);
+  } catch (error) {
+    console.error(
+      `[UserTopicAnalysis] auto-publish failed (version ${versionId} stays completed):`,
+      error
+    );
+  }
 }

@@ -1239,6 +1239,10 @@ export type Database = {
         }[]
       }
       is_admin: { Args: never; Returns: boolean }
+      publish_topic_analysis_version: {
+        Args: { p_version_id: string }
+        Returns: undefined
+      }
       set_active_diet_session: {
         Args: { target_session_id: string }
         Returns: undefined
