@@ -81,8 +81,9 @@ export async function findReportsToReextract(
 }
 
 /**
- * 指定議案の全レポートを、再抽出済み有無にかかわらず公開同意優先・古い順で取得する。
- * scope="all"（既処理含む全件やり直し）用。1000 件超でも取りこぼさないようページングする。
+ * 指定議案の全レポート ID を、再抽出済み有無にかかわらず取得する。
+ * scope="all" のウォーターマークリセット対象を集めるのに使う。
+ * 1000 件超でも取りこぼさないようページングする。
  */
 export async function findAllReportsForBill(
   billId: string
@@ -96,8 +97,6 @@ export async function findAllReportsForBill(
       .from("interview_report")
       .select(REPORT_SELECT_WITH_BILL)
       .eq(BILL_FILTER, billId)
-      .order("is_public_by_user", { ascending: false })
-      .order("created_at", { ascending: true })
       .order("id", { ascending: true })
       .range(from, from + pageSize - 1);
 
@@ -110,6 +109,37 @@ export async function findAllReportsForBill(
   }
 
   return all;
+}
+
+/**
+ * 指定議案の全レポートの再抽出ウォーターマーク（opinions_reextracted_at）を NULL に戻す。
+ * scope="all"（既処理含む全件やり直し）の起点。これにより以後は未再抽出として扱われ、
+ * pending 件数を進捗の分母にできる（再実行の早期完了表示を防ぐ）。リセット件数を返す。
+ */
+export async function resetReextractionForBill(
+  billId: string
+): Promise<number> {
+  const targets = await findAllReportsForBill(billId);
+  const supabase = createAdminClient();
+  // .in() の URL 長対策でチャンク更新する。
+  const chunkSize = 200;
+  let reset = 0;
+
+  for (let i = 0; i < targets.length; i += chunkSize) {
+    const ids = targets.slice(i, i + chunkSize).map((t) => t.reportId);
+    const { error } = await supabase
+      .from("interview_report")
+      .update({ opinions_reextracted_at: null })
+      .in("id", ids);
+    if (error) {
+      throw new Error(
+        `Failed to reset reextraction watermark: ${error.message}`
+      );
+    }
+    reset += ids.length;
+  }
+
+  return reset;
 }
 
 /**

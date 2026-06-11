@@ -1,7 +1,7 @@
 import { resolveBackfillParams } from "@mirai-gikai/topic-analysis-core/backfill-params";
 import {
-  countAllReports,
   countPendingReextraction,
+  resetReextractionForBill,
 } from "@mirai-gikai/topic-analysis-core/repository";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { executeTopicAnalysisJob } from "@/lib/cloud-run-job";
@@ -43,12 +43,17 @@ export async function POST(request: Request) {
   const { billId, scope } = resolved.params;
 
   try {
-    // 対象件数を確認し、0 件なら起動しない。
-    // pending は未再抽出件数、all は議案の全レポート件数を見る。
-    const pending =
-      scope === "all"
-        ? await countAllReports(billId)
-        : await countPendingReextraction(billId);
+    // scope="all" は起動前に同期的にウォーターマークをリセットする。
+    // これで pending=全件 となり、UI が即座に進捗を分母込みで把握できるため、
+    // 「既に再抽出済みの議案で pending=0 を見て早期完了表示→重複起動」を防ぐ。
+    // worker 側も冪等に再リセットするが、ここでの同期リセットが起動直後の競合を消す。
+    if (scope === "all" && billId) {
+      await resetReextractionForBill(billId);
+    }
+
+    // 対象件数（未再抽出件数）を確認し、0 件なら起動しない。
+    // all はリセット後なので pending=全件、pending はそのまま未再抽出件数。
+    const pending = await countPendingReextraction(billId);
     if (pending === 0) {
       return json({ started: false, pending });
     }

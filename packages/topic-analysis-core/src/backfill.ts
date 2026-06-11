@@ -1,7 +1,7 @@
 import {
   countPendingReextraction,
-  findAllReportsForBill,
   findReportsToReextract,
+  resetReextractionForBill,
 } from "./repositories/backfill-repository";
 import {
   type GenerateReportFn,
@@ -112,32 +112,10 @@ async function runPendingBackfill(deps: {
 }
 
 /**
- * 指定議案の全レポートを再抽出済み有無にかかわらず1回ずつ再抽出する（scope="all"）。
- * ウォーターマークではなく固定の対象リストで終端するため、既処理レポートも対象になる。
- */
-async function runFullBackfillForBill(
-  billId: string,
-  deps: { generateReport?: GenerateReportFn }
-): Promise<void> {
-  const targets = await findAllReportsForBill(billId);
-  console.log(
-    `[topic-analysis] full backfill for bill=${billId}: targets=${targets.length}`
-  );
-
-  for (let i = 0; i < targets.length; i += OPINION_BACKFILL_CHUNK_SIZE) {
-    const chunk = targets.slice(i, i + OPINION_BACKFILL_CHUNK_SIZE);
-    const tally = await processReportsInWaves(chunk, deps);
-    console.log(
-      `[topic-analysis] full backfill chunk: processed=${chunk.length} updated=${tally.updated} skipped=${tally.skipped} failed=${tally.failed} done=${Math.min(i + chunk.length, targets.length)}/${targets.length}`
-    );
-  }
-  console.log("[topic-analysis] full backfill completed");
-}
-
-/**
  * 意見再抽出バックフィルを実行する（Cloud Run Job のメイン処理）。
  * - scope="pending"（既定）: 未再抽出レポートをウォーターマーク方式で全件処理。
- * - scope="all": 指定議案の全レポートを既処理含めてやり直す（billId 必須）。
+ * - scope="all": 指定議案のウォーターマークを一旦リセットしてから全件処理し直す（billId 必須）。
+ *   リセットにより全件が未再抽出扱いになるため、進捗（pending）が正しく分母になる。
  */
 export async function runBackfill(options: BackfillOptions = {}): Promise<void> {
   const { billId, scope = "pending", generateReport } = options;
@@ -149,8 +127,10 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
     if (!billId) {
       throw new Error('backfill scope="all" requires a billId');
     }
-    await runFullBackfillForBill(billId, { generateReport });
-    return;
+    const reset = await resetReextractionForBill(billId);
+    console.log(
+      `[topic-analysis] reset ${reset} reextraction watermark(s) for bill=${billId}`
+    );
   }
 
   await runPendingBackfill({ billId, generateReport });

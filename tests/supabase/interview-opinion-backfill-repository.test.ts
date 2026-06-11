@@ -4,6 +4,7 @@ import {
   findAllReportsForBill,
   findReportsToReextract,
   markReextractionAttempted,
+  resetReextractionForBill,
   updateReportOpinions,
 } from "@mirai-gikai/topic-analysis-core/repository";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -288,10 +289,27 @@ describe("interview-opinion-backfill repository 議案スコープ統合テス�
     expect(await countAllReports(billB)).toBe(1);
   });
 
-  it("findAllReportsForBill(billA) は再抽出済みも含め公開優先・古い順で全件返す", async () => {
+  it("findAllReportsForBill(billA) は再抽出済みも含め bill A の全件を返す（他議案は除外）", async () => {
     const ids = (await findAllReportsForBill(billA)).map((r) => r.reportId);
-    // 公開グループ(created_at昇順): aDone(2019)→aPublicOld(2021)→aPublicNew(2022)、最後に非公開 aPrivate。
-    expect(ids).toEqual([aDone, aPublicOld, aPublicNew, aPrivate]);
+    // リセット対象の収集用途なので順序は問わず、集合として一致すればよい。
+    expect(new Set(ids)).toEqual(
+      new Set([aDone, aPublicOld, aPublicNew, aPrivate])
+    );
     expect(ids).not.toContain(bReport);
+  });
+
+  // watermark を変更するため、件数を検証する他テストの後（describe 末尾）に置く。
+  it("resetReextractionForBill は bill A 全件のウォーターマークを NULL に戻す", async () => {
+    // 事前: aDone のみ再抽出済み（pending=3 / total=4）
+    expect(await countPendingReextraction(billA)).toBe(3);
+
+    const reset = await resetReextractionForBill(billA);
+    expect(reset).toBe(4);
+
+    // リセット後は全件が未再抽出 = pending が total と一致する
+    expect(await countPendingReextraction(billA)).toBe(4);
+    expect(await countAllReports(billA)).toBe(4);
+    // 他議案は影響を受けない
+    expect(await countPendingReextraction(billB)).toBe(1);
   });
 });
