@@ -6,9 +6,21 @@ export type UserCategory = "affected" | "industry" | "expert" | "citizen";
 /** 公開 API が返す意見カード（§8 フィルタ後のもののみ）。 */
 export type PublicOpinion = {
   id: string;
+  /** この意見の出典インタビューレポートID（レポート詳細への遷移に使う）。 */
+  interview_report_id: string;
+  /**
+   * 出典レポートが管理者公開済みか（is_public_by_admin）。
+   * レポート詳細ページは管理者公開かつ公開件数しきい値を満たす場合のみ表示されるため、
+   * リンク表示の出し分けに使う（§8 表示判定は user 同意・モデレーションのみ）。
+   */
+  report_public: boolean;
+  /** 出典レポートの作成日時（相対表示・日付表示に使う）。 */
+  created_at: string | null;
   title: string;
   content: string;
   user_category: UserCategory;
+  /** 発言者の立場の短縮タイトル（interview_report.role_title）。引用の属性表示に使う。 */
+  role_title: string | null;
   bill_sentiment: "期待" | "懸念" | null;
   contextual_quote: string | null;
   /**
@@ -46,13 +58,17 @@ export type PublicTopicAnalysis = {
 /** §8 判定に必要なレポート属性を相乗した、生の意見行。 */
 export type RawOpinionRow = {
   id: string;
+  interview_report_id: string;
+  created_at: string | null;
   title: string;
   content: string;
   contextual_quote: string | null;
   bill_sentiment: string | null;
   is_public_by_user: boolean;
+  is_public_by_admin: boolean;
   moderation_status: string | null;
   role: string | null;
+  role_title: string | null;
 };
 
 /** version 配下の生トピック行（sort_order 昇順）。 */

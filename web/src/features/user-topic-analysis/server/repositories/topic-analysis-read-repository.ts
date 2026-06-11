@@ -44,8 +44,8 @@ export async function findPublishedAnalysis(
       `id, title, description, sort_order,
        topic_opinion(
          interview_opinion(
-           id, title, content, contextual_quote, bill_sentiment,
-           interview_report!inner(is_public_by_user, moderation_status, role)
+           id, title, content, contextual_quote, bill_sentiment, interview_report_id,
+           interview_report!inner(is_public_by_user, is_public_by_admin, moderation_status, role, role_title, created_at)
          )
        )`
     )
@@ -61,25 +61,36 @@ export async function findPublishedAnalysis(
       const o = link.interview_opinion as unknown as
         | (Omit<
             RawOpinionRow,
-            "is_public_by_user" | "moderation_status" | "role"
+            | "is_public_by_user"
+            | "moderation_status"
+            | "role"
+            | "role_title"
+            | "created_at"
           > & {
             interview_report: {
               is_public_by_user: boolean;
+              is_public_by_admin: boolean;
               moderation_status: string | null;
               role: string | null;
+              role_title: string | null;
+              created_at: string | null;
             } | null;
           })
         | null;
       if (!o || !o.interview_report) continue;
       opinions.push({
         id: o.id,
+        interview_report_id: o.interview_report_id,
+        created_at: o.interview_report.created_at,
         title: o.title,
         content: o.content,
         contextual_quote: o.contextual_quote,
         bill_sentiment: o.bill_sentiment,
         is_public_by_user: o.interview_report.is_public_by_user,
+        is_public_by_admin: o.interview_report.is_public_by_admin,
         moderation_status: o.interview_report.moderation_status,
         role: o.interview_report.role,
+        role_title: o.interview_report.role_title,
       });
     }
     return { id: t.id, title: t.title, description: t.description, opinions };

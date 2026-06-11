@@ -67,9 +67,13 @@ export function buildPublicTopicAnalysis(
       if (billSentiment) sentiment[billSentiment] += 1;
       return {
         id: o.id,
+        interview_report_id: o.interview_report_id,
+        report_public: o.is_public_by_admin,
+        created_at: o.created_at,
         title: o.title,
         content: o.content,
         user_category: category,
+        role_title: o.role_title,
         bill_sentiment: billSentiment,
         contextual_quote: o.contextual_quote,
         question_snippet: null,

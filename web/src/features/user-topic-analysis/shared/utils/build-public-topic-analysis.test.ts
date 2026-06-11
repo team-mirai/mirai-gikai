@@ -15,13 +15,17 @@ const meta = {
 function op(overrides: Partial<RawOpinionRow> = {}): RawOpinionRow {
   return {
     id: "o1",
+    interview_report_id: "r1",
+    created_at: "2026-06-09T00:00:00.000Z",
     title: "t",
     content: "c",
     contextual_quote: "q",
     bill_sentiment: null,
     is_public_by_user: true,
+    is_public_by_admin: true,
     moderation_status: "ok",
     role: "general_citizen",
+    role_title: null,
     ...overrides,
   };
 }
@@ -108,6 +112,27 @@ describe("buildPublicTopicAnalysis（§8 表示時フィルタ）", () => {
   it("question_snippet は 4a では null 固定", () => {
     const result = buildPublicTopicAnalysis(meta, [topic("t0", [op()])]);
     expect(result.topics[0].opinions[0].question_snippet).toBeNull();
+  });
+
+  it("role_title を意見カードに引き継ぐ（引用の属性表示用）", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("t0", [op({ id: "a", role_title: "育休経験者" })]),
+    ]);
+    expect(result.topics[0].opinions[0].role_title).toBe("育休経験者");
+  });
+
+  it("report_public に is_public_by_admin を反映する（レポートリンク出し分け用）", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("t0", [
+        op({ id: "a", is_public_by_admin: true }),
+        op({ id: "b", is_public_by_admin: false }),
+      ]),
+    ]);
+    const byId = Object.fromEntries(
+      result.topics[0].opinions.map((o) => [o.id, o.report_public])
+    );
+    expect(byId.a).toBe(true);
+    expect(byId.b).toBe(false);
   });
 
   it("全トピックが空なら topics 空・total 0、meta は保持", () => {

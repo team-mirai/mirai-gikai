@@ -108,6 +108,19 @@
   /* Gradient endpoints */
   --color-mirai-gradient-start: #64d8c6;
   --color-mirai-gradient-end: #bcecd3;
+
+  /* Topic analysis */
+  --color-topic-info-bg: #e5f3f0;
+  --color-topic-chip-bg: #f1f1f1;
+  --color-topic-count: #6b7775;
+  --color-topic-label: #909090;
+  --color-topic-affected: #c8642a;
+  --color-topic-industry: #2563a8;
+  --color-topic-expert: #0f8472;
+  --color-topic-citizen: #909090;
+
+  /* 引用文の明朝体（Noto Serif JP） */
+  --font-mirai-serif: var(--font-noto-serif-jp);
 }
 
 :root {
