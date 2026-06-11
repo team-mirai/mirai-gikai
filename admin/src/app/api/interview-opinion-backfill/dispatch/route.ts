@@ -27,19 +27,28 @@ export async function POST(request: Request) {
   }
 
   // 空ボディ（旧クライアント互換）は既定値（全議案・未再抽出）として扱うが、
-  // 壊れた JSON は黙って既定実行にせず 400 で弾く（意図しない起動を防ぐ）。
-  let body: { billId?: string; scope?: string; model?: string } = {};
+  // 壊れた JSON や非オブジェクト（null / 配列 / プリミティブ）は黙って既定実行に
+  // せず 400 で弾く（意図しない起動・プロパティアクセスでの 500 を防ぐ）。
+  let body: { billId?: unknown; scope?: unknown; model?: unknown } = {};
   const raw = await request.text();
   if (raw.trim()) {
+    let parsed: unknown;
     try {
-      body = JSON.parse(raw) as {
-        billId?: string;
-        scope?: string;
-        model?: string;
-      };
+      parsed = JSON.parse(raw);
     } catch {
       return json({ error: "リクエストボディの JSON が不正です" }, 400);
     }
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      return json(
+        { error: "リクエストボディはオブジェクトである必要があります" },
+        400
+      );
+    }
+    body = parsed as { billId?: unknown; scope?: unknown; model?: unknown };
   }
 
   const resolved = resolveBackfillParams({
