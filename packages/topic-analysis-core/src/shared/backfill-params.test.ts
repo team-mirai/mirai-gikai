@@ -48,4 +48,29 @@ describe("resolveBackfillParams", () => {
       params: { billId: undefined, scope: "pending" },
     });
   });
+
+  it("登録済みモデルIDを受け付ける", () => {
+    const result = resolveBackfillParams({ model: "anthropic/claude-sonnet-4.6" });
+    expect(result).toEqual({
+      ok: true,
+      params: {
+        billId: undefined,
+        scope: "pending",
+        model: "anthropic/claude-sonnet-4.6",
+      },
+    });
+  });
+
+  it("未知のモデルIDはエラー", () => {
+    const result = resolveBackfillParams({ model: "openai/gpt-3.5-turbo" });
+    expect(result.ok).toBe(false);
+  });
+
+  it("空文字・空白の model は未指定として扱う", () => {
+    const result = resolveBackfillParams({ model: "  " });
+    expect(result).toEqual({
+      ok: true,
+      params: { billId: undefined, scope: "pending", model: undefined },
+    });
+  });
 });

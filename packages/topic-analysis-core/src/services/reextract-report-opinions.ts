@@ -27,18 +27,21 @@ export type GenerateReportFn = (params: {
   systemPrompt: string;
 }) => Promise<InterviewReportData>;
 
-const defaultGenerateReport: GenerateReportFn = async ({ systemPrompt }) => {
-  const { object } = await generateObject({
-    model: OPINION_BACKFILL_MODEL,
-    schema: interviewReportSchema,
-    prompt: systemPrompt,
-    experimental_telemetry: {
-      isEnabled: true,
-      functionId: "interview-opinion-backfill-reextract",
-    },
-  });
-  return object;
-};
+/** 指定モデルで再抽出する既定の生成関数を作る。 */
+function createDefaultGenerateReport(model: string): GenerateReportFn {
+  return async ({ systemPrompt }) => {
+    const { object } = await generateObject({
+      model,
+      schema: interviewReportSchema,
+      prompt: systemPrompt,
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId: "interview-opinion-backfill-reextract",
+      },
+    });
+    return object;
+  };
+}
 
 /**
  * 1レポートの意見を新プロンプトで再抽出し、opinions だけを更新する。
@@ -49,10 +52,12 @@ const defaultGenerateReport: GenerateReportFn = async ({ systemPrompt }) => {
  */
 export async function reextractReportOpinions(
   target: BackfillTargetReport,
-  deps: { generateReport?: GenerateReportFn } = {}
+  deps: { generateReport?: GenerateReportFn; model?: string } = {}
 ): Promise<ReextractResult> {
   const { reportId, sessionId } = target;
-  const generateReport = deps.generateReport ?? defaultGenerateReport;
+  const generateReport =
+    deps.generateReport ??
+    createDefaultGenerateReport(deps.model ?? OPINION_BACKFILL_MODEL);
   const nowIso = new Date().toISOString();
 
   try {

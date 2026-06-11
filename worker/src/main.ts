@@ -10,6 +10,7 @@ import { resolveBackfillParams } from "@mirai-gikai/topic-analysis-core/backfill
  *   tsx src/main.ts --mode=backfill                              # 未再抽出を全議案で処理
  *   tsx src/main.ts --mode=backfill --bill-id=<uuid>             # 指定議案の未再抽出のみ
  *   tsx src/main.ts --mode=backfill --bill-id=<uuid> --scope=all # 指定議案を全件やり直し
+ *   tsx src/main.ts --mode=backfill --model=openai/gpt-5.2       # 使用モデルを指定（省略時は既定）
  *
  * 必須env: SUPABASE_URL, SUPABASE_SECRET_KEY, AI_GATEWAY_API_KEY
  */
@@ -57,6 +58,7 @@ async function main(): Promise<void> {
     const resolved = resolveBackfillParams({
       billId: args["bill-id"],
       scope: args.scope,
+      model: args.model,
     });
     if (!resolved.ok) {
       throw new Error(`backfill mode: ${resolved.error}`);

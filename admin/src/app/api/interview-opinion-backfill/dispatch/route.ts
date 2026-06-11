@@ -16,7 +16,7 @@ const json = (body: unknown, status = 200) =>
 
 /**
  * 意見再抽出バックフィルの入口（Admin 手動トリガ）。
- * リクエストボディで議案スコープ（billId）・対象範囲（scope）を指定できる。
+ * リクエストボディで議案スコープ（billId）・対象範囲（scope）・使用モデル（model）を指定できる。
  * 対象レポートがあれば Cloud Run Job（backfill モード）を起動する。
  */
 export async function POST(request: Request) {
@@ -28,11 +28,15 @@ export async function POST(request: Request) {
 
   // 空ボディ（旧クライアント互換）は既定値（全議案・未再抽出）として扱うが、
   // 壊れた JSON は黙って既定実行にせず 400 で弾く（意図しない起動を防ぐ）。
-  let body: { billId?: string; scope?: string } = {};
+  let body: { billId?: string; scope?: string; model?: string } = {};
   const raw = await request.text();
   if (raw.trim()) {
     try {
-      body = JSON.parse(raw) as { billId?: string; scope?: string };
+      body = JSON.parse(raw) as {
+        billId?: string;
+        scope?: string;
+        model?: string;
+      };
     } catch {
       return json({ error: "リクエストボディの JSON が不正です" }, 400);
     }
@@ -41,11 +45,12 @@ export async function POST(request: Request) {
   const resolved = resolveBackfillParams({
     billId: body.billId,
     scope: body.scope,
+    model: body.model,
   });
   if (!resolved.ok) {
     return json({ error: resolved.error }, 400);
   }
-  const { billId, scope } = resolved.params;
+  const { billId, scope, model } = resolved.params;
 
   try {
     // scope="all" は起動前に同期的にウォーターマークをリセットする。
@@ -66,6 +71,9 @@ export async function POST(request: Request) {
     const args = ["--mode=backfill", `--scope=${scope}`];
     if (billId) {
       args.push(`--bill-id=${billId}`);
+    }
+    if (model) {
+      args.push(`--model=${model}`);
     }
 
     try {
