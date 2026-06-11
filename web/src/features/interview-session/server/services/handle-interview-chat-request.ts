@@ -8,11 +8,13 @@ import {
   streamText,
 } from "ai";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
+import type { BillWithContent } from "@/features/bills/shared/types";
 import {
   isWithinDailyCostLimit,
   recordChatUsage,
 } from "@/features/chat/server/services/cost-tracker";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import type { InterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { createInterviewSession } from "@/features/interview-session/server/actions/create-interview-session";
@@ -22,8 +24,6 @@ import {
   interviewChatTextSchema,
   interviewChatWithReportSchema,
 } from "@/features/interview-session/shared/schemas";
-import type { BillWithContent } from "@/features/bills/shared/types";
-import type { InterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import type {
   InterviewChatRequestParams,
   InterviewMessage,
@@ -32,6 +32,7 @@ import type {
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { ensureTrailingUserMessage } from "../../shared/utils/ensure-trailing-user-message";
 import { mergeMessagesWithIds } from "../../shared/utils/merge-messages-with-ids";
 import {
   buildInterviewSystemPrompt,
@@ -295,7 +296,12 @@ async function generateStreamingResponse({
     }
   };
 
-  const uiMessages = messages.map((message) => ({
+  // Anthropic 系などは会話が user メッセージで終わる必要がある。
+  // chat→summary の自動遷移ではメッセージ末尾が assistant になるため、
+  // 続行を促す user メッセージを補う（DB には保存しない）。
+  const modelMessages = ensureTrailingUserMessage(messages, isSummaryPhase);
+
+  const uiMessages = modelMessages.map((message) => ({
     role: message.role as "user" | "assistant",
     parts: [{ type: "text" as const, text: message.content }],
   }));
