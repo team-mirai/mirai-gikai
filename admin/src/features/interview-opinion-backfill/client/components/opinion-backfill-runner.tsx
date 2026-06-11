@@ -207,7 +207,7 @@ export function OpinionBackfillRunner({ bills }: { bills: BillOption[] }) {
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">
-          再抽出に使用するモデル。未指定はデフォルト（GPT-5.2）。
+          再抽出に使用するモデル。「デフォルト」は上の選択肢に表示されたモデルを使います。
           コスト表記はインタビュー1回あたりの目安で、再抽出1件の実コストとは異なります。
         </p>
       </div>

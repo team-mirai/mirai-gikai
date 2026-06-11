@@ -73,4 +73,14 @@ describe("resolveBackfillParams", () => {
       params: { billId: undefined, scope: "pending", model: undefined },
     });
   });
+
+  it("非文字列の model は throw せず検証エラーになる", () => {
+    const result = resolveBackfillParams({ model: 123 });
+    expect(result.ok).toBe(false);
+  });
+
+  it("非文字列の billId は throw せず検証エラーになる", () => {
+    const result = resolveBackfillParams({ billId: { id: 1 } });
+    expect(result.ok).toBe(false);
+  });
 });
