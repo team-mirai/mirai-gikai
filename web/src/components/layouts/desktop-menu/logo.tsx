@@ -32,7 +32,7 @@ export function DesktopMenuLogo() {
             letterSpacing: "0.1em",
           }}
         >
-          みらい議会
+          みらい議会＠草津市
         </h1>
         <p
           className="font-bold text-black"
@@ -41,7 +41,7 @@ export function DesktopMenuLogo() {
             lineHeight: "2em",
           }}
         >
-          国会の議論をわかりやすく
+          草津市議会の議論をわかりやすく
         </p>
       </div>
     </Link>

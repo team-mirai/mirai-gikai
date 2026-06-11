@@ -37,7 +37,7 @@ export function CurrentDietSession({ session }: CurrentDietSessionProps) {
             `}
           >
             <span className="text-base font-bold leading-[1.48]">
-              {session == null ? "国会閉会中" : "国会会期中"}
+              {session == null ? "議会閉会中" : "議会会期中"}
             </span>
           </div>
         </div>

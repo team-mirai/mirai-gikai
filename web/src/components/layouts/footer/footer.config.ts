@@ -18,21 +18,6 @@ export const primaryLinks: FooterLink[] = [
     label: "TOP",
     href: routes.home(),
   },
-  {
-    label: "みらい議会とは",
-    href: EXTERNAL_LINKS.ABOUT_NOTE,
-    external: true,
-  },
-  {
-    label: "チームみらいについて",
-    href: EXTERNAL_LINKS.TEAM_MIRAI_ABOUT,
-    external: true,
-  },
-  {
-    label: "寄附で応援する",
-    href: EXTERNAL_LINKS.DONATION,
-    external: true,
-  },
 ];
 
 export const policyLinks: FooterPolicyLink[] = [
