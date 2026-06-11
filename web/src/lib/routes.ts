@@ -6,6 +6,16 @@
  * 新しいページを追加したらここにもルートを追加し、テストを通すこと。
  */
 
+function buildPreviewInterviewPath(
+  basePath: string,
+  token: string,
+  configId?: string
+): string {
+  const params = new URLSearchParams({ token });
+  if (configId) params.set("configId", configId);
+  return `${basePath}?${params.toString()}`;
+}
+
 export const routes = {
   // ── 静的ルート ──────────────────────────────────────
   home: () => "/" as const,
@@ -25,12 +35,28 @@ export const routes = {
   // ── プレビュー（token 付き） ──────────────────────
   previewBillDetail: (billId: string, token: string) =>
     `/preview/bills/${billId}?token=${encodeURIComponent(token)}` as const,
-  previewInterviewLP: (billId: string, token: string) =>
-    `/preview/bills/${billId}/interview?token=${encodeURIComponent(token)}` as const,
-  previewInterviewDisclosure: (billId: string, token: string) =>
-    `/preview/bills/${billId}/interview/disclosure?token=${encodeURIComponent(token)}` as const,
-  previewInterviewChat: (billId: string, token: string) =>
-    `/preview/bills/${billId}/interview/chat?token=${encodeURIComponent(token)}` as const,
+  previewInterviewLP: (billId: string, token: string, configId?: string) =>
+    buildPreviewInterviewPath(
+      `/preview/bills/${billId}/interview`,
+      token,
+      configId
+    ),
+  previewInterviewDisclosure: (
+    billId: string,
+    token: string,
+    configId?: string
+  ) =>
+    buildPreviewInterviewPath(
+      `/preview/bills/${billId}/interview/disclosure`,
+      token,
+      configId
+    ),
+  previewInterviewChat: (billId: string, token: string, configId?: string) =>
+    buildPreviewInterviewPath(
+      `/preview/bills/${billId}/interview/chat`,
+      token,
+      configId
+    ),
 
   // ── レポート ──────────────────────────────────────
   publicReport: (reportId: string) => `/report/${reportId}` as const,

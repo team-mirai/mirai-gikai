@@ -13,6 +13,7 @@ interface DisclosurePreviewPageProps {
   }>;
   searchParams: Promise<{
     token?: string;
+    configId?: string;
   }>;
 }
 
@@ -45,7 +46,10 @@ export default async function DisclosurePreviewPage({
   params,
   searchParams,
 }: DisclosurePreviewPageProps) {
-  const [{ id: billId }, { token }] = await Promise.all([params, searchParams]);
+  const [{ id: billId }, { token, configId }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   const isValidToken = await validatePreviewToken(billId, token);
   if (!isValidToken) {
@@ -54,7 +58,7 @@ export default async function DisclosurePreviewPage({
 
   const [bill, interviewConfig] = await Promise.all([
     getBillByIdAdmin(billId),
-    getInterviewConfigAdmin(billId),
+    getInterviewConfigAdmin(billId, configId),
   ]);
 
   if (!bill || !interviewConfig) {
@@ -66,7 +70,11 @@ export default async function DisclosurePreviewPage({
   return (
     <>
       <PreviewBanner />
-      <InterviewDisclosurePage {...disclosureData} previewToken={token} />
+      <InterviewDisclosurePage
+        {...disclosureData}
+        previewToken={token}
+        previewConfigId={configId}
+      />
     </>
   );
 }

@@ -16,12 +16,14 @@ interface InterviewActionButtonsProps {
   billId: string;
   sessionInfo: LatestInterviewSession | null;
   previewToken?: string;
+  previewConfigId?: string;
 }
 
 export function InterviewActionButtons({
   billId,
   sessionInfo,
   previewToken,
+  previewConfigId,
 }: InterviewActionButtonsProps) {
   const [showConsentModal, setShowConsentModal] = useState(false);
   const isActive = sessionInfo?.status === "active";
@@ -29,12 +31,22 @@ export function InterviewActionButtons({
 
   // 完了済みの場合：「もう一度新たに回答する」ボタン（確認ダイアログなし）
   if (isCompleted && sessionInfo?.reportId) {
-    return <NewInterviewButton billId={billId} previewToken={previewToken} />;
+    return (
+      <NewInterviewButton
+        billId={billId}
+        previewToken={previewToken}
+        previewConfigId={previewConfigId}
+      />
+    );
   }
 
   // 進行中の場合は直接遷移
   if (isActive) {
-    const chatLink = getInterviewChatLink(billId, previewToken);
+    const chatLink = getInterviewChatLink(
+      billId,
+      previewToken,
+      previewConfigId
+    );
 
     return (
       <>
@@ -58,6 +70,7 @@ export function InterviewActionButtons({
           sessionId={sessionInfo.id}
           billId={billId}
           previewToken={previewToken}
+          previewConfigId={previewConfigId}
         />
       </>
     );
@@ -86,6 +99,7 @@ export function InterviewActionButtons({
         onOpenChange={setShowConsentModal}
         billId={billId}
         previewToken={previewToken}
+        previewConfigId={previewConfigId}
       />
     </>
   );

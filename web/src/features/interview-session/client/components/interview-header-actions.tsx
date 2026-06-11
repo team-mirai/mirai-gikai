@@ -18,9 +18,14 @@ export function InterviewHeaderActions() {
     const previewToken = isPreview
       ? searchParams.get("token") || undefined
       : undefined;
+    const previewConfigId = isPreview
+      ? searchParams.get("configId") || undefined
+      : undefined;
 
     if (billId) {
-      router.push(getInterviewLPLink(billId, previewToken) as Route);
+      router.push(
+        getInterviewLPLink(billId, previewToken, previewConfigId) as Route
+      );
     } else {
       router.push(routes.home());
     }

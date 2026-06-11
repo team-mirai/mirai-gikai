@@ -16,6 +16,7 @@ interface InterviewPreviewPageProps {
   }>;
   searchParams: Promise<{
     token?: string;
+    configId?: string;
   }>;
 }
 
@@ -48,7 +49,10 @@ export default async function InterviewPreviewPage({
   params,
   searchParams,
 }: InterviewPreviewPageProps) {
-  const [{ id: billId }, { token }] = await Promise.all([params, searchParams]);
+  const [{ id: billId }, { token, configId }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   // トークン検証
   const isValidToken = await validatePreviewToken(billId, token);
@@ -59,7 +63,7 @@ export default async function InterviewPreviewPage({
   // 管理者用API（非公開議案/非公開設定も取得可能）を使用
   const [bill, interviewConfig] = await Promise.all([
     getBillByIdAdmin(billId),
-    getInterviewConfigAdmin(billId),
+    getInterviewConfigAdmin(billId, configId),
   ]);
 
   if (!bill || !interviewConfig) {
@@ -80,6 +84,7 @@ export default async function InterviewPreviewPage({
         interviewConfig={interviewConfig}
         sessionInfo={latestSession}
         previewToken={token}
+        previewConfigId={configId}
         userReports={userReports}
       />
     </>

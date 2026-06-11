@@ -176,7 +176,9 @@ export function InterviewConfigForm({
       }
 
       // 2. プレビューURL生成
-      const result = await generateInterviewPreviewUrl(billId);
+      // configId を渡さないと web 側は status='public' の設定を優先してしまうため、
+      // 編集中の設定（非公開含む）を直接プレビューさせるために明示する。
+      const result = await generateInterviewPreviewUrl(billId, config.id);
 
       if (result.success && result.url) {
         window.open(result.url, "_blank");

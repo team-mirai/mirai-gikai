@@ -9,7 +9,8 @@ import { archiveInterviewSession } from "../../server/actions/archive-interview-
 export function useArchiveAndNavigate(
   sessionId: string,
   billId: string,
-  previewToken?: string
+  previewToken?: string,
+  previewConfigId?: string
 ) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +20,11 @@ export function useArchiveAndNavigate(
     try {
       const result = await archiveInterviewSession(sessionId);
       if (result.success) {
-        const chatLink = getInterviewChatLink(billId, previewToken);
+        const chatLink = getInterviewChatLink(
+          billId,
+          previewToken,
+          previewConfigId
+        );
         router.push(chatLink as Route);
       } else {
         console.error("Failed to archive session:", result.error);

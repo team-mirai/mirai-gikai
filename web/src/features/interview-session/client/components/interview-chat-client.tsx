@@ -39,6 +39,11 @@ interface InterviewChatClientProps {
   sessionStartedAt?: string;
   hasRated?: boolean;
   previewToken?: string;
+  /**
+   * プレビュー時に編集中の config を指している場合のみ渡す。
+   * チャット API に転送し、サーバー側が公開設定ではなく当該 config を解決するために使う。
+   */
+  previewConfigId?: string;
 }
 
 export function InterviewChatClient({
@@ -52,6 +57,7 @@ export function InterviewChatClient({
   sessionStartedAt,
   hasRated,
   previewToken,
+  previewConfigId,
 }: InterviewChatClientProps) {
   const {
     input,
@@ -71,6 +77,8 @@ export function InterviewChatClient({
   } = useInterviewChat({
     billId,
     initialMessages,
+    interviewConfigId: previewConfigId,
+    previewToken,
   });
 
   const { remainingMinutes, isTimeUp } = useInterviewTimer({

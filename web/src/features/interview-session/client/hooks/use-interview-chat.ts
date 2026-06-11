@@ -20,11 +20,17 @@ import { useQuickReplies } from "./use-quick-replies";
 interface UseInterviewChatProps {
   billId: string;
   initialMessages: InitialMessage[];
+  /** プレビュー時のみ。チャット API に転送して非公開 config を解決させる */
+  interviewConfigId?: string;
+  /** プレビュー時のみ。interviewConfigId とセットでサーバー側の認可検証に使う */
+  previewToken?: string;
 }
 
 export function useInterviewChat({
   billId,
   initialMessages,
+  interviewConfigId,
+  previewToken,
 }: UseInterviewChatProps) {
   // 初期メッセージのパース
   const { parsedInitialMessages, initialStage } =
@@ -52,6 +58,8 @@ export function useInterviewChat({
     messages: { role: string; content: string }[];
     billId: string;
     currentStage: InterviewStage;
+    interviewConfigId?: string;
+    previewToken?: string;
   } | null>(null);
 
   // useObjectフックを使用（streamObjectの結果を受け取る）
@@ -121,6 +129,8 @@ export function useInterviewChat({
             messages: allMessages,
             billId,
             currentStage: "summary" as InterviewStage,
+            interviewConfigId,
+            previewToken,
           });
         }
       }
@@ -175,6 +185,8 @@ export function useInterviewChat({
       billId,
       currentStage,
       nextQuestionId,
+      interviewConfigId,
+      previewToken,
     };
     retry.saveRequestParams(requestParams); // 失敗時の自動リトライ用に保存
     submit(requestParams);

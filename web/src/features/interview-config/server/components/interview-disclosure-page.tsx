@@ -11,6 +11,7 @@ interface InterviewDisclosurePageProps {
   systemPrompt: string;
   summaryPrompt: string;
   previewToken?: string;
+  previewConfigId?: string;
 }
 
 function StaticDisclosureSection() {
@@ -161,12 +162,17 @@ function PromptSection({
 export function InterviewDisclosurePage({
   billId,
   previewToken,
+  previewConfigId,
   ...props
 }: InterviewDisclosurePageProps) {
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
       <div className="flex flex-col gap-8 px-4 pt-24 md:pt-12 max-w-[600px] mx-auto w-full">
-        <DisclosureBreadcrumb billId={billId} previewToken={previewToken} />
+        <DisclosureBreadcrumb
+          billId={billId}
+          previewToken={previewToken}
+          previewConfigId={previewConfigId}
+        />
         <StaticDisclosureSection />
         <ModelSection interviewConfig={props.interviewConfig} />
         <PromptSection
@@ -174,7 +180,11 @@ export function InterviewDisclosurePage({
           systemPrompt={props.systemPrompt}
           summaryPrompt={props.summaryPrompt}
         />
-        <DisclosureBreadcrumb billId={billId} previewToken={previewToken} />
+        <DisclosureBreadcrumb
+          billId={billId}
+          previewToken={previewToken}
+          previewConfigId={previewConfigId}
+        />
       </div>
     </div>
   );

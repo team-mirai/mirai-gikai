@@ -4,6 +4,7 @@ import {
   getBillDetailLink,
   getInterviewChatLink,
   getInterviewChatLogLink,
+  getInterviewDisclosureLink,
   getInterviewLPLink,
   getInterviewMessageLink,
   getInterviewReportCompleteLink,
@@ -32,6 +33,32 @@ describe("getInterviewLPLink", () => {
       "/preview/bills/bill-123/interview?token=tok-abc"
     );
   });
+
+  it("preserves previewConfigId in the preview URL", () => {
+    expect(getInterviewLPLink("bill-123", "tok-abc", "config-9")).toBe(
+      "/preview/bills/bill-123/interview?token=tok-abc&configId=config-9"
+    );
+  });
+
+  it("ignores previewConfigId when no preview token is given", () => {
+    expect(getInterviewLPLink("bill-123", undefined, "config-9")).toBe(
+      "/bills/bill-123/interview"
+    );
+  });
+});
+
+describe("getInterviewDisclosureLink", () => {
+  it("returns disclosure path without preview token", () => {
+    expect(getInterviewDisclosureLink("bill-123")).toBe(
+      "/bills/bill-123/interview/disclosure"
+    );
+  });
+
+  it("returns preview disclosure path with token + configId", () => {
+    expect(getInterviewDisclosureLink("bill-123", "tok-abc", "config-9")).toBe(
+      "/preview/bills/bill-123/interview/disclosure?token=tok-abc&configId=config-9"
+    );
+  });
 });
 
 describe("getInterviewChatLink", () => {
@@ -44,6 +71,12 @@ describe("getInterviewChatLink", () => {
   it("returns preview interview chat path with token", () => {
     expect(getInterviewChatLink("bill-123", "tok-abc")).toBe(
       "/preview/bills/bill-123/interview/chat?token=tok-abc"
+    );
+  });
+
+  it("preserves previewConfigId in the preview URL", () => {
+    expect(getInterviewChatLink("bill-123", "tok-abc", "config-9")).toBe(
+      "/preview/bills/bill-123/interview/chat?token=tok-abc&configId=config-9"
     );
   });
 });

@@ -14,7 +14,8 @@ interface GenerateInterviewPreviewUrlResult {
 }
 
 export async function generateInterviewPreviewUrl(
-  billId: string
+  billId: string,
+  configId?: string
 ): Promise<GenerateInterviewPreviewUrlResult> {
   await requireAdmin();
 
@@ -26,7 +27,8 @@ export async function generateInterviewPreviewUrl(
       url: buildPreviewUrl(
         env.webUrl,
         `/preview/bills/${billId}/interview`,
-        tokenInfo.token
+        tokenInfo.token,
+        { configId }
       ),
       token: tokenInfo.token,
       expiresAt: tokenInfo.expiresAt,

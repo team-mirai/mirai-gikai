@@ -20,6 +20,7 @@ interface InterviewConsentModalProps {
   onOpenChange: (open: boolean) => void;
   billId: string;
   previewToken?: string;
+  previewConfigId?: string;
 }
 
 export function InterviewConsentModal({
@@ -27,6 +28,7 @@ export function InterviewConsentModal({
   onOpenChange,
   billId,
   previewToken,
+  previewConfigId,
 }: InterviewConsentModalProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +37,11 @@ export function InterviewConsentModal({
   const handleAgree = () => {
     if (!agreed) return;
     setIsLoading(true);
-    const destination = getInterviewChatLink(billId, previewToken);
+    const destination = getInterviewChatLink(
+      billId,
+      previewToken,
+      previewConfigId
+    );
     router.push(destination as Route);
   };
 

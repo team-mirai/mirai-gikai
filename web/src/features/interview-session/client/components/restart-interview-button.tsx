@@ -10,18 +10,21 @@ interface RestartInterviewButtonProps {
   sessionId: string;
   billId: string;
   previewToken?: string;
+  previewConfigId?: string;
 }
 
 export function RestartInterviewButton({
   sessionId,
   billId,
   previewToken,
+  previewConfigId,
 }: RestartInterviewButtonProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const { execute, isLoading } = useArchiveAndNavigate(
     sessionId,
     billId,
-    previewToken
+    previewToken,
+    previewConfigId
   );
 
   const handleConfirm = async () => {
