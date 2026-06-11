@@ -1,7 +1,6 @@
-import { after } from "next/server";
+import { countPendingReextraction } from "@mirai-gikai/topic-analysis-core/repository";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { countPendingReextraction } from "@/features/interview-opinion-backfill/server/repositories/interview-opinion-backfill-repository";
-import { triggerBackfillRun } from "@/features/interview-opinion-backfill/server/utils/trigger-backfill-run";
+import { executeTopicAnalysisJob } from "@/lib/cloud-run-job";
 
 export const maxDuration = 60;
 
@@ -13,7 +12,7 @@ const json = (body: unknown, status = 200) =>
 
 /**
  * 意見再抽出バックフィルの入口（Admin 手動トリガ）。
- * 未処理レポートがあれば run をバックグラウンドで起動する。
+ * 未処理レポートがあれば Cloud Run Job（backfill モード）を起動する。
  */
 export async function POST() {
   try {
@@ -24,16 +23,20 @@ export async function POST() {
 
   try {
     const pending = await countPendingReextraction();
-    if (pending > 0) {
-      after(async () => {
-        try {
-          await triggerBackfillRun();
-        } catch (error) {
-          console.error("[OpinionBackfill] Failed to start run:", error);
-        }
-      });
+    if (pending === 0) {
+      return json({ started: false, pending });
     }
-    return json({ started: pending > 0, pending });
+
+    try {
+      await executeTopicAnalysisJob(["--mode=backfill"]);
+    } catch (triggerError) {
+      const message =
+        triggerError instanceof Error ? triggerError.message : "trigger failed";
+      console.error("[OpinionBackfill] Failed to trigger job:", triggerError);
+      return json({ error: message }, 502);
+    }
+
+    return json({ started: true, pending });
   } catch (error) {
     console.error("[OpinionBackfill] dispatch failed:", error);
     return json(

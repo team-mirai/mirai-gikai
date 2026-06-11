@@ -1,12 +1,12 @@
 import "server-only";
 
-import { PublishToggleButton } from "../../client/components/publish-toggle-button";
-import { RunAnalysisButton } from "../../client/components/run-analysis-button";
 import {
   fetchBillContext,
   getTopicsWithOpinions,
   listVersionsByBill,
-} from "../repositories/user-topic-analysis-repository";
+} from "@mirai-gikai/topic-analysis-core/repository";
+import { PublishToggleButton } from "../../client/components/publish-toggle-button";
+import { RunAnalysisButton } from "../../client/components/run-analysis-button";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "待機中",
@@ -69,7 +69,9 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
                     {v.source_opinion_count ?? "-"}
                   </td>
                   <td className="py-2 text-gray-500">
-                    {new Date(v.created_at).toLocaleString("ja-JP")}
+                    {new Date(v.created_at).toLocaleString("ja-JP", {
+                      timeZone: "Asia/Tokyo",
+                    })}
                   </td>
                   <td className="py-2">
                     {v.status === "completed" ? (

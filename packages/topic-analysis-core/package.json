@@ -1,0 +1,45 @@
+{
+  "name": "@mirai-gikai/topic-analysis-core",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    "./analyze": {
+      "types": "./src/analyze.ts",
+      "default": "./src/analyze.ts"
+    },
+    "./backfill": {
+      "types": "./src/backfill.ts",
+      "default": "./src/backfill.ts"
+    },
+    "./repository": {
+      "types": "./src/repositories/repository.ts",
+      "default": "./src/repositories/repository.ts"
+    },
+    "./constants": {
+      "types": "./src/shared/constants.ts",
+      "default": "./src/shared/constants.ts"
+    },
+    "./types": {
+      "types": "./src/shared/types.ts",
+      "default": "./src/shared/types.ts"
+    }
+  },
+  "dependencies": {
+    "@mirai-gikai/shared": "workspace:*",
+    "@mirai-gikai/supabase": "workspace:*",
+    "ai": "^6.0.3"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2",
+    "vitest": "^3.2.4",
+    "zod": "^4.1.12"
+  }
+}

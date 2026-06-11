@@ -26,11 +26,11 @@ export function RunAnalysisButton({ billId }: { billId: string }) {
   const [isRunning, setIsRunning] = useState(false);
   const [step, setStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
-      clearInterval(pollingRef.current);
+      clearTimeout(pollingRef.current);
       pollingRef.current = null;
     }
   }, []);
@@ -39,7 +39,9 @@ export function RunAnalysisButton({ billId }: { billId: string }) {
 
   const poll = useCallback(
     (versionId: string) => {
-      pollingRef.current = setInterval(async () => {
+      // 逐次ポーリング: 前回レスポンス完了後に次を予約する。
+      // setInterval + async だとレスポンスが間隔を超えた際に多重化・状態競合するため。
+      const tick = async () => {
         try {
           const res = await fetch(
             `/api/user-topic-analysis/status?versionId=${versionId}`
@@ -51,17 +53,23 @@ export function RunAnalysisButton({ billId }: { billId: string }) {
             stopPolling();
             setIsRunning(false);
             router.refresh();
-          } else if (data.status === "failed") {
+            return;
+          }
+          if (data.status === "failed") {
             stopPolling();
             setIsRunning(false);
             setError(data.error_message ?? "分析に失敗しました");
+            return;
           }
         } catch (e) {
           stopPolling();
           setIsRunning(false);
           setError(e instanceof Error ? e.message : "ポーリングに失敗しました");
+          return;
         }
-      }, POLL_INTERVAL_MS);
+        pollingRef.current = setTimeout(tick, POLL_INTERVAL_MS);
+      };
+      pollingRef.current = setTimeout(tick, POLL_INTERVAL_MS);
     },
     [router, stopPolling]
   );

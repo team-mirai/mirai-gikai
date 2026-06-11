@@ -1,0 +1,66 @@
+name: Deploy Topic Analysis Worker
+
+# worker / topic-analysis-core / その依存パッケージが変わったときだけ
+# イメージをビルドして Artifact Registry に push し、Cloud Run Job を更新する。
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "worker/**"
+      - "packages/topic-analysis-core/**"
+      - "packages/shared/**"
+      - "packages/supabase/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/deploy_worker.yml"
+
+jobs:
+  build-and-deploy:
+    # GCP 未プロビジョニング（GCP_PROJECT_ID 未設定）の間はジョブごとスキップする。
+    # 変数を設定した時点から自動でデプロイが走り始める（未設定中に赤を出さない）。
+    if: ${{ vars.GCP_PROJECT_ID != '' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    env:
+      # GCP プロジェクト ID は機密相当（OSS のため値はコミットしない）。
+      # GitHub Environment の variables.GCP_PROJECT_ID に設定する。
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      # 以下はプロジェクト識別子ではない汎用のリソース名。variables で上書き可。
+      GCP_REGION: ${{ vars.GCP_REGION || 'asia-northeast1' }}
+      GCP_AR_REPO: ${{ vars.GCP_AR_REPO || 'topic-analysis' }}
+      GCP_TOPIC_ANALYSIS_JOB: ${{ vars.GCP_TOPIC_ANALYSIS_JOB || 'topic-analysis-worker' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      # gcloud / docker は ubuntu-latest にプリインストール済み。
+      # 追加のサードパーティ Action を使わず、SAキーで直接認証する。
+      - name: Authenticate gcloud
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          if [ -z "$GCP_PROJECT_ID" ]; then
+            echo "::error::variables.GCP_PROJECT_ID is not set" && exit 1
+          fi
+          printf '%s' "$GCP_SA_KEY" > "${RUNNER_TEMP}/gcp-key.json"
+          gcloud auth activate-service-account --key-file="${RUNNER_TEMP}/gcp-key.json"
+          gcloud config set project "$GCP_PROJECT_ID"
+          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        run: |
+          IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_AR_REPO}/topic-analysis-worker:${GITHUB_SHA}"
+          docker build -f worker/Dockerfile -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      # Job 自体（env/secret/リソース）の初期作成は docs の手順書で行う。
+      # CI はイメージの差し替えのみを担当する（設定の上書きを避ける）。
+      - name: Update Cloud Run Job image
+        run: |
+          gcloud run jobs update "$GCP_TOPIC_ANALYSIS_JOB" \
+            --image "$IMAGE" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID"
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/gcp-key.json"

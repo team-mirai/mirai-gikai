@@ -12,19 +12,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 意見再抽出バックフィルの run は内部 fetch（Bearer 認証）で自己連鎖するため、
-  // Supabase セッションを持たない。ルート側で REVALIDATE_SECRET を検証するので、
-  // ここでは middleware のセッション認証をバイパスする（dispatch/status は保護対象のまま）。
-  if (pathname === "/api/interview-opinion-backfill/run") {
-    return NextResponse.next();
-  }
-
-  // ユーザー向けトピック分析の step（extract/merge/assign）も内部 Bearer 認証で
-  // 自己連鎖するため、ルート側検証に委ね middleware のセッション認証をバイパスする。
-  if (pathname.startsWith("/api/user-topic-analysis/steps/")) {
-    return NextResponse.next();
-  }
-
   const { supabaseResponse, user } = await updateSession(request);
 
   // OAuth コールバックはそのまま通す（Route Handler で処理する）

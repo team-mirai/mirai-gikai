@@ -2,5 +2,6 @@ packages:
   - "packages/*"
   - "admin"
   - "web"
+  - "worker"
 
 minimumReleaseAge: 4320

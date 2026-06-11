@@ -5,7 +5,7 @@ import {
   publishVersion,
   saveTopicsAndAssignments,
   setVersionPublished,
-} from "../../admin/src/features/user-topic-analysis/server/repositories/user-topic-analysis-repository";
+} from "@mirai-gikai/topic-analysis-core/repository";
 import { findPublishedAnalysis } from "../../web/src/features/user-topic-analysis/server/repositories/topic-analysis-read-repository";
 import { buildPublicTopicAnalysis } from "../../web/src/features/user-topic-analysis/shared/utils/build-public-topic-analysis";
 import {

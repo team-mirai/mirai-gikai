@@ -1,5 +1,5 @@
-import { executePhase3 } from "@/features/topic-analysis/server/services/topic-analysis-orchestrator";
 import { updateVersionStatus } from "@/features/topic-analysis/server/repositories/topic-analysis-repository";
+import { executePhase3 } from "@/features/topic-analysis/server/services/topic-analysis-orchestrator";
 import { verifyInternalAuth } from "@/features/topic-analysis/server/utils/trigger-next-phase";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 

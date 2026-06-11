@@ -4,7 +4,7 @@ import {
   findReportsToReextract,
   markReextractionAttempted,
   updateReportOpinions,
-} from "../../admin/src/features/interview-opinion-backfill/server/repositories/interview-opinion-backfill-repository";
+} from "@mirai-gikai/topic-analysis-core/repository";
 import {
   adminClient,
   cleanupTestBill,

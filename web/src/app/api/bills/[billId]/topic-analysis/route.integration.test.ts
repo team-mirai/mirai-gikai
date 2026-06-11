@@ -142,9 +142,11 @@ describe("公開トピック分析 読み取り（web 統合）", () => {
   });
 
   afterAll(async () => {
-    await cleanupTestBill(publishedBillId);
-    await cleanupTestBill(billId);
-    await cleanupTestUser(testUser.id);
+    // beforeAll が途中失敗した場合に未初期化値で二次エラーを起こし、
+    // 元の失敗原因を隠さないよう存在チェックしてからクリーンアップする。
+    if (publishedBillId) await cleanupTestBill(publishedBillId);
+    if (billId) await cleanupTestBill(billId);
+    if (testUser?.id) await cleanupTestUser(testUser.id);
   });
 
   it("findPublishedAnalysis + buildPublicTopicAnalysis が §8 フィルタ後を返す", async () => {
