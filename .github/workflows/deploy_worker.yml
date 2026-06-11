@@ -15,38 +15,45 @@ on:
 
 jobs:
   build-and-deploy:
-    # GCP デプロイを有効化した環境でのみ実行する。プロジェクトID等は OSS の公開
-    # Actions ログでマスクするため Secret に置く（if: では secrets を参照できないので）、
-    # ガードは非機密の Variable フラグで判定する。各 Environment に
-    # variables.GCP_DEPLOY_ENABLED=true を設定すると、その環境向けにデプロイが走る。
-    if: ${{ vars.GCP_DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
+    # develop→staging / main→production。接続先は環境ごとの Secret で切り替える。
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
     env:
-      # プロジェクト ID は機密相当。公開ログでマスクされるよう Secret から読む。
+      # 値は Secret から読む（OSS の公開 Actions ログでマスクされる）。
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      # リージョン等も Secret から（未設定なら汎用デフォルト）。
       GCP_REGION: ${{ secrets.GCP_REGION || 'asia-northeast1' }}
       GCP_AR_REPO: ${{ secrets.GCP_AR_REPO || 'topic-analysis' }}
       GCP_TOPIC_ANALYSIS_JOB: ${{ secrets.GCP_TOPIC_ANALYSIS_JOB || 'topic-analysis-worker' }}
     steps:
-      - uses: actions/checkout@v5
+      # Environment の Secret は job 開始後のステップでしか参照できない
+      # （job-level if からは Environment スコープの vars/secrets が見えない）。
+      # この環境に GCP 設定が無ければ以降を skip し、green で終わる（赤を出さない）。
+      - name: Check GCP configuration
+        id: cfg
+        run: |
+          if [ -z "$GCP_PROJECT_ID" ]; then
+            echo "GCP_PROJECT_ID secret is not set for this environment — skipping deploy."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      # gcloud / docker は ubuntu-latest にプリインストール済み。
-      # 追加のサードパーティ Action を使わず、SAキーで直接認証する。
+      - uses: actions/checkout@v5
+        if: steps.cfg.outputs.configured == 'true'
+
+      # gcloud / docker は ubuntu-latest にプリインストール済み。SAキーで直接認証する。
       - name: Authenticate gcloud
+        if: steps.cfg.outputs.configured == 'true'
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          if [ -z "$GCP_PROJECT_ID" ]; then
-            echo "::error::secrets.GCP_PROJECT_ID is not set" && exit 1
-          fi
           printf '%s' "$GCP_SA_KEY" > "${RUNNER_TEMP}/gcp-key.json"
           gcloud auth activate-service-account --key-file="${RUNNER_TEMP}/gcp-key.json"
           gcloud config set project "$GCP_PROJECT_ID"
           gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
 
       - name: Build and push image
+        if: steps.cfg.outputs.configured == 'true'
         run: |
           IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_AR_REPO}/topic-analysis-worker:${GITHUB_SHA}"
           docker build -f worker/Dockerfile -t "$IMAGE" .
@@ -56,6 +63,7 @@ jobs:
       # Job 自体（env/secret/リソース）の初期作成は docs の手順書で行う。
       # CI はイメージの差し替えのみを担当する（設定の上書きを避ける）。
       - name: Update Cloud Run Job image
+        if: steps.cfg.outputs.configured == 'true'
         run: |
           gcloud run jobs update "$GCP_TOPIC_ANALYSIS_JOB" \
             --image "$IMAGE" \
