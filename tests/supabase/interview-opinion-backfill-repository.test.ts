@@ -1,7 +1,6 @@
 import {
   countAllReports,
   countPendingReextraction,
-  findAllReportsForBill,
   findReportsToReextract,
   markReextractionAttempted,
   resetReextractionForBill,
@@ -289,22 +288,14 @@ describe("interview-opinion-backfill repository 議案スコープ統合テス�
     expect(await countAllReports(billB)).toBe(1);
   });
 
-  it("findAllReportsForBill(billA) は再抽出済みも含め bill A の全件を返す（他議案は除外）", async () => {
-    const ids = (await findAllReportsForBill(billA)).map((r) => r.reportId);
-    // リセット対象の収集用途なので順序は問わず、集合として一致すればよい。
-    expect(new Set(ids)).toEqual(
-      new Set([aDone, aPublicOld, aPublicNew, aPrivate])
-    );
-    expect(ids).not.toContain(bReport);
-  });
-
   // watermark を変更するため、件数を検証する他テストの後（describe 末尾）に置く。
-  it("resetReextractionForBill は bill A 全件のウォーターマークを NULL に戻す", async () => {
+  it("resetReextractionForBill は bill A の再抽出済みを未再抽出に戻す", async () => {
     // 事前: aDone のみ再抽出済み（pending=3 / total=4）
     expect(await countPendingReextraction(billA)).toBe(3);
 
+    // 再抽出済み(NOT NULL)の行だけ NULL に戻すため、戻り値は aDone の1件。
     const reset = await resetReextractionForBill(billA);
-    expect(reset).toBe(4);
+    expect(reset).toBe(1);
 
     // リセット後は全件が未再抽出 = pending が total と一致する
     expect(await countPendingReextraction(billA)).toBe(4);
