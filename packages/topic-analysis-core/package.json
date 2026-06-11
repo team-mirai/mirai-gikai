@@ -17,6 +17,10 @@
       "types": "./src/backfill.ts",
       "default": "./src/backfill.ts"
     },
+    "./backfill-params": {
+      "types": "./src/shared/backfill-params.ts",
+      "default": "./src/shared/backfill-params.ts"
+    },
     "./repository": {
       "types": "./src/repositories/repository.ts",
       "default": "./src/repositories/repository.ts"

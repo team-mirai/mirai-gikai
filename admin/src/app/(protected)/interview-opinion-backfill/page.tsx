@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentAdmin } from "@/features/auth/server/lib/auth-server";
+import { getBills } from "@/features/bills/server/loaders/get-bills";
 import { OpinionBackfillRunner } from "@/features/interview-opinion-backfill/client/components/opinion-backfill-runner";
 import { routes } from "@/lib/routes";
 
@@ -9,6 +10,9 @@ export default async function InterviewOpinionBackfillPage() {
   if (!currentAdmin) {
     redirect(routes.login());
   }
+
+  const bills = await getBills();
+  const billOptions = bills.map((bill) => ({ id: bill.id, name: bill.name }));
 
   return (
     <div className="container mx-auto py-8">
@@ -24,7 +28,7 @@ export default async function InterviewOpinionBackfillPage() {
       </p>
 
       <section className="rounded-lg border bg-card p-6">
-        <OpinionBackfillRunner />
+        <OpinionBackfillRunner bills={billOptions} />
       </section>
     </div>
   );

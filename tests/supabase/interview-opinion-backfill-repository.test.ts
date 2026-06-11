@@ -1,17 +1,19 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  countAllReports,
   countPendingReextraction,
+  findAllReportsForBill,
   findReportsToReextract,
   markReextractionAttempted,
   updateReportOpinions,
 } from "@mirai-gikai/topic-analysis-core/repository";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   adminClient,
   cleanupTestBill,
   cleanupTestUser,
   createTestBill,
-  type TestUser,
   createTestUser,
+  type TestUser,
 } from "./utils";
 
 /** 共有 config 配下に session + report を1件作る。 */
@@ -184,5 +186,112 @@ describe("interview-opinion-backfill repository 統合テスト", () => {
     expect(new Date(row?.opinions_reextracted_at ?? 0).getTime()).toBe(
       new Date("2026-06-08T01:00:00Z").getTime()
     );
+  });
+});
+
+describe("interview-opinion-backfill repository 議案スコープ統合テスト", () => {
+  let testUser: TestUser;
+  let billA: string;
+  let billB: string;
+  // bill A のレポート（公開新旧 / 非公開 / 再抽出済み）
+  let aPublicOld: string;
+  let aPublicNew: string;
+  let aPrivate: string;
+  let aDone: string;
+  // bill B のレポート（混入しないことの検証用）
+  let bReport: string;
+
+  async function createConfig(forBillId: string): Promise<string> {
+    const { data, error } = await adminClient
+      .from("interview_configs")
+      .insert({ bill_id: forBillId, status: "public", name: "scope-test" })
+      .select()
+      .single();
+    if (error || !data) throw new Error(`config 作成失敗: ${error?.message}`);
+    return data.id;
+  }
+
+  beforeAll(async () => {
+    testUser = await createTestUser();
+    const ba = await createTestBill();
+    const bb = await createTestBill();
+    billA = ba.id;
+    billB = bb.id;
+    const configA = await createConfig(billA);
+    const configB = await createConfig(billB);
+
+    const base = { userId: testUser.id };
+    aPublicOld = (
+      await createReport({
+        ...base,
+        configId: configA,
+        isPublicByUser: true,
+        createdAt: "2021-01-01T00:00:00Z",
+      })
+    ).id;
+    aPublicNew = (
+      await createReport({
+        ...base,
+        configId: configA,
+        isPublicByUser: true,
+        createdAt: "2022-01-01T00:00:00Z",
+      })
+    ).id;
+    aPrivate = (
+      await createReport({
+        ...base,
+        configId: configA,
+        isPublicByUser: false,
+        createdAt: "2020-01-01T00:00:00Z",
+      })
+    ).id;
+    aDone = (
+      await createReport({
+        ...base,
+        configId: configA,
+        isPublicByUser: true,
+        createdAt: "2019-01-01T00:00:00Z",
+        reextracted: true,
+      })
+    ).id;
+    bReport = (
+      await createReport({
+        ...base,
+        configId: configB,
+        isPublicByUser: true,
+        createdAt: "2021-06-01T00:00:00Z",
+      })
+    ).id;
+  });
+
+  afterAll(async () => {
+    await cleanupTestBill(billA);
+    await cleanupTestBill(billB);
+    await cleanupTestUser(testUser.id);
+  });
+
+  it("findReportsToReextract(billA) は bill A の未処理のみを公開優先・古い順で返す", async () => {
+    const ids = (await findReportsToReextract(10000, billA)).map(
+      (r) => r.reportId
+    );
+    // 公開(true)→created_at昇順、その後 非公開。再抽出済み(aDone)と他議案(bReport)は除外。
+    expect(ids).toEqual([aPublicOld, aPublicNew, aPrivate]);
+    expect(ids).not.toContain(aDone);
+    expect(ids).not.toContain(bReport);
+  });
+
+  it("countPendingReextraction / countAllReports は議案単位に限定される", async () => {
+    expect(await countPendingReextraction(billA)).toBe(3);
+    expect(await countAllReports(billA)).toBe(4);
+    // 他議案は別カウント（!inner join が件数を変えないことの回帰）
+    expect(await countPendingReextraction(billB)).toBe(1);
+    expect(await countAllReports(billB)).toBe(1);
+  });
+
+  it("findAllReportsForBill(billA) は再抽出済みも含め公開優先・古い順で全件返す", async () => {
+    const ids = (await findAllReportsForBill(billA)).map((r) => r.reportId);
+    // 公開グループ(created_at昇順): aDone(2019)→aPublicOld(2021)→aPublicNew(2022)、最後に非公開 aPrivate。
+    expect(ids).toEqual([aDone, aPublicOld, aPublicNew, aPrivate]);
+    expect(ids).not.toContain(bReport);
   });
 });
