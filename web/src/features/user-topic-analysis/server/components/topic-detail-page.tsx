@@ -143,7 +143,7 @@ export async function TopicDetailPage({
           />
 
           {/* トピックヘッダー */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 rounded-2xl bg-white px-4 py-5">
             <h2 className="text-base font-bold leading-6 text-mirai-text">
               {topic.title}
               <span className="ml-1 text-[11px] font-medium text-topic-count">
