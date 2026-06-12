@@ -214,16 +214,22 @@ export const simGeneratedReportSchema = z
         "general_citizen",
       ])
       .nullable()
-      .describe("インタビュイーの立場タイプ"),
+      .describe(
+        "インタビュイーの立場タイプ。ログ内で本人が申告した立場を最優先の根拠とし、経歴の話題から推測で上書きしない"
+      ),
     role_description: z
       .string()
       .nullable()
-      .describe("ユーザーの役割や背景の詳細説明"),
+      .describe(
+        "ユーザーの役割や背景の詳細説明。ログ内の本人発言のみを根拠にし、過去の経歴は「元〜」「〜した経験がある」のように現在の立場と誤読されない表現にする"
+      ),
     role_title: z
       .string()
       .max(10)
       .nullable()
-      .describe("役割を 10 文字以内で端的に表現したタイトル"),
+      .describe(
+        "役割を 10 文字以内で端的に表現したタイトル。過去の職歴を現在の職業のように表記しない（過去の職歴なら「元〜」を付ける）"
+      ),
     opinions: z
       .array(
         z
@@ -234,7 +240,9 @@ export const simGeneratedReportSchema = z
           .strict()
       )
       .max(3)
-      .describe("ユーザーの具体的主張（最大 3 件）"),
+      .describe(
+        "ユーザーの具体的主張（最大 3 件）。本人の発言のみを根拠にし、インタビュアーの発言・言い換え・提示情報をユーザーの意見として書かない。本人が明言していない要望・賛成・結論への格上げをしない"
+      ),
   })
   .strict();
 
