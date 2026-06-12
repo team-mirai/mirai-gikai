@@ -1,16 +1,16 @@
 import "server-only";
 
 import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
-import type { SortOrder } from "../../shared/utils/sort-order";
-import type {
-  StanceCounts,
-  StanceFilter,
-} from "../../shared/utils/stance-filter";
 import {
   buildPublicReportsPage,
   buildStanceCounts,
   createEmptyStanceCounts,
 } from "../../shared/utils/public-report-display";
+import type { SortOrder } from "../../shared/utils/sort-order";
+import type {
+  StanceCounts,
+  StanceFilter,
+} from "../../shared/utils/stance-filter";
 import {
   countPublicReportsByStance,
   findPublicReportsByBillId,

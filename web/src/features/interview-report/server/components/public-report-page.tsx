@@ -1,14 +1,19 @@
 import "server-only";
 
+import { Undo2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
-import { ReactionButtons } from "@/features/report-reaction/client/components/reaction-buttons";
-import { getReportReactions } from "@/features/report-reaction/server/loaders/get-report-reactions";
+import { Container } from "@/components/layouts/container";
+import { Breadcrumb, type BreadcrumbItem } from "@/components/ui/breadcrumb";
+import { ShareArticleButton } from "@/features/interview-report/client/components/share-article-button";
 import { routes } from "@/lib/routes";
 import { getOrigin } from "@/lib/utils/url";
-import { ReportContent } from "../../shared/components/report-content";
+import { BackToBillButton } from "../../shared/components/back-to-bill-button";
+import { ChatLogSection } from "../../shared/components/chat-log-section";
+import { ReportIntervieweeCard } from "../../shared/components/report-interviewee-card";
+import { ReportMainOpinions } from "../../shared/components/report-main-opinions";
+import { ReportProblemButton } from "../../shared/components/report-problem-button";
 import { parseOpinions } from "../../shared/utils/format-utils";
 import { getPublicReportById } from "../loaders/get-public-report-by-id";
 
@@ -29,65 +34,66 @@ export async function PublicReportPage({
 
   const billName = data.bill.bill_content?.title || data.bill.name;
   const opinions = parseOpinions(data.opinions);
-
-  const [reactionData, origin] = await Promise.all([
-    getReportReactions(reportId),
-    getOrigin(),
-  ]);
+  const origin = await getOrigin();
   const shareUrl = `${origin}${routes.publicReport(reportId)}`;
   const ogImageUrl = `${origin}/api/og/report?id=${reportId}`;
 
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: "法案詳細", href: routes.billDetail(data.bill_id) },
+    { label: "レポート詳細" },
+  ];
+
   return (
-    <div className="min-h-dvh bg-mirai-surface pb-12 pt-20 md:pt-4">
-      {/* ヘッダーセクション */}
-      <div className="px-4 pt-8">
-        <div className="flex flex-col items-center gap-2">
-          <h1 className="text-2xl font-bold text-center text-gray-800">
-            インタビューレポート
+    <div className="min-h-dvh bg-mirai-surface">
+      <Container>
+        <div className="flex flex-col gap-8 py-8">
+          {/* パンくず + 法案タイトル */}
+          <div className="flex flex-col gap-2">
+            <Breadcrumb items={breadcrumbItems} />
+            <Link
+              href={routes.billDetail(data.bill_id) as Route}
+              className="inline-flex items-center gap-2 text-[15px] font-medium leading-6 text-black"
+            >
+              <span className="underline">{billName}</span>
+              <Undo2 className="size-4 shrink-0" />
+            </Link>
+          </div>
+
+          <h1 className="text-[22px] font-bold leading-9 text-mirai-text">
+            💬インタビューレポート
           </h1>
-          <Link
-            href={getBillDetailLink(data.bill_id) as Route}
-            className="text-sm text-black underline"
-          >
-            {billName}
-          </Link>
+
+          {/* 回答者カード */}
+          <ReportIntervieweeCard
+            roleTitle={data.role_title}
+            roleDescription={data.role_description}
+            richness={data.total_content_richness}
+            sessionStartedAt={data.session_started_at}
+            sessionCompletedAt={data.session_completed_at}
+            characterCount={data.characterCount}
+          />
+
+          {/* 主な意見 */}
+          <ReportMainOpinions opinions={opinions} reportId={reportId} />
+
+          {/* すべての会話ログ */}
+          {data.messages.length > 0 && (
+            <ChatLogSection messages={data.messages} />
+          )}
+
+          {/* アクション */}
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <ShareArticleButton
+              billName={billName}
+              shareUrl={shareUrl}
+              ogImageUrl={ogImageUrl}
+              shareMessage={data.summary}
+            />
+            <ReportProblemButton />
+            <BackToBillButton billId={data.bill_id} from={from} />
+          </div>
         </div>
-      </div>
-
-      {/* レポート本体（共通コンポーネント） */}
-      <div className="px-4 pt-8">
-        <ReportContent
-          reportId={reportId}
-          billId={data.bill_id}
-          summary={data.summary}
-          stance={data.stance}
-          role={data.role}
-          roleTitle={data.role_title}
-          sessionStartedAt={data.session_started_at}
-          characterCount={data.characterCount}
-          messages={data.messages}
-          roleDescription={data.role_description}
-          opinions={opinions}
-          from={from}
-          reactionData={reactionData}
-          share={{
-            billName,
-            shareUrl,
-            ogImageUrl,
-            shareMessage: data.summary,
-          }}
-        />
-      </div>
-
-      {/* アクションバー - Fixed at bottom */}
-      <ReactionButtons
-        reportId={reportId}
-        initialData={reactionData}
-        billName={billName}
-        shareUrl={shareUrl}
-        ogImageUrl={ogImageUrl}
-        shareMessage={data.summary}
-      />
+      </Container>
     </div>
   );
 }

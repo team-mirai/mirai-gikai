@@ -2,14 +2,14 @@ import "server-only";
 
 import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
+  getBillIdFromPublicReportSession,
+  selectPrimaryBillContent,
+} from "../../shared/utils/public-report-display";
+import {
   countPublicReportsByBillId,
   findBillWithContentById,
   findPublicReportWithSessionById,
 } from "../repositories/interview-report-repository";
-import {
-  getBillIdFromPublicReportSession,
-  selectPrimaryBillContent,
-} from "../../shared/utils/public-report-display";
 
 export interface ReportOgData {
   summary: string;

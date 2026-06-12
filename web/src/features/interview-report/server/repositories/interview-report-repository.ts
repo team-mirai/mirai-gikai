@@ -1,7 +1,7 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { createAdminClient } from "@mirai-gikai/supabase";
 import type { SortOrder } from "../../shared/utils/sort-order";
 
 /**

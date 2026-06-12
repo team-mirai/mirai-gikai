@@ -7,8 +7,8 @@ import {
   countUserMessageCharacters,
   getBillIdFromPublicReportSession,
   mapPublicInterviewReports,
-  selectPrimaryBillContent,
   type RawPublicInterviewReport,
+  selectPrimaryBillContent,
 } from "./public-report-display";
 
 function rawReport(id: string): RawPublicInterviewReport {

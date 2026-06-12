@@ -2,10 +2,10 @@
 
 import { z } from "zod";
 import { getReportReactionsBatch } from "@/features/report-reaction/server/loaders/get-report-reactions";
-import type { PublicInterviewReport } from "../loaders/get-public-reports-by-bill-id";
-import { getPublicReportsByBillIdPaginated } from "../loaders/get-all-public-reports-by-bill-id";
 import type { SortOrder } from "../../shared/utils/sort-order";
 import type { StanceFilter } from "../../shared/utils/stance-filter";
+import { getPublicReportsByBillIdPaginated } from "../loaders/get-all-public-reports-by-bill-id";
+import type { PublicInterviewReport } from "../loaders/get-public-reports-by-bill-id";
 
 const inputSchema = z.object({
   billId: z.string().uuid(),

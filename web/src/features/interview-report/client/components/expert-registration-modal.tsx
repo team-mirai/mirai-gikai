@@ -4,7 +4,6 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { routes } from "@/lib/routes";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { routes } from "@/lib/routes";
 import { registerExpert } from "../../server/actions/register-expert";
 import { expertRegistrationSchema } from "../../shared/utils/expert-registration-validation";
 

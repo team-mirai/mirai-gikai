@@ -1,6 +1,6 @@
 import { getInterviewReportCompleteLink } from "@/features/interview-config/shared/utils/interview-links";
-import { ReportCard } from "../../shared/components/report-card";
 import type { ReportCardData } from "../../shared/components/report-card";
+import { ReportCard } from "../../shared/components/report-card";
 
 interface PastReportsSectionProps {
   reports: ReportCardData[];
