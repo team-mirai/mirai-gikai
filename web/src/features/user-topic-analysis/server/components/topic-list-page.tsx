@@ -41,56 +41,60 @@ export async function TopicListPage({ billId }: TopicListPageProps) {
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
-      <Container className="flex flex-col gap-8 py-8">
-        {/* パンくず + 法案タイトル */}
-        <div className="flex flex-col gap-2">
-          <Breadcrumb items={breadcrumbItems} />
-          <Link
-            href={routes.billDetail(billId) as Route}
-            className="inline-flex items-center gap-2 text-[15px] font-medium leading-6 text-black"
-          >
-            <span className="underline">{billTitle}</span>
-            <Undo2 className="size-4 shrink-0" />
-          </Link>
-        </div>
+      <Container>
+        <div className="flex flex-col gap-8 py-8">
+          {/* パンくず + 法案タイトル */}
+          <div className="flex flex-col gap-2">
+            <Breadcrumb items={breadcrumbItems} />
+            <Link
+              href={routes.billDetail(billId) as Route}
+              className="inline-flex items-center gap-2 text-[15px] font-medium leading-6 text-black"
+            >
+              <span className="underline">{billTitle}</span>
+              <Undo2 className="size-4 shrink-0" />
+            </Link>
+          </div>
 
-        {/* タイトル + 件数 + 回答ピル + 説明 */}
-        <div className="flex flex-col gap-4">
-          <h1 className="flex items-center gap-4 font-bold leading-9 text-mirai-text">
-            <span className="text-[22px]">💬法案のトピック一覧</span>
-            <span className="text-[20px]">{topics.length}件</span>
-          </h1>
+          {/* タイトル + 件数 + 回答ピル + 説明 */}
+          <div className="flex flex-col gap-4">
+            <h1 className="flex items-center gap-4 font-bold leading-9 text-mirai-text">
+              <span className="text-[22px]">💬法案のトピック一覧</span>
+              <span className="text-[20px]">{topics.length}件</span>
+            </h1>
 
-          {reportsResult.totalCount > 0 && (
-            <InterviewCountPill
-              count={reportsResult.totalCount}
-              href={routes.billOpinions(billId)}
-            />
+            {reportsResult.totalCount > 0 && (
+              <InterviewCountPill
+                count={reportsResult.totalCount}
+                href={routes.billOpinions(billId)}
+              />
+            )}
+
+            <div className="flex items-center gap-2.5 rounded-[10px] bg-topic-info-bg px-3 py-2.5">
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-[10px] bg-white">
+                <Info className="size-3 text-primary-accent" />
+              </span>
+              <p className="text-[12px] leading-5 text-mirai-text">
+                トピックとは、インタビューに寄せられた声をAIが取りまとめて整理した
+                <span className="font-bold">意見のまとめ</span>
+                です。気になるトピックスから、実際の会話ログまで遡れます。
+              </p>
+            </div>
+          </div>
+
+          {/* フィルタ + トピックカード一覧 */}
+          {topics.length > 0 ? (
+            <TopicList billId={billId} topics={topics} />
+          ) : (
+            <p className="py-8 text-center text-mirai-text-muted">
+              トピック分析は準備中です
+            </p>
           )}
 
-          <div className="flex items-center gap-2.5 rounded-[10px] bg-topic-info-bg px-3 py-2.5">
-            <span className="flex size-5 shrink-0 items-center justify-center rounded-[10px] bg-white">
-              <Info className="size-3 text-primary-accent" />
-            </span>
-            <p className="text-[12px] leading-5 text-mirai-text">
-              トピックとは、インタビューに寄せられた声をAIが取りまとめて整理した
-              <span className="font-bold">意見のまとめ</span>
-              です。気になるトピックスから、実際の会話ログまで遡れます。
-            </p>
-          </div>
+          {/* AIインタビューCTA */}
+          {interviewConfig != null && (
+            <InterviewLandingSection billId={billId} />
+          )}
         </div>
-
-        {/* フィルタ + トピックカード一覧 */}
-        {topics.length > 0 ? (
-          <TopicList billId={billId} topics={topics} />
-        ) : (
-          <p className="py-8 text-center text-mirai-text-muted">
-            トピック分析は準備中です
-          </p>
-        )}
-
-        {/* AIインタビューCTA */}
-        {interviewConfig != null && <InterviewLandingSection billId={billId} />}
       </Container>
     </div>
   );

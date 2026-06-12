@@ -101,58 +101,60 @@ export async function TopicDetailPage({
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
-      <Container className="flex flex-col gap-6 py-8">
-        {/* パンくず + 法案タイトル */}
-        <div className="flex flex-col gap-2">
-          <Breadcrumb items={breadcrumbItems} />
-          <Link
-            href={routes.billDetail(billId) as Route}
-            className="inline-flex items-center gap-2 text-[15px] font-medium leading-6 text-black"
-          >
-            <span className="underline">{billTitle}</span>
-            <Undo2 className="size-4 shrink-0" />
-          </Link>
-        </div>
+      <Container>
+        <div className="flex flex-col gap-6 py-8">
+          {/* パンくず + 法案タイトル */}
+          <div className="flex flex-col gap-2">
+            <Breadcrumb items={breadcrumbItems} />
+            <Link
+              href={routes.billDetail(billId) as Route}
+              className="inline-flex items-center gap-2 text-[15px] font-medium leading-6 text-black"
+            >
+              <span className="underline">{billTitle}</span>
+              <Undo2 className="size-4 shrink-0" />
+            </Link>
+          </div>
 
-        <h1 className="text-[22px] font-bold leading-9 text-mirai-text">
-          💬法案のトピック詳細
-        </h1>
+          <h1 className="text-[22px] font-bold leading-9 text-mirai-text">
+            💬法案のトピック詳細
+          </h1>
 
-        <TopicNav
-          billId={billId}
-          position={position}
-          total={total}
-          prevTopicId={prevTopicId}
-          nextTopicId={nextTopicId}
-        />
-
-        {/* トピックヘッダー */}
-        <div className="flex flex-col gap-3">
-          <h2 className="text-base font-bold leading-6 text-mirai-text">
-            {topic.title}
-            <span className="ml-1 text-[11px] font-medium text-topic-count">
-              （{topic.opinion_count}件）
-            </span>
-          </h2>
-          <TopicSentiment sentiment={topic.sentiment} />
-          <TopicCategoryChips topic={topic} />
-          {topic.description && (
-            <p className="text-[15px] leading-6 text-mirai-text">
-              {topic.description}
-            </p>
-          )}
-        </div>
-
-        {/* 意見一覧 */}
-        <div className="flex flex-col gap-4">
-          <h3 className="text-[13px] font-bold text-topic-label">
-            このトピックに含まれる{topic.opinion_count}件の意見
-          </h3>
-          <TopicOpinionList
-            opinions={topic.opinions}
-            publicReportCount={publicReportCount}
-            nowMs={nowMs}
+          <TopicNav
+            billId={billId}
+            position={position}
+            total={total}
+            prevTopicId={prevTopicId}
+            nextTopicId={nextTopicId}
           />
+
+          {/* トピックヘッダー */}
+          <div className="flex flex-col gap-3">
+            <h2 className="text-base font-bold leading-6 text-mirai-text">
+              {topic.title}
+              <span className="ml-1 text-[11px] font-medium text-topic-count">
+                （{topic.opinion_count}件）
+              </span>
+            </h2>
+            <TopicSentiment sentiment={topic.sentiment} />
+            <TopicCategoryChips topic={topic} />
+            {topic.description && (
+              <p className="text-[15px] leading-6 text-mirai-text">
+                {topic.description}
+              </p>
+            )}
+          </div>
+
+          {/* 意見一覧 */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-[13px] font-bold text-topic-label">
+              このトピックに含まれる{topic.opinion_count}件の意見
+            </h3>
+            <TopicOpinionList
+              opinions={topic.opinions}
+              publicReportCount={publicReportCount}
+              nowMs={nowMs}
+            />
+          </div>
         </div>
       </Container>
     </div>
