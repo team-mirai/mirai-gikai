@@ -67,7 +67,8 @@ export async function PublicReportPage({
           <ReportIntervieweeCard
             roleTitle={data.role_title}
             roleDescription={data.role_description}
-            richness={data.total_content_richness}
+            stance={data.stance}
+            role={data.role}
             sessionStartedAt={data.session_started_at}
             sessionCompletedAt={data.session_completed_at}
             characterCount={data.characterCount}

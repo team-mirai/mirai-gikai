@@ -84,6 +84,7 @@ export async function BillOpinionsPage({ billId }: BillOpinionsPageProps) {
               opinions={opinions}
               publicReportCount={publicReportCount}
               nowMs={nowMs}
+              cardVariant="answers"
             />
           ) : (
             <p className="py-8 text-center text-mirai-text-muted">
