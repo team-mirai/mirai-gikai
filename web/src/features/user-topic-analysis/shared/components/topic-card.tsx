@@ -78,6 +78,14 @@ export function TopicCard({
     matched.length > 0 ? matched : withQuote(topic.opinions)
   ).slice(0, maxQuotes);
 
+  // フィルタ選択中の次元をカード側でもハイライトする
+  const highlightCategory =
+    filter === "affected" || filter === "industry" || filter === "expert"
+      ? filter
+      : null;
+  const highlightSentiment =
+    filter === "期待" || filter === "懸念" ? filter : null;
+
   // レポート詳細が表示可能な意見のみ、該当メッセージへのリンクにする
   const messageHrefFor = (opinion: PublicOpinion): string | null => {
     if (!opinion.source_message_id) return null;
@@ -114,8 +122,14 @@ export function TopicCard({
           </h3>
           <ChevronRight className="size-[18px] shrink-0 text-primary" />
         </div>
-        <TopicSentiment sentiment={topic.sentiment} />
-        <TopicCategoryChips topic={topic} />
+        <TopicSentiment
+          sentiment={topic.sentiment}
+          highlight={highlightSentiment}
+        />
+        <TopicCategoryChips
+          topic={topic}
+          highlightCategory={highlightCategory}
+        />
       </div>
 
       {/* 代表意見の引用（クリックで該当メッセージへ） */}
