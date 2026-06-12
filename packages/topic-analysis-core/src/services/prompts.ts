@@ -1,4 +1,5 @@
 import type { BillContext, FinalTopicWithId } from "../shared/types";
+import { toInlineText } from "../utils/to-inline-text";
 
 /** fine 粒度方針（§A.1）。Phase1/2 共通。 */
 const GRANULARITY_POLICY = `## トピック粒度の方針（fine）
@@ -70,7 +71,7 @@ export function buildAssignPrompt(
   opinionsText: string
 ): string {
   const topicsText = finalTopics
-    .map((t) => `${t.local_id}: ${t.title} — ${t.description}`)
+    .map((t) => `${t.local_id}: ${t.title} — ${toInlineText(t.description)}`)
     .join("\n");
   return `あなたは議案分析の専門家です。各意見を適切なトピックに割り当ててください。
 

@@ -3,6 +3,7 @@ import { TOPIC_MODEL } from "../shared/constants";
 import { topicMergeSchema } from "../shared/schemas";
 import type { BillContext, TopicDraft } from "../shared/types";
 import { withRetry } from "../utils/concurrency";
+import { toInlineText } from "../utils/to-inline-text";
 import { buildMergePrompt } from "./prompts";
 
 /** Phase2: トピック候補を単一マージコールで統合（Reduce・§4.2）。 */
@@ -13,7 +14,7 @@ export async function mergeTopics(
   if (candidates.length === 0) return [];
 
   const candidatesText = candidates
-    .map((t, i) => `${i + 1}. ${t.title} — ${t.description}`)
+    .map((t, i) => `${i + 1}. ${t.title} — ${toInlineText(t.description)}`)
     .join("\n");
 
   const { object } = await withRetry(
