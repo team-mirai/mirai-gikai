@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
-import { PublicOpinionsPage } from "@/features/interview-report/server/components/public-opinions-page";
-import { parseSortOrder } from "@/features/interview-report/shared/utils/sort-order";
-import { parseStanceFilter } from "@/features/interview-report/shared/utils/stance-filter";
+import { BillOpinionsPage } from "@/features/user-topic-analysis/server/components/bill-opinions-page";
 
 interface OpinionsPageProps {
   params: Promise<{
     id: string;
-  }>;
-  searchParams: Promise<{
-    stance?: string;
-    sort?: string;
   }>;
 }
 
@@ -22,23 +16,12 @@ export async function generateMetadata({
   const title = bill?.bill_content?.title || bill?.name || "法案";
 
   return {
-    title: `当事者の意見 - ${title}`,
-    description: `${title}に対する当事者の意見一覧`,
+    title: `AIインタビューの回答一覧 - ${title}`,
+    description: `${title}に寄せられたAIインタビューの回答一覧`,
   };
 }
 
-export default async function OpinionsPage({
-  params,
-  searchParams,
-}: OpinionsPageProps) {
+export default async function OpinionsPage({ params }: OpinionsPageProps) {
   const { id } = await params;
-  const { stance, sort } = await searchParams;
-
-  return (
-    <PublicOpinionsPage
-      billId={id}
-      initialFilter={parseStanceFilter(stance ?? null)}
-      initialSort={parseSortOrder(sort ?? null)}
-    />
-  );
+  return <BillOpinionsPage billId={id} />;
 }
