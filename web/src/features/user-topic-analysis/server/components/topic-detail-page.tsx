@@ -18,6 +18,7 @@ import {
   type TopicFilter,
   topicFilterLabel,
 } from "../../shared/utils/filter-topics";
+import { splitSummaryLines } from "../../shared/utils/split-summary-lines";
 import { getPublicTopicDetail } from "../loaders/get-public-topic-detail";
 
 function TopicNav({
@@ -152,9 +153,11 @@ export async function TopicDetailPage({
             <TopicSentiment sentiment={topic.sentiment} />
             <TopicCategoryChips topic={topic} />
             {topic.description && (
-              <p className="text-[15px] leading-6 text-mirai-text">
-                {topic.description}
-              </p>
+              <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] leading-6 text-mirai-text">
+                {splitSummaryLines(topic.description).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
             )}
           </div>
 
