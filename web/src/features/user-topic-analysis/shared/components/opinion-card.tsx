@@ -41,9 +41,18 @@ function SentimentLabel({
   );
 }
 
-/** カテゴリのグレーchip（一般市民は表示しない）。 */
-function CategoryChip({ opinion }: { opinion: PublicOpinion }) {
-  if (opinion.user_category === "citizen") return null;
+/**
+ * カテゴリのグレーchip。
+ * 既定では一般市民(citizen)は非表示だが、includeCitizen 指定時は「一般」も表示する。
+ */
+function CategoryChip({
+  opinion,
+  includeCitizen = false,
+}: {
+  opinion: PublicOpinion;
+  includeCitizen?: boolean;
+}) {
+  if (opinion.user_category === "citizen" && !includeCitizen) return null;
   return (
     <span className="inline-flex items-center gap-1 rounded-xl bg-topic-chip-bg px-1.5 py-1 text-[13px] font-medium text-mirai-text">
       <UserRound
@@ -121,25 +130,21 @@ export function OpinionCard({
       "回答者";
     return (
       <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
-        {/* アバター + 役割（上） + 日付（右上） */}
-        <div className="flex items-start gap-2.5">
+        {/* アバター + 役割（上） */}
+        <div className="flex items-center gap-2.5">
           <Avatar opinion={opinion} />
-          <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
-            <h3 className="min-w-0 text-[15px] font-bold leading-6 text-mirai-text">
-              {heading}
-            </h3>
-            {dateLabel && (
-              <span className="shrink-0 text-[11px] text-topic-label">
-                {dateLabel}
-              </span>
-            )}
-          </div>
+          <h3 className="min-w-0 flex-1 text-[15px] font-bold leading-6 text-mirai-text">
+            {heading}
+          </h3>
         </div>
 
-        {/* stance + カテゴリ */}
+        {/* stance + カテゴリ（一般市民も表示）+ 日付 */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <SentimentLabel sentiment={opinion.bill_sentiment} />
-          <CategoryChip opinion={opinion} />
+          <CategoryChip opinion={opinion} includeCitizen />
+          {dateLabel && (
+            <span className="text-[11px] text-topic-label">{dateLabel}</span>
+          )}
         </div>
 
         {/* 生の声（引用） */}
