@@ -50,6 +50,7 @@ export function TopicList({ billId, topics }: TopicListProps) {
               key={topic.id}
               topic={topic}
               href={routes.billTopicDetail(billId, topic.id)}
+              filter={filter}
             />
           ))
         ) : (

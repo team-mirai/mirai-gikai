@@ -2,6 +2,7 @@ import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import type { PublicOpinion, PublicTopic } from "../types";
+import { filterOpinions, type TopicFilter } from "../utils/filter-topics";
 import { opinionAttributionLabel } from "../utils/topic-category";
 import { TopicCategoryChips, TopicSentiment } from "./topic-meta";
 
@@ -27,12 +28,26 @@ interface TopicCardProps {
   href: string;
   /** 表示する代表意見の最大件数。 */
   maxQuotes?: number;
+  /**
+   * 一覧でフィルタが選択されている場合、その条件に該当する意見の引用を優先表示する。
+   * 該当する引用が無ければ全体から表示する。
+   */
+  filter?: TopicFilter;
 }
 
-export function TopicCard({ topic, href, maxQuotes = 3 }: TopicCardProps) {
-  const quotes = topic.opinions
-    .filter((o) => o.contextual_quote?.trim())
-    .slice(0, maxQuotes);
+export function TopicCard({
+  topic,
+  href,
+  maxQuotes = 3,
+  filter = "all",
+}: TopicCardProps) {
+  const withQuote = (opinions: PublicOpinion[]) =>
+    opinions.filter((o) => o.contextual_quote?.trim());
+  // フィルタ該当意見の引用を優先し、無ければ全体から拾う
+  const matched = withQuote(filterOpinions(topic.opinions, filter));
+  const quotes = (
+    matched.length > 0 ? matched : withQuote(topic.opinions)
+  ).slice(0, maxQuotes);
 
   return (
     <Link
