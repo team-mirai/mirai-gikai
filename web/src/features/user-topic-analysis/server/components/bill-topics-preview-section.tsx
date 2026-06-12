@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import { TopicCard } from "../../shared/components/topic-card";
 import type { PublicTopic } from "../../shared/types";
+import { countTopicRespondents } from "../../shared/utils/count-respondents";
 import { InterviewCountPill } from "./interview-count-pill";
 
 /** プレビューで表示するトピック数。 */
@@ -16,8 +17,8 @@ interface BillTopicsPreviewSectionProps {
   billId: string;
   /** 公開トピック（呼び出し側で取得済みのものを渡す）。 */
   topics: PublicTopic[];
-  /** AIインタビュー回答者数（ピル表示用）。 */
-  respondentCount: number;
+  /** 議案の公開レポート件数（引用→メッセージリンクの表示判定に使う）。 */
+  publicReportCount: number;
 }
 
 /**
@@ -27,13 +28,15 @@ interface BillTopicsPreviewSectionProps {
 export function BillTopicsPreviewSection({
   billId,
   topics,
-  respondentCount,
+  publicReportCount,
 }: BillTopicsPreviewSectionProps) {
   if (topics.length === 0) {
     return null;
   }
 
   const previewTopics = topics.slice(0, PREVIEW_COUNT);
+  // 回答一覧・トピック一覧のピルと同一基準の回答者数
+  const respondentCount = countTopicRespondents(topics);
 
   return (
     <div className="flex flex-col gap-4">
@@ -63,7 +66,7 @@ export function BillTopicsPreviewSection({
             key={topic.id}
             topic={topic}
             href={routes.billTopicDetail(billId, topic.id)}
-            publicReportCount={respondentCount}
+            publicReportCount={publicReportCount}
           />
         ))}
       </div>

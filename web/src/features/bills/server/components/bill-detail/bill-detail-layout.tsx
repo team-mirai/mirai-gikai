@@ -69,7 +69,7 @@ export async function BillDetailLayout({
           <BillTopicsPreviewSection
             billId={bill.id}
             topics={topicAnalysis?.topics ?? []}
-            respondentCount={publicReportsResult.totalCount}
+            publicReportCount={publicReportsResult.totalCount}
           />
         </div>
 

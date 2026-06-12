@@ -12,6 +12,7 @@ import { getInterviewConfig } from "@/features/interview-config/server/loaders/g
 import { getPublicReportsByBillId } from "@/features/interview-report/server/loaders/get-public-reports-by-bill-id";
 import { routes } from "@/lib/routes";
 import { TopicList } from "../../client/components/topic-list";
+import { countTopicRespondents } from "../../shared/utils/count-respondents";
 import { getPublicTopicAnalysis } from "../loaders/get-public-topic-analysis";
 import { InterviewCountPill } from "./interview-count-pill";
 
@@ -33,6 +34,8 @@ export async function TopicListPage({ billId }: TopicListPageProps) {
 
   const billTitle = bill.bill_content?.title || bill.name;
   const topics = analysis?.topics ?? [];
+  // 回答一覧と同一基準（トピックに意見が割り当たった回答者数）でピルを表示する
+  const respondentCount = countTopicRespondents(topics);
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: "法案詳細", href: routes.billDetail(billId) },
@@ -62,9 +65,9 @@ export async function TopicListPage({ billId }: TopicListPageProps) {
               <span className="text-[20px]">{topics.length}件</span>
             </h1>
 
-            {reportsResult.totalCount > 0 && (
+            {respondentCount > 0 && (
               <InterviewCountPill
-                count={reportsResult.totalCount}
+                count={respondentCount}
                 href={routes.billOpinions(billId)}
               />
             )}
