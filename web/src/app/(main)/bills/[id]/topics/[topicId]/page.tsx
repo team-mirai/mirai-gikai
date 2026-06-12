@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { TopicDetailPage } from "@/features/user-topic-analysis/server/components/topic-detail-page";
+import { parseTopicFilter } from "@/features/user-topic-analysis/shared/utils/filter-topics";
 
 interface TopicDetailRouteProps {
   params: Promise<{ id: string; topicId: string }>;
+  searchParams: Promise<{ filter?: string }>;
 }
 
 export async function generateMetadata({
@@ -21,7 +23,15 @@ export async function generateMetadata({
 
 export default async function TopicDetailRoute({
   params,
+  searchParams,
 }: TopicDetailRouteProps) {
   const { id, topicId } = await params;
-  return <TopicDetailPage billId={id} topicId={topicId} />;
+  const { filter } = await searchParams;
+  return (
+    <TopicDetailPage
+      billId={id}
+      topicId={topicId}
+      filter={parseTopicFilter(filter)}
+    />
+  );
 }

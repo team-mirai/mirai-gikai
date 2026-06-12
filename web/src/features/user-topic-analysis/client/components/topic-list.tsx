@@ -49,7 +49,7 @@ export function TopicList({ billId, topics }: TopicListProps) {
             <TopicCard
               key={topic.id}
               topic={topic}
-              href={routes.billTopicDetail(billId, topic.id)}
+              href={routes.billTopicDetail(billId, topic.id, filter)}
               filter={filter}
             />
           ))

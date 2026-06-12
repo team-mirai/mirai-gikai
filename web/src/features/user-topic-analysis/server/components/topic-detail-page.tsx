@@ -14,6 +14,7 @@ import {
   TopicCategoryChips,
   TopicSentiment,
 } from "../../shared/components/topic-meta";
+import type { TopicFilter } from "../../shared/utils/filter-topics";
 import { getPublicTopicDetail } from "../loaders/get-public-topic-detail";
 
 function TopicNav({
@@ -22,18 +23,20 @@ function TopicNav({
   total,
   prevTopicId,
   nextTopicId,
+  filter,
 }: {
   billId: string;
   position: number;
   total: number;
   prevTopicId: string | null;
   nextTopicId: string | null;
+  filter: TopicFilter;
 }) {
   return (
     <div className="flex items-center justify-between text-[13px] font-medium text-mirai-text">
       {prevTopicId ? (
         <Link
-          href={routes.billTopicDetail(billId, prevTopicId) as Route}
+          href={routes.billTopicDetail(billId, prevTopicId, filter) as Route}
           className="flex items-center gap-1 text-primary-accent hover:underline"
         >
           <ChevronLeft className="size-4 shrink-0" />
@@ -52,7 +55,7 @@ function TopicNav({
 
       {nextTopicId ? (
         <Link
-          href={routes.billTopicDetail(billId, nextTopicId) as Route}
+          href={routes.billTopicDetail(billId, nextTopicId, filter) as Route}
           className="flex items-center gap-1 text-primary-accent hover:underline"
         >
           次のトピック
@@ -71,15 +74,18 @@ function TopicNav({
 interface TopicDetailPageProps {
   billId: string;
   topicId: string;
+  /** 一覧から引き継いだフィルタ。前後トピックの並びとリンクに反映する。 */
+  filter?: TopicFilter;
 }
 
 export async function TopicDetailPage({
   billId,
   topicId,
+  filter = "all",
 }: TopicDetailPageProps) {
   const [bill, detail, publicReportCount] = await Promise.all([
     getBillById(billId),
-    getPublicTopicDetail(billId, topicId),
+    getPublicTopicDetail(billId, topicId, filter),
     countPublicReportsByBillId(billId),
   ]);
 
@@ -125,6 +131,7 @@ export async function TopicDetailPage({
             total={total}
             prevTopicId={prevTopicId}
             nextTopicId={nextTopicId}
+            filter={filter}
           />
 
           {/* トピックヘッダー */}

@@ -3,6 +3,7 @@ import type { PublicOpinion, PublicTopic } from "../types";
 import {
   filterAndSortTopics,
   filterOpinions,
+  parseTopicFilter,
   type TopicFilter,
   topicSortLabel,
 } from "./filter-topics";
@@ -109,6 +110,21 @@ describe("filterOpinions", () => {
   it("期待・懸念で bill_sentiment 一致のみ返す", () => {
     expect(filterOpinions(opinions, "期待").map((o) => o.id)).toEqual(["a"]);
     expect(filterOpinions(opinions, "懸念").map((o) => o.id)).toEqual(["b"]);
+  });
+});
+
+describe("parseTopicFilter", () => {
+  it("有効な値はそのまま返す", () => {
+    for (const v of ["all", "affected", "industry", "expert", "期待", "懸念"]) {
+      expect(parseTopicFilter(v)).toBe(v);
+    }
+  });
+
+  it("不正値・null・undefined は all に倒す", () => {
+    expect(parseTopicFilter("citizen")).toBe("all");
+    expect(parseTopicFilter("xxx")).toBe("all");
+    expect(parseTopicFilter(null)).toBe("all");
+    expect(parseTopicFilter(undefined)).toBe("all");
   });
 });
 

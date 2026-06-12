@@ -19,6 +19,21 @@ export const topicFilterOptions: { value: TopicFilterChip; label: string }[] = [
   { value: "懸念", label: "懸念" },
 ];
 
+/** 有効な全フィルタ値（URL クエリのバリデーション用）。 */
+const ALL_TOPIC_FILTERS: TopicFilter[] = [
+  "all",
+  ...topicFilterOptions.map((o) => o.value),
+];
+
+/** URL クエリ等の文字列を TopicFilter に正規化する。不正値は all。 */
+export function parseTopicFilter(
+  value: string | null | undefined
+): TopicFilter {
+  return ALL_TOPIC_FILTERS.includes(value as TopicFilter)
+    ? (value as TopicFilter)
+    : "all";
+}
+
 /** フィルタ適用時のソート順ラベル（例: 「事業者が多い順」）。all のときは null。 */
 export function topicSortLabel(filter: TopicFilter): string | null {
   if (filter === "all") return null;
