@@ -20,6 +20,7 @@ function op(overrides: Partial<RawOpinionRow> = {}): RawOpinionRow {
     title: "t",
     content: "c",
     contextual_quote: "q",
+    source_message_id: null,
     bill_sentiment: null,
     is_public_by_user: true,
     is_public_by_admin: true,

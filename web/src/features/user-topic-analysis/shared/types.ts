@@ -23,6 +23,8 @@ export type PublicOpinion = {
   role_title: string | null;
   bill_sentiment: "期待" | "懸念" | null;
   contextual_quote: string | null;
+  /** 引用の出典メッセージID。レポート詳細の該当メッセージ（#message-<id>）へ遷移するのに使う。 */
+  source_message_id: string | null;
   /**
    * 発言を引き出した質問文（source_message_id から導出）。
    * 導出は Q&A 表示を行う Step 4b で実装するため、4a では null 固定。
@@ -63,6 +65,7 @@ export type RawOpinionRow = {
   title: string;
   content: string;
   contextual_quote: string | null;
+  source_message_id: string | null;
   bill_sentiment: string | null;
   is_public_by_user: boolean;
   is_public_by_admin: boolean;

@@ -1,10 +1,15 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { OpinionCard } from "../../shared/components/opinion-card";
 import type { PublicOpinion } from "../../shared/types";
-import { filterOpinions } from "../../shared/utils/filter-topics";
+import {
+  filterOpinions,
+  type TopicFilterChip,
+  topicFilterOptions,
+} from "../../shared/utils/filter-topics";
 import { useFilteredPagination } from "../hooks/use-filtered-pagination";
 import { TopicFilterChips } from "./topic-filter-chips";
 
@@ -29,9 +34,22 @@ export function TopicOpinionList({
   const { filter, visible, remaining, selectFilter, loadMore } =
     useFilteredPagination(opinions, filterOpinions, INITIAL_VISIBLE, LOAD_STEP);
 
+  // 各フィルタchipに該当意見数を表示する
+  const counts = useMemo(() => {
+    const result: Partial<Record<TopicFilterChip, number>> = {};
+    for (const { value } of topicFilterOptions) {
+      result[value] = filterOpinions(opinions, value).length;
+    }
+    return result;
+  }, [opinions]);
+
   return (
     <div className="flex flex-col gap-4">
-      <TopicFilterChips activeFilter={filter} onSelect={selectFilter} />
+      <TopicFilterChips
+        activeFilter={filter}
+        onSelect={selectFilter}
+        counts={counts}
+      />
 
       <div className="flex flex-col gap-4">
         {visible.length > 0 ? (

@@ -63,6 +63,7 @@ export function BillTopicsPreviewSection({
             key={topic.id}
             topic={topic}
             href={routes.billTopicDetail(billId, topic.id)}
+            publicReportCount={respondentCount}
           />
         ))}
       </div>

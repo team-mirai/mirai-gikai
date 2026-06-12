@@ -1,24 +1,50 @@
+import { isPublicReportVisible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
 import type { PublicOpinion, PublicTopic } from "../types";
 import { filterOpinions, type TopicFilter } from "../utils/filter-topics";
 import { opinionAttributionLabel } from "../utils/topic-category";
 import { TopicCategoryChips, TopicSentiment } from "./topic-meta";
 
-function QuoteItem({ opinion }: { opinion: PublicOpinion }) {
+/** 引用1件。messageHref があれば該当メッセージへのリンクにする。 */
+function QuoteItem({
+  opinion,
+  messageHref,
+}: {
+  opinion: PublicOpinion;
+  messageHref: string | null;
+}) {
   const attribution = opinionAttributionLabel(opinion);
+  const body = (
+    <>
+      <span className="mr-1 align-[-0.1em] text-[18px] text-primary-accent">
+        “
+      </span>
+      {opinion.contextual_quote}
+      <span className="ml-1 whitespace-nowrap text-[11px] text-primary-accent">
+        （<span className="underline">{attribution}</span>）
+      </span>
+    </>
+  );
+
+  const className =
+    "font-mirai-serif text-[14px] font-semibold leading-[22px] text-mirai-text";
+
   return (
-    <div className="border-l border-mirai-border pl-3">
-      <p className="font-mirai-serif text-[14px] font-semibold leading-[22px] text-mirai-text">
-        <span className="mr-0.5 align-[-0.1em] text-[18px] text-primary-accent">
-          “
-        </span>
-        {opinion.contextual_quote}
-        <span className="ml-1 whitespace-nowrap text-[11px] text-primary-accent">
-          （<span className="underline">{attribution}</span>）
-        </span>
-      </p>
+    <div className="ml-2 border-l border-mirai-border pl-4">
+      {messageHref ? (
+        <Link
+          href={messageHref as Route}
+          prefetch={false}
+          className={`pointer-events-auto block ${className} hover:underline`}
+        >
+          {body}
+        </Link>
+      ) : (
+        <p className={className}>{body}</p>
+      )}
     </div>
   );
 }
@@ -33,6 +59,8 @@ interface TopicCardProps {
    * 該当する引用が無ければ全体から表示する。
    */
   filter?: TopicFilter;
+  /** 議案の公開レポート件数。引用→該当メッセージのリンク表示可否の判定に使う。 */
+  publicReportCount?: number;
 }
 
 export function TopicCard({
@@ -40,6 +68,7 @@ export function TopicCard({
   href,
   maxQuotes = 3,
   filter = "all",
+  publicReportCount = 0,
 }: TopicCardProps) {
   const withQuote = (opinions: PublicOpinion[]) =>
     opinions.filter((o) => o.contextual_quote?.trim());
@@ -49,36 +78,58 @@ export function TopicCard({
     matched.length > 0 ? matched : withQuote(topic.opinions)
   ).slice(0, maxQuotes);
 
-  return (
-    <Link
-      href={href as Route}
-      prefetch={false}
-      className="flex w-full flex-col gap-4 rounded-[14px] bg-white px-4 py-5 text-left transition-colors hover:bg-mirai-surface-gray"
-    >
-      {/* タイトル + 件数 + chevron */}
-      <div className="flex items-start gap-2.5">
-        <h3 className="min-w-0 flex-1 text-base font-bold leading-6 text-mirai-text">
-          {topic.title}
-          <span className="ml-1 text-[11px] font-medium text-topic-count">
-            （{topic.opinion_count}件）
-          </span>
-        </h3>
-        <ChevronRight className="size-[18px] shrink-0 text-primary" />
-      </div>
+  // レポート詳細が表示可能な意見のみ、該当メッセージへのリンクにする
+  const messageHrefFor = (opinion: PublicOpinion): string | null => {
+    if (!opinion.source_message_id) return null;
+    const visible = isPublicReportVisible({
+      isPublicByAdmin: opinion.report_public,
+      isPublicByUser: true,
+      publicReportCount,
+    });
+    if (!visible) return null;
+    return getInterviewMessageLink(
+      opinion.interview_report_id,
+      opinion.source_message_id
+    );
+  };
 
-      <div className="flex flex-col gap-2">
+  return (
+    <div className="relative flex w-full flex-col gap-3 rounded-[14px] bg-white px-4 py-5 text-left transition-colors hover:bg-mirai-surface-gray">
+      {/* カード全体クリックでトピック詳細へ（引用リンクと入れ子にならないようオーバーレイ） */}
+      <Link
+        href={href as Route}
+        prefetch={false}
+        aria-label={topic.title}
+        className="absolute inset-0 z-0 rounded-[14px]"
+      />
+
+      {/* タイトル〜期待懸念〜カテゴリ（クリックはオーバーレイに通す） */}
+      <div className="pointer-events-none relative z-10 flex flex-col gap-2">
+        <div className="flex items-start gap-2.5">
+          <h3 className="min-w-0 flex-1 text-base font-bold leading-6 text-mirai-text">
+            {topic.title}
+            <span className="ml-1 text-[11px] font-medium text-topic-count">
+              （{topic.opinion_count}件）
+            </span>
+          </h3>
+          <ChevronRight className="size-[18px] shrink-0 text-primary" />
+        </div>
         <TopicSentiment sentiment={topic.sentiment} />
         <TopicCategoryChips topic={topic} />
       </div>
 
-      {/* 代表意見の引用 */}
+      {/* 代表意見の引用（クリックで該当メッセージへ） */}
       {quotes.length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div className="pointer-events-none relative z-10 flex flex-col gap-3">
           {quotes.map((opinion) => (
-            <QuoteItem key={opinion.id} opinion={opinion} />
+            <QuoteItem
+              key={opinion.id}
+              opinion={opinion}
+              messageHref={messageHrefFor(opinion)}
+            />
           ))}
         </div>
       )}
-    </Link>
+    </div>
   );
 }

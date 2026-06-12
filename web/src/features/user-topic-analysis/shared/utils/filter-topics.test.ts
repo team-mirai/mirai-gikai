@@ -23,6 +23,7 @@ function makeOpinion(
     role_title: null,
     bill_sentiment: null,
     contextual_quote: null,
+    source_message_id: null,
     question_snippet: null,
     ...overrides,
   };

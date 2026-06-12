@@ -19,9 +19,15 @@ const LOAD_STEP = 10;
 interface TopicListProps {
   billId: string;
   topics: PublicTopic[];
+  /** 引用→該当メッセージのリンク表示可否の判定に使う、議案の公開レポート件数。 */
+  publicReportCount: number;
 }
 
-export function TopicList({ billId, topics }: TopicListProps) {
+export function TopicList({
+  billId,
+  topics,
+  publicReportCount,
+}: TopicListProps) {
   const { filter, filtered, visible, remaining, selectFilter, loadMore } =
     useFilteredPagination(
       topics,
@@ -51,6 +57,7 @@ export function TopicList({ billId, topics }: TopicListProps) {
               topic={topic}
               href={routes.billTopicDetail(billId, topic.id, filter)}
               filter={filter}
+              publicReportCount={publicReportCount}
             />
           ))
         ) : (

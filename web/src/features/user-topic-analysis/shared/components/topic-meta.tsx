@@ -6,12 +6,14 @@ import {
   userCategoryLabels,
 } from "../utils/topic-category";
 
-/** カテゴリchipの表示順と件数フィールド。 */
+/**
+ * カテゴリchipの表示順と件数フィールド。
+ * 「一般市民(citizen)」は表示しない方針のため含めない。
+ */
 const CATEGORY_ORDER: { category: UserCategory; count: keyof PublicTopic }[] = [
   { category: "affected", count: "affected_count" },
   { category: "industry", count: "industry_count" },
   { category: "expert", count: "expert_count" },
-  { category: "citizen", count: "citizen_count" },
 ];
 
 /** 期待・懸念の件数表示（どちらも0なら何も描画しない）。 */

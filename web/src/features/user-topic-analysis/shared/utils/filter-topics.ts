@@ -34,6 +34,12 @@ export function parseTopicFilter(
     : "all";
 }
 
+/** フィルタの短いラベル（例: 「事業者」）。all のときは null。 */
+export function topicFilterLabel(filter: TopicFilter): string | null {
+  if (filter === "all") return null;
+  return topicFilterOptions.find((o) => o.value === filter)?.label ?? null;
+}
+
 /** フィルタ適用時のソート順ラベル（例: 「事業者が多い順」）。all のときは null。 */
 export function topicSortLabel(filter: TopicFilter): string | null {
   if (filter === "all") return null;

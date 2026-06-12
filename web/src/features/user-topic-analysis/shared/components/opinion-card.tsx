@@ -70,7 +70,7 @@ export function OpinionCard({
   });
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-white p-4">
+    <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
       {/* アバター + 意見タイトル */}
       <div className="flex items-start gap-2.5">
         <span
@@ -92,17 +92,19 @@ export function OpinionCard({
       </div>
 
       {/* stance・カテゴリ・立場 */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <SentimentLabel sentiment={opinion.bill_sentiment} />
-        <span className="flex items-center gap-1 text-[13px] font-medium text-mirai-text">
-          <UserRound
-            className={cn(
-              "size-[13px] shrink-0",
-              userCategoryColorClass[opinion.user_category]
-            )}
-          />
-          {userCategoryLabels[opinion.user_category]}
-        </span>
+        {opinion.user_category !== "citizen" && (
+          <span className="inline-flex items-center gap-1 rounded-xl bg-topic-chip-bg px-1.5 py-1 text-[13px] font-medium text-mirai-text">
+            <UserRound
+              className={cn(
+                "size-[13px] shrink-0",
+                userCategoryColorClass[opinion.user_category]
+              )}
+            />
+            {userCategoryLabels[opinion.user_category]}
+          </span>
+        )}
         {opinion.role_title && (
           <span className="text-[13px] text-topic-label">
             {opinion.role_title}

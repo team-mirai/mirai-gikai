@@ -14,7 +14,10 @@ import {
   TopicCategoryChips,
   TopicSentiment,
 } from "../../shared/components/topic-meta";
-import type { TopicFilter } from "../../shared/utils/filter-topics";
+import {
+  type TopicFilter,
+  topicFilterLabel,
+} from "../../shared/utils/filter-topics";
 import { getPublicTopicDetail } from "../loaders/get-public-topic-detail";
 
 function TopicNav({
@@ -99,9 +102,13 @@ export async function TopicDetailPage({
   const { topic, position, total, prevTopicId, nextTopicId } = detail;
   const billTitle = bill.bill_content?.title || bill.name;
 
+  const filterLabel = topicFilterLabel(filter);
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: "法案詳細", href: routes.billDetail(billId) },
-    { label: "トピック一覧", href: routes.billTopics(billId) },
+    {
+      label: filterLabel ? `トピック一覧（${filterLabel}）` : "トピック一覧",
+      href: routes.billTopics(billId),
+    },
     { label: "トピック詳細" },
   ];
 

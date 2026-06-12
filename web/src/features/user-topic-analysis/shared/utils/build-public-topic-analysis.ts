@@ -76,6 +76,7 @@ export function buildPublicTopicAnalysis(
         role_title: o.role_title,
         bill_sentiment: billSentiment,
         contextual_quote: o.contextual_quote,
+        source_message_id: o.source_message_id,
         question_snippet: null,
       };
     });

@@ -83,7 +83,11 @@ export async function TopicListPage({ billId }: TopicListPageProps) {
 
           {/* フィルタ + トピックカード一覧 */}
           {topics.length > 0 ? (
-            <TopicList billId={billId} topics={topics} />
+            <TopicList
+              billId={billId}
+              topics={topics}
+              publicReportCount={reportsResult.totalCount}
+            />
           ) : (
             <p className="py-8 text-center text-mirai-text-muted">
               トピック分析は準備中です
