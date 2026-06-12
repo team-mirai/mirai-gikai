@@ -41,6 +41,50 @@ function SentimentLabel({
   );
 }
 
+/** カテゴリのグレーchip（一般市民は表示しない）。 */
+function CategoryChip({ opinion }: { opinion: PublicOpinion }) {
+  if (opinion.user_category === "citizen") return null;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-xl bg-topic-chip-bg px-1.5 py-1 text-[13px] font-medium text-mirai-text">
+      <UserRound
+        className={cn(
+          "size-[13px] shrink-0",
+          userCategoryColorClass[opinion.user_category]
+        )}
+      />
+      {userCategoryLabels[opinion.user_category]}
+    </span>
+  );
+}
+
+function Avatar({ opinion }: { opinion: PublicOpinion }) {
+  return (
+    <span
+      className={cn(
+        "flex size-9 shrink-0 items-center justify-center rounded-full",
+        avatarBgClass[opinion.bill_sentiment ?? "none"]
+      )}
+    >
+      <UserRound
+        className={cn("size-5", userCategoryColorClass[opinion.user_category])}
+      />
+    </span>
+  );
+}
+
+function Quote({ quote }: { quote: string }) {
+  return (
+    <div className="ml-2 border-l border-mirai-border pl-4">
+      <p className="font-mirai-serif text-[14px] font-medium leading-[22px] text-mirai-text">
+        <span className="mr-1 align-[-0.1em] text-[18px] text-primary-accent">
+          “
+        </span>
+        {quote}
+      </p>
+    </div>
+  );
+}
+
 interface OpinionCardProps {
   opinion: PublicOpinion;
   /**
@@ -53,39 +97,75 @@ interface OpinionCardProps {
    * ハイドレーション時の再計算によるラベルずれを防ぐ。
    */
   now: Date;
+  /**
+   * 表示バリアント。
+   * - "default": トピック詳細用（意見タイトル上・役割chip・下部に日時＋レポートリンク）
+   * - "answers": 回答一覧用（役割を上・日付は右上・引用の下に意見本文・リンク無し）
+   */
+  variant?: "default" | "answers";
 }
 
 export function OpinionCard({
   opinion,
   publicReportCount,
   now,
+  variant = "default",
 }: OpinionCardProps) {
-  const bgClass = avatarBgClass[opinion.bill_sentiment ?? "none"];
   const dateLabel = formatOpinionDate(opinion.created_at, now);
-  // レポート詳細が実際に表示可能なときだけリンクを出す（404 回避）。
+  const quote = opinion.contextual_quote?.trim();
+
+  if (variant === "answers") {
+    const heading =
+      opinion.role_title?.trim() ||
+      userCategoryLabels[opinion.user_category] ||
+      "回答者";
+    return (
+      <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
+        {/* アバター + 役割（上） + 日付（右上） */}
+        <div className="flex items-start gap-2.5">
+          <Avatar opinion={opinion} />
+          <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
+            <h3 className="min-w-0 text-[15px] font-bold leading-6 text-mirai-text">
+              {heading}
+            </h3>
+            {dateLabel && (
+              <span className="shrink-0 text-[11px] text-topic-label">
+                {dateLabel}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* stance + カテゴリ */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <SentimentLabel sentiment={opinion.bill_sentiment} />
+          <CategoryChip opinion={opinion} />
+        </div>
+
+        {/* 生の声（引用） */}
+        {quote && <Quote quote={quote} />}
+
+        {/* 意見本文 */}
+        {opinion.content && (
+          <p className="text-[13px] leading-5 text-mirai-text-secondary">
+            {opinion.content}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // default（トピック詳細）
   const reportVisible = isPublicReportVisible({
     isPublicByAdmin: opinion.report_public,
     isPublicByUser: true,
     publicReportCount,
   });
-
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
       {/* アバター + 意見タイトル */}
       <div className="flex items-start gap-2.5">
-        <span
-          className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-full",
-            bgClass
-          )}
-        >
-          <UserRound
-            className={cn(
-              "size-5",
-              userCategoryColorClass[opinion.user_category]
-            )}
-          />
-        </span>
+        <Avatar opinion={opinion} />
         <h3 className="min-w-0 flex-1 text-[15px] font-bold leading-6 text-mirai-text">
           {opinion.title}
         </h3>
@@ -94,35 +174,16 @@ export function OpinionCard({
       {/* stance・カテゴリ・立場 */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <SentimentLabel sentiment={opinion.bill_sentiment} />
-        {opinion.user_category !== "citizen" && (
-          <span className="inline-flex items-center gap-1 rounded-xl bg-topic-chip-bg px-1.5 py-1 text-[13px] font-medium text-mirai-text">
-            <UserRound
-              className={cn(
-                "size-[13px] shrink-0",
-                userCategoryColorClass[opinion.user_category]
-              )}
-            />
-            {userCategoryLabels[opinion.user_category]}
-          </span>
-        )}
+        <CategoryChip opinion={opinion} />
         {opinion.role_title && (
-          <span className="text-[13px] text-topic-label">
+          <span className="inline-flex items-center rounded-xl bg-topic-chip-bg px-1.5 py-1 text-[13px] font-medium text-mirai-text">
             {opinion.role_title}
           </span>
         )}
       </div>
 
       {/* 引用 */}
-      {opinion.contextual_quote?.trim() && (
-        <div className="border-l border-mirai-border pl-3">
-          <p className="font-mirai-serif text-[14px] font-medium leading-[22px] text-mirai-text">
-            <span className="mr-0.5 align-[-0.1em] text-[18px] text-primary-accent">
-              “
-            </span>
-            {opinion.contextual_quote}
-          </p>
-        </div>
-      )}
+      {quote && <Quote quote={quote} />}
 
       {/* 日時 + レポートリンク */}
       <div className="flex items-center justify-between">
