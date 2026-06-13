@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { PublicOpinion } from "../../shared/types";
+import { countTopicRespondents } from "../../shared/utils/count-respondents";
 import { getPublicTopicAnalysis } from "./get-public-topic-analysis";
 
 export type PublicBillOpinions = {
@@ -27,8 +28,9 @@ export async function getPublicBillOpinions(
     }
   }
   const opinions = [...byId.values()];
-  const respondentCount = new Set(opinions.map((o) => o.interview_report_id))
-    .size;
 
-  return { opinions, respondentCount };
+  return {
+    opinions,
+    respondentCount: countTopicRespondents(analysis.topics),
+  };
 }
