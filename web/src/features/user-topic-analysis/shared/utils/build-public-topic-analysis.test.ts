@@ -49,10 +49,11 @@ describe("mapRoleToCategory", () => {
 });
 
 describe("buildPublicTopicAnalysis（§8 表示時フィルタ）", () => {
-  it("非公開・モデレーションNG/警告の意見を除外する", () => {
+  it("管理者非公開・ユーザー非公開・モデレーションNG/警告の意見を除外する", () => {
     const result = buildPublicTopicAnalysis(meta, [
       topic("t0", [
         op({ id: "ok" }),
+        op({ id: "admin-private", is_public_by_admin: false }),
         op({ id: "private", is_public_by_user: false }),
         op({ id: "ng", moderation_status: "ng" }),
         op({ id: "warning", moderation_status: "warning" }),
@@ -122,18 +123,17 @@ describe("buildPublicTopicAnalysis（§8 表示時フィルタ）", () => {
     expect(result.topics[0].opinions[0].role_title).toBe("育休経験者");
   });
 
-  it("report_public に is_public_by_admin を反映する（レポートリンク出し分け用）", () => {
+  it("表示される意見は必ず管理者公開済み（report_public=true）", () => {
     const result = buildPublicTopicAnalysis(meta, [
       topic("t0", [
         op({ id: "a", is_public_by_admin: true }),
+        // 管理者非公開はそもそも表示対象から除外される
         op({ id: "b", is_public_by_admin: false }),
       ]),
     ]);
-    const byId = Object.fromEntries(
-      result.topics[0].opinions.map((o) => [o.id, o.report_public])
-    );
-    expect(byId.a).toBe(true);
-    expect(byId.b).toBe(false);
+    const ids = result.topics[0].opinions.map((o) => o.id);
+    expect(ids).toEqual(["a"]);
+    expect(result.topics[0].opinions.every((o) => o.report_public)).toBe(true);
   });
 
   it("全トピックが空なら topics 空・total 0、meta は保持", () => {

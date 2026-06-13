@@ -24,11 +24,15 @@ export function mapRoleToCategory(role: string | null): UserCategory {
 }
 
 /**
- * §8 表示時フィルタの最終ゲート: 公開同意済み × モデレーションOK のみ通す。
- * 分析後に同意撤回・非公開化された意見は即座に除外される。
+ * §8 表示時フィルタの最終ゲート: 管理者公開 × ユーザー公開 × モデレーションOK のみ通す。
+ * 分析後に管理者が非公開化・ユーザーが同意撤回した意見は即座に除外される。
  */
 function isDisplayable(o: RawOpinionRow): boolean {
-  return o.is_public_by_user === true && o.moderation_status === "ok";
+  return (
+    o.is_public_by_admin === true &&
+    o.is_public_by_user === true &&
+    o.moderation_status === "ok"
+  );
 }
 
 function toBillSentiment(value: string | null): "期待" | "懸念" | null {
@@ -38,7 +42,7 @@ function toBillSentiment(value: string | null): "期待" | "懸念" | null {
 /**
  * 公開中 version の生データ（§8 未フィルタ）から、表示用レスポンス（§13 A.4）を構築する純粋関数。
  *
- * - 各意見を §8（is_public_by_user × moderation_status='ok'）でフィルタ。
+ * - 各意見を §8（is_public_by_admin × is_public_by_user × moderation_status='ok'）でフィルタ。
  * - 件数・属性内訳・期待/懸念は **フィルタ後の集合から再計算**（保存値は使わない・§8）。
  * - フィルタ後に意見が0件になったトピックは応答に含めない。
  * - 未分類（topic 未割当）の意見はそもそも topic 配下に無いため自然に除外される（§9）。
