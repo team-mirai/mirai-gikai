@@ -20,17 +20,13 @@ interface BillOpinionsPageProps {
 
 /** AIインタビューの回答一覧（議案単位で公開意見をフラットに表示）。 */
 export async function BillOpinionsPage({ billId }: BillOpinionsPageProps) {
-  const [
-    bill,
-    { opinions, respondentCount },
-    publicReportCount,
-    interviewConfig,
-  ] = await Promise.all([
-    getBillById(billId),
-    getPublicBillOpinions(billId),
-    countPublicReportsByBillId(billId),
-    getInterviewConfig(billId),
-  ]);
+  const [bill, opinions, publicReportCount, interviewConfig] =
+    await Promise.all([
+      getBillById(billId),
+      getPublicBillOpinions(billId),
+      countPublicReportsByBillId(billId),
+      getInterviewConfig(billId),
+    ]);
 
   if (!bill) {
     notFound();
@@ -67,7 +63,7 @@ export async function BillOpinionsPage({ billId }: BillOpinionsPageProps) {
                 <MessageSquareText className="size-6 shrink-0 text-primary" />
                 AIインタビューの回答一覧
               </span>
-              <span className="text-[20px]">{respondentCount}人</span>
+              <span className="text-[20px]">{publicReportCount}人</span>
             </h1>
             <div className="flex items-center gap-2.5 rounded-[10px] bg-topic-info-bg px-3 py-2.5">
               <p className="text-[12px] leading-5 text-mirai-text">
