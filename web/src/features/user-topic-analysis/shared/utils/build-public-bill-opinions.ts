@@ -1,32 +1,25 @@
 import type { PublicOpinion, RawOpinionRow } from "../types";
 import { mapRoleToCategory } from "./build-public-topic-analysis";
 
+/** 公開レポート（管理者公開 × ユーザー公開）と同一基準で表示可否を判定する。 */
 function isDisplayable(o: RawOpinionRow): boolean {
-  return o.is_public_by_user === true && o.moderation_status === "ok";
+  return o.is_public_by_admin === true && o.is_public_by_user === true;
 }
 
 function toBillSentiment(value: string | null): "期待" | "懸念" | null {
   return value === "期待" || value === "懸念" ? value : null;
 }
 
-export type PublicBillOpinions = {
-  opinions: PublicOpinion[];
-  /** 公開意見を持つ回答者（出典レポート）のユニーク数。 */
-  respondentCount: number;
-};
-
 /**
  * 議案の生意見行（トピック割当の有無を問わない全件）から、表示用の意見一覧を構築する純粋関数。
- * §8（公開同意 × モデレーションOK）でフィルタし、回答者数も同集合から数える。
+ * 公開レポート（管理者公開 × ユーザー公開）でフィルタする。
  */
 export function buildPublicBillOpinions(
   rows: RawOpinionRow[]
-): PublicBillOpinions {
+): PublicOpinion[] {
   const opinions: PublicOpinion[] = [];
-  const reportIds = new Set<string>();
   for (const o of rows) {
     if (!isDisplayable(o)) continue;
-    reportIds.add(o.interview_report_id);
     opinions.push({
       id: o.id,
       interview_report_id: o.interview_report_id,
@@ -42,5 +35,5 @@ export function buildPublicBillOpinions(
       question_snippet: null,
     });
   }
-  return { opinions, respondentCount: reportIds.size };
+  return opinions;
 }
