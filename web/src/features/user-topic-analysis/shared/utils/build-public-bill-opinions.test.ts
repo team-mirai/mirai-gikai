@@ -22,34 +22,24 @@ function row(overrides: Partial<RawOpinionRow> = {}): RawOpinionRow {
 }
 
 describe("buildPublicBillOpinions", () => {
-  it("非公開・モデレーションNGを除外する", () => {
-    const { opinions } = buildPublicBillOpinions([
+  it("公開レポート（管理者公開×ユーザー公開）以外を除外する", () => {
+    const opinions = buildPublicBillOpinions([
       row({ id: "ok" }),
-      row({ id: "private", is_public_by_user: false }),
-      row({ id: "ng", moderation_status: "ng" }),
+      row({ id: "user-only", is_public_by_admin: false }),
+      row({ id: "admin-only", is_public_by_user: false }),
     ]);
     expect(opinions.map((o) => o.id)).toEqual(["ok"]);
   });
 
-  it("回答者数は出典レポートのユニーク数", () => {
-    const { respondentCount } = buildPublicBillOpinions([
-      row({ interview_report_id: "r1" }),
-      row({ interview_report_id: "r1" }),
-      row({ interview_report_id: "r2" }),
-    ]);
-    expect(respondentCount).toBe(2);
-  });
-
   it("role→カテゴリ・bill_sentimentを正規化、report_publicに管理者公開を反映", () => {
-    const { opinions } = buildPublicBillOpinions([
+    const opinions = buildPublicBillOpinions([
       row({
         role: "work_related",
         bill_sentiment: "期待",
-        is_public_by_admin: false,
       }),
     ]);
     expect(opinions[0].user_category).toBe("industry");
     expect(opinions[0].bill_sentiment).toBe("期待");
-    expect(opinions[0].report_public).toBe(false);
+    expect(opinions[0].report_public).toBe(true);
   });
 });

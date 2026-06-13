@@ -4,7 +4,6 @@ import { InterviewLandingSection } from "@/features/interview-config/client/comp
 import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
 import { getPublicReportsByBillId } from "@/features/interview-report/server/loaders/get-public-reports-by-bill-id";
 import { BillTopicsPreviewSection } from "@/features/user-topic-analysis/server/components/bill-topics-preview-section";
-import { getPublicBillOpinions } from "@/features/user-topic-analysis/server/loaders/get-public-bill-opinions";
 import { getPublicTopicAnalysis } from "@/features/user-topic-analysis/server/loaders/get-public-topic-analysis";
 import { BillDetailClient } from "../../../client/components/bill-detail/bill-detail-client";
 import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disclaimer";
@@ -25,12 +24,11 @@ export async function BillDetailLayout({
   currentDifficulty,
 }: BillDetailLayoutProps) {
   const showMiraiStance = bill.status === "preparing" || bill.mirai_stance;
-  const [interviewConfig, publicReportsResult, topicAnalysis, billOpinions] =
+  const [interviewConfig, publicReportsResult, topicAnalysis] =
     await Promise.all([
       getInterviewConfig(bill.id),
       getPublicReportsByBillId(bill.id),
       getPublicTopicAnalysis(bill.id),
-      getPublicBillOpinions(bill.id),
     ]);
 
   return (
@@ -72,7 +70,6 @@ export async function BillDetailLayout({
             billId={bill.id}
             topics={topicAnalysis?.topics ?? []}
             publicReportCount={publicReportsResult.totalCount}
-            respondentCount={billOpinions.respondentCount}
           />
         </div>
 

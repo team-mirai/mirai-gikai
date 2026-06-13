@@ -109,7 +109,7 @@ export async function findPublishedAnalysis(
 
 /**
  * 議案に紐づく公開意見（interview_opinion）を、トピック割当の有無に関わらず全件取得する。
- * §8 の表示時フィルタ（公開同意・モデレーションOK）はクエリ側で適用する。
+ * 公開レポート（管理者公開 × ユーザー公開）と同一基準でフィルタする。
  * 回答一覧（議案単位の全意見表示）で使用する。
  */
 export async function findPublicBillOpinionRows(
@@ -126,8 +126,8 @@ export async function findPublicBillOpinionRows(
        )`
     )
     .eq("interview_report.interview_sessions.interview_configs.bill_id", billId)
-    .eq("interview_report.is_public_by_user", true)
-    .eq("interview_report.moderation_status", "ok");
+    .eq("interview_report.is_public_by_admin", true)
+    .eq("interview_report.is_public_by_user", true);
   if (error) {
     throw new Error(`Failed to fetch bill opinions: ${error.message}`);
   }

@@ -16,10 +16,8 @@ interface BillTopicsPreviewSectionProps {
   billId: string;
   /** 公開トピック（呼び出し側で取得済みのものを渡す）。 */
   topics: PublicTopic[];
-  /** 議案の公開レポート件数（引用→メッセージリンクの表示判定に使う）。 */
+  /** 議案の公開レポート件数（ピル表示・引用→メッセージリンクの表示判定に使う）。 */
   publicReportCount: number;
-  /** 回答者数（ピル表示用。回答一覧・トピック一覧と同一基準）。 */
-  respondentCount: number;
 }
 
 /**
@@ -30,7 +28,6 @@ export function BillTopicsPreviewSection({
   billId,
   topics,
   publicReportCount,
-  respondentCount,
 }: BillTopicsPreviewSectionProps) {
   if (topics.length === 0) {
     return null;
@@ -52,9 +49,9 @@ export function BillTopicsPreviewSection({
         <ChevronRight className="size-6 shrink-0 text-primary" />
       </Link>
 
-      {respondentCount > 0 && (
+      {publicReportCount > 0 && (
         <InterviewCountPill
-          count={respondentCount}
+          count={publicReportCount}
           href={routes.billOpinions(billId)}
         />
       )}
