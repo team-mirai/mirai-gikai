@@ -106,3 +106,55 @@ export async function findPublishedAnalysis(
     rawTopics,
   };
 }
+
+/**
+ * 議案に紐づく公開意見（interview_opinion）を、トピック割当の有無に関わらず全件取得する。
+ * §8 の表示時フィルタ（公開同意・モデレーションOK）はクエリ側で適用する。
+ * 回答一覧（議案単位の全意見表示）で使用する。
+ */
+export async function findPublicBillOpinionRows(
+  billId: string
+): Promise<RawOpinionRow[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_opinion")
+    .select(
+      `id, title, content, contextual_quote, bill_sentiment, source_message_id, interview_report_id,
+       interview_report!inner(
+         is_public_by_user, is_public_by_admin, moderation_status, role, role_title, created_at,
+         interview_sessions!inner(interview_configs!inner(bill_id))
+       )`
+    )
+    .eq("interview_report.interview_sessions.interview_configs.bill_id", billId)
+    .eq("interview_report.is_public_by_user", true)
+    .eq("interview_report.moderation_status", "ok");
+  if (error) {
+    throw new Error(`Failed to fetch bill opinions: ${error.message}`);
+  }
+
+  return (data ?? []).map((o) => {
+    const report = o.interview_report as unknown as {
+      is_public_by_user: boolean;
+      is_public_by_admin: boolean;
+      moderation_status: string | null;
+      role: string | null;
+      role_title: string | null;
+      created_at: string | null;
+    };
+    return {
+      id: o.id,
+      interview_report_id: o.interview_report_id,
+      created_at: report.created_at,
+      title: o.title,
+      content: o.content,
+      contextual_quote: o.contextual_quote,
+      source_message_id: o.source_message_id,
+      bill_sentiment: o.bill_sentiment,
+      is_public_by_user: report.is_public_by_user,
+      is_public_by_admin: report.is_public_by_admin,
+      moderation_status: report.moderation_status,
+      role: report.role,
+      role_title: report.role_title,
+    };
+  });
+}

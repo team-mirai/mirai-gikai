@@ -12,7 +12,7 @@ import { getInterviewConfig } from "@/features/interview-config/server/loaders/g
 import { getPublicReportsByBillId } from "@/features/interview-report/server/loaders/get-public-reports-by-bill-id";
 import { routes } from "@/lib/routes";
 import { TopicList } from "../../client/components/topic-list";
-import { countTopicRespondents } from "../../shared/utils/count-respondents";
+import { getPublicBillOpinions } from "../loaders/get-public-bill-opinions";
 import { getPublicTopicAnalysis } from "../loaders/get-public-topic-analysis";
 import { InterviewCountPill } from "./interview-count-pill";
 
@@ -21,12 +21,14 @@ interface TopicListPageProps {
 }
 
 export async function TopicListPage({ billId }: TopicListPageProps) {
-  const [bill, analysis, reportsResult, interviewConfig] = await Promise.all([
-    getBillById(billId),
-    getPublicTopicAnalysis(billId),
-    getPublicReportsByBillId(billId),
-    getInterviewConfig(billId),
-  ]);
+  const [bill, analysis, reportsResult, billOpinions, interviewConfig] =
+    await Promise.all([
+      getBillById(billId),
+      getPublicTopicAnalysis(billId),
+      getPublicReportsByBillId(billId),
+      getPublicBillOpinions(billId),
+      getInterviewConfig(billId),
+    ]);
 
   if (!bill) {
     notFound();
@@ -34,8 +36,8 @@ export async function TopicListPage({ billId }: TopicListPageProps) {
 
   const billTitle = bill.bill_content?.title || bill.name;
   const topics = analysis?.topics ?? [];
-  // 回答一覧と同一基準（トピックに意見が割り当たった回答者数）でピルを表示する
-  const respondentCount = countTopicRespondents(topics);
+  // 回答一覧と同一基準（議案の全公開意見の回答者数）でピルを表示する
+  const respondentCount = billOpinions.respondentCount;
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: "法案詳細", href: routes.billDetail(billId) },
