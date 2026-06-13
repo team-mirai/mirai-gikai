@@ -10,8 +10,10 @@ type VersionStatus = "pending" | "running" | "completed" | "failed";
 
 /**
  * §8 フィルタ後の分析対象意見を取得する。
- * interview_opinion → interview_report(is_public_by_user=true, moderation_status='ok')
+ * interview_opinion
+ * → interview_report(is_public_by_admin=true, is_public_by_user=true, moderation_status='ok')
  * → interview_sessions → interview_configs(bill_id) を辿る。
+ * 管理者公開・ユーザー公開の両方に同意済みで、かつモデレーションOKの意見のみ分析対象とする。
  */
 export async function fetchTargetOpinions(
   billId: string
@@ -22,12 +24,13 @@ export async function fetchTargetOpinions(
     .select(
       `id, opinion_index, title, content, contextual_quote, bill_sentiment, interview_report_id,
        interview_report!inner(
-         is_public_by_user, moderation_status, role,
+         is_public_by_admin, is_public_by_user, moderation_status, role,
          interview_sessions!inner(
            interview_configs!inner(bill_id)
          )
        )`
     )
+    .eq("interview_report.is_public_by_admin", true)
     .eq("interview_report.is_public_by_user", true)
     .eq("interview_report.moderation_status", "ok")
     .eq("interview_report.interview_sessions.interview_configs.bill_id", billId)
