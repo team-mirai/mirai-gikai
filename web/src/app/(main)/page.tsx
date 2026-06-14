@@ -5,8 +5,10 @@ import { Hero } from "@/components/top/hero";
 import { TeamMirai } from "@/components/top/team-mirai";
 import { BillDisclaimer } from "@/features/bills/client/components/bill-detail/bill-disclaimer";
 import { BillsByTagSection } from "@/features/bills/server/components/bills-by-tag-section";
+import { CurrentSessionSection } from "@/features/bills/server/components/current-session-section";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
 import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
+import { getBillsByDietSession } from "@/features/bills/server/loaders/get-bills-by-diet-session";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
@@ -27,6 +29,10 @@ export default async function Home() {
     currentSession?.slug ??
     previousSessionData?.session.slug ??
     undefined;
+  const displaySession = activeSession ?? currentSession;
+  const currentSessionBills = displaySession
+    ? await getBillsByDietSession(displaySession.id)
+    : [];
 
   return (
     <>
@@ -39,6 +45,13 @@ export default async function Home() {
       <Container className="">
         <div className="py-10">
           <main className="flex flex-col gap-16">
+            {displaySession && (
+              <CurrentSessionSection
+                session={displaySession}
+                bills={currentSessionBills}
+              />
+            )}
+
             {/* 注目の法案セクション */}
             <FeaturedBillSection
               bills={featuredBills}
