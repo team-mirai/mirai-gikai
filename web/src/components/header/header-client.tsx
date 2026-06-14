@@ -5,16 +5,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DifficultySelector } from "@/features/bill-difficulty/client/components/difficulty-selector";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
+import type { DietSession } from "@/features/diet-sessions/shared/types";
 import { InterviewHeaderActions } from "@/features/interview-session/client/components/interview-header-actions";
 import { isInterviewPage, isMainPage } from "@/lib/page-layout-utils";
 import { routes } from "@/lib/routes";
+import { DietSessionMenu } from "./diet-session-menu";
 import { HamburgerMenu } from "./hamburger-menu";
 
 interface HeaderClientProps {
   difficultyLevel: DifficultyLevelEnum;
+  sessions: DietSession[];
 }
 
-export function HeaderClient({ difficultyLevel }: HeaderClientProps) {
+export function HeaderClient({ difficultyLevel, sessions }: HeaderClientProps) {
   const pathname = usePathname();
   const showDifficultySelector = isMainPage(pathname);
   const showInterviewActions = isInterviewPage(pathname);
@@ -36,7 +39,7 @@ export function HeaderClient({ difficultyLevel }: HeaderClientProps) {
                 width={42}
                 height={36}
               />
-              <span className="font-bold text-base text-black">
+              <span className="hidden font-bold text-base text-black sm:inline">
                 みらい議会＠草津市
               </span>
             </Link>
@@ -47,6 +50,7 @@ export function HeaderClient({ difficultyLevel }: HeaderClientProps) {
             className="flex items-center space-x-2"
             aria-label="補助ナビゲーション"
           >
+            <DietSessionMenu sessions={sessions} />
             {showDifficultySelector && (
               <DifficultySelector currentLevel={difficultyLevel} />
             )}

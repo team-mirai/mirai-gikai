@@ -3,6 +3,25 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import type { DietSession } from "../../shared/types";
 
 /**
+ * 登録済みの市議会会期を新しい順に取得
+ */
+export async function findDietSessions(): Promise<DietSession[]> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("diet_sessions")
+    .select("*")
+    .order("start_date", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch diet sessions:", error);
+    return [];
+  }
+
+  return data;
+}
+
+/**
  * アクティブな国会会期を取得
  */
 export async function findActiveDietSession(): Promise<DietSession | null> {
