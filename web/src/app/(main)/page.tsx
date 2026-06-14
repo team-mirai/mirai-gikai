@@ -9,6 +9,7 @@ import { FeaturedBillSection } from "@/features/bills/server/components/featured
 import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
+import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { getJapanTime } from "@/lib/utils/date";
 
@@ -17,9 +18,15 @@ export default async function Home() {
     await loadHomeData();
 
   // ゆくゆくタグ機能がマージされたらBFFに統合する
-  const currentSession = await getCurrentDietSession(getJapanTime());
+  const [currentSession, activeSession] = await Promise.all([
+    getCurrentDietSession(getJapanTime()),
+    getActiveDietSession(),
+  ]);
   const sessionSlug =
-    currentSession?.slug ?? previousSessionData?.session.slug ?? undefined;
+    activeSession?.slug ??
+    currentSession?.slug ??
+    previousSessionData?.session.slug ??
+    undefined;
 
   return (
     <>
