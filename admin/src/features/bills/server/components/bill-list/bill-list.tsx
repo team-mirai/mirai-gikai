@@ -1,9 +1,9 @@
-import type { Route } from "next";
 import { Plus } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { routes } from "@/lib/routes";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
   TableBody,
@@ -12,10 +12,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { routes } from "@/lib/routes";
 import { BillActionsMenu } from "../../../client/components/bill-actions-menu/bill-actions-menu";
 import { PreviewButton } from "../../../client/components/bill-list/preview-button";
 import { PublishStatusBadge } from "../../../client/components/bill-list/publish-status-badge";
-import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { ViewButton } from "../../../client/components/bill-list/view-button";
 import { BILL_STATUS_CONFIG } from "../../../shared/constants/bill-config";
 import type {
@@ -64,7 +64,7 @@ export async function BillList({ sortConfig }: { sortConfig: BillSortConfig }) {
           <TableHeader>
             <TableRow>
               <TableHead>議案名</TableHead>
-              <TableHead>国会会期</TableHead>
+              <TableHead>市議会の会期</TableHead>
               <SortableTableHead
                 field="publish_status_order"
                 currentField={sortConfig.field}
@@ -84,7 +84,7 @@ export async function BillList({ sortConfig }: { sortConfig: BillSortConfig }) {
                 currentField={sortConfig.field}
                 currentOrder={sortConfig.order}
               >
-                法案提出日
+                議案提出日
               </SortableTableHead>
               <TableHead className="w-[50px]" />
             </TableRow>

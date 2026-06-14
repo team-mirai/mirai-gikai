@@ -34,9 +34,9 @@ import { ThumbnailUpload } from "./thumbnail-upload";
 const BILL_STATUS_OPTIONS: Array<{ value: BillStatus; label: string }> = [
   { value: "preparing", label: "準備中" },
   { value: "introduced", label: "提出済み" },
-  { value: "in_originating_house", label: "審議中（提出院）" },
-  { value: "in_receiving_house", label: "審議中（送付院）" },
-  { value: "enacted", label: "成立" },
+  { value: "in_originating_house", label: "委員会審査中" },
+  { value: "in_receiving_house", label: "本会議審議中" },
+  { value: "enacted", label: "可決" },
   { value: "rejected", label: "否決" },
 ];
 
@@ -119,11 +119,11 @@ export function BillFormFields({
           name="originating_house"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>提出院 *</FormLabel>
+              <FormLabel>提出者 *</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="提出院を選択" />
+                    <SelectValue placeholder="提出者を選択" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -134,9 +134,7 @@ export function BillFormFields({
                   ))}
                 </SelectContent>
               </Select>
-              <FormDescription>
-                議案を提出した議院を選択してください
-              </FormDescription>
+              <FormDescription>議案の提出者を選択してください</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -169,11 +167,11 @@ export function BillFormFields({
         name="submitted_date"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>法案提出日 *</FormLabel>
+            <FormLabel>議案提出日 *</FormLabel>
             <FormControl>
               <Input type="date" {...field} />
             </FormControl>
-            <FormDescription>法案の提出日を設定してください</FormDescription>
+            <FormDescription>議案の提出日を設定してください</FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -227,16 +225,16 @@ export function BillFormFields({
         name="shugiin_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>衆議院URL</FormLabel>
+            <FormLabel>草津市議会URL</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 value={field.value || ""}
-                placeholder="https://www.shugiin.go.jp/..."
+                placeholder="https://www.city.kusatsu.shiga.jp/..."
               />
             </FormControl>
             <FormDescription>
-              衆議院の議案ページURLを入力してください（「これから掲載される法案」表示時に外部リンクとして使用）
+              草津市議会の議案ページURLを入力してください（「これから掲載される議案」表示時に外部リンクとして使用）
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -253,7 +251,7 @@ export function BillFormFields({
               <Input
                 {...field}
                 value={field.value || ""}
-                placeholder="221-kaku-1-mof-法案名"
+                placeholder="r8-2-teireikai-議案名"
               />
             </FormControl>
             <FormDescription>
@@ -269,14 +267,14 @@ export function BillFormFields({
         name="diet_session_id"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>国会会期</FormLabel>
+            <FormLabel>市議会の会期</FormLabel>
             <Select
               onValueChange={field.onChange}
               value={field.value ?? undefined}
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="国会会期を選択" />
+                  <SelectValue placeholder="市議会の会期を選択" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -288,7 +286,7 @@ export function BillFormFields({
               </SelectContent>
             </Select>
             <FormDescription>
-              議案が提出された国会会期を選択してください
+              議案が提出された定例会・臨時会を選択してください
             </FormDescription>
             <FormMessage />
           </FormItem>

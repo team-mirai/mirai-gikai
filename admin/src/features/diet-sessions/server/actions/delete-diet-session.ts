@@ -20,7 +20,7 @@ export async function deleteDietSession(input: DeleteDietSessionInput) {
   } catch (error) {
     console.error("Delete diet session error:", error);
     return {
-      error: getErrorMessage(error, "国会会期の削除中にエラーが発生しました"),
+      error: getErrorMessage(error, "市議会の会期削除中にエラーが発生しました"),
     };
   }
 }

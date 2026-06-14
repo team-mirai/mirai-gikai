@@ -3,10 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layouts/container";
-import { routes } from "@/lib/routes";
-import { getDietSessionBySlug } from "@/features/diet-sessions/server/loaders/get-diet-session-by-slug";
 import { getBillsByDietSession } from "@/features/bills/server/loaders/get-bills-by-diet-session";
 import { DietSessionBillList } from "@/features/diet-sessions/client/components/diet-session-bill-list";
+import { getDietSessionBySlug } from "@/features/diet-sessions/server/loaders/get-diet-session-by-slug";
+import { routes } from "@/lib/routes";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -17,12 +17,12 @@ export async function generateMetadata({ params }: Props) {
   const session = await getDietSessionBySlug(slug);
 
   if (!session) {
-    return { title: "国会会期が見つかりません" };
+    return { title: "市議会の会期が見つかりません" };
   }
 
   return {
-    title: `${session.name}の法案一覧 | みらい議会`,
-    description: `${session.name}（${session.start_date}〜${session.end_date}）に提出された法案の一覧です。`,
+    title: `${session.name}の議案一覧 | みらい議会＠草津市`,
+    description: `${session.name}（${session.start_date}〜${session.end_date}）に提出された議案の一覧です。`,
   };
 }
 
@@ -42,7 +42,7 @@ export default async function DietSessionBillsPage({ params }: Props) {
       <div className="relative w-full h-[285px]">
         <Image
           src="/img/archive-hero-7f3d06.png"
-          alt={`${session.name}の法案一覧`}
+          alt={`${session.name}の議案一覧`}
           fill
           priority
           className="object-cover"
@@ -62,7 +62,7 @@ export default async function DietSessionBillsPage({ params }: Props) {
             TOP
           </Link>
           <ChevronRight className="h-5 w-5 text-black" />
-          <span className="text-black">過去の法案</span>
+          <span className="text-black">過去の議案</span>
         </nav>
       </Container>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import type { MouseEvent, KeyboardEvent } from "react";
 import Image from "next/image";
+import type { KeyboardEvent, MouseEvent } from "react";
 import {
   shareNative,
   shareOnFacebook,
@@ -103,7 +103,7 @@ export function BillShareModal({
         {/* シェアセクション */}
         <div className="flex flex-col items-center gap-4 w-full">
           <p className="text-base font-bold text-gray-800 text-center">
-            シェアして国会の議論をオープンに
+            シェアして草津市議会の議論をオープンに
           </p>
 
           {/* SNSアイコン */}

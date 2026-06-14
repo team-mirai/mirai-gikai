@@ -43,7 +43,7 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
 
   const handleUpdate = async () => {
     if (!editName.trim()) {
-      toast.error("国会名を入力してください");
+      toast.error("会議名を入力してください");
       return;
     }
 
@@ -84,12 +84,12 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("国会会期を更新しました");
+        toast.success("市議会の会期を更新しました");
         setIsEditing(false);
       }
     } catch (error) {
       console.error("Update diet session error:", error);
-      toast.error("国会会期の更新に失敗しました");
+      toast.error("市議会の会期更新に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -104,11 +104,11 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("国会会期を削除しました");
+        toast.success("市議会の会期を削除しました");
       }
     } catch (error) {
       console.error("Delete diet session error:", error);
-      toast.error("国会会期の削除に失敗しました");
+      toast.error("市議会の会期削除に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -133,7 +133,7 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
         toast.error(result.error);
       } else {
         toast.success(
-          `「${session.name}」をアクティブな国会会期に設定しました`
+          `「${session.name}」をアクティブな市議会会期に設定しました`
         );
         router.refresh();
       }
@@ -163,7 +163,7 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                placeholder="国会名"
+                placeholder="会議名"
                 disabled={isSubmitting}
               />
               <Input
@@ -190,7 +190,7 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
               type="url"
               value={editShugiinUrl}
               onChange={(e) => setEditShugiinUrl(e.target.value)}
-              placeholder="衆議院URL（https://www.shugiin.go.jp/...）"
+              placeholder="草津市議会URL（https://www.city.kusatsu.shiga.jp/...）"
               disabled={isSubmitting}
             />
           </div>
@@ -225,7 +225,7 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
-                  衆議院ページ ↗
+                  草津市議会ページ ↗
                 </a>
               </div>
             )}
@@ -264,13 +264,13 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-orange-600">
-                        アクティブな国会会期の変更
+                        アクティブな市議会会期の変更
                       </AlertDialogTitle>
                       <AlertDialogDescription asChild>
                         <div className="space-y-2 text-sm text-muted-foreground">
                           <p>
                             「{session.name}
-                            」をアクティブな国会会期に設定しますか？
+                            」をアクティブな市議会会期に設定しますか？
                           </p>
                           <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 p-3 text-orange-800">
                             <p className="font-semibold">
@@ -278,13 +278,13 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
                             </p>
                             <ul className="mt-2 list-disc list-inside text-sm">
                               <li>
-                                トップページに表示される法案が、この国会会期の法案に切り替わります
+                                トップページに表示される議案が、この市議会会期の議案に切り替わります
                               </li>
                               <li>
-                                現在アクティブな国会会期は非アクティブになります
+                                現在アクティブな市議会会期は非アクティブになります
                               </li>
                               <li>
-                                ユーザーがトップページで確認できる法案が変わります
+                                ユーザーがトップページで確認できる議案が変わります
                               </li>
                             </ul>
                           </div>
@@ -325,9 +325,9 @@ export function DietSessionItem({ session }: DietSessionItemProps) {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>国会会期の削除</AlertDialogTitle>
+                    <AlertDialogTitle>市議会会期の削除</AlertDialogTitle>
                     <AlertDialogDescription>
-                      この国会会期を削除しますか？この操作は取り消せません。
+                      この市議会会期を削除しますか？この操作は取り消せません。
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

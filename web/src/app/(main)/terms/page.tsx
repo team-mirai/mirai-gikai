@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Container } from "@/components/layouts/container";
 import {
   LegalList,
   LegalPageLayout,
@@ -6,7 +7,6 @@ import {
   LegalSectionTitle,
   LegalSubSectionTitle,
 } from "@/components/layouts/legal-page-layout";
-import { Container } from "@/components/layouts/container";
 
 export const metadata: Metadata = {
   title: "利用規約 | みらい議会",
@@ -68,7 +68,7 @@ export default function TermsPage() {
                 "サーバへの過剰な負荷、システムへの妨害・侵入・解析（リバースエンジニアリング等）行為。",
                 "自動化ツール、ボット等による不正操作。",
                 "AIモデルの悪用：システムプロンプト等の内部設定の推測、プロンプトインジェクション等による意図的な誤動作の誘発。",
-                "目的外利用：「みらい議会」の趣旨（国会提出法案等の関連テーマ）を著しく逸脱した応答を生成させる行為。",
+                "目的外利用：「みらい議会＠草津市」の趣旨（草津市議会の議案等に関連するテーマ）を著しく逸脱した利用を行う行為。",
                 "なりすまし：他の人物や組織になりすまして本サービスを利用する行為。",
               ]}
             />

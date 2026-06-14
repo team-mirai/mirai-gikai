@@ -20,7 +20,7 @@ export function getStatusMessage(
   status: BillStatusEnum,
   statusNote: string | null | undefined
 ): string {
-  if (status === "preparing") return "法案提出前";
+  if (status === "preparing") return "議案提出前";
   return statusNote || "";
 }
 
@@ -37,17 +37,13 @@ export function getStepState(
 }
 
 /**
- * 発議院に応じてステップ順序を調整する
+ * 市議会向けの審議ステップを返す
  */
 export function getOrderedSteps(
-  originatingHouse: HouseEnum,
+  _originatingHouse: HouseEnum,
   baseSteps: readonly { readonly label: string }[]
 ): { label: string }[] {
-  const steps = baseSteps.map((s) => ({ label: s.label }));
-  if (originatingHouse === "HC") {
-    [steps[1], steps[2]] = [steps[2], steps[1]];
-  }
-  return steps;
+  return baseSteps.map((step) => ({ label: step.label }));
 }
 
 /**

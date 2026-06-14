@@ -28,14 +28,14 @@ export function DietSessionBillList({ session, bills }: Props) {
           />
         </h1>
         <p className="text-sm font-bold text-primary-accent">
-          過去の国会に提出された法案
+          過去の草津市議会に提出された議案
         </p>
       </div>
 
       {/* セクションヘッダー */}
       <div className="flex flex-col gap-0.5">
         <h2 className="text-[22px] font-bold text-black leading-[1.48] flex items-center gap-4">
-          {startDate.getFullYear()}年 {session.name}の提出法案
+          {startDate.getFullYear()}年 {session.name}の提出議案
           <span>{bills.length}件</span>
         </h2>
         <p className="text-xs font-medium text-mirai-text">
@@ -43,26 +43,26 @@ export function DietSessionBillList({ session, bills }: Props) {
         </p>
       </div>
 
-      {/* フィルター付き法案リスト */}
+      {/* フィルター付き議案リスト */}
       {bills.length === 0 ? (
         <p className="text-center py-12 text-muted-foreground">
-          この会期の法案はまだありません
+          この会期の議案はまだありません
         </p>
       ) : (
         <BillListWithStatusFilter bills={bills} />
       )}
 
-      {/* 衆議院リンク */}
+      {/* 草津市議会の公式情報へのリンク */}
       {session.shugiin_url && (
         <div className="flex items-center gap-1 text-[13px] font-medium text-mirai-text">
-          {startDate.getFullYear()}年{session.name}に提出された全ての法案は
+          {startDate.getFullYear()}年{session.name}に提出された全ての議案は
           <a
             href={session.shugiin_url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1"
           >
-            国会議案情報へ
+            草津市議会の議案情報へ
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>

@@ -26,7 +26,7 @@ export function DietSessionForm() {
     e.preventDefault();
 
     if (!name.trim()) {
-      toast.error("国会名を入力してください");
+      toast.error("会議名を入力してください");
       return;
     }
 
@@ -54,7 +54,7 @@ export function DietSessionForm() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("国会会期を作成しました");
+        toast.success("市議会の会期を作成しました");
         setName("");
         setSlug("");
         setShugiinUrl("");
@@ -63,7 +63,7 @@ export function DietSessionForm() {
       }
     } catch (error) {
       console.error("Create diet session error:", error);
-      toast.error("国会会期の作成に失敗しました");
+      toast.error("市議会の会期作成に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -73,13 +73,13 @@ export function DietSessionForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
-          <Label htmlFor={nameId}>国会名</Label>
+          <Label htmlFor={nameId}>会議名</Label>
           <Input
             id={nameId}
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="例: 第219回国会（臨時会）"
+            placeholder="例: 令和8年2月定例会"
             disabled={isSubmitting}
           />
         </div>
@@ -90,7 +90,7 @@ export function DietSessionForm() {
             type="text"
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            placeholder="例: 219-rinji"
+            placeholder="例: r8-2-teireikai"
             disabled={isSubmitting}
           />
         </div>
@@ -116,13 +116,13 @@ export function DietSessionForm() {
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={shugiinUrlId}>衆議院URL</Label>
+        <Label htmlFor={shugiinUrlId}>草津市議会URL</Label>
         <Input
           id={shugiinUrlId}
           type="url"
           value={shugiinUrl}
           onChange={(e) => setShugiinUrl(e.target.value)}
-          placeholder="https://www.shugiin.go.jp/..."
+          placeholder="https://www.city.kusatsu.shiga.jp/..."
           disabled={isSubmitting}
         />
       </div>

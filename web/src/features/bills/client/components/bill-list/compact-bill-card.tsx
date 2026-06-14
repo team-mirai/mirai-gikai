@@ -16,7 +16,7 @@ interface CompactBillCardProps {
  */
 export function CompactBillCard({ bill, className }: CompactBillCardProps) {
   const displayTitle = bill.bill_content?.title || bill.name;
-  const statusLabel = bill.status === "enacted" ? "成立" : "提出";
+  const statusLabel = bill.status === "enacted" ? "可決" : "提出";
 
   return (
     <Card

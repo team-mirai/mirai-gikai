@@ -17,7 +17,7 @@ export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
 
   const styles = getStanceStyles(stance, isPreparing);
   const comment = isPreparing
-    ? "法案提出後、党内で検討のうえ賛否を表明します。"
+    ? "議案提出後、内容を確認のうえ見解を表明します。"
     : stance?.comment;
 
   return (

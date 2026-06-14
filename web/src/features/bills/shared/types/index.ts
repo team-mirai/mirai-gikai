@@ -72,14 +72,14 @@ export const BILL_STATUS_ORDER: Record<BillStatusEnum, number> = {
 
 // House display mapping
 export const HOUSE_LABELS: Record<HouseEnum, string> = {
-  HR: "衆議院",
-  HC: "参議院",
+  HR: "市長提出",
+  HC: "議員提出",
 };
 
 // ステータスを日本語ラベルに変換する関数
 export function getBillStatusLabel(
   status: BillStatusEnum,
-  originatingHouse?: HouseEnum | null
+  _originatingHouse?: HouseEnum | null
 ): string {
   switch (status) {
     case "preparing":
@@ -87,18 +87,11 @@ export function getBillStatusLabel(
     case "introduced":
       return "提出済み";
     case "in_originating_house":
-      if (originatingHouse) {
-        return `${HOUSE_LABELS[originatingHouse]}審議中`;
-      }
-      return "審議中"; // フォールバック
+      return "委員会審査中";
     case "in_receiving_house":
-      if (originatingHouse) {
-        const receivingHouse = originatingHouse === "HR" ? "HC" : "HR";
-        return `${HOUSE_LABELS[receivingHouse]}審議中`;
-      }
-      return "審議中"; // フォールバック
+      return "本会議審議中";
     case "enacted":
-      return "成立";
+      return "可決";
     case "rejected":
       return "否決";
     default:

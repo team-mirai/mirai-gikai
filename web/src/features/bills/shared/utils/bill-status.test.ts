@@ -3,23 +3,23 @@ import { getCardStatusLabel, getStatusVariant } from "./bill-status";
 
 describe("getCardStatusLabel", () => {
   it.each([
-    ["introduced", "国会審議中"],
-    ["in_originating_house", "国会審議中"],
-    ["in_receiving_house", "国会審議中"],
+    ["introduced", "審議中"],
+    ["in_originating_house", "審議中"],
+    ["in_receiving_house", "審議中"],
   ] as const)("審議中ステータス %s → %s", (status, expected) => {
     expect(getCardStatusLabel(status)).toBe(expected);
   });
 
-  it("enacted → 法案成立", () => {
-    expect(getCardStatusLabel("enacted")).toBe("法案成立");
+  it("enacted → 可決", () => {
+    expect(getCardStatusLabel("enacted")).toBe("可決");
   });
 
   it("rejected → 否決", () => {
     expect(getCardStatusLabel("rejected")).toBe("否決");
   });
 
-  it("preparing → 法案提出前", () => {
-    expect(getCardStatusLabel("preparing")).toBe("法案提出前");
+  it("preparing → 議案提出前", () => {
+    expect(getCardStatusLabel("preparing")).toBe("議案提出前");
   });
 });
 
