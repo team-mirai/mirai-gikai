@@ -1,4 +1,7 @@
 node_modules
+.tool-cache
+.local-data
+packages/seed/kusatsu/data/bills-update.csv
 
 # misc
 .DS_Store
