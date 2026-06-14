@@ -1,14 +1,19 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
-import type { BillWithContent } from "../../shared/types";
 import { BillCard } from "../../client/components/bill-list/bill-card";
+import type { BillWithContent } from "../../shared/types";
 
 interface FeaturedBillSectionProps {
   bills: BillWithContent[];
+  sessionSlug?: string;
 }
 
-export function FeaturedBillSection({ bills }: FeaturedBillSectionProps) {
+export function FeaturedBillSection({
+  bills,
+  sessionSlug,
+}: FeaturedBillSectionProps) {
   if (bills.length === 0) {
     return null;
   }
@@ -18,10 +23,10 @@ export function FeaturedBillSection({ bills }: FeaturedBillSectionProps) {
       {/* セクションヘッダー */}
       <div className="flex flex-col gap-1.5">
         <h2 className="text-[22px] font-bold text-mirai-text leading-[1.48]">
-          注目の法案🔥
+          注目の議案
         </h2>
         <p className="text-xs font-medium text-mirai-text-secondary leading-[1.67]">
-          国会に提出された注目法案
+          草津市議会に提出された注目議案
         </p>
       </div>
 
@@ -33,6 +38,21 @@ export function FeaturedBillSection({ bills }: FeaturedBillSectionProps) {
           </Link>
         ))}
       </div>
+
+      {sessionSlug && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            size="lg"
+            asChild
+            className="h-12 w-full max-w-[320px] rounded-full border-mirai-text bg-white text-base font-bold hover:bg-gray-50"
+          >
+            <Link href={routes.kokkaiSessionBills(sessionSlug) as Route}>
+              議案一覧を見る
+            </Link>
+          </Button>
+        </div>
+      )}
     </section>
   );
 }

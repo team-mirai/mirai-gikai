@@ -24,6 +24,8 @@ export default async function Home() {
     getCurrentDietSession(getJapanTime()),
     getDifficultyLevel(),
   ]);
+  const sessionSlug =
+    currentSession?.slug ?? previousSessionData?.session.slug ?? undefined;
 
   const toBillChatContext = (bill: BillWithContent) => {
     return {
@@ -46,7 +48,10 @@ export default async function Home() {
         <div className="py-10">
           <main className="flex flex-col gap-16">
             {/* 注目の法案セクション */}
-            <FeaturedBillSection bills={featuredBills} />
+            <FeaturedBillSection
+              bills={featuredBills}
+              sessionSlug={sessionSlug}
+            />
 
             {/* タグ別議案一覧セクション */}
             <BillsByTagSection billsByTag={billsByTag} />
