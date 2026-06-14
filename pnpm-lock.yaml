@@ -95,6 +95,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      csv-parse:
+        specifier: ^6.1.0
+        version: 6.1.0
       google-auth-library:
         specifier: ^9.15.0
         version: 9.15.1

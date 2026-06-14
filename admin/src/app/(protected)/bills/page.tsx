@@ -1,5 +1,6 @@
 import { BillList } from "@/features/bills/server/components/bill-list/bill-list";
 import { parseBillSortParams } from "@/features/bills/shared/utils/parse-bill-sort-params";
+import { BillsCsvPanel } from "@/features/bills-csv/client/bills-csv-panel";
 
 interface BillsPageProps {
   searchParams: Promise<{
@@ -19,6 +20,7 @@ export default async function BillsPage({ searchParams }: BillsPageProps) {
         <p className="text-gray-600 mt-1">議案の一覧を確認・管理できます</p>
       </div>
 
+      <BillsCsvPanel />
       <BillList sortConfig={sortConfig} />
     </div>
   );
