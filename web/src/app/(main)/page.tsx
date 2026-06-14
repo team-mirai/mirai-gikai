@@ -3,14 +3,11 @@ import { About } from "@/components/top/about";
 import { ComingSoonSection } from "@/components/top/coming-soon-section";
 import { Hero } from "@/components/top/hero";
 import { TeamMirai } from "@/components/top/team-mirai";
-import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { BillDisclaimer } from "@/features/bills/client/components/bill-detail/bill-disclaimer";
 import { BillsByTagSection } from "@/features/bills/server/components/bills-by-tag-section";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
 import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
-import type { BillWithContent } from "@/features/bills/shared/types";
-import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { getJapanTime } from "@/lib/utils/date";
@@ -20,21 +17,9 @@ export default async function Home() {
     await loadHomeData();
 
   // ゆくゆくタグ機能がマージされたらBFFに統合する
-  const [currentSession, currentDifficulty] = await Promise.all([
-    getCurrentDietSession(getJapanTime()),
-    getDifficultyLevel(),
-  ]);
+  const currentSession = await getCurrentDietSession(getJapanTime());
   const sessionSlug =
     currentSession?.slug ?? previousSessionData?.session.slug ?? undefined;
-
-  const toBillChatContext = (bill: BillWithContent) => {
-    return {
-      name: `${bill.bill_content?.title}（${bill.name}）`,
-      summary: bill.bill_content?.summary,
-      tags: bill.tags?.map((tag) => tag.label) || [],
-      isFeatured: featuredBills.some((b) => b.id === bill.id),
-    };
-  };
 
   return (
     <>
@@ -85,15 +70,6 @@ export default async function Home() {
         {/* 免責事項 */}
         <BillDisclaimer />
       </Container>
-
-      {/* チャット機能 */}
-      <HomeChatClient
-        currentDifficulty={currentDifficulty}
-        bills={billsByTag
-          .flatMap((x) => x.bills)
-          .concat(featuredBills)
-          .map(toBillChatContext)}
-      />
     </>
   );
 }
