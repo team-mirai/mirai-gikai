@@ -38,7 +38,7 @@ export default async function Home() {
     <>
       <Hero />
 
-      {/* 本日の国会セクション */}
+      {/* 現在の会期 */}
       <CurrentDietSession session={currentSession} />
 
       {/* 議案一覧セクション */}
@@ -52,7 +52,7 @@ export default async function Home() {
               />
             )}
 
-            {/* 注目の法案セクション */}
+            {/* 注目の議案セクション */}
             <FeaturedBillSection
               bills={featuredBills}
               sessionSlug={sessionSlug}
@@ -67,7 +67,7 @@ export default async function Home() {
         </div>
       </Container>
 
-      {/* 前回の国会セクション（Archive） */}
+      {/* 前回の会期（Archive） */}
       {previousSessionData && (
         <div className="bg-mirai-surface-muted py-10">
           <Container>
@@ -84,7 +84,7 @@ export default async function Home() {
         {/* みらい議会とは セクション */}
         <About />
 
-        {/* チームみらいについて セクション */}
+        {/* 運営者について */}
         <TeamMirai />
 
         {/* 免責事項 */}

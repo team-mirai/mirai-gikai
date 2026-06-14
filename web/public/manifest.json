@@ -1,7 +1,7 @@
 {
-  "name": "みらい議会",
+  "name": "みらい議会＠草津市",
   "short_name": "みらい議会",
-  "description": "国会で今どんな法案が検討されているか、わかりやすく伝えるプラットフォーム",
+  "description": "草津市議会で今どんな議案が検討されているか、わかりやすく伝えるプラットフォーム",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F7F4F0",
@@ -9,13 +9,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/pwa/icon_android_192.png",
+      "src": "/icons/pwa/kusatsu-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/pwa/icon_android_512.png",
+      "src": "/icons/pwa/kusatsu-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

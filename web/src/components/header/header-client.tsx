@@ -34,10 +34,10 @@ export function HeaderClient({ difficultyLevel, sessions }: HeaderClientProps) {
               aria-label="ホーム"
             >
               <Image
-                src="/img/logo.svg"
+                src="/img/kusatsu-brand-mark.png"
                 alt="みらい議会＠草津市"
-                width={42}
-                height={36}
+                width={44}
+                height={44}
               />
               <span className="hidden font-bold text-base text-black sm:inline">
                 みらい議会＠草津市

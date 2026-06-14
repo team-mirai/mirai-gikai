@@ -1,6 +1,4 @@
 import Image from "next/image";
-import { EXTERNAL_LINKS } from "@/config/external-links";
-import { LinkButton } from "./link-button";
 
 export function About() {
   return (

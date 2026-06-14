@@ -39,16 +39,18 @@ export default async function DietSessionBillsPage({ params }: Props) {
   return (
     <div className="bg-mirai-surface-muted">
       {/* ヒーロー画像 */}
-      <div className="relative w-full h-[285px]">
+      <div className="relative h-[110px] w-full overflow-hidden md:h-[130px]">
         <Image
-          src="/img/archive-hero-7f3d06.png"
-          alt={`${session.name}の議案一覧`}
+          src="/img/kusatsu-city-hall.webp"
+          alt="草津市役所"
           fill
           priority
-          className="object-cover"
+          className="object-cover object-[center_22%]"
           sizes="100vw"
           quality={85}
         />
+        <div className="absolute inset-0 bg-emerald-50/35" />
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/20 to-emerald-100/55" />
       </div>
 
       <Container className="py-8">

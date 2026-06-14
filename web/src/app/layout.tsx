@@ -17,14 +17,12 @@ const lexendGiga = Lexend_Giga({
   weight: ["400", "500", "700", "800", "900"],
 });
 
-const isDev = process.env.NODE_ENV === "development";
-const isStaging = process.env.VERCEL_TARGET_ENV === "staging";
 const siteTitle = "みらい議会＠草津市";
 const siteDescription =
   "草津市議会で今どんな議案が検討されているか、わかりやすく伝えるプラットフォーム";
 const siteName = "みらい議会＠草津市";
 const ogImage = {
-  url: "/ogp.jpg",
+  url: "/ogp-kusatsu.png",
   width: 1200,
   height: 630,
   alt: "みらい議会＠草津市のOGPイメージ",
@@ -36,14 +34,8 @@ export const metadata: Metadata = {
   description: siteDescription,
   keywords: [siteName, "議案", "草津市", "草津市議会", "政策", "解説"],
   icons: {
-    icon: isDev
-      ? "/icons/pwa/icon_dev_192_v3.png"
-      : isStaging
-        ? "/icons/pwa/icon_staging_192.png"
-        : "/icons/pwa/icon_android_192.png",
-    apple: isStaging
-      ? "/icons/pwa/icon_staging_ios.png"
-      : "/icons/pwa/icon_ios.png",
+    icon: "/icons/pwa/kusatsu-icon-192.png",
+    apple: "/icons/pwa/kusatsu-icon-ios.png",
   },
   manifest: "/manifest.json",
   openGraph: {

@@ -38,7 +38,7 @@ let cachedLogoDataUrl: string | null = null;
 async function loadLogo(): Promise<string | null> {
   if (cachedLogoDataUrl) return cachedLogoDataUrl;
   try {
-    const logoPath = join(process.cwd(), "public/img/ogp-logo.png");
+    const logoPath = join(process.cwd(), "public/img/kusatsu-brand-mark.png");
     const buf = await readFile(logoPath);
     cachedLogoDataUrl = `data:image/png;base64,${buf.toString("base64")}`;
     return cachedLogoDataUrl;
@@ -198,7 +198,7 @@ export async function GET(request: Request) {
             borderBottomLeftRadius: 30,
             borderTopRightRadius: 30,
             backgroundImage:
-              "linear-gradient(-30deg, rgb(188, 236, 211) 1%, rgb(100, 216, 198) 99%)",
+              "linear-gradient(-30deg, rgb(188, 211, 236) 1%, rgb(100, 168, 216) 99%)",
           }}
         >
           <span
@@ -209,7 +209,7 @@ export async function GET(request: Request) {
               letterSpacing: "0.03em",
             }}
           >
-            みらい議会
+            みらい議会＠草津市
           </span>
         </div>
 
@@ -217,7 +217,7 @@ export async function GET(request: Request) {
         {logoDataUrl && (
           // biome-ignore lint/performance/noImgElement: ignore
           <img
-            alt="チームみらいロゴ"
+            alt="みらい議会＠草津市ロゴ"
             src={logoDataUrl}
             width={189}
             height={160}

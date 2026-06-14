@@ -22,17 +22,17 @@ export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
 
   return (
     <>
-      <h2 className="text-[22px] font-bold mb-4">🗳️チームみらいの賛否</h2>
+      <h2 className="text-[22px] font-bold mb-4">みらいと維新の風の見解</h2>
       <div className="relative p-1 rounded-2xl bg-mirai-gradient">
         <div className="bg-white rounded-lg px-6 pb-8 pt-10">
           <div className="flex flex-col gap-8">
             {/* ヘッダー部分：ロゴとスタンスバッジ */}
             <div className="flex flex-col items-center gap-8">
-              {/* チームみらいロゴ */}
-              <div className="relative w-37 h-31">
+              {/* 会派ロゴ */}
+              <div className="relative h-40 w-48">
                 <Image
-                  src="/img/logo.svg"
-                  alt="チームみらい"
+                  src="/img/kusatsu-brand-lockup.png"
+                  alt="みらいと維新の風"
                   fill
                   className="object-contain"
                 />

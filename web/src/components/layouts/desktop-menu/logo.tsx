@@ -12,10 +12,10 @@ export function DesktopMenuLogo() {
       className="fixed top-6 left-6 z-50 flex items-center gap-6 hover:opacity-90 transition-opacity"
     >
       {/* ロゴ */}
-      <div className="relative w-[116px] h-[98.38px]">
+      <div className="relative size-[108px]">
         <Image
-          src="/img/logo.svg"
-          alt="みらい議会ロゴ"
+          src="/img/kusatsu-brand-mark.png"
+          alt="みらい議会＠草津市"
           fill
           className="object-contain"
           priority

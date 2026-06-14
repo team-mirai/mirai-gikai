@@ -18,14 +18,19 @@ export const primaryLinks: FooterLink[] = [
     label: "TOP",
     href: routes.home(),
   },
+  {
+    label: "本家「みらい議会」",
+    href: EXTERNAL_LINKS.ORIGINAL_MIRAI_GIKAI,
+    external: true,
+  },
+  {
+    label: "ソースコード",
+    href: EXTERNAL_LINKS.SOURCE_CODE,
+    external: true,
+  },
 ];
 
 export const policyLinks: FooterPolicyLink[] = [
-  {
-    label: "よくあるご質問",
-    href: EXTERNAL_LINKS.FAQ,
-    external: true,
-  },
   {
     label: "利用規約",
     href: routes.terms(),

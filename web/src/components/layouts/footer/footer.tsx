@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isInterviewPage } from "@/lib/page-layout-utils";
@@ -21,6 +21,7 @@ export function Footer() {
         <FooterLogoSection />
         <FooterPrimaryLinks />
         <FooterPolicies />
+        <FooterForkNotice />
         <FooterCopyright />
       </div>
     </footer>
@@ -30,13 +31,17 @@ export function Footer() {
 function FooterLogoSection() {
   return (
     <div className="flex flex-col items-center text-center mb-9">
-      <Link href={routes.home()} aria-label="みらい議会 トップページ">
+      <Link
+        href={routes.home()}
+        aria-label="みらい議会 トップページ"
+        className="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm"
+      >
         <Image
-          src="/img/logo.svg"
-          alt="みらい議会"
-          width={150}
-          height={128}
-          className="h-auto"
+          src="/img/kusatsu-brand-lockup.png"
+          alt="みらいと維新の風"
+          width={240}
+          height={199}
+          className="h-auto w-[210px] sm:w-[240px]"
         />
       </Link>
     </div>
@@ -91,10 +96,19 @@ function FooterPolicies() {
   );
 }
 
+function FooterForkNotice() {
+  return (
+    <div className="mb-5 space-y-1 text-center text-xs font-medium leading-relaxed text-slate-800">
+      <p>これは政党チームみらいが運営しているものではありません</p>
+      <p>チームみらいのOSS「みらい議会」を2026年6月に改変したものです</p>
+    </div>
+  );
+}
+
 function FooterCopyright() {
   return (
     <div className="text-center text-sm font-medium text-slate-800">
-      © 2025 Team Mirai All rights Reserved
+      © 2026 みらいと維新の風
     </div>
   );
 }

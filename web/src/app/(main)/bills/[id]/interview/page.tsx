@@ -29,7 +29,7 @@ export async function generateMetadata({
 
   const billName = bill.bill_content?.title ?? bill.name;
   const description = `議案についてのAIインタビュー - ${billName}`;
-  const defaultOgpUrl = new URL("/ogp.jpg", env.webUrl).toString();
+  const defaultOgpUrl = new URL("/ogp-kusatsu.png", env.webUrl).toString();
   const shareImageUrl =
     bill.share_thumbnail_url || bill.thumbnail_url || defaultOgpUrl;
 

@@ -25,7 +25,7 @@ export async function generateMetadata({
 
   // bill_contentのsummaryがあればそれを使用、なければデフォルト値を使用
   const description = bill.bill_content?.summary || "議案の詳細情報";
-  const defaultOgpUrl = new URL("/ogp.jpg", env.webUrl).toString();
+  const defaultOgpUrl = new URL("/ogp-kusatsu.png", env.webUrl).toString();
 
   // シェア用OGP画像（share_thumbnail_url > thumbnail_url > デフォルト）
   // ページ表示用のthumbnail_urlとは別に、SNSシェア用の画像を優先
