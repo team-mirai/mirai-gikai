@@ -31,6 +31,7 @@ const validReport = {
       source_message_id: null,
       contextual_quote: null,
       bill_sentiment: null,
+      richness: 60,
     },
   ],
   content_richness: validContentRichness,
@@ -244,6 +245,7 @@ describe("interviewReportSchema", () => {
             source_message_id: null,
             contextual_quote: null,
             bill_sentiment: null,
+            richness: 50,
           },
           {
             title: "意見2",
@@ -251,6 +253,7 @@ describe("interviewReportSchema", () => {
             source_message_id: "msg-1",
             contextual_quote: "（テーマについて）意見2の根拠",
             bill_sentiment: "期待",
+            richness: 80,
           },
           {
             title: "意見3",
@@ -258,6 +261,7 @@ describe("interviewReportSchema", () => {
             source_message_id: null,
             contextual_quote: null,
             bill_sentiment: "懸念",
+            richness: 40,
           },
         ],
       });
@@ -311,6 +315,7 @@ describe("interviewReportSchema", () => {
             source_message_id: null,
             contextual_quote: null,
             bill_sentiment: null,
+            richness: 55,
           },
         ],
       });
@@ -327,6 +332,7 @@ describe("interviewReportSchema", () => {
             source_message_id: null,
             contextual_quote: null,
             bill_sentiment: value,
+            richness: 55,
           },
         ],
       });

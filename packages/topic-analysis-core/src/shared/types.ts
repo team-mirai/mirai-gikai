@@ -10,6 +10,7 @@ export type TargetOpinion = {
   contextual_quote: string | null;
   bill_sentiment: string | null;
   role: string | null;
+  richness: number | null;
 };
 
 /** 議案コンテキスト（プロンプトの接地用） */

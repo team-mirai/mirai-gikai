@@ -23,6 +23,13 @@ export const opinionSchema = z
       .describe(
         "この意見が法案に対して示す期待か懸念か。どちらでもなければ null"
       ),
+    // 意見単位の情報充実度（トピックカードで充実した引用を優先表示するため）
+    richness: z
+      .number()
+      .nullable()
+      .describe(
+        "この意見の情報充実度を 0-100 の整数で総合評価したスコア。論点の明確さ・具体性（事例や数値）・影響への言及・提案の広がりを総合する。**content だけでなく contextual_quote（引用文）も含めて評価する**（文脈の伴う具体的な引用ほど高くする）。0=ほぼ情報がない、100=非常に充実"
+      ),
   })
   .strict();
 
@@ -87,4 +94,5 @@ export type InterviewOpinionSource = {
   source_message_id?: string | null;
   contextual_quote?: string | null;
   bill_sentiment?: string | null;
+  richness?: number | null;
 };

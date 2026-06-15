@@ -20,7 +20,7 @@ export async function fetchTargetOpinions(
   const { data, error } = await supabase
     .from("interview_opinion")
     .select(
-      `id, opinion_index, title, content, contextual_quote, bill_sentiment, interview_report_id,
+      `id, opinion_index, title, content, contextual_quote, bill_sentiment, richness, interview_report_id,
        interview_report!inner(
          is_public_by_user, moderation_status, role,
          interview_sessions!inner(
@@ -51,6 +51,7 @@ export async function fetchTargetOpinions(
       contextual_quote: row.contextual_quote,
       bill_sentiment: row.bill_sentiment,
       role: report?.role ?? null,
+      richness: row.richness ?? null,
     };
   });
 }
@@ -360,7 +361,7 @@ export async function getTopicsWithOpinions(versionId: string) {
     .select(
       `id, title, description, sort_order,
        topic_opinion(
-         interview_opinion(id, title, content, contextual_quote, bill_sentiment)
+         interview_opinion(id, title, content, contextual_quote, bill_sentiment, richness)
        )`
     )
     .eq("version_id", versionId)

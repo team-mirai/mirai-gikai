@@ -15,6 +15,7 @@ const reportData = {
       source_message_id: "message-user-1",
       contextual_quote: null,
       bill_sentiment: null,
+      richness: 70,
     },
   ],
   content_richness: {
@@ -120,6 +121,7 @@ describe("buildCompletedInterviewReportInsert", () => {
             source_message_id: null,
             contextual_quote: null,
             bill_sentiment: null,
+            richness: null,
           },
         ],
       },
