@@ -44,7 +44,7 @@ export async function findPublishedAnalysis(
       `id, title, description, sort_order,
        topic_opinion(
          interview_opinion(
-           id, title, content, contextual_quote, bill_sentiment, source_message_id, interview_report_id,
+           id, title, content, contextual_quote, bill_sentiment, richness, source_message_id, interview_report_id,
            interview_report!inner(is_public_by_user, is_public_by_admin, moderation_status, role, role_title, created_at)
          )
        )`
@@ -87,6 +87,7 @@ export async function findPublishedAnalysis(
         contextual_quote: o.contextual_quote,
         source_message_id: o.source_message_id,
         bill_sentiment: o.bill_sentiment,
+        richness: o.richness,
         is_public_by_user: o.interview_report.is_public_by_user,
         is_public_by_admin: o.interview_report.is_public_by_admin,
         moderation_status: o.interview_report.moderation_status,
@@ -119,7 +120,7 @@ export async function findPublicBillOpinionRows(
   const { data, error } = await supabase
     .from("interview_opinion")
     .select(
-      `id, title, content, contextual_quote, bill_sentiment, source_message_id, interview_report_id,
+      `id, title, content, contextual_quote, bill_sentiment, richness, source_message_id, interview_report_id,
        interview_report!inner(
          is_public_by_user, is_public_by_admin, moderation_status, role, role_title, created_at,
          interview_sessions!inner(interview_configs!inner(bill_id))
@@ -150,6 +151,7 @@ export async function findPublicBillOpinionRows(
       contextual_quote: o.contextual_quote,
       source_message_id: o.source_message_id,
       bill_sentiment: o.bill_sentiment,
+      richness: o.richness,
       is_public_by_user: report.is_public_by_user,
       is_public_by_admin: report.is_public_by_admin,
       moderation_status: report.moderation_status,

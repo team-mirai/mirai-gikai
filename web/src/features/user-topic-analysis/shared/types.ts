@@ -23,6 +23,11 @@ export type PublicOpinion = {
   role_title: string | null;
   bill_sentiment: "期待" | "懸念" | null;
   contextual_quote: string | null;
+  /**
+   * 意見単位の情報充実度（0-100）。引用の優先表示・並べ替えに使う（集計には使わない）。
+   * 旧データ・未生成は null。
+   */
+  richness: number | null;
   /** 引用の出典メッセージID。レポート詳細の該当メッセージ（#message-<id>）へ遷移するのに使う。 */
   source_message_id: string | null;
   /**
@@ -67,6 +72,8 @@ export type RawOpinionRow = {
   contextual_quote: string | null;
   source_message_id: string | null;
   bill_sentiment: string | null;
+  /** 意見単位の情報充実度（0-100・nullable）。引用の優先表示・並べ替えに使う。 */
+  richness: number | null;
   is_public_by_user: boolean;
   is_public_by_admin: boolean;
   moderation_status: string | null;

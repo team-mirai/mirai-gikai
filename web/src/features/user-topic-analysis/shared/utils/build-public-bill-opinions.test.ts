@@ -12,6 +12,7 @@ function row(overrides: Partial<RawOpinionRow> = {}): RawOpinionRow {
     contextual_quote: "q",
     source_message_id: null,
     bill_sentiment: null,
+    richness: null,
     is_public_by_user: true,
     is_public_by_admin: true,
     moderation_status: "ok",
