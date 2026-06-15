@@ -22,6 +22,7 @@ function op(overrides: Partial<RawOpinionRow> = {}): RawOpinionRow {
     contextual_quote: "q",
     source_message_id: null,
     bill_sentiment: null,
+    richness: null,
     is_public_by_user: true,
     is_public_by_admin: true,
     moderation_status: "ok",
@@ -145,5 +146,63 @@ describe("buildPublicTopicAnalysis（§8 表示時フィルタ）", () => {
     expect(result.version).toBe(3);
     expect(result.bill_id).toBe("bill-1");
     expect(result.generated_at).toBe("2026-06-09T00:00:00.000Z");
+  });
+
+  it("意見を richness 降順で並べ、null は最後尾にする", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("t0", [
+        op({ id: "low", richness: 10 }),
+        op({ id: "none", richness: null }),
+        op({ id: "high", richness: 90 }),
+        op({ id: "mid", richness: 50 }),
+      ]),
+    ]);
+    expect(result.topics[0].opinions.map((o) => o.id)).toEqual([
+      "high",
+      "mid",
+      "low",
+      "none",
+    ]);
+  });
+
+  it("richness 同点は元順序を保つ（安定ソート）", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("t0", [
+        op({ id: "a", richness: 50 }),
+        op({ id: "b", richness: 50 }),
+        op({ id: "c", richness: 50 }),
+      ]),
+    ]);
+    expect(result.topics[0].opinions.map((o) => o.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("richness を PublicOpinion に引き継ぐ", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("t0", [op({ id: "a", richness: 77 })]),
+    ]);
+    expect(result.topics[0].opinions[0].richness).toBe(77);
+  });
+
+  it("集計（件数・内訳・sentiment）は richness ソートの影響を受けない", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("t0", [
+        op({
+          id: "a",
+          role: "subject_expert",
+          bill_sentiment: "期待",
+          richness: 10,
+        }),
+        op({
+          id: "b",
+          role: "subject_expert",
+          bill_sentiment: "懸念",
+          richness: 90,
+        }),
+      ]),
+    ]);
+    const t = result.topics[0];
+    expect(t.opinion_count).toBe(2);
+    expect(t.expert_count).toBe(2);
+    expect(t.sentiment).toEqual({ 期待: 1, 懸念: 1 });
   });
 });

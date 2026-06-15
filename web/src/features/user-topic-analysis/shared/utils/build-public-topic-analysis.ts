@@ -56,7 +56,14 @@ export function buildPublicTopicAnalysis(
   let totalOpinions = 0;
 
   for (const rawTopic of rawTopics) {
-    const displayable = rawTopic.opinions.filter(isDisplayable);
+    // §8 フィルタ後、richness（情報充実度）降順で並べる。
+    // 充実した引用が先頭になり、カード・詳細ともに優先表示される。
+    // null（旧データ・未生成）は最後尾。同点は元順序（report_id, opinion_index）を保つ
+    // ＝ V8 の安定ソートに依存。集計（件数・内訳・sentiment）は順序の影響を受けない。
+    const displayable = rawTopic.opinions
+      .filter(isDisplayable)
+      .slice()
+      .sort((a, b) => (b.richness ?? -1) - (a.richness ?? -1));
     if (displayable.length === 0) {
       // フィルタで全件消えたトピックはカードを作らない（§8/§9）
       continue;
@@ -80,6 +87,7 @@ export function buildPublicTopicAnalysis(
         role_title: o.role_title,
         bill_sentiment: billSentiment,
         contextual_quote: o.contextual_quote,
+        richness: o.richness,
         source_message_id: o.source_message_id,
         question_snippet: null,
       };

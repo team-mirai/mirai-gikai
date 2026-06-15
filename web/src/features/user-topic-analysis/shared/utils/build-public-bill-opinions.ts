@@ -31,6 +31,7 @@ export function buildPublicBillOpinions(
       role_title: o.role_title,
       bill_sentiment: toBillSentiment(o.bill_sentiment),
       contextual_quote: o.contextual_quote,
+      richness: o.richness,
       source_message_id: o.source_message_id,
       question_snippet: null,
     });

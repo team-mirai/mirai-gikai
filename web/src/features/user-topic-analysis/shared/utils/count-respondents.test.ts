@@ -14,6 +14,7 @@ function op(reportId: string): PublicOpinion {
     role_title: null,
     bill_sentiment: null,
     contextual_quote: null,
+    richness: null,
     source_message_id: null,
     question_snippet: null,
   };
