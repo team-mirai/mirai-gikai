@@ -14,8 +14,8 @@ import { useFilteredPagination } from "../hooks/use-filtered-pagination";
 import { TopicFilterChips } from "./topic-filter-chips";
 
 /** 最初に表示する意見件数と、「もっと見る」で1回に追加する件数。 */
-const INITIAL_VISIBLE = 5;
-const LOAD_STEP = 10;
+const INITIAL_VISIBLE = 20;
+const LOAD_STEP = 20;
 
 interface TopicOpinionListProps {
   opinions: PublicOpinion[];

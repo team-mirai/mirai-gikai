@@ -2,6 +2,7 @@ import { isPublicReportVisible } from "@mirai-gikai/shared/report-publication/au
 import { ChevronRight, UserRound } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import type { PublicOpinion } from "../types";
@@ -166,6 +167,14 @@ export function OpinionCard({
     isPublicByUser: true,
     publicReportCount,
   });
+  // レポートリンクは該当メッセージ位置へ飛ばす。
+  // source_message_id が無い場合はレポート先頭にフォールバックする。
+  const reportHref = opinion.source_message_id
+    ? getInterviewMessageLink(
+        opinion.interview_report_id,
+        opinion.source_message_id
+      )
+    : routes.publicReport(opinion.interview_report_id);
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
       {/* アバター + 意見タイトル */}
@@ -177,10 +186,11 @@ export function OpinionCard({
       </div>
 
       {/* stance・カテゴリ・立場 */}
+      {/* カテゴリは4区分すべて表示。詳細な肩書(role_title)は一般市民以外でのみ表示する。 */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <SentimentLabel sentiment={opinion.bill_sentiment} />
-        <CategoryChip opinion={opinion} />
-        {opinion.role_title && (
+        <CategoryChip opinion={opinion} includeCitizen />
+        {opinion.user_category !== "citizen" && opinion.role_title && (
           <span className="inline-flex items-center rounded-xl bg-topic-chip-bg px-1.5 py-1 text-[13px] font-medium text-mirai-text">
             {opinion.role_title}
           </span>
@@ -195,7 +205,7 @@ export function OpinionCard({
         <span className="text-[11px] text-topic-label">{dateLabel}</span>
         {reportVisible && (
           <Link
-            href={routes.publicReport(opinion.interview_report_id) as Route}
+            href={reportHref as Route}
             prefetch={false}
             className="flex items-center gap-0.5 text-[13px] font-medium text-primary-accent hover:underline"
           >
