@@ -3,6 +3,7 @@ import { TOPIC_MODEL } from "../shared/constants";
 import { topicMergeSchema } from "../shared/schemas";
 import type { BillContext, TopicDraft } from "../shared/types";
 import { withRetry } from "../utils/concurrency";
+import { joinSummaryPoints } from "../utils/join-summary-points";
 import { toInlineText } from "../utils/to-inline-text";
 import { buildMergePrompt } from "./prompts";
 
@@ -31,5 +32,8 @@ export async function mergeTopics(
     "merge"
   );
 
-  return object.topics;
+  return object.topics.map((t) => ({
+    title: t.title,
+    description: joinSummaryPoints(t.description_points),
+  }));
 }
