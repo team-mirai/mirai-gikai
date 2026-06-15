@@ -38,6 +38,7 @@ function TopicNav({
 }) {
   return (
     <div className="flex items-center justify-between text-[13px] font-medium text-mirai-text">
+      {/* 先頭では「前のトピック」を非表示にする（位置カウンタを中央に保つため空要素を残す）。 */}
       {prevTopicId ? (
         <Link
           href={routes.billTopicDetail(billId, prevTopicId, filter) as Route}
@@ -47,16 +48,14 @@ function TopicNav({
           前のトピック
         </Link>
       ) : (
-        <span className="flex items-center gap-1 text-mirai-text-muted">
-          <ChevronLeft className="size-4 shrink-0" />
-          前のトピック
-        </span>
+        <span />
       )}
 
       <span className="text-mirai-text-muted">
         {position}/{total}
       </span>
 
+      {/* 末尾では「次のトピック」を非表示にする。 */}
       {nextTopicId ? (
         <Link
           href={routes.billTopicDetail(billId, nextTopicId, filter) as Route}
@@ -66,10 +65,7 @@ function TopicNav({
           <ChevronRight className="size-4 shrink-0" />
         </Link>
       ) : (
-        <span className="flex items-center gap-1 text-mirai-text-muted">
-          次のトピック
-          <ChevronRight className="size-4 shrink-0" />
-        </span>
+        <span />
       )}
     </div>
   );
