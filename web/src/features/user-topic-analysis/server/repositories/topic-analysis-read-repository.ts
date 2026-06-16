@@ -4,6 +4,7 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
   PublishedVersionMeta,
   RawOpinionRow,
+  RawRespondentRow,
   RawTopicRow,
 } from "../../shared/types";
 
@@ -159,4 +160,37 @@ export async function findPublicBillOpinionRows(
       role_title: report.role_title,
     };
   });
+}
+
+/**
+ * 議案に紐づく公開レポート（回答者）を全件取得する。
+ * 公開レポート（管理者公開 × ユーザー公開）と同一基準でフィルタし、
+ * 回答一覧（回答者1人=1カード）で使用する。新しい回答が上に来るよう降順。
+ */
+export async function findPublicBillRespondentRows(
+  billId: string
+): Promise<RawRespondentRow[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_report")
+    .select(
+      `id, role, role_title, stance, summary, created_at,
+       interview_sessions!inner(interview_configs!inner(bill_id))`
+    )
+    .eq("interview_sessions.interview_configs.bill_id", billId)
+    .eq("is_public_by_admin", true)
+    .eq("is_public_by_user", true)
+    .order("created_at", { ascending: false });
+  if (error) {
+    throw new Error(`Failed to fetch bill respondents: ${error.message}`);
+  }
+
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    role: r.role,
+    role_title: r.role_title,
+    stance: r.stance,
+    summary: r.summary,
+    created_at: r.created_at,
+  }));
 }

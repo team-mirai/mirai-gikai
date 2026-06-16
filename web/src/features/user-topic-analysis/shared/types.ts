@@ -95,3 +95,30 @@ export type PublishedVersionMeta = {
   version: number;
   generated_at: string | null;
 };
+
+// ── 回答一覧（回答者1人=1カード）の表示データ ──
+
+/** 回答一覧カード1件（公開レポート＝回答者1人）。 */
+export type PublicRespondent = {
+  /** 出典インタビューレポートID（レポート詳細への遷移に使う）。 */
+  id: string;
+  user_category: UserCategory;
+  /** 発言者の立場の短縮タイトル（interview_report.role_title）。 */
+  role_title: string | null;
+  /** 賛否（for=期待 / against=懸念 / それ以外=null）。 */
+  bill_sentiment: "期待" | "懸念" | null;
+  /** レポートの要約テキスト（カード本文に表示）。 */
+  summary: string | null;
+  /** 出典レポートの作成日時（相対表示・日付表示に使う）。 */
+  created_at: string | null;
+};
+
+/** リポジトリが返す生のレポート行（回答一覧用・pure 関数の入力）。 */
+export type RawRespondentRow = {
+  id: string;
+  role: string | null;
+  role_title: string | null;
+  stance: string | null;
+  summary: string | null;
+  created_at: string | null;
+};

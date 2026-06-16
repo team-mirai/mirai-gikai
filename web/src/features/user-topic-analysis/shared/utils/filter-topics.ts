@@ -86,6 +86,28 @@ export function filterAndSortTopics(
 }
 
 /**
+ * user_category / bill_sentiment を持つ要素を、指定フィルタ次元で絞り込む純粋関数。
+ * "all" は全件。カテゴリは user_category、期待/懸念は bill_sentiment で一致判定する。
+ * 意見（PublicOpinion）と回答者（PublicRespondent）で共通利用する。
+ */
+export function filterByAttributes<
+  T extends {
+    user_category: UserCategory;
+    bill_sentiment: "期待" | "懸念" | null;
+  },
+>(items: T[], filter: TopicFilter): T[] {
+  switch (filter) {
+    case "all":
+      return items;
+    case "期待":
+    case "懸念":
+      return items.filter((i) => i.bill_sentiment === filter);
+    default:
+      return items.filter((i) => i.user_category === filter);
+  }
+}
+
+/**
  * トピック詳細の意見一覧を、指定フィルタ次元で絞り込む純粋関数。
  * "all" は全件。カテゴリは user_category、期待/懸念は bill_sentiment で一致判定する。
  */
@@ -93,13 +115,5 @@ export function filterOpinions(
   opinions: PublicOpinion[],
   filter: TopicFilter
 ): PublicOpinion[] {
-  switch (filter) {
-    case "all":
-      return opinions;
-    case "期待":
-    case "懸念":
-      return opinions.filter((o) => o.bill_sentiment === filter);
-    default:
-      return opinions.filter((o) => o.user_category === filter);
-  }
+  return filterByAttributes(opinions, filter);
 }
