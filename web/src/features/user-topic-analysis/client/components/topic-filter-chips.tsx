@@ -1,17 +1,19 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
 import { TrendingDown, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { userCategoryIcons } from "../../shared/components/topic-meta";
+import {
+  type IconComponent,
+  userCategoryIcons,
+} from "../../shared/components/topic-meta";
 import {
   type TopicFilter,
   type TopicFilterChip,
   topicFilterOptions,
 } from "../../shared/utils/filter-topics";
 
-const filterIcons: Record<TopicFilterChip, LucideIcon> = {
+const filterIcons: Record<TopicFilterChip, IconComponent> = {
   affected: userCategoryIcons.affected,
   industry: userCategoryIcons.industry,
   expert: userCategoryIcons.expert,
