@@ -17,21 +17,21 @@ function QuoteItem({
   messageHref: string | null;
 }) {
   const attribution = opinionAttributionLabel(opinion);
+  // 引用本文は4行を超えると ... で省略する（line-clamp は display:-webkit-box を設定）。
+  // 肩書は省略対象から外し、省略時も常に表示されるよう本文の下に置く。
   const body = (
     <>
-      <span className="mr-1 align-[-0.1em] text-[18px] text-primary-accent">
-        “
+      <span className="font-mirai-serif text-[14px] font-semibold leading-[22px] text-mirai-text line-clamp-4 hover:underline">
+        <span className="mr-1 align-[-0.1em] text-[18px] text-primary-accent">
+          “
+        </span>
+        {opinion.contextual_quote}
       </span>
-      {opinion.contextual_quote}
-      <span className="ml-1 whitespace-nowrap text-[11px] text-primary-accent">
+      <span className="mt-0.5 block whitespace-nowrap text-[11px] text-primary-accent">
         （<span className="underline">{attribution}</span>）
       </span>
     </>
   );
-
-  // 4行を超える引用は ... で省略する（line-clamp は display:-webkit-box を設定するため block 指定は不要）。
-  const className =
-    "font-mirai-serif text-[14px] font-semibold leading-[22px] text-mirai-text line-clamp-4";
 
   return (
     <div className="ml-2 border-l border-mirai-border pl-4">
@@ -39,12 +39,12 @@ function QuoteItem({
         <Link
           href={messageHref as Route}
           prefetch={false}
-          className={`pointer-events-auto ${className} hover:underline`}
+          className="pointer-events-auto block"
         >
           {body}
         </Link>
       ) : (
-        <p className={className}>{body}</p>
+        <div>{body}</div>
       )}
     </div>
   );
