@@ -1,25 +1,28 @@
-import type { LucideIcon } from "lucide-react";
 import {
   Briefcase,
   GraduationCap,
   House,
   TrendingDown,
   TrendingUp,
-  Users,
 } from "lucide-react";
+import type { ComponentType } from "react";
 import { cn } from "@/lib/utils";
 import type { PublicTopic, UserCategory } from "../types";
 import {
   userCategoryColorClass,
   userCategoryLabels,
 } from "../utils/topic-category";
+import { UsersThreeIcon } from "./users-three-icon";
+
+/** className を受け取れるアイコンコンポーネント（lucide / カスタム共通）。 */
+export type IconComponent = ComponentType<{ className?: string }>;
 
 /** §9 の4区分のアイコン（カテゴリchip・フィルタchipで共通利用）。 */
-export const userCategoryIcons: Record<UserCategory, LucideIcon> = {
+export const userCategoryIcons: Record<UserCategory, IconComponent> = {
   affected: House,
   industry: Briefcase,
   expert: GraduationCap,
-  citizen: Users,
+  citizen: UsersThreeIcon,
 };
 
 /**
