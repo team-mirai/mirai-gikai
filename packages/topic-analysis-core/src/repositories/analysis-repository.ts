@@ -79,14 +79,16 @@ export async function markOpinionsExtracted(
   }
 }
 
-/** 全議案の id 一覧を取得する（全議案トピック分析の対象列挙用）。 */
-export async function listAllBillIds(): Promise<string[]> {
+/** 全議案の id・タイトルを取得する（全議案トピック分析の対象列挙・ログ表示用）。 */
+export async function listAllBills(): Promise<
+  Array<{ id: string; name: string }>
+> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase.from("bills").select("id");
+  const { data, error } = await supabase.from("bills").select("id, name");
   if (error) {
     throw new Error(`Failed to list bills: ${error.message}`);
   }
-  return (data ?? []).map((b) => b.id);
+  return (data ?? []).map((b) => ({ id: b.id, name: b.name }));
 }
 
 /** 議案コンテキスト（プロンプト接地用）を取得する。本文は bill_contents（normal）から。 */

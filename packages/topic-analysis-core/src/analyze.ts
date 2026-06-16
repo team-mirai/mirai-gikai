@@ -4,7 +4,7 @@ import {
   fetchTargetOpinions,
   finalizeVersion,
   getTopicsWithOpinions,
-  listAllBillIds,
+  listAllBills,
   listVersionsByBill,
   loadProgress,
   markOpinionsExtracted,
@@ -250,8 +250,8 @@ export async function runAnalysis(
 export async function runAnalyzeAll(
   strategy: AnalysisStrategy = "incremental"
 ): Promise<void> {
-  const billIds = await listAllBillIds();
-  const total = billIds.length;
+  const bills = await listAllBills();
+  const total = bills.length;
   console.log(
     `[topic-analysis] start analyze-all bills=${total} strategy=${strategy}`
   );
@@ -260,18 +260,18 @@ export async function runAnalyzeAll(
   let failed = 0;
 
   for (let i = 0; i < total; i++) {
-    const billId = billIds[i];
-    // 全体進捗（何件目／全何件）と議案ごとの開始・終了をログに出す。
+    const { id: billId, name } = bills[i];
+    // 全体進捗（何件目／全何件）と議案ごとの開始・終了をログに出す（議案はタイトルで表示）。
     const progress = `${i + 1}/${total}`;
     console.log(
-      `[topic-analysis] analyze-all (${progress}) start bill=${billId}`
+      `[topic-analysis] analyze-all (${progress}) start 議案=${name}`
     );
     try {
       const targets = await fetchTargetOpinions(billId);
       if (targets.length === 0) {
         skipped++;
         console.log(
-          `[topic-analysis] analyze-all (${progress}) skip bill=${billId} (対象意見なし)`
+          `[topic-analysis] analyze-all (${progress}) skip 議案=${name} (対象意見なし)`
         );
         continue;
       }
@@ -283,7 +283,7 @@ export async function runAnalyzeAll(
         if (hasCompleted && !hasNew) {
           skipped++;
           console.log(
-            `[topic-analysis] analyze-all (${progress}) skip bill=${billId} (新規意見なし)`
+            `[topic-analysis] analyze-all (${progress}) skip 議案=${name} (新規意見なし)`
           );
           continue;
         }
@@ -298,25 +298,25 @@ export async function runAnalyzeAll(
         // 実行中/保留中の版が既にある（one_active_version_per_bill）。
         skipped++;
         console.log(
-          `[topic-analysis] analyze-all (${progress}) skip bill=${billId} (実行中の版あり)`
+          `[topic-analysis] analyze-all (${progress}) skip 議案=${name} (実行中の版あり)`
         );
         continue;
       }
       await runAnalysis(version.id, billId, strategy);
       analyzed++;
       console.log(
-        `[topic-analysis] analyze-all (${progress}) done bill=${billId} version=${version.id}`
+        `[topic-analysis] analyze-all (${progress}) done 議案=${name} version=${version.id}`
       );
     } catch (error) {
       failed++;
       const message = error instanceof Error ? error.message : "unknown error";
       console.error(
-        `[topic-analysis] analyze-all (${progress}) failed bill=${billId}: ${message}`
+        `[topic-analysis] analyze-all (${progress}) failed 議案=${name}: ${message}`
       );
     }
   }
 
   console.log(
-    `[topic-analysis] analyze-all done: analyzed=${analyzed} skipped=${skipped} failed=${failed} (bills=${billIds.length}) strategy=${strategy}`
+    `[topic-analysis] analyze-all done: analyzed=${analyzed} skipped=${skipped} failed=${failed} (bills=${total}) strategy=${strategy}`
   );
 }
