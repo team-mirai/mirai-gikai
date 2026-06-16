@@ -5,7 +5,7 @@ export const userCategoryLabels: Record<UserCategory, string> = {
   affected: "当事者",
   industry: "事業者",
   expert: "専門家",
-  citizen: "一般市民",
+  citizen: "市民",
 };
 
 /**

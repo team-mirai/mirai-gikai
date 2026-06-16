@@ -16,7 +16,7 @@ export const topicFilterOptions: { value: TopicFilterChip; label: string }[] = [
   { value: "affected", label: "当事者" },
   { value: "industry", label: "事業者" },
   { value: "expert", label: "専門家" },
-  { value: "citizen", label: "一般市民" },
+  { value: "citizen", label: "市民" },
 ];
 
 /** 有効な全フィルタ値（URL クエリのバリデーション用）。 */
