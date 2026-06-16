@@ -11,6 +11,7 @@ const navigationLinks = [
   { href: routes.dietSessions(), label: "国会会期管理" },
   { href: routes.tags(), label: "タグ管理" },
   { href: routes.interviews(), label: "インタビュー" },
+  { href: routes.userTopicAnalysisAll(), label: "全議案トピック分析" },
   { href: routes.experts(), label: "有識者" },
   { href: routes.admins(), label: "管理者" },
 ];

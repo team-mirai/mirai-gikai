@@ -28,16 +28,23 @@ export async function POST(request: Request) {
   }
 
   let billId: string;
+  let strategy: "full" | "incremental" = "full";
   try {
     const body: unknown = await request.json();
-    const rawBillId =
+    const obj =
       typeof body === "object" && body !== null
-        ? (body as { billId?: unknown }).billId
-        : undefined;
-    if (typeof rawBillId !== "string" || rawBillId.trim() === "") {
+        ? (body as { billId?: unknown; strategy?: unknown })
+        : {};
+    if (typeof obj.billId !== "string" || obj.billId.trim() === "") {
       return json({ error: "billId is required" }, 400);
     }
-    billId = rawBillId.trim();
+    billId = obj.billId.trim();
+    if (obj.strategy !== undefined) {
+      if (obj.strategy !== "full" && obj.strategy !== "incremental") {
+        return json({ error: "strategy must be 'full' or 'incremental'" }, 400);
+      }
+      strategy = obj.strategy;
+    }
   } catch {
     return json({ error: "Invalid JSON body" }, 400);
   }
@@ -77,6 +84,7 @@ export async function POST(request: Request) {
         "--mode=analyze",
         `--bill-id=${billId}`,
         `--version-id=${version.id}`,
+        `--strategy=${strategy}`,
       ]);
     } catch (triggerError) {
       // ジョブ起動に失敗した場合は version を failed にして残骸（pending のまま）を防ぐ。
