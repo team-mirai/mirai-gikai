@@ -37,36 +37,38 @@ function TopicNav({
   filter: TopicFilter;
 }) {
   return (
-    <div className="flex items-center justify-between text-[13px] font-medium text-mirai-text">
-      {/* 先頭では「前のトピック」を非表示にする（位置カウンタを中央に保つため空要素を残す）。 */}
-      {prevTopicId ? (
-        <Link
-          href={routes.billTopicDetail(billId, prevTopicId, filter) as Route}
-          className="flex items-center gap-1 text-primary-accent hover:underline"
-        >
-          <ChevronLeft className="size-4 shrink-0" />
-          前のトピック
-        </Link>
-      ) : (
-        <span />
-      )}
+    // 3カラムグリッドで中央の位置カウンタを常に中央寄せにする
+    // （前後リンクの有無にかかわらず位置がぶれないようにする）。
+    <div className="grid grid-cols-3 items-center text-[13px] font-medium text-mirai-text">
+      {/* 先頭では「前のトピック」を非表示にする。 */}
+      <div className="justify-self-start">
+        {prevTopicId && (
+          <Link
+            href={routes.billTopicDetail(billId, prevTopicId, filter) as Route}
+            className="flex items-center gap-1 text-primary-accent hover:underline"
+          >
+            <ChevronLeft className="size-4 shrink-0" />
+            前のトピック
+          </Link>
+        )}
+      </div>
 
-      <span className="text-mirai-text-muted">
+      <span className="justify-self-center text-mirai-text-muted">
         {position}/{total}
       </span>
 
       {/* 末尾では「次のトピック」を非表示にする。 */}
-      {nextTopicId ? (
-        <Link
-          href={routes.billTopicDetail(billId, nextTopicId, filter) as Route}
-          className="flex items-center gap-1 text-primary-accent hover:underline"
-        >
-          次のトピック
-          <ChevronRight className="size-4 shrink-0" />
-        </Link>
-      ) : (
-        <span />
-      )}
+      <div className="justify-self-end">
+        {nextTopicId && (
+          <Link
+            href={routes.billTopicDetail(billId, nextTopicId, filter) as Route}
+            className="flex items-center gap-1 text-primary-accent hover:underline"
+          >
+            次のトピック
+            <ChevronRight className="size-4 shrink-0" />
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
@@ -126,7 +128,7 @@ export async function TopicDetailPage({
           </div>
 
           <h1 className="text-[22px] font-bold leading-9 text-mirai-text">
-            💬法案のトピック詳細
+            💬トピックに含まれる意見
           </h1>
 
           <TopicNav

@@ -1,9 +1,10 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { TrendingDown, TrendingUp, UserRound, X } from "lucide-react";
+import { TrendingDown, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { userCategoryIcons } from "../../shared/components/topic-meta";
 import {
   type TopicFilter,
   type TopicFilterChip,
@@ -11,10 +12,10 @@ import {
 } from "../../shared/utils/filter-topics";
 
 const filterIcons: Record<TopicFilterChip, LucideIcon> = {
-  affected: UserRound,
-  industry: UserRound,
-  expert: UserRound,
-  citizen: UserRound,
+  affected: userCategoryIcons.affected,
+  industry: userCategoryIcons.industry,
+  expert: userCategoryIcons.expert,
+  citizen: userCategoryIcons.citizen,
   期待: TrendingUp,
   懸念: TrendingDown,
 };

@@ -117,13 +117,20 @@ describe("filterOpinions", () => {
 
 describe("parseTopicFilter", () => {
   it("有効な値はそのまま返す", () => {
-    for (const v of ["all", "affected", "industry", "expert", "期待", "懸念"]) {
+    for (const v of [
+      "all",
+      "affected",
+      "industry",
+      "expert",
+      "citizen",
+      "期待",
+      "懸念",
+    ]) {
       expect(parseTopicFilter(v)).toBe(v);
     }
   });
 
   it("不正値・null・undefined は all に倒す", () => {
-    expect(parseTopicFilter("citizen")).toBe("all");
     expect(parseTopicFilter("xxx")).toBe("all");
     expect(parseTopicFilter(null)).toBe("all");
     expect(parseTopicFilter(undefined)).toBe("all");
