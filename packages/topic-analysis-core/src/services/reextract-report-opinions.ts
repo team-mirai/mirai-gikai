@@ -8,10 +8,7 @@ import {
 } from "@mirai-gikai/shared/interview-report/schema";
 import { syncInterviewOpinions } from "@mirai-gikai/shared/interview-report/sync-opinions";
 import { generateObject } from "ai";
-import {
-  markReextractionAttempted,
-  updateReportOpinions,
-} from "../repositories/backfill-repository";
+import { markReextractionAttempted } from "../repositories/backfill-repository";
 import {
   fetchBillWithContents,
   findInterviewConfigById,
@@ -44,11 +41,13 @@ function createDefaultGenerateReport(model: string): GenerateReportFn {
 }
 
 /**
- * 1レポートの意見を新プロンプトで再抽出し、opinions だけを更新する。
- * summary/stance/role/content_richness/moderation/公開フラグは保持する。
- * 成功時は更新とともに、恒久的にスキップ（セッション/設定/メッセージ無し）の場合も
- * ウォーターマーク（opinions_reextracted_at）を進める。
- * ただし生成・更新・同期の失敗時は進めない（次回再実行で再試行される）。
+ * 1レポートの意見を新プロンプトで再抽出し、**interview_opinion テーブルのみ**更新する。
+ * interview_report.opinions(JSONB) は「ユーザーが確認した当時のレポート」の記録として
+ * 書き換えない（再抽出はトピック分析用の意見だけを更新する）。summary/stance/role 等の
+ * report カラムも保持する。
+ * 成功時はテーブル同期に加えてウォーターマーク（opinions_reextracted_at）を進める。
+ * 恒久的にスキップ（セッション/設定/メッセージ無し）の場合も進める。
+ * ただし生成・同期の失敗時は進めない（次回再実行で再試行される）。
  */
 export async function reextractReportOpinions(
   target: BackfillTargetReport,
@@ -102,21 +101,20 @@ export async function reextractReportOpinions(
 
     const report = await generateReport({ systemPrompt });
 
-    // source_message_id を元発言に解決し source_message_content を付与
+    // source_message_id を元発言に解決して interview_opinion 行を作る。
     const enrichedOpinions = enrichOpinionsWithSourceContent(
       report.opinions,
       messages ?? []
     );
 
-    // interview_opinion（正規化プロジェクション）を先に同期し、
-    // 最後に opinions + ウォーターマークを書く。こうすることで
-    // ウォーターマークが立つ = update と sync の両方が成功した状態のみとなり、
-    // sync 失敗時に「opinions だけ更新されて projection が古いまま完了扱い」になるのを防ぐ。
+    // 再抽出は interview_opinion テーブルのみ更新する（JSONB は原本として書き換えない）。
+    // テーブル同期に成功した場合だけウォーターマークを進める。こうすることで
+    // 「同期は失敗したのに完了扱い」になるのを防ぐ（次回再実行で再試行される）。
     await syncInterviewOpinions(
       reportId,
       buildInterviewOpinionRows(reportId, enrichedOpinions)
     );
-    await updateReportOpinions(reportId, enrichedOpinions, nowIso);
+    await markReextractionAttempted(reportId, nowIso);
 
     return { reportId, status: "updated" };
   } catch (error) {

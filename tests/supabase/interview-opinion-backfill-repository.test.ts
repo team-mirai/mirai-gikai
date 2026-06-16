@@ -4,7 +4,6 @@ import {
   findReportsToReextract,
   markReextractionAttempted,
   resetReextractionForBill,
-  updateReportOpinions,
 } from "@mirai-gikai/topic-analysis-core/repository";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -123,44 +122,6 @@ describe("interview-opinion-backfill repository 統合テスト", () => {
       publicNew.id,
       privateOldest.id,
     ]);
-  });
-
-  it("updateReportOpinions は opinions と処理時刻のみ更新し他カラムは保持する", async () => {
-    const report = await createReport({
-      configId,
-      userId: testUser.id,
-      isPublicByUser: true,
-      createdAt: "2023-01-01T00:00:00Z",
-      summary: "保持されるサマリ",
-      opinions: [{ title: "旧", content: "旧内容", source_message_id: null }],
-    });
-
-    const newOpinions = [
-      {
-        title: "新意見",
-        content: "新内容",
-        source_message_id: null,
-        contextual_quote: "（議案について）新引用",
-        bill_sentiment: "期待",
-        source_message_content: null,
-      },
-    ];
-    const iso = "2026-06-08T00:00:00Z";
-    await updateReportOpinions(report.id, newOpinions, iso);
-
-    const { data: updated } = await adminClient
-      .from("interview_report")
-      .select("opinions, opinions_reextracted_at, summary, stance")
-      .eq("id", report.id)
-      .single();
-
-    expect(updated?.opinions).toEqual(newOpinions);
-    expect(new Date(updated?.opinions_reextracted_at ?? 0).getTime()).toBe(
-      new Date(iso).getTime()
-    );
-    // 他フィールドは不変
-    expect(updated?.summary).toBe("保持されるサマリ");
-    expect(updated?.stance).toBe("for");
   });
 
   it("countPendingReextraction は markReextractionAttempted で減る", async () => {

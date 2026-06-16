@@ -129,30 +129,6 @@ export async function resetReextractionForBill(
 }
 
 /**
- * 再抽出した意見でレポートを更新し、処理時刻を記録する（成功時）。
- * opinions 以外のカラム（summary/stance/role/richness/moderation/公開フラグ）は変更しない。
- */
-export async function updateReportOpinions(
-  reportId: string,
-  opinions: unknown,
-  reextractedAtIso: string
-): Promise<void> {
-  const supabase = createAdminClient();
-  // opinions は呼び出し側で enrich 済みの配列。JSONB カラムの厳密型を満たすため as never でキャスト。
-  const { error } = await supabase
-    .from("interview_report")
-    .update({
-      opinions: opinions as never,
-      opinions_reextracted_at: reextractedAtIso,
-    })
-    .eq("id", reportId);
-
-  if (error) {
-    throw new Error(`Failed to update report opinions: ${error.message}`);
-  }
-}
-
-/**
  * 再抽出を試行したが失敗したレポートに処理時刻だけ記録する。
  * 公開同意優先の並びで失敗レポートが先頭に滞留して前進が止まるのを防ぐため、
  * 失敗時もウォーターマークを進める（再実行時は当該行を NULL に戻す）。
