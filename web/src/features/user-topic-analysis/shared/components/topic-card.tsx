@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
+import { ClampedQuote } from "../../client/components/clamped-quote";
 import type { PublicOpinion, PublicTopic } from "../types";
 import { filterOpinions, type TopicFilter } from "../utils/filter-topics";
 import { opinionAttributionLabel } from "../utils/topic-category";
@@ -16,20 +17,12 @@ function QuoteItem({
   opinion: PublicOpinion;
   messageHref: string | null;
 }) {
-  const attribution = opinionAttributionLabel(opinion);
-  // 肩書を含めて最大4行に収める: 引用本文は3行で省略し、その下に肩書1行（常時表示）。
+  // 肩書を含めて最大4行に収め、省略時は末尾に「…（肩書）」を表示する。
   const body = (
-    <>
-      <span className="font-mirai-serif text-[14px] font-semibold leading-[22px] text-mirai-text line-clamp-3 hover:underline">
-        <span className="mr-1 align-[-0.1em] text-[18px] text-primary-accent">
-          “
-        </span>
-        {opinion.contextual_quote}
-      </span>
-      <span className="mt-0.5 block whitespace-nowrap text-[11px] text-primary-accent">
-        （<span className="underline">{attribution}</span>）
-      </span>
-    </>
+    <ClampedQuote
+      quote={opinion.contextual_quote ?? ""}
+      attribution={opinionAttributionLabel(opinion)}
+    />
   );
 
   return (
@@ -43,7 +36,7 @@ function QuoteItem({
           {body}
         </Link>
       ) : (
-        <div>{body}</div>
+        body
       )}
     </div>
   );
