@@ -25,7 +25,7 @@ interface RespondentListProps {
 
 export function RespondentList({ respondents, nowMs }: RespondentListProps) {
   const now = new Date(nowMs);
-  const { filter, visible, remaining, selectFilter, loadMore } =
+  const { filter, filtered, visible, remaining, selectFilter, loadMore } =
     useFilteredPagination(
       respondents,
       filterByAttributes,
@@ -44,10 +44,14 @@ export function RespondentList({ respondents, nowMs }: RespondentListProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      <p className="text-[13px] font-bold text-topic-label">
+        {filtered.length}人のインタビューの回答
+      </p>
       <TopicFilterChips
         activeFilter={filter}
         onSelect={selectFilter}
         counts={counts}
+        countSuffix="人"
       />
 
       <div className="flex flex-col gap-4">
@@ -74,7 +78,7 @@ export function RespondentList({ respondents, nowMs }: RespondentListProps) {
             onClick={loadMore}
             className="h-auto w-full gap-2.5 rounded-[100px] border-mirai-text bg-white px-6 py-3 text-[15px] font-medium text-mirai-text hover:bg-mirai-surface-gray"
           >
-            あと {remaining} 件のインタビュー回答を見る
+            あと {remaining} 人のインタビュー回答を見る
             <ChevronDown className="size-[15px] shrink-0" />
           </Button>
         </div>
