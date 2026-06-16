@@ -1,4 +1,9 @@
-import { ChevronRight, UserRound } from "lucide-react";
+import {
+  ChevronRight,
+  TrendingDown,
+  TrendingUp,
+  UserRound,
+} from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
@@ -71,12 +76,17 @@ export function RespondentCard({ respondent, now }: RespondentCardProps) {
         {respondent.bill_sentiment && (
           <span
             className={cn(
-              "text-[13px] font-medium",
+              "flex items-center gap-1 text-[13px] font-medium",
               respondent.bill_sentiment === "期待"
                 ? "text-primary-accent"
                 : "text-stance-against-light"
             )}
           >
+            {respondent.bill_sentiment === "期待" ? (
+              <TrendingUp className="size-4 shrink-0" />
+            ) : (
+              <TrendingDown className="size-4 shrink-0" />
+            )}
             {respondent.bill_sentiment}
           </span>
         )}
