@@ -1242,6 +1242,10 @@ export type Database = {
         }[]
       }
       is_admin: { Args: never; Returns: boolean }
+      mark_opinions_extracted: {
+        Args: { p_extracted_at: string; p_ids: string[] }
+        Returns: undefined
+      }
       publish_topic_analysis_version: {
         Args: { p_version_id: string }
         Returns: undefined

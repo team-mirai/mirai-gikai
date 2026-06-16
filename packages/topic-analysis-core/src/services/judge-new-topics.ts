@@ -55,10 +55,12 @@ export async function judgeNewTopics(
     prompt: buildJudgeNewTopicsPrompt(bill, existingTopicsText, candidatesText),
   });
 
-  // 1始まりの番号を候補配列の index に変換。範囲外・重複は無視。
+  // 1始まりの番号を候補配列の index に変換。非整数・範囲外・重複は無視する
+  // （schema は緩く受け、ここで防御的に正規化する＝ZodError で pipeline を落とさない方針）。
   const seen = new Set<number>();
   const accepted: TopicDraft[] = [];
   for (const n of accepted_indices) {
+    if (!Number.isInteger(n)) continue;
     const idx = n - 1;
     if (idx < 0 || idx >= candidates.length || seen.has(idx)) continue;
     seen.add(idx);

@@ -62,25 +62,20 @@ export async function fetchTargetOpinions(
 
 /**
  * 指定意見にトピック抽出済みウォーターマーク(topic_extracted_at)を記録する（増分用）。
- * 次回以降の増分抽出で「新規(未抽出)」対象から外すため。大量でも 1 update で済むよう in で一括更新。
+ * 次回以降の増分抽出で「新規(未抽出)」対象から外すため。
+ * DB 関数 mark_opinions_extracted で単一トランザクション一括更新する（部分更新を残さない）。
  */
 export async function markOpinionsExtracted(
   opinionIds: string[]
 ): Promise<void> {
   if (opinionIds.length === 0) return;
   const supabase = createAdminClient();
-  const nowIso = new Date().toISOString();
-  // in 句が極端に長くなるのを避けてチャンク分割（PostgREST の URL 長制限対策）。
-  const CHUNK = 200;
-  for (let i = 0; i < opinionIds.length; i += CHUNK) {
-    const ids = opinionIds.slice(i, i + CHUNK);
-    const { error } = await supabase
-      .from("interview_opinion")
-      .update({ topic_extracted_at: nowIso })
-      .in("id", ids);
-    if (error) {
-      throw new Error(`Failed to mark opinions extracted: ${error.message}`);
-    }
+  const { error } = await supabase.rpc("mark_opinions_extracted", {
+    p_ids: opinionIds,
+    p_extracted_at: new Date().toISOString(),
+  });
+  if (error) {
+    throw new Error(`Failed to mark opinions extracted: ${error.message}`);
   }
 }
 

@@ -91,7 +91,7 @@ async function executeAssign(versionId: string): Promise<void> {
   await finalizeVersion(versionId, targetOpinions.length);
   // version が完了してから抽出済みを記録する（finalize 後に置く理由は増分側と同じ）。
   // フル分析では全対象意見を抽出済みにし、以後の増分で「新規」として再抽出されないようにする。
-  await markOpinionsExtracted(targetOpinions.map((o) => o.opinion_id));
+  await markExtractedBestEffort(targetOpinions.map((o) => o.opinion_id));
   await autoPublish(versionId);
 }
 
@@ -118,6 +118,23 @@ async function autoPublish(versionId: string): Promise<void> {
   } catch (error) {
     console.error(
       `[UserTopicAnalysis] auto-publish failed (version ${versionId} stays completed):`,
+      error
+    );
+  }
+}
+
+/**
+ * 抽出済みウォーターマークの記録（best-effort）。version 完了後の付帯処理なので、
+ * ここで失敗しても完了した version を failed に倒さない。失敗時は当該意見が次回
+ * 「新規」として再抽出されるだけ（重複コストのみで、データ欠落や取りこぼしは起きない）。
+ */
+async function markExtractedBestEffort(opinionIds: string[]): Promise<void> {
+  if (opinionIds.length === 0) return;
+  try {
+    await markOpinionsExtracted(opinionIds);
+  } catch (error) {
+    console.error(
+      `[UserTopicAnalysis] mark-extracted failed (version stays completed):`,
       error
     );
   }
@@ -188,9 +205,7 @@ async function runIncrementalAnalysis(
   // version が完了(known-good)になってから抽出済みを記録する。finalize 前に記録すると、
   // finalize 失敗時に「未保存なのに抽出済み」になり、新規意見が次回以降に再抽出されず
   // 新トピックが二度と提案されなくなるため（completed 後に置く）。
-  if (unextracted.length > 0) {
-    await markOpinionsExtracted(unextracted.map((o) => o.opinion_id));
-  }
+  await markExtractedBestEffort(unextracted.map((o) => o.opinion_id));
   await autoPublish(versionId);
 }
 
