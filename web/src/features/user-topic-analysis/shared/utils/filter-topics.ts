@@ -8,15 +8,15 @@ export type TopicFilterChip = Exclude<TopicFilter, "all">;
 
 /**
  * フィルタchipの表示順とラベル。
- * 「一般（citizen）」はデザイン上chipを設けないため意図的に含めない
- * （countFor/filterOpinions はロジックの網羅性のため citizen も扱う）。
+ * 順序は 期待 → 懸念 → 当事者 → 事業者 → 専門家 → 一般市民。
  */
 export const topicFilterOptions: { value: TopicFilterChip; label: string }[] = [
+  { value: "期待", label: "期待" },
+  { value: "懸念", label: "懸念" },
   { value: "affected", label: "当事者" },
   { value: "industry", label: "事業者" },
   { value: "expert", label: "専門家" },
-  { value: "期待", label: "期待" },
-  { value: "懸念", label: "懸念" },
+  { value: "citizen", label: "一般市民" },
 ];
 
 /** 有効な全フィルタ値（URL クエリのバリデーション用）。 */

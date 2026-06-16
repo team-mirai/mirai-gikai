@@ -1,4 +1,12 @@
-import { UserRound } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Briefcase,
+  GraduationCap,
+  House,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PublicTopic, UserCategory } from "../types";
 import {
@@ -6,14 +14,23 @@ import {
   userCategoryLabels,
 } from "../utils/topic-category";
 
+/** §9 の4区分のアイコン（カテゴリchip・フィルタchipで共通利用）。 */
+export const userCategoryIcons: Record<UserCategory, LucideIcon> = {
+  affected: House,
+  industry: Briefcase,
+  expert: GraduationCap,
+  citizen: Users,
+};
+
 /**
  * カテゴリchipの表示順と件数フィールド。
- * 「一般市民(citizen)」は表示しない方針のため含めない。
+ * 順序は 当事者 → 事業者 → 専門家 → 一般市民。
  */
 const CATEGORY_ORDER: { category: UserCategory; count: keyof PublicTopic }[] = [
   { category: "affected", count: "affected_count" },
   { category: "industry", count: "industry_count" },
   { category: "expert", count: "expert_count" },
+  { category: "citizen", count: "citizen_count" },
 ];
 
 /** 期待・懸念の件数表示（どちらも0なら何も描画しない）。 */
@@ -27,7 +44,7 @@ export function TopicSentiment({
 }) {
   if (sentiment.期待 <= 0 && sentiment.懸念 <= 0) return null;
   return (
-    <div className="flex items-center gap-3 text-[13px] font-medium">
+    <div className="flex items-center gap-4 text-[13px] font-medium">
       {sentiment.期待 > 0 && (
         <span
           className={cn(
@@ -35,6 +52,7 @@ export function TopicSentiment({
             highlight === "期待" ? "bg-stance-for-bg font-bold" : "px-0 py-0"
           )}
         >
+          <TrendingUp className="size-4 shrink-0" />
           期待<span>{sentiment.期待}</span>
         </span>
       )}
@@ -47,6 +65,7 @@ export function TopicSentiment({
               : "px-0 py-0"
           )}
         >
+          <TrendingDown className="size-4 shrink-0" />
           懸念<span>{sentiment.懸念}</span>
         </span>
       )}
@@ -69,6 +88,7 @@ export function TopicCategoryChips({
         const value = topic[count] as number;
         if (value <= 0) return null;
         const isHighlighted = category === highlightCategory;
+        const Icon = userCategoryIcons[category];
         return (
           <span
             key={category}
@@ -77,14 +97,14 @@ export function TopicCategoryChips({
               isHighlighted ? "bg-mirai-gradient font-bold" : "bg-topic-chip-bg"
             )}
           >
-            <UserRound
+            <Icon
               className={cn(
-                "size-[13px] shrink-0",
+                "size-[14px] shrink-0",
                 userCategoryColorClass[category]
               )}
             />
             <span className="text-[13px] font-medium leading-[14px] text-mirai-text">
-              {value}人の{userCategoryLabels[category]}
+              {userCategoryLabels[category]} {value}
             </span>
           </span>
         );
