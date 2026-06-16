@@ -32,3 +32,12 @@ export const topicMergeSchema = z.object({
       "重複・近接を統合した議案全体の最終トピック集合。「その他」等の総括トピックは含めない"
     ),
 });
+
+/** 増分分析の差分判定（採用する新規トピック候補の番号）の出力 */
+export const topicJudgeSchema = z.object({
+  accepted_indices: z
+    .array(z.number())
+    .describe(
+      "新規トピックとして採用する候補の番号（1始まり）の配列。既存と明確に異なり粒度も適切なものだけ。曖昧なものは含めない（採用しない）"
+    ),
+});

@@ -22,7 +22,7 @@ export async function fetchTargetOpinions(
   const { data, error } = await supabase
     .from("interview_opinion")
     .select(
-      `id, opinion_index, title, content, contextual_quote, bill_sentiment, richness, interview_report_id,
+      `id, opinion_index, title, content, contextual_quote, bill_sentiment, richness, topic_extracted_at, interview_report_id,
        interview_report!inner(
          is_public_by_admin, is_public_by_user, moderation_status, role,
          interview_sessions!inner(
@@ -55,8 +55,43 @@ export async function fetchTargetOpinions(
       bill_sentiment: row.bill_sentiment,
       role: report?.role ?? null,
       richness: row.richness ?? null,
+      topic_extracted_at: row.topic_extracted_at ?? null,
     };
   });
+}
+
+/**
+ * 指定意見にトピック抽出済みウォーターマーク(topic_extracted_at)を記録する（増分用）。
+ * 次回以降の増分抽出で「新規(未抽出)」対象から外すため。大量でも 1 update で済むよう in で一括更新。
+ */
+export async function markOpinionsExtracted(
+  opinionIds: string[]
+): Promise<void> {
+  if (opinionIds.length === 0) return;
+  const supabase = createAdminClient();
+  const nowIso = new Date().toISOString();
+  // in 句が極端に長くなるのを避けてチャンク分割（PostgREST の URL 長制限対策）。
+  const CHUNK = 200;
+  for (let i = 0; i < opinionIds.length; i += CHUNK) {
+    const ids = opinionIds.slice(i, i + CHUNK);
+    const { error } = await supabase
+      .from("interview_opinion")
+      .update({ topic_extracted_at: nowIso })
+      .in("id", ids);
+    if (error) {
+      throw new Error(`Failed to mark opinions extracted: ${error.message}`);
+    }
+  }
+}
+
+/** 全議案の id 一覧を取得する（全議案トピック分析の対象列挙用）。 */
+export async function listAllBillIds(): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("bills").select("id");
+  if (error) {
+    throw new Error(`Failed to list bills: ${error.message}`);
+  }
+  return (data ?? []).map((b) => b.id);
 }
 
 /** 議案コンテキスト（プロンプト接地用）を取得する。本文は bill_contents（normal）から。 */

@@ -11,6 +11,15 @@ export type TargetOpinion = {
   bill_sentiment: string | null;
   role: string | null;
   richness: number | null;
+  // 増分トピック分析用: トピック抽出済みなら時刻、未抽出(新規)なら null。
+  topic_extracted_at: string | null;
+};
+
+/** 既存 version から引き継ぐトピック（タイトル・説明・割当意見ID） */
+export type ExistingTopic = {
+  title: string;
+  description: string;
+  opinion_ids: string[];
 };
 
 /** 議案コンテキスト（プロンプトの接地用） */

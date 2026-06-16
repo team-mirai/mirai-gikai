@@ -428,6 +428,7 @@ export type Database = {
           richness: number | null
           source_message_id: string | null
           title: string
+          topic_extracted_at: string | null
         }
         Insert: {
           bill_sentiment?: string | null
@@ -440,6 +441,7 @@ export type Database = {
           richness?: number | null
           source_message_id?: string | null
           title: string
+          topic_extracted_at?: string | null
         }
         Update: {
           bill_sentiment?: string | null
@@ -452,6 +454,7 @@ export type Database = {
           richness?: number | null
           source_message_id?: string | null
           title?: string
+          topic_extracted_at?: string | null
         }
         Relationships: [
           {
@@ -1055,11 +1058,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "topic_opinion_topic_id_fkey"
-            columns: ["topic_id"]
+            foreignKeyName: "topic_opinion_topic_fk"
+            columns: ["version_id", "topic_id"]
             isOneToOne: false
             referencedRelation: "topic"
-            referencedColumns: ["id"]
+            referencedColumns: ["version_id", "id"]
           },
           {
             foreignKeyName: "topic_opinion_version_id_fkey"
