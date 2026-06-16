@@ -23,15 +23,12 @@ interface TopicOpinionListProps {
   publicReportCount: number;
   /** 相対日時の基準時刻（ms）。サーバー側で固定し、ハイドレーションずれを防ぐ。 */
   nowMs: number;
-  /** 意見カードの表示バリアント（回答一覧は "answers"）。 */
-  cardVariant?: "default" | "answers";
 }
 
 export function TopicOpinionList({
   opinions,
   publicReportCount,
   nowMs,
-  cardVariant = "default",
 }: TopicOpinionListProps) {
   const now = new Date(nowMs);
   const { filter, visible, remaining, selectFilter, loadMore } =
@@ -62,7 +59,6 @@ export function TopicOpinionList({
               opinion={opinion}
               publicReportCount={publicReportCount}
               now={now}
-              variant={cardVariant}
             />
           ))
         ) : (

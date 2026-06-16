@@ -107,61 +107,17 @@ interface OpinionCardProps {
    * ハイドレーション時の再計算によるラベルずれを防ぐ。
    */
   now: Date;
-  /**
-   * 表示バリアント。
-   * - "default": トピック詳細用（意見タイトル上・役割chip・下部に日時＋レポートリンク）
-   * - "answers": 回答一覧用（役割を上・日付は右上・引用の下に意見本文・リンク無し）
-   */
-  variant?: "default" | "answers";
 }
 
+/** トピック詳細の意見カード（意見タイトル上・役割chip・下部に日時＋レポートリンク）。 */
 export function OpinionCard({
   opinion,
   publicReportCount,
   now,
-  variant = "default",
 }: OpinionCardProps) {
   const dateLabel = formatOpinionDate(opinion.created_at, now);
   const quote = opinion.contextual_quote?.trim();
 
-  if (variant === "answers") {
-    const heading =
-      opinion.role_title?.trim() ||
-      userCategoryLabels[opinion.user_category] ||
-      "回答者";
-    return (
-      <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
-        {/* アバター + 役割（上） */}
-        <div className="flex items-center gap-2.5">
-          <Avatar opinion={opinion} />
-          <h3 className="min-w-0 flex-1 text-[15px] font-bold leading-6 text-mirai-text">
-            {heading}
-          </h3>
-        </div>
-
-        {/* stance + カテゴリ（一般市民も表示）+ 日付 */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <SentimentLabel sentiment={opinion.bill_sentiment} />
-          <CategoryChip opinion={opinion} includeCitizen />
-          {dateLabel && (
-            <span className="text-[11px] text-topic-label">{dateLabel}</span>
-          )}
-        </div>
-
-        {/* 生の声（引用） */}
-        {quote && <Quote quote={quote} />}
-
-        {/* 意見本文 */}
-        {opinion.content && (
-          <p className="text-[13px] leading-5 text-mirai-text-secondary">
-            {opinion.content}
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  // default（トピック詳細）
   const reportVisible = isPublicReportVisible({
     isPublicByAdmin: opinion.report_public,
     isPublicByUser: true,
