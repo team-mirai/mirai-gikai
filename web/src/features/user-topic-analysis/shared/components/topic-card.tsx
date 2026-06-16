@@ -29,8 +29,9 @@ function QuoteItem({
     </>
   );
 
+  // 4行を超える引用は ... で省略する（line-clamp は display:-webkit-box を設定するため block 指定は不要）。
   const className =
-    "font-mirai-serif text-[14px] font-semibold leading-[22px] text-mirai-text";
+    "font-mirai-serif text-[14px] font-semibold leading-[22px] text-mirai-text line-clamp-4";
 
   return (
     <div className="ml-2 border-l border-mirai-border pl-4">
@@ -38,7 +39,7 @@ function QuoteItem({
         <Link
           href={messageHref as Route}
           prefetch={false}
-          className={`pointer-events-auto block ${className} hover:underline`}
+          className={`pointer-events-auto ${className} hover:underline`}
         >
           {body}
         </Link>
