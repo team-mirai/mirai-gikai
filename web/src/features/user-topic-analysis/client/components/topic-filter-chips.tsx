@@ -38,6 +38,8 @@ interface TopicFilterChipsProps {
   onSelect: (filter: TopicFilter) => void;
   /** 各フィルタの件数。指定時はラベル横に表示する（トピック詳細の意見数など）。 */
   counts?: Partial<Record<TopicFilterChip, number>>;
+  /** 件数の単位（回答一覧では "人"）。counts と併用する。 */
+  countSuffix?: string;
 }
 
 /** トピック一覧・詳細で共通利用するフィルタchip行（横スクロール）。 */
@@ -45,6 +47,7 @@ export function TopicFilterChips({
   activeFilter,
   onSelect,
   counts,
+  countSuffix = "",
 }: TopicFilterChipsProps) {
   return (
     <div className="flex gap-2 overflow-x-auto">
@@ -73,7 +76,12 @@ export function TopicFilterChips({
               )}
             />
             <span>{option.label}</span>
-            {count !== undefined && <span className="font-bold">{count}</span>}
+            {count !== undefined && (
+              <span className="font-bold">
+                {count}
+                {countSuffix}
+              </span>
+            )}
             {isActive && <X className="size-[14px] shrink-0" />}
           </Button>
         );
