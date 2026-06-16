@@ -16,17 +16,27 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-# config.env があれば読み込む（実値はここに置く・gitignore 済み）
-if [[ -f "${SCRIPT_DIR}/config.env" ]]; then
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}/config.env"
+# 設定ファイルを読み込む（実値はここに置く・config.env* は gitignore 済み）。
+# 環境ごとに分けたい場合は CONFIG_FILE で指定する:
+#   CONFIG_FILE=infra/cloud-run/config.env.staging bash infra/cloud-run/provision.sh
+# 既定は config.env。相対パス指定はカレントからでも SCRIPT_DIR 基準でも解決できるようにする。
+CONFIG_FILE="${CONFIG_FILE:-${SCRIPT_DIR}/config.env}"
+if [[ ! -f "$CONFIG_FILE" && -f "${SCRIPT_DIR}/${CONFIG_FILE}" ]]; then
+  CONFIG_FILE="${SCRIPT_DIR}/${CONFIG_FILE}"
+fi
+if [[ -f "$CONFIG_FILE" ]]; then
+  echo "▶ 設定ファイルを読み込み: ${CONFIG_FILE}"
+  # shellcheck disable=SC1090
+  source "$CONFIG_FILE"
 fi
 
 # ── 設定（プロジェクト識別子以外は汎用デフォルトを持つ） ──
 PROJECT_ID="${GCP_PROJECT_ID:-}"
+# 環境（staging / production 等）。同一プロジェクトに複数環境を同居させる前提で、
+# Secret 名と Job 名をこの値で分離する（必須）。
+DEPLOY_ENV="${DEPLOY_ENV:-}"
 REGION="${GCP_REGION:-asia-northeast1}"
 AR_REPO="${GCP_AR_REPO:-topic-analysis}"
-JOB="${GCP_TOPIC_ANALYSIS_JOB:-topic-analysis-worker}"
 RUNTIME_SA_NAME="${RUNTIME_SA_NAME:-topic-analysis-runtime}"
 INVOKER_SA_NAME="${INVOKER_SA_NAME:-topic-analysis-invoker}"
 DEPLOYER_SA_NAME="${DEPLOYER_SA_NAME:-topic-analysis-deployer}"
@@ -37,13 +47,33 @@ if [[ -z "$PROJECT_ID" ]]; then
   echo "ERROR: GCP_PROJECT_ID が未設定です（config.env か環境変数で指定）。" >&2
   exit 1
 fi
+if [[ -z "$DEPLOY_ENV" ]]; then
+  echo "ERROR: DEPLOY_ENV が未設定です（例: staging / production）。" >&2
+  echo "       Secret Manager はプロジェクトでグローバルなため、環境を指定しないと" >&2
+  echo "       他環境のシークレットを上書きする恐れがあります。" >&2
+  exit 1
+fi
+
+# Secret はプロジェクトでグローバル（名前が一意）。同一プロジェクトに複数環境を
+# 置くため、Secret 名を環境サフィックスで分離する（例: SUPABASE_URL_STAGING）。
+# Job 名も環境ごとに分ける。いずれも明示指定で上書き可能。
+ENV_UPPER="$(printf '%s' "$DEPLOY_ENV" | tr '[:lower:]' '[:upper:]')"
+SECRET_SUFFIX="${SECRET_SUFFIX:-_${ENV_UPPER}}"
+JOB="${GCP_TOPIC_ANALYSIS_JOB:-topic-analysis-worker-${DEPLOY_ENV}}"
 
 RUNTIME_SA="${RUNTIME_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 INVOKER_SA="${INVOKER_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 DEPLOYER_SA="${DEPLOYER_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
-SECRETS=(SUPABASE_URL SUPABASE_SECRET_KEY AI_GATEWAY_API_KEY)
+# worker が読む環境変数名（固定）。実体の Secret 名は ${ENV_VAR}${SECRET_SUFFIX}。
+SECRET_ENV_VARS=(SUPABASE_URL SUPABASE_SECRET_KEY AI_GATEWAY_API_KEY)
+# この環境で作成・参照する実 Secret 名。
+SECRETS=()
+for ev in "${SECRET_ENV_VARS[@]}"; do
+  SECRETS+=("${ev}${SECRET_SUFFIX}")
+done
 
 log() { echo "▶ $*"; }
+log "環境: DEPLOY_ENV=${DEPLOY_ENV} / Secret 接尾辞=${SECRET_SUFFIX} / Job=${JOB}"
 
 gcloud config set project "$PROJECT_ID" >/dev/null
 
@@ -68,8 +98,11 @@ else
     --description="Topic analysis worker images"
 fi
 
-# ── 3. Secret Manager（コンテナのみ作成。値は SECRET_VALUE_<NAME> があれば version 追加） ──
-for s in "${SECRETS[@]}"; do
+# ── 3. Secret Manager（環境別の実 Secret 名で作成。値は SECRET_VALUE_<ENV_VAR> があれば version 追加） ──
+# 値の指定は worker の環境変数名で行う（例: SECRET_VALUE_SUPABASE_URL）。
+# 実 Secret 名は環境サフィックス付き（例: SUPABASE_URL_STAGING）に分離して衝突を防ぐ。
+for ev in "${SECRET_ENV_VARS[@]}"; do
+  s="${ev}${SECRET_SUFFIX}"
   if gcloud secrets describe "$s" --project "$PROJECT_ID" >/dev/null 2>&1; then
     log "secret '$s' は既存（コンテナ skip）"
   else
@@ -77,8 +110,8 @@ for s in "${SECRETS[@]}"; do
     gcloud secrets create "$s" \
       --replication-policy="automatic" --project "$PROJECT_ID"
   fi
-  # 値はスクリプトに埋め込まず env から（あれば）。SECRET_VALUE_SUPABASE_URL など。
-  val_var="SECRET_VALUE_${s}"
+  # 値はスクリプトに埋め込まず env から（あれば）。キーは環境変数名で統一: SECRET_VALUE_SUPABASE_URL など。
+  val_var="SECRET_VALUE_${ev}"
   val="${!val_var:-}"
   if [[ -n "$val" ]]; then
     log "secret '$s' に新しい version を追加"
@@ -86,7 +119,7 @@ for s in "${SECRETS[@]}"; do
       --data-file=- --project "$PROJECT_ID" >/dev/null
   elif ! gcloud secrets versions list "$s" \
     --project "$PROJECT_ID" --format="value(name)" 2>/dev/null | grep -q .; then
-    echo "  ⚠ secret '$s' に値が未登録です。SECRET_VALUE_${s} を設定して再実行するか、" \
+    echo "  ⚠ secret '$s' に値が未登録です。SECRET_VALUE_${ev} を設定して再実行するか、" \
       "手動で 'gcloud secrets versions add $s --data-file=-' で値を入れてください。" >&2
   fi
 done
@@ -132,13 +165,20 @@ else
       -f "${REPO_ROOT}/worker/Dockerfile" -t "$WORKER_IMAGE" "$REPO_ROOT"
     docker push "$WORKER_IMAGE"
   fi
+  # env 変数名（固定）→ 環境別 Secret 名（接尾辞付き）のマッピングを組み立てる。
+  set_secrets=""
+  for ev in "${SECRET_ENV_VARS[@]}"; do
+    set_secrets+="${ev}=${ev}${SECRET_SUFFIX}:latest,"
+  done
+  set_secrets="${set_secrets%,}"
   log "Job '$JOB' を作成（batch 向け: tasks=1 / parallelism=1 / retry=1 / timeout=3600s）"
+  log "  --set-secrets ${set_secrets}"
   gcloud run jobs create "$JOB" \
     --image "$WORKER_IMAGE" \
     --region "$REGION" \
     --project "$PROJECT_ID" \
     --service-account "$RUNTIME_SA" \
-    --set-secrets "SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_SECRET_KEY=SUPABASE_SECRET_KEY:latest,AI_GATEWAY_API_KEY=AI_GATEWAY_API_KEY:latest" \
+    --set-secrets "$set_secrets" \
     --max-retries 1 \
     --task-timeout 3600 \
     --tasks 1 \
