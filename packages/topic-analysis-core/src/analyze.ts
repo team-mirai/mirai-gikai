@@ -251,18 +251,28 @@ export async function runAnalyzeAll(
   strategy: AnalysisStrategy = "incremental"
 ): Promise<void> {
   const billIds = await listAllBillIds();
+  const total = billIds.length;
   console.log(
-    `[topic-analysis] start analyze-all bills=${billIds.length} strategy=${strategy}`
+    `[topic-analysis] start analyze-all bills=${total} strategy=${strategy}`
   );
   let analyzed = 0;
   let skipped = 0;
   let failed = 0;
 
-  for (const billId of billIds) {
+  for (let i = 0; i < total; i++) {
+    const billId = billIds[i];
+    // 全体進捗（何件目／全何件）と議案ごとの開始・終了をログに出す。
+    const progress = `${i + 1}/${total}`;
+    console.log(
+      `[topic-analysis] analyze-all (${progress}) start bill=${billId}`
+    );
     try {
       const targets = await fetchTargetOpinions(billId);
       if (targets.length === 0) {
         skipped++;
+        console.log(
+          `[topic-analysis] analyze-all (${progress}) skip bill=${billId} (対象意見なし)`
+        );
         continue;
       }
       if (strategy === "incremental") {
@@ -272,6 +282,9 @@ export async function runAnalyzeAll(
         // 既に分析済みで新規意見が無ければ何もしない。
         if (hasCompleted && !hasNew) {
           skipped++;
+          console.log(
+            `[topic-analysis] analyze-all (${progress}) skip bill=${billId} (新規意見なし)`
+          );
           continue;
         }
       }
@@ -284,15 +297,21 @@ export async function runAnalyzeAll(
       if (!version) {
         // 実行中/保留中の版が既にある（one_active_version_per_bill）。
         skipped++;
+        console.log(
+          `[topic-analysis] analyze-all (${progress}) skip bill=${billId} (実行中の版あり)`
+        );
         continue;
       }
       await runAnalysis(version.id, billId, strategy);
       analyzed++;
+      console.log(
+        `[topic-analysis] analyze-all (${progress}) done bill=${billId} version=${version.id}`
+      );
     } catch (error) {
       failed++;
       const message = error instanceof Error ? error.message : "unknown error";
       console.error(
-        `[topic-analysis] analyze-all bill=${billId} failed: ${message}`
+        `[topic-analysis] analyze-all (${progress}) failed bill=${billId}: ${message}`
       );
     }
   }
