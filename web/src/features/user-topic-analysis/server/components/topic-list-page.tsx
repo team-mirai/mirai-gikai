@@ -78,7 +78,7 @@ export async function TopicListPage({ billId }: TopicListPageProps) {
               <p className="text-[12px] leading-5 text-mirai-text">
                 トピックとは、インタビューに寄せられた声をAIが取りまとめて整理した
                 <span className="font-bold">意見のまとめ</span>
-                です。気になるトピックスから、実際の会話ログまで遡れます。
+                です。気になるトピックから、実際の会話ログまで遡れます。
               </p>
             </div>
           </div>
