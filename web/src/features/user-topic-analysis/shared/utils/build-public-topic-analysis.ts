@@ -7,6 +7,7 @@ import type {
   RawTopicRow,
   UserCategory,
 } from "../types";
+import { normalizeRoleTitle } from "./topic-category";
 
 /** interview_report.role → §9 の4区分。未知/null は一般市民に倒す。 */
 export function mapRoleToCategory(role: string | null): UserCategory {
@@ -84,7 +85,7 @@ export function buildPublicTopicAnalysis(
         title: o.title,
         content: o.content,
         user_category: category,
-        role_title: o.role_title,
+        role_title: normalizeRoleTitle(o.role_title),
         bill_sentiment: billSentiment,
         contextual_quote: o.contextual_quote,
         richness: o.richness,
