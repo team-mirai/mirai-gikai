@@ -39,16 +39,14 @@ export function TopicList({
   const sortLabel = topicSortLabel(filter);
   // 「意見のまとめ」件数は表示中トピックの意見数の合計。
   const opinionCount = filtered.reduce((sum, t) => sum + t.opinion_count, 0);
-  const summaryText = sortLabel
-    ? `${opinionCount}件の意見まとめ・${sortLabel}`
-    : `${opinionCount}件の意見まとめ`;
 
   return (
     <div className="flex flex-col gap-6">
       {/* 件数ラベル + フィルタchip */}
       <div className="flex flex-col gap-4">
         <p className="text-[13px] font-bold text-topic-label">
-          {filtered.length}件のトピック（{summaryText}）
+          {filtered.length}件のトピック（{opinionCount}件の意見まとめ）
+          {sortLabel && `｜${sortLabel}`}
         </p>
         <TopicFilterChips activeFilter={filter} onSelect={selectFilter} />
       </div>
