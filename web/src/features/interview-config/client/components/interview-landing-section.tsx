@@ -81,7 +81,7 @@ export function InterviewLandingSection({
   billId,
 }: InterviewLandingSectionProps) {
   return (
-    <div className="relative overflow-hidden rounded-xl bg-white p-6 mx-auto">
+    <div className="relative w-full overflow-hidden rounded-xl bg-white p-6">
       <_InterviewIllustration />
 
       <div className="relative z-1 flex flex-col gap-2">

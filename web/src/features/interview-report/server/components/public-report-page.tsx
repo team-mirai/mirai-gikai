@@ -104,8 +104,8 @@ export async function PublicReportPage({
               ogImageUrl={ogImageUrl}
               shareMessage={data.summary}
             />
-            <ReportProblemButton />
             <BackToBillButton billId={data.bill_id} from={from} />
+            <ReportProblemButton />
           </div>
         </div>
       </Container>

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { PublicOpinion, PublicTopic } from "../types";
+import type { PublicOpinion, PublicTopic, UserCategory } from "../types";
 import {
   filterAndSortTopics,
   filterOpinions,
   parseTopicFilter,
+  sentimentOfFilter,
   type TopicFilter,
   topicSortLabel,
+  userCategoryOfFilter,
 } from "./filter-topics";
 
 function makeOpinion(
@@ -150,5 +152,41 @@ describe("topicSortLabel", () => {
     ["懸念", "懸念が多い順"],
   ])("%s のラベルは %s", (filter, expected) => {
     expect(topicSortLabel(filter)).toBe(expected);
+  });
+});
+
+describe("userCategoryOfFilter", () => {
+  it.each<[UserCategory]>([
+    ["affected"],
+    ["industry"],
+    ["expert"],
+    ["citizen"],
+  ])("カテゴリ %s はそのまま返す（市民の取りこぼし回帰防止）", (filter) => {
+    expect(userCategoryOfFilter(filter)).toBe(filter);
+  });
+
+  it.each<[TopicFilter]>([
+    ["all"],
+    ["期待"],
+    ["懸念"],
+  ])("カテゴリ以外 %s は null", (filter) => {
+    expect(userCategoryOfFilter(filter)).toBeNull();
+  });
+});
+
+describe("sentimentOfFilter", () => {
+  it("期待・懸念はそのまま返す", () => {
+    expect(sentimentOfFilter("期待")).toBe("期待");
+    expect(sentimentOfFilter("懸念")).toBe("懸念");
+  });
+
+  it.each<[TopicFilter]>([
+    ["all"],
+    ["affected"],
+    ["industry"],
+    ["expert"],
+    ["citizen"],
+  ])("感情以外 %s は null", (filter) => {
+    expect(sentimentOfFilter(filter)).toBeNull();
   });
 });

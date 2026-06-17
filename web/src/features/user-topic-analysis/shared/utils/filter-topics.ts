@@ -47,6 +47,27 @@ export function topicSortLabel(filter: TopicFilter): string | null {
   return option ? `${option.label}が多い順` : null;
 }
 
+/**
+ * フィルタがカテゴリ次元なら対応する UserCategory を返す（感情/all は null）。
+ * カード側のカテゴリchipハイライト判定に使う。
+ */
+export function userCategoryOfFilter(filter: TopicFilter): UserCategory | null {
+  switch (filter) {
+    case "affected":
+    case "industry":
+    case "expert":
+    case "citizen":
+      return filter;
+    default:
+      return null;
+  }
+}
+
+/** フィルタが感情次元なら対応する 期待/懸念 を返す（カテゴリ/all は null）。 */
+export function sentimentOfFilter(filter: TopicFilter): "期待" | "懸念" | null {
+  return filter === "期待" || filter === "懸念" ? filter : null;
+}
+
 /** トピックから、指定フィルタ次元の件数を取り出す。 */
 function countFor(topic: PublicTopic, filter: TopicFilterChip): number {
   switch (filter) {

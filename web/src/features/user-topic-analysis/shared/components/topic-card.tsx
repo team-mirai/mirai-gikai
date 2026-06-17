@@ -5,7 +5,12 @@ import Link from "next/link";
 import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
 import { ClampedQuote } from "../../client/components/clamped-quote";
 import type { PublicOpinion, PublicTopic } from "../types";
-import { filterOpinions, type TopicFilter } from "../utils/filter-topics";
+import {
+  filterOpinions,
+  sentimentOfFilter,
+  type TopicFilter,
+  userCategoryOfFilter,
+} from "../utils/filter-topics";
 import { opinionAttributionLabel } from "../utils/topic-category";
 import { TopicCategoryChips, TopicSentiment } from "./topic-meta";
 
@@ -72,12 +77,8 @@ export function TopicCard({
   ).slice(0, maxQuotes);
 
   // フィルタ選択中の次元をカード側でもハイライトする
-  const highlightCategory =
-    filter === "affected" || filter === "industry" || filter === "expert"
-      ? filter
-      : null;
-  const highlightSentiment =
-    filter === "期待" || filter === "懸念" ? filter : null;
+  const highlightCategory = userCategoryOfFilter(filter);
+  const highlightSentiment = sentimentOfFilter(filter);
 
   // レポート詳細が表示可能な意見のみ、該当メッセージへのリンクにする
   const messageHrefFor = (opinion: PublicOpinion): string | null => {
