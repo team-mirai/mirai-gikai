@@ -44,6 +44,10 @@ export function buildCompletedInterviewReportInsert({
     role_description: reportData.role_description,
     role_title: reportData.role_title,
     opinions: enrichedOpinions,
+    // 完了（再完了含む）時はレポート内容が（再）確定するため、意見再抽出の
+    // ウォーターマークを未処理(NULL)に戻す。これにより再完了で interview_opinion が
+    // JSONB 由来の内容へ同期され直しても、次回バックフィルが再抽出して品質を復旧できる。
+    opinions_reextracted_at: null,
     content_richness: reportData.content_richness,
     moderation_score: moderationScore,
     moderation_reasoning: moderationReasoning,

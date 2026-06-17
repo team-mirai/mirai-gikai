@@ -1,4 +1,5 @@
 import type { Database } from "@mirai-gikai/supabase";
+import { normalizeRichnessScore } from "../content-richness/normalize-richness-score";
 import type { InterviewOpinionSource } from "./schema";
 
 export type InterviewOpinionInsert =
@@ -21,5 +22,6 @@ export function buildInterviewOpinionRows(
     source_message_id: opinion.source_message_id ?? null,
     contextual_quote: opinion.contextual_quote ?? null,
     bill_sentiment: opinion.bill_sentiment ?? null,
+    richness: normalizeRichnessScore(opinion.richness),
   }));
 }

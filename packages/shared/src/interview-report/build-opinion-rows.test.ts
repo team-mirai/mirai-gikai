@@ -12,6 +12,7 @@ describe("buildInterviewOpinionRows", () => {
         source_message_id: "msg-1",
         contextual_quote: "（法案について）賛成です",
         bill_sentiment: "期待",
+        richness: 80,
       },
       {
         title: "懸念点",
@@ -19,6 +20,7 @@ describe("buildInterviewOpinionRows", () => {
         source_message_id: "msg-2",
         contextual_quote: null,
         bill_sentiment: "懸念",
+        richness: 42.6,
       },
     ]);
 
@@ -31,6 +33,7 @@ describe("buildInterviewOpinionRows", () => {
         source_message_id: "msg-1",
         contextual_quote: "（法案について）賛成です",
         bill_sentiment: "期待",
+        richness: 80,
       },
       {
         interview_report_id: REPORT_ID,
@@ -40,6 +43,8 @@ describe("buildInterviewOpinionRows", () => {
         source_message_id: "msg-2",
         contextual_quote: null,
         bill_sentiment: "懸念",
+        // 小数は四捨五入される
+        richness: 43,
       },
     ]);
   });
@@ -57,6 +62,7 @@ describe("buildInterviewOpinionRows", () => {
       source_message_id: null,
       contextual_quote: null,
       bill_sentiment: null,
+      richness: null,
     });
   });
 

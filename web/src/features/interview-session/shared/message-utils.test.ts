@@ -103,6 +103,7 @@ describe("isValidReport", () => {
             source_message_id: null,
             contextual_quote: null,
             bill_sentiment: null,
+            richness: null,
           },
         ],
       })

@@ -90,9 +90,11 @@ export async function completeInterviewSession({
     })
   );
 
-  // interview_opinion（正規化プロジェクション）へ dual-write（§3.1）
-  // 失敗してもインタビュー完了はブロックしない（report の JSONB が正本）。
-  // 未同期分は Step2 のバックフィル（パスA）と日次再実行が結果整合的に取り込む。
+  // 新規インタビュー完了時は JSONB（report.opinions）と interview_opinion テーブルの
+  // 両方へ書き込む（既存互換のため。JSONB はユーザーが確認するレポート記録、
+  // interview_opinion はトピック分析用の意見ストア）。
+  // 失敗してもインタビュー完了はブロックしない。未同期分は意見再抽出バックフィルが取り込む
+  // （再抽出は JSONB を書き換えず interview_opinion のみ更新する）。
   try {
     const storedOpinions = Array.isArray(report.opinions)
       ? (report.opinions as InterviewOpinionSource[])

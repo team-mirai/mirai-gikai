@@ -32,6 +32,7 @@ import type {
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { buildSummaryModelMessages } from "../../shared/utils/build-summary-model-messages";
 import { ensureTrailingUserMessage } from "../../shared/utils/ensure-trailing-user-message";
 import { mergeMessagesWithIds } from "../../shared/utils/merge-messages-with-ids";
 import {
@@ -82,64 +83,63 @@ export async function handleInterviewChatRequest({
   userId: string;
   deps?: InterviewChatDeps;
 }) {
-  // 日次コスト制限チェック（fail-closed: エラー時もリクエストをブロック）
-  const isWithinLimit = await isWithinDailyCostLimit(
-    userId,
-    env.chat.dailyUserCostLimitUsd
-  );
-  if (!isWithinLimit) {
-    throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
-  }
-
   // リクエスト単位のトレースID（同一リクエスト内のLLM呼び出しをまとめる）
   const traceId = crypto.randomUUID();
 
-  // インタビュー設定と法案情報を取得（テスト時はdeps経由でNext.js依存をバイパス）
+  // TTFB短縮のため、互いに依存しないDBアクセスは並列実行する。
+  // 日次コスト制限チェック（fail-closed: エラー時もリクエストをブロック）と
+  // インタビュー設定・法案情報の取得（テスト時はdeps経由でNext.js依存をバイパス）
   const getInterviewConfigFn =
     deps?.getInterviewConfig ?? getInterviewConfigAdmin;
   const getBillFn = deps?.getBill ?? getBillByIdAdmin;
-  const [interviewConfig, bill] = await Promise.all([
+  const [isWithinLimit, interviewConfig, bill] = await Promise.all([
+    isWithinDailyCostLimit(userId, env.chat.dailyUserCostLimitUsd),
     getInterviewConfigFn(billId),
     getBillFn(billId),
   ]);
+  if (!isWithinLimit) {
+    throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
+  }
 
   if (!interviewConfig) {
     throw new Error("Interview config not found");
   }
 
-  // セッション取得または作成（テスト時はdeps経由で認証をバイパス）
-  const getSessionFn = deps?.getSession ?? getInterviewSession;
-  const session =
-    (await getSessionFn(interviewConfig.id)) ??
-    (await createInterviewSession({ interviewConfigId: interviewConfig.id }));
-
   // 最新のメッセージを取得
   const lastMessage = messages[messages.length - 1];
 
-  // ユーザーメッセージを保存
-  if (lastMessage?.role === "user") {
-    const userMessageText = lastMessage.content;
+  // 「セッション取得→ユーザーメッセージ保存→全メッセージ取得」は順序依存があるため
+  // チェーンとして実行する（テスト時はdeps経由で認証をバイパス）
+  const loadSessionAndMessages = async () => {
+    const getSessionFn = deps?.getSession ?? getInterviewSession;
+    const getMessagesFn = deps?.getMessages ?? getInterviewMessages;
+    const session =
+      (await getSessionFn(interviewConfig.id)) ??
+      (await createInterviewSession({ interviewConfigId: interviewConfig.id }));
 
-    if (userMessageText.trim()) {
+    // ユーザーメッセージを保存（保存後に取得することで dbMessages に最新を含める）
+    if (lastMessage?.role === "user" && lastMessage.content.trim()) {
       await saveInterviewMessage({
         sessionId: session.id,
         role: "user",
-        content: userMessageText,
+        content: lastMessage.content,
         isRetry,
       });
     }
-  }
 
-  // 事前定義質問を取得
-  const questions = await getInterviewQuestions(interviewConfig.id);
+    const dbMessages = await getMessagesFn(session.id);
+    return { session, dbMessages };
+  };
+
+  // 独立した事前定義質問の取得とセッション系チェーンを並列実行
+  const [questions, { session, dbMessages }] = await Promise.all([
+    getInterviewQuestions(interviewConfig.id),
+    loadSessionAndMessages(),
+  ]);
 
   // モードに応じたロジックを取得（DBの設定を使用）
   const mode = interviewConfig.mode;
   const logic = modeLogicMap[mode] ?? bulkModeLogic;
-
-  // DBから最新を含む全メッセージを取得（テスト時はdeps経由で認証をバイパス）
-  const getMessagesFn = deps?.getMessages ?? getInterviewMessages;
-  const dbMessages = await getMessagesFn(session.id);
 
   // 既に聞いた質問IDを収集
   const askedQuestionIds = collectAskedQuestionIds(dbMessages);
@@ -297,9 +297,14 @@ async function generateStreamingResponse({
   };
 
   // Anthropic 系などは会話が user メッセージで終わる必要がある。
-  // chat→summary の自動遷移ではメッセージ末尾が assistant になるため、
-  // 続行を促す user メッセージを補う（DB には保存しない）。
-  const modelMessages = ensureTrailingUserMessage(messages, isSummaryPhase);
+  // summary フェーズは会話履歴全文をシステムプロンプトに埋め込んでいるため、
+  // 入力トークンの二重送信を避けて末尾の user メッセージ1件のみをモデルへ渡す
+  // （末尾が assistant の場合はレポート作成を促す合成 user メッセージを補う）。
+  // chat フェーズで末尾が assistant の場合は続行を促す user メッセージを補う。
+  // いずれの合成メッセージも DB には保存しない。
+  const modelMessages = isSummaryPhase
+    ? buildSummaryModelMessages(messages)
+    : ensureTrailingUserMessage(messages);
 
   const uiMessages = modelMessages.map((message) => ({
     role: message.role as "user" | "assistant",

@@ -30,5 +30,12 @@ export const AI_MODELS = {
 
 export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
 
+const KNOWN_MODELS: ReadonlySet<string> = new Set(Object.values(AI_MODELS));
+
+/** 文字列が AI_MODELS に登録済みのモデルIDかどうかを判定する。 */
+export function isKnownModel(model: string): model is AiModel {
+  return KNOWN_MODELS.has(model);
+}
+
 /** インタビューチャットのデフォルトモデル */
 export const DEFAULT_INTERVIEW_CHAT_MODEL = AI_MODELS.gpt5_2;

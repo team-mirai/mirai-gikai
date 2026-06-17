@@ -1,11 +1,10 @@
 type ChatMessage = { role: string; content: string };
 
-// chat→summary の自動遷移では、新しい user メッセージなしでレポート生成を依頼するため
+// summary→chat の再開直後など、新しい user メッセージなしで会話を続ける場合に
 // メッセージ末尾が assistant になる。GPT 系は許容するが Anthropic 系などは
 // 「会話は user メッセージで終わる必要がある」として 400 を返すため、続行を促す
 // user メッセージを補ってモデル呼び出しを provider 非依存にする。
-const SUMMARY_TRIGGER_MESSAGE =
-  "ここまでの会話内容をもとに、インタビューのレポートを作成してください。";
+// summary フェーズ用は build-summary-model-messages.ts を参照。
 const CONTINUE_TRIGGER_MESSAGE = "続けてください。";
 
 /**
@@ -14,19 +13,10 @@ const CONTINUE_TRIGGER_MESSAGE = "続けてください。";
  * 末尾が user（通常のチャットターン）の場合はそのまま返す。
  */
 export function ensureTrailingUserMessage(
-  messages: ChatMessage[],
-  isSummaryPhase: boolean
+  messages: ChatMessage[]
 ): ChatMessage[] {
   if (messages.at(-1)?.role !== "assistant") {
     return messages;
   }
-  return [
-    ...messages,
-    {
-      role: "user",
-      content: isSummaryPhase
-        ? SUMMARY_TRIGGER_MESSAGE
-        : CONTINUE_TRIGGER_MESSAGE,
-    },
-  ];
+  return [...messages, { role: "user", content: CONTINUE_TRIGGER_MESSAGE }];
 }

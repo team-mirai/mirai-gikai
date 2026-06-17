@@ -22,7 +22,10 @@ export type BackfillChunkResult = {
   remaining: number;
 };
 
-export type BackfillOptions = {
+/** 再抽出1件あたりの依存（生成関数の差し替え・使用モデル）。 */
+type ReextractDeps = { generateReport?: GenerateReportFn; model?: string };
+
+export type BackfillOptions = ReextractDeps & {
   /** 指定議案に限定して実行する。未指定なら全議案。 */
   billId?: string;
   /**
@@ -30,7 +33,6 @@ export type BackfillOptions = {
    * "all": 既に再抽出済みも含めて全件やり直す（billId 必須）。
    */
   scope?: BackfillScope;
-  generateReport?: GenerateReportFn;
 };
 
 type ReextractTally = { updated: number; skipped: number; failed: number };
@@ -38,7 +40,7 @@ type ReextractTally = { updated: number; skipped: number; failed: number };
 /** 対象レポート群を CONCURRENCY 件ずつ並列で再抽出し、結果を集計する。 */
 async function processReportsInWaves(
   targets: BackfillTargetReport[],
-  deps: { generateReport?: GenerateReportFn }
+  deps: ReextractDeps
 ): Promise<ReextractTally> {
   const results = [];
   for (let i = 0; i < targets.length; i += OPINION_BACKFILL_CONCURRENCY) {
@@ -61,14 +63,14 @@ async function processReportsInWaves(
  * 成功・スキップはウォーターマークを進めるが、失敗（生成エラー等）は進めない。
  */
 export async function runOpinionBackfillChunk(
-  deps: { billId?: string; generateReport?: GenerateReportFn } = {}
+  deps: { billId?: string } & ReextractDeps = {}
 ): Promise<BackfillChunkResult> {
-  const { billId, generateReport } = deps;
+  const { billId, generateReport, model } = deps;
   const targets = await findReportsToReextract(
     OPINION_BACKFILL_CHUNK_SIZE,
     billId
   );
-  const tally = await processReportsInWaves(targets, { generateReport });
+  const tally = await processReportsInWaves(targets, { generateReport, model });
   const remaining = await countPendingReextraction(billId);
 
   return { processed: targets.length, ...tally, remaining };
@@ -80,10 +82,9 @@ export async function runOpinionBackfillChunk(
  * 失敗レポートはウォーターマークが進まないため、チャンク間で remaining が
  * 減らなくなった時点で「全件失敗ループ」と判断して停止する（無限ループ防止）。
  */
-async function runPendingBackfill(deps: {
-  billId?: string;
-  generateReport?: GenerateReportFn;
-}): Promise<void> {
+async function runPendingBackfill(
+  deps: { billId?: string } & ReextractDeps
+): Promise<void> {
   let prevRemaining = Number.POSITIVE_INFINITY;
 
   while (true) {
@@ -116,11 +117,12 @@ async function runPendingBackfill(deps: {
  * - scope="pending"（既定）: 未再抽出レポートをウォーターマーク方式で全件処理。
  * - scope="all": 指定議案のウォーターマークを一旦リセットしてから全件処理し直す（billId 必須）。
  *   リセットにより全件が未再抽出扱いになるため、進捗（pending）が正しく分母になる。
+ * - model: 再抽出に使う AI モデル（未指定なら OPINION_BACKFILL_MODEL）。
  */
 export async function runBackfill(options: BackfillOptions = {}): Promise<void> {
-  const { billId, scope = "pending", generateReport } = options;
+  const { billId, scope = "pending", generateReport, model } = options;
   console.log(
-    `[topic-analysis] start opinion backfill (scope=${scope} bill=${billId ?? "all"})`
+    `[topic-analysis] start opinion backfill (scope=${scope} bill=${billId ?? "all"} model=${model ?? "default"})`
   );
 
   if (scope === "all") {
@@ -133,5 +135,5 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
     );
   }
 
-  await runPendingBackfill({ billId, generateReport });
+  await runPendingBackfill({ billId, generateReport, model });
 }
