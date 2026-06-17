@@ -90,7 +90,9 @@ export function TopicCard({
     if (!visible) return null;
     return getInterviewMessageLink(
       opinion.interview_report_id,
-      opinion.source_message_id
+      opinion.source_message_id,
+      undefined,
+      opinion.contextual_quote
     );
   };
 

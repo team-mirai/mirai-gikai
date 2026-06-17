@@ -111,7 +111,9 @@ export function OpinionCard({
   const reportHref = opinion.source_message_id
     ? getInterviewMessageLink(
         opinion.interview_report_id,
-        opinion.source_message_id
+        opinion.source_message_id,
+        undefined,
+        opinion.contextual_quote
       )
     : routes.publicReport(opinion.interview_report_id);
   return (
