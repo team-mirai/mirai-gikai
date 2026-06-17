@@ -26,7 +26,7 @@ function QuoteItem({
   );
 
   return (
-    <div className="ml-2 border-l border-mirai-border pl-4">
+    <div className="ml-2 border-l-2 border-mirai-border pl-4">
       {messageHref ? (
         <Link
           href={messageHref as Route}
