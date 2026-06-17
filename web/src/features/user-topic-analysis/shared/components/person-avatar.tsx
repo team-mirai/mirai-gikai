@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
-import type { PublicRespondent } from "../types";
 
-type SentimentKey = NonNullable<PublicRespondent["bill_sentiment"]> | "none";
+type BillSentiment = "期待" | "懸念" | null;
+type SentimentKey = NonNullable<BillSentiment> | "none";
 
 /** stance(期待/懸念) に応じた背景円の色。 */
 const bgClass: Record<SentimentKey, string> = {
@@ -18,7 +18,7 @@ const fgClass: Record<SentimentKey, string> = {
 };
 
 interface PersonAvatarProps {
-  sentiment: PublicRespondent["bill_sentiment"];
+  sentiment: BillSentiment;
   className?: string;
 }
 
