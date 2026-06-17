@@ -15,49 +15,86 @@ type VersionStatus = "pending" | "running" | "completed" | "failed";
  * → interview_sessions → interview_configs(bill_id) を辿る。
  * 管理者公開・ユーザー公開の両方に同意済みで、かつモデレーションOKの意見のみ分析対象とする。
  */
-export async function fetchTargetOpinions(
-  billId: string
-): Promise<TargetOpinion[]> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("interview_opinion")
-    .select(
-      `id, opinion_index, title, content, contextual_quote, bill_sentiment, richness, topic_extracted_at, interview_report_id,
+/**
+ * 1回の取得で読むページ幅。Supabase/PostgREST の既定行数上限（1000）に依存せず
+ * 全件取得するため、この幅でページネーションする。1000 未満の安全な値にする。
+ */
+const TARGET_OPINIONS_PAGE_SIZE = 500;
+
+const TARGET_OPINIONS_SELECT = `id, opinion_index, title, content, contextual_quote, bill_sentiment, richness, topic_extracted_at, interview_report_id,
        interview_report!inner(
          is_public_by_admin, is_public_by_user, moderation_status, role,
          interview_sessions!inner(
            interview_configs!inner(bill_id)
          )
-       )`
-    )
-    .eq("interview_report.is_public_by_admin", true)
-    .eq("interview_report.is_public_by_user", true)
-    .eq("interview_report.moderation_status", "ok")
-    .eq("interview_report.interview_sessions.interview_configs.bill_id", billId)
-    .order("interview_report_id", { ascending: true })
-    .order("opinion_index", { ascending: true });
+       )`;
 
-  if (error) {
-    throw new Error(`Failed to fetch target opinions: ${error.message}`);
+export async function fetchTargetOpinions(
+  billId: string
+): Promise<TargetOpinion[]> {
+  const supabase = createAdminClient();
+  const all: TargetOpinion[] = [];
+
+  // keyset(カーソル)ページネーション。(interview_report_id, opinion_index) は一意なので、
+  // 「直前ページ末尾より後ろ」を順に読む。offset 方式と違い、取得中に新規意見が挿入されても
+  // 既読行のズレ（重複・取りこぼし）が起きない（report_id はランダム UUID のため offset では危険）。
+  let cursor: { reportId: string; opinionIndex: number } | null = null;
+
+  for (;;) {
+    let query = supabase
+      .from("interview_opinion")
+      .select(TARGET_OPINIONS_SELECT)
+      .eq("interview_report.is_public_by_admin", true)
+      .eq("interview_report.is_public_by_user", true)
+      .eq("interview_report.moderation_status", "ok")
+      .eq(
+        "interview_report.interview_sessions.interview_configs.bill_id",
+        billId
+      )
+      .order("interview_report_id", { ascending: true })
+      .order("opinion_index", { ascending: true })
+      .limit(TARGET_OPINIONS_PAGE_SIZE);
+
+    if (cursor) {
+      // (report_id, opinion_index) > (cursor) をタプル比較で表現する。
+      query = query.or(
+        `interview_report_id.gt.${cursor.reportId},and(interview_report_id.eq.${cursor.reportId},opinion_index.gt.${cursor.opinionIndex})`
+      );
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      throw new Error(`Failed to fetch target opinions: ${error.message}`);
+    }
+
+    const rows = data ?? [];
+    for (const row of rows) {
+      const report = row.interview_report as unknown as {
+        role: string | null;
+      };
+      all.push({
+        opinion_id: row.id,
+        interview_report_id: row.interview_report_id,
+        opinion_index: row.opinion_index,
+        title: row.title,
+        content: row.content,
+        contextual_quote: row.contextual_quote,
+        bill_sentiment: row.bill_sentiment,
+        role: report?.role ?? null,
+        richness: row.richness ?? null,
+        topic_extracted_at: row.topic_extracted_at ?? null,
+      });
+    }
+
+    if (rows.length < TARGET_OPINIONS_PAGE_SIZE) break;
+    const last = rows[rows.length - 1];
+    cursor = {
+      reportId: last.interview_report_id,
+      opinionIndex: last.opinion_index,
+    };
   }
 
-  return (data ?? []).map((row) => {
-    const report = row.interview_report as unknown as {
-      role: string | null;
-    };
-    return {
-      opinion_id: row.id,
-      interview_report_id: row.interview_report_id,
-      opinion_index: row.opinion_index,
-      title: row.title,
-      content: row.content,
-      contextual_quote: row.contextual_quote,
-      bill_sentiment: row.bill_sentiment,
-      role: report?.role ?? null,
-      richness: row.richness ?? null,
-      topic_extracted_at: row.topic_extracted_at ?? null,
-    };
-  });
+  return all;
 }
 
 /**
