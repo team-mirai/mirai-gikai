@@ -81,7 +81,7 @@ export function RespondentCard({ respondent, now }: RespondentCardProps) {
 
         {/* 要約テキスト */}
         {respondent.summary && (
-          <p className="line-clamp-3 text-[12px] leading-[22px] text-mirai-text-secondary">
+          <p className="line-clamp-2 text-[12px] leading-[22px] text-mirai-text-secondary">
             {respondent.summary}
           </p>
         )}
