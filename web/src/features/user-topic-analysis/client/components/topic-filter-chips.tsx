@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingDown, TrendingUp, X } from "lucide-react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -59,6 +59,8 @@ export function TopicFilterChips({
         onClick={() => onSelect("all")}
         className={cn(
           "h-auto shrink-0 rounded-[50px] border border-mirai-text px-3 py-1.5 text-[13px] font-bold text-mirai-text",
+          // フォーカス時にプライマリ（緑）の枠線/リングが出るのを抑止する
+          "focus-visible:border-mirai-text! focus-visible:ring-0 focus-visible:ring-offset-0",
           allActive
             ? "bg-mirai-gradient hover:opacity-90"
             : "bg-white hover:bg-mirai-surface-gray"
@@ -78,6 +80,8 @@ export function TopicFilterChips({
             onClick={() => onSelect(option.value)}
             className={cn(
               "h-auto shrink-0 gap-1 rounded-[50px] border border-mirai-text px-3 py-1.5 text-[13px] font-bold text-mirai-text",
+              // フォーカス時にプライマリ（緑）の枠線/リングが出るのを抑止する
+              "focus-visible:border-mirai-text! focus-visible:ring-0 focus-visible:ring-offset-0",
               isActive
                 ? "bg-mirai-gradient hover:opacity-90"
                 : "bg-white hover:bg-mirai-surface-gray"
@@ -97,7 +101,6 @@ export function TopicFilterChips({
                 {countSuffix}
               </span>
             )}
-            {isActive && <X className="size-[14px] shrink-0" />}
           </Button>
         );
       })}
