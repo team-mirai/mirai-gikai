@@ -1,12 +1,15 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import { TopicCard } from "../../shared/components/topic-card";
 import type { PublicTopic } from "../../shared/types";
 import {
   filterAndSortTopics,
+  type TopicFilterChip,
+  topicFilterOptions,
   topicSortLabel,
 } from "../../shared/utils/filter-topics";
 import { useFilteredPagination } from "../hooks/use-filtered-pagination";
@@ -40,6 +43,15 @@ export function TopicList({
   // 「意見のまとめ」件数は表示中トピックの意見数の合計。
   const opinionCount = filtered.reduce((sum, t) => sum + t.opinion_count, 0);
 
+  // 各フィルタに該当するトピック数。0件のフィルタchipは非表示にする（件数自体は表示しない）。
+  const filterCounts = useMemo(() => {
+    const result: Partial<Record<TopicFilterChip, number>> = {};
+    for (const { value } of topicFilterOptions) {
+      result[value] = filterAndSortTopics(topics, value).length;
+    }
+    return result;
+  }, [topics]);
+
   return (
     <div className="flex flex-col gap-6">
       {/* 件数ラベル + フィルタchip */}
@@ -48,7 +60,12 @@ export function TopicList({
           {filtered.length}件のトピック（{opinionCount}件の意見まとめ）
           {sortLabel && `｜${sortLabel}`}
         </p>
-        <TopicFilterChips activeFilter={filter} onSelect={selectFilter} />
+        <TopicFilterChips
+          activeFilter={filter}
+          onSelect={selectFilter}
+          counts={filterCounts}
+          showCount={false}
+        />
       </div>
 
       {/* トピックカード一覧 */}

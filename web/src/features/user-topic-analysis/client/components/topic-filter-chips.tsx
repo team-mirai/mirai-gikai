@@ -36,10 +36,15 @@ interface TopicFilterChipsProps {
   activeFilter: TopicFilter;
   /** chipクリック時に呼ばれる。同じ値の再選択（解除）は呼び出し側で扱う。 */
   onSelect: (filter: TopicFilter) => void;
-  /** 各フィルタの件数。指定時はラベル横に表示する（トピック詳細の意見数など）。 */
+  /**
+   * 各フィルタの件数。指定時、件数 0 の chip は非表示にする。
+   * showCount が true のときはラベル横に件数も表示する（トピック詳細の意見数など）。
+   */
   counts?: Partial<Record<TopicFilterChip, number>>;
   /** 件数の単位（回答一覧では "人"）。counts と併用する。 */
   countSuffix?: string;
+  /** ラベル横に件数を表示するか（既定 true）。一覧では false にして件数非表示・0件除外のみ行う。 */
+  showCount?: boolean;
 }
 
 /** トピック一覧・詳細で共通利用するフィルタchip行（横スクロール）。 */
@@ -48,10 +53,12 @@ export function TopicFilterChips({
   onSelect,
   counts,
   countSuffix = "",
+  showCount = true,
 }: TopicFilterChipsProps) {
   const allActive = activeFilter === "all";
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+    // 右端は画面いっぱいまで広げる（Container の右paddingを相殺しつつ末尾chipの余白を確保）。
+    <div className="-mr-4 flex gap-2 overflow-x-auto pr-4 scrollbar-hide sm:-mr-6 sm:pr-6 lg:-mr-8 lg:pr-8">
       {/* 「すべて」: フィルタ解除（all）。アイコン・件数・解除Xは持たない。 */}
       <Button
         type="button"
@@ -72,6 +79,8 @@ export function TopicFilterChips({
         const Icon = filterIcons[option.value];
         const isActive = activeFilter === option.value;
         const count = counts?.[option.value];
+        // 件数 0 の chip は表示しない（counts 指定時のみ判定）。
+        if (count === 0) return null;
         return (
           <Button
             key={option.value}
@@ -95,7 +104,7 @@ export function TopicFilterChips({
               )}
             />
             <span>{option.label}</span>
-            {count !== undefined && (
+            {showCount && count !== undefined && (
               <span className="font-bold">
                 {count}
                 {countSuffix}

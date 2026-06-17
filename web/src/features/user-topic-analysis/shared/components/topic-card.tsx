@@ -115,7 +115,10 @@ export function TopicCard({
               （{topic.opinion_count}件）
             </span>
           </h3>
-          <ChevronRight className="size-[18px] shrink-0 text-primary" />
+          {/* タイトル1行目(line-height 24px)と高さを揃えて > を中央寄せにする */}
+          <span className="flex h-6 shrink-0 items-center">
+            <ChevronRight className="size-[18px] text-primary" />
+          </span>
         </div>
         <TopicSentiment
           sentiment={topic.sentiment}

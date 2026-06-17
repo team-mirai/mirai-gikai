@@ -51,8 +51,11 @@ function _CheckPointsList() {
 
 function _InterviewCTAButton({ billId }: { billId: string }) {
   return (
-    <Link href={routes.interviewLP(billId) as Route}>
-      <Button className="w-[224px] bg-mirai-gradient text-black border border-black rounded-3xl h-[42px] px-5 font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-1">
+    <Link
+      href={routes.interviewLP(billId) as Route}
+      className="block w-full max-w-[224px]"
+    >
+      <Button className="w-full bg-mirai-gradient text-black border border-black rounded-3xl h-[42px] px-5 font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-1">
         <span>AIインタビューを受ける</span>
         <ArrowRight className="size-4" />
       </Button>
@@ -91,10 +94,13 @@ export function InterviewLandingSection({
             お聞かせください
           </h2>
 
-          <_CheckPointsList />
+          {/* 右下のイラストと重ならないよう、下部コンテンツに右余白を確保する */}
+          <div className="flex flex-col gap-2 pr-[100px] sm:pr-[140px]">
+            <_CheckPointsList />
 
-          <div className="pt-2">
-            <_InterviewCTAButton billId={billId} />
+            <div className="pt-2">
+              <_InterviewCTAButton billId={billId} />
+            </div>
           </div>
         </div>
       </div>
