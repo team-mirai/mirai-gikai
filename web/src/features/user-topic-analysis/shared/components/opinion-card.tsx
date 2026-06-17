@@ -136,15 +136,19 @@ export function OpinionCard({
             {opinion.role_title}
           </span>
         )}
+        {dateLabel && (
+          <span className="text-[12px] leading-[14px] text-topic-label">
+            {dateLabel}
+          </span>
+        )}
       </div>
 
       {/* 引用 */}
       {quote && <Quote quote={quote} />}
 
-      {/* 区切り線 + 日時 + レポートリンク */}
-      <div className="flex items-center justify-between border-t border-mirai-border pt-3">
-        <span className="text-[11px] text-topic-label">{dateLabel}</span>
-        {reportVisible && (
+      {/* レポートリンク */}
+      {reportVisible && (
+        <div className="flex items-center justify-end pt-3">
           <Link
             href={reportHref as Route}
             prefetch={false}
@@ -153,8 +157,8 @@ export function OpinionCard({
             インタビューレポートを読む
             <ChevronRight className="size-[14px] shrink-0" />
           </Link>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
