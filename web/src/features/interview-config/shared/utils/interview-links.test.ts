@@ -106,4 +106,25 @@ describe("getInterviewMessageLink", () => {
       "/report/report-456/complete#message-abc-123"
     );
   });
+
+  it("appends encoded quote as query before the hash", () => {
+    expect(
+      getInterviewMessageLink(
+        "report-456",
+        "abc-123",
+        undefined,
+        "戻ったら違う部署"
+      )
+    ).toBe(
+      `/report/report-456?quote=${encodeURIComponent("戻ったら違う部署")}#message-abc-123`
+    );
+  });
+
+  it("uses & separator when from query already present", () => {
+    expect(
+      getInterviewMessageLink("report-456", "abc-123", "opinions", "引用")
+    ).toBe(
+      `/report/report-456?from=opinions&quote=${encodeURIComponent("引用")}#message-abc-123`
+    );
+  });
 });
