@@ -1,5 +1,10 @@
 import { isPublicReportVisible } from "@mirai-gikai/shared/report-publication/auto-publish";
-import { ChevronRight, UserRound } from "lucide-react";
+import {
+  ChevronRight,
+  TrendingDown,
+  TrendingUp,
+  UserRound,
+} from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
@@ -28,15 +33,17 @@ function SentimentLabel({
   sentiment: PublicOpinion["bill_sentiment"];
 }) {
   if (!sentiment) return null;
+  const Icon = sentiment === "期待" ? TrendingUp : TrendingDown;
   return (
     <span
       className={cn(
-        "text-[13px] font-medium",
+        "flex items-center gap-1 text-[13px] font-medium",
         sentiment === "期待"
           ? "text-primary-accent"
           : "text-stance-against-light"
       )}
     >
+      <Icon className="size-4 shrink-0" />
       {sentiment}
     </span>
   );
@@ -156,8 +163,8 @@ export function OpinionCard({
       {/* 引用 */}
       {quote && <Quote quote={quote} />}
 
-      {/* 日時 + レポートリンク */}
-      <div className="flex items-center justify-between">
+      {/* 区切り線 + 日時 + レポートリンク */}
+      <div className="flex items-center justify-between border-t border-mirai-border pt-3">
         <span className="text-[11px] text-topic-label">{dateLabel}</span>
         {reportVisible && (
           <Link
