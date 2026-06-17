@@ -45,4 +45,30 @@ describe("splitByQuote", () => {
       { text: "はAはA", highlight: false },
     ]);
   });
+
+  it("「…」で省略結合された引用は各断片を出現順に太字化する", () => {
+    expect(
+      splitByQuote("前半部分があり中略され後半部分が続く", "前半部分…後半部分")
+    ).toEqual([
+      { text: "前半部分", highlight: true },
+      { text: "があり中略され", highlight: false },
+      { text: "後半部分", highlight: true },
+      { text: "が続く", highlight: false },
+    ]);
+  });
+
+  it('"..."区切りも断片として扱う', () => {
+    expect(splitByQuote("ABCDEF", "AB...EF")).toEqual([
+      { text: "AB", highlight: true },
+      { text: "CD", highlight: false },
+      { text: "EF", highlight: true },
+    ]);
+  });
+
+  it("断片が見つからなければその断片はスキップする", () => {
+    expect(splitByQuote("前半部分のみ", "前半部分…無い後半")).toEqual([
+      { text: "前半部分", highlight: true },
+      { text: "のみ", highlight: false },
+    ]);
+  });
 });
