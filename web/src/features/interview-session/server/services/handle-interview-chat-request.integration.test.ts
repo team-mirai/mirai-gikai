@@ -14,11 +14,11 @@ import type { InterviewSession } from "../../shared/types";
 import { findInterviewMessagesBySessionId } from "../repositories/interview-session-repository";
 import { handleInterviewChatRequest } from "./handle-interview-chat-request";
 
-type CapturedPrompt = Array<{ role: string }>;
+type CapturedPrompt = Array<{ role: string; content?: unknown }>;
 
 /**
  * モデルが受け取った prompt（変換後のメッセージ列）を記録する streamText 用モック。
- * 末尾が user メッセージで終わっているか検証するために使う。
+ * 末尾が user メッセージで終わっているか・履歴が二重送信されていないかの検証に使う。
  */
 function createCapturingStreamMock(text: string): {
   model: MockLanguageModelV3;
@@ -294,11 +294,66 @@ describe("handleInterviewChatRequest 統合テスト", () => {
       expect(prompts).toHaveLength(1);
       expect(prompts[0].at(-1)?.role).toBe("user");
 
+      // 会話履歴はシステムプロンプトに含まれるため、メッセージ列には
+      // 合成 user メッセージ1件のみを渡す（履歴の二重送信を防ぐ）
+      const nonSystemMessages = prompts[0].filter((m) => m.role !== "system");
+      expect(nonSystemMessages).toHaveLength(1);
+
       // 補った user メッセージは DB に保存されない（assistant の出力のみ保存）
       const messages = await findInterviewMessagesBySessionId(sessionId);
       expect(messages).toHaveLength(1);
       expect(messages[0].role).toBe("assistant");
       expect(messages[0].content).toBe(validSummaryResponse);
+    });
+
+    it("レポート修正依頼（末尾が user）では末尾の user メッセージのみをモデルへ渡す", async () => {
+      const { model, prompts } =
+        createCapturingStreamMock(validSummaryResponse);
+
+      const response = await handleInterviewChatRequest({
+        messages: [
+          { role: "user", content: "賛成です" },
+          { role: "assistant", content: "レポート案です" },
+          { role: "user", content: "もっと簡潔にしてください" },
+        ],
+        billId,
+        currentStage: "summary",
+        userId: testUser.id,
+        deps: {
+          summaryModel: model,
+          getBill: async () => null,
+          getInterviewConfig: async () => config,
+          getSession: async () => session,
+          getMessages: async () => [],
+        },
+      });
+
+      expect(response.status).toBe(200);
+      await consumeResponseStream(response);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // 履歴はシステムプロンプト側にあるため、メッセージ列は末尾の user 1件のみ
+      expect(prompts).toHaveLength(1);
+      const nonSystemMessages = prompts[0].filter((m) => m.role !== "system");
+      expect(nonSystemMessages).toHaveLength(1);
+      expect(nonSystemMessages[0].role).toBe("user");
+      expect(JSON.stringify(nonSystemMessages[0].content)).toContain(
+        "もっと簡潔にしてください"
+      );
+
+      // 会話履歴（修正依頼を含む）はシステムプロンプトに含まれること
+      const systemMessage = prompts[0].find((m) => m.role === "system");
+      expect(JSON.stringify(systemMessage?.content)).toContain("賛成です");
+      expect(JSON.stringify(systemMessage?.content)).toContain(
+        "もっと簡潔にしてください"
+      );
+
+      // 修正依頼の user メッセージと assistant の出力が DB に保存されること
+      const messages = await findInterviewMessagesBySessionId(sessionId);
+      expect(messages).toHaveLength(2);
+      expect(messages[0].role).toBe("user");
+      expect(messages[0].content).toBe("もっと簡潔にしてください");
+      expect(messages[1].role).toBe("assistant");
     });
 
     it("summaryフェーズではsummaryModelが使用される（chatModelは無視される）", async () => {

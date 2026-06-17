@@ -26,6 +26,7 @@ async function createReportWithOpinions(opts: {
   configId: string;
   userId: string;
   isPublicByUser: boolean;
+  isPublicByAdmin?: boolean; // 既定 true（管理者公開済み）
   moderationScore: number; // <30=ok, 30-69=warning, >=70=ng（generated column）
   opinions: Array<{ title: string; content: string }>;
 }): Promise<{ reportId: string; opinionIds: string[] }> {
@@ -46,6 +47,7 @@ async function createReportWithOpinions(opts: {
     .insert({
       interview_session_id: session.id,
       is_public_by_user: opts.isPublicByUser,
+      is_public_by_admin: opts.isPublicByAdmin ?? true,
       moderation_score: opts.moderationScore,
       role: "general_citizen",
       summary: "s",
@@ -103,19 +105,20 @@ describe("user-topic-analysis repository 統合テスト", () => {
       .in("status", ["pending", "running"]);
   });
 
-  it("fetchTargetOpinions は公開同意済み×モデレーションOKの意見だけ返す（§8）", async () => {
-    // A: public × ok（含まれる）
+  it("fetchTargetOpinions は管理者公開×ユーザー公開×モデレーションOKの意見だけ返す（§8）", async () => {
+    // A: admin公開 × user公開 × ok（含まれる）
     const a = await createReportWithOpinions({
       configId,
       userId: testUser.id,
       isPublicByUser: true,
+      isPublicByAdmin: true,
       moderationScore: 5,
       opinions: [
         { title: "A1", content: "賛成" },
         { title: "A2", content: "懸念" },
       ],
     });
-    // B: 非公開（除外）
+    // B: user非公開（除外）
     await createReportWithOpinions({
       configId,
       userId: testUser.id,
@@ -123,13 +126,22 @@ describe("user-topic-analysis repository 統合テスト", () => {
       moderationScore: 5,
       opinions: [{ title: "B1", content: "x" }],
     });
-    // C: public だが moderation ng（除外）
+    // C: user公開 だが moderation ng（除外）
     await createReportWithOpinions({
       configId,
       userId: testUser.id,
       isPublicByUser: true,
       moderationScore: 80,
       opinions: [{ title: "C1", content: "y" }],
+    });
+    // D: user公開 × ok だが admin未公開（除外）
+    await createReportWithOpinions({
+      configId,
+      userId: testUser.id,
+      isPublicByUser: true,
+      isPublicByAdmin: false,
+      moderationScore: 5,
+      opinions: [{ title: "D1", content: "z" }],
     });
 
     const result = await fetchTargetOpinions(billId);

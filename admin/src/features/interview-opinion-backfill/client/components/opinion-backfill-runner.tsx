@@ -7,10 +7,16 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  CHAT_MODEL_GROUPS,
+  DEFAULT_MODEL_LABEL,
+} from "@/features/interview-config/shared/utils/chat-model-options";
 
 type BillOption = { id: string; name: string };
 
@@ -25,10 +31,13 @@ type BackfillStatus = {
 const POLL_INTERVAL_MS = 5000;
 // 「全議案」を表す Select のセンチネル値（Radix は空文字の value を許さないため）。
 const ALL_BILLS = "__all__";
+// 「既定モデル（OPINION_BACKFILL_MODEL）」を表すセンチネル値。
+const DEFAULT_MODEL = "__default__";
 
 export function OpinionBackfillRunner({ bills }: { bills: BillOption[] }) {
   const [billValue, setBillValue] = useState<string>(ALL_BILLS);
   const [scope, setScope] = useState<BackfillScope>("pending");
+  const [modelValue, setModelValue] = useState<string>(DEFAULT_MODEL);
   const [status, setStatus] = useState<BackfillStatus | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -36,6 +45,7 @@ export function OpinionBackfillRunner({ bills }: { bills: BillOption[] }) {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const billId = billValue === ALL_BILLS ? undefined : billValue;
+  const model = modelValue === DEFAULT_MODEL ? undefined : modelValue;
   // 「全部」は議案指定時のみ許可（全議案 × 全部は高コストなので不可）。
   const allScopeDisabled = !billId;
 
@@ -102,7 +112,7 @@ export function OpinionBackfillRunner({ bills }: { bills: BillOption[] }) {
       const res = await fetch("/api/interview-opinion-backfill/dispatch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billId, scope }),
+        body: JSON.stringify({ billId, scope, model }),
       });
       if (!res.ok) {
         throw new Error(`実行開始に失敗しました (${res.status})`);
@@ -114,7 +124,7 @@ export function OpinionBackfillRunner({ bills }: { bills: BillOption[] }) {
     } finally {
       setIsStarting(false);
     }
-  }, [billId, scope, fetchStatus, startPolling]);
+  }, [billId, scope, model, fetchStatus, startPolling]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -163,6 +173,43 @@ export function OpinionBackfillRunner({ bills }: { bills: BillOption[] }) {
             </p>
           )}
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="backfill-model">再抽出モデル</Label>
+        <Select
+          value={modelValue}
+          onValueChange={setModelValue}
+          disabled={isRunning}
+        >
+          <SelectTrigger id="backfill-model" className="sm:max-w-sm">
+            <SelectValue placeholder="モデルを選択" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={DEFAULT_MODEL}>
+              デフォルト（{DEFAULT_MODEL_LABEL}）
+            </SelectItem>
+            {CHAT_MODEL_GROUPS.map((group) => (
+              <SelectGroup key={group.provider}>
+                <SelectLabel>{group.provider}</SelectLabel>
+                {group.options.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                    {option.estimatedCost && (
+                      <span className="ml-2 text-muted-foreground">
+                        {option.estimatedCost}/回
+                      </span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          再抽出に使用するモデル。「デフォルト」は上の選択肢に表示されたモデルを使います。
+          コスト表記はインタビュー1回あたりの目安で、再抽出1件の実コストとは異なります。
+        </p>
       </div>
 
       <div className="flex items-center gap-3">

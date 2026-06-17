@@ -30,7 +30,10 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
         with:
-          version: latest
+          # v2.106.0 で secret key ロールの table GRANT 挙動が変わり、global setup の
+          # `diet_sessions` select が permission denied で落ちるため、直前の安定版に固定する。
+          # latest に戻す場合は tests/supabase/setup.ts が通ることを確認すること。
+          version: 2.105.0
 
       - name: Start Supabase
         run: supabase start -x studio,imgproxy,logflare,vector,realtime,edge-runtime,supavisor,inbucket

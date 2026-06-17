@@ -7,6 +7,7 @@ import {
 import { topicExtractionSchema } from "../shared/schemas";
 import type { BillContext, TargetOpinion, TopicDraft } from "../shared/types";
 import { chunk, mapWithConcurrency, withRetry } from "../utils/concurrency";
+import { joinSummaryPoints } from "../utils/join-summary-points";
 import { buildExtractPrompt } from "./prompts";
 
 async function extractBatch(
@@ -33,7 +34,10 @@ async function extractBatch(
     `extract batch=${batchIndex}`
   );
 
-  return object.topics;
+  return object.topics.map((t) => ({
+    title: t.title,
+    description: joinSummaryPoints(t.description_points),
+  }));
 }
 
 /** Phase1: 意見をバッチ分割しトピック候補を並列抽出（Map）。 */

@@ -10,8 +10,10 @@ type VersionStatus = "pending" | "running" | "completed" | "failed";
 
 /**
  * §8 フィルタ後の分析対象意見を取得する。
- * interview_opinion → interview_report(is_public_by_user=true, moderation_status='ok')
+ * interview_opinion
+ * → interview_report(is_public_by_admin=true, is_public_by_user=true, moderation_status='ok')
  * → interview_sessions → interview_configs(bill_id) を辿る。
+ * 管理者公開・ユーザー公開の両方に同意済みで、かつモデレーションOKの意見のみ分析対象とする。
  */
 export async function fetchTargetOpinions(
   billId: string
@@ -20,14 +22,15 @@ export async function fetchTargetOpinions(
   const { data, error } = await supabase
     .from("interview_opinion")
     .select(
-      `id, opinion_index, title, content, contextual_quote, bill_sentiment, interview_report_id,
+      `id, opinion_index, title, content, contextual_quote, bill_sentiment, richness, topic_extracted_at, interview_report_id,
        interview_report!inner(
-         is_public_by_user, moderation_status, role,
+         is_public_by_admin, is_public_by_user, moderation_status, role,
          interview_sessions!inner(
            interview_configs!inner(bill_id)
          )
        )`
     )
+    .eq("interview_report.is_public_by_admin", true)
     .eq("interview_report.is_public_by_user", true)
     .eq("interview_report.moderation_status", "ok")
     .eq("interview_report.interview_sessions.interview_configs.bill_id", billId)
@@ -51,8 +54,41 @@ export async function fetchTargetOpinions(
       contextual_quote: row.contextual_quote,
       bill_sentiment: row.bill_sentiment,
       role: report?.role ?? null,
+      richness: row.richness ?? null,
+      topic_extracted_at: row.topic_extracted_at ?? null,
     };
   });
+}
+
+/**
+ * 指定意見にトピック抽出済みウォーターマーク(topic_extracted_at)を記録する（増分用）。
+ * 次回以降の増分抽出で「新規(未抽出)」対象から外すため。
+ * DB 関数 mark_opinions_extracted で単一トランザクション一括更新する（部分更新を残さない）。
+ */
+export async function markOpinionsExtracted(
+  opinionIds: string[]
+): Promise<void> {
+  if (opinionIds.length === 0) return;
+  const supabase = createAdminClient();
+  const { error } = await supabase.rpc("mark_opinions_extracted", {
+    p_ids: opinionIds,
+    p_extracted_at: new Date().toISOString(),
+  });
+  if (error) {
+    throw new Error(`Failed to mark opinions extracted: ${error.message}`);
+  }
+}
+
+/** 全議案の id・タイトルを取得する（全議案トピック分析の対象列挙・ログ表示用）。 */
+export async function listAllBills(): Promise<
+  Array<{ id: string; name: string }>
+> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("bills").select("id, name");
+  if (error) {
+    throw new Error(`Failed to list bills: ${error.message}`);
+  }
+  return (data ?? []).map((b) => ({ id: b.id, name: b.name }));
 }
 
 /** 議案コンテキスト（プロンプト接地用）を取得する。本文は bill_contents（normal）から。 */
@@ -360,7 +396,7 @@ export async function getTopicsWithOpinions(versionId: string) {
     .select(
       `id, title, description, sort_order,
        topic_opinion(
-         interview_opinion(id, title, content, contextual_quote, bill_sentiment)
+         interview_opinion(id, title, content, contextual_quote, bill_sentiment, richness)
        )`
     )
     .eq("version_id", versionId)
