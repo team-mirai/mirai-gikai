@@ -22,6 +22,7 @@ async function createReportWithOpinions(opts: {
   configId: string;
   userId: string;
   isPublicByUser: boolean;
+  isPublicByAdmin?: boolean;
   moderationScore: number;
   role?: string;
   opinions: Array<{ title: string; content: string; bill_sentiment?: string }>;
@@ -43,6 +44,7 @@ async function createReportWithOpinions(opts: {
     .insert({
       interview_session_id: session.id,
       is_public_by_user: opts.isPublicByUser,
+      is_public_by_admin: opts.isPublicByAdmin ?? true,
       moderation_score: opts.moderationScore,
       role: opts.role ?? "general_citizen",
       summary: "s",
@@ -136,12 +138,13 @@ describe("publish / 公開読み取り 統合テスト", () => {
     expect(await findPublishedAnalysis(billId)).toBeNull();
   });
 
-  it("公開読み取りは §8（公開同意×モデOK）の意見だけ返し件数も再計算", async () => {
-    // 公開×OK の意見1、非公開の意見1
+  it("公開読み取りは §8（管理者公開×公開同意×モデOK）の意見だけ返し件数も再計算", async () => {
+    // 管理者公開×公開同意×OK の意見1、ユーザー非公開1、管理者非公開1
     const okIds = await createReportWithOpinions({
       configId,
       userId: testUser.id,
       isPublicByUser: true,
+      isPublicByAdmin: true,
       moderationScore: 5,
       role: "daily_life_affected",
       opinions: [{ title: "ok", content: "c", bill_sentiment: "期待" }],
@@ -153,6 +156,14 @@ describe("publish / 公開読み取り 統合テスト", () => {
       moderationScore: 5,
       opinions: [{ title: "private", content: "c" }],
     });
+    const adminNgIds = await createReportWithOpinions({
+      configId,
+      userId: testUser.id,
+      isPublicByUser: true,
+      isPublicByAdmin: false,
+      moderationScore: 5,
+      opinions: [{ title: "admin-ng", content: "c" }],
+    });
 
     const versionId = await createCompletedVersion(billId);
     await saveTopicsAndAssignments(
@@ -161,6 +172,7 @@ describe("publish / 公開読み取り 統合テスト", () => {
       [
         { opinion_id: okIds[0], topic_index: 0 },
         { opinion_id: privateIds[0], topic_index: 0 },
+        { opinion_id: adminNgIds[0], topic_index: 0 },
       ]
     );
     await publishVersion(versionId);

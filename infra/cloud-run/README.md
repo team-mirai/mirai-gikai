@@ -13,11 +13,34 @@
 | --- | --- |
 | API | run / artifactregistry / secretmanager を有効化 |
 | Artifact Registry | docker リポジトリ（既定 `topic-analysis`） |
-| Secret Manager | `SUPABASE_URL` / `SUPABASE_SECRET_KEY` / `AI_GATEWAY_API_KEY`（**コンテナのみ**。値は別途） |
+| Secret Manager | `SUPABASE_URL` / `SUPABASE_SECRET_KEY` / `AI_GATEWAY_API_KEY` に **環境サフィックス**を付けたもの（例 `SUPABASE_URL_STAGING`）。**コンテナのみ**・値は別途 |
 | SA: runtime | Job 実行用。secret 読み取り権限 |
 | SA: invoker | admin が `jobs:run` を呼ぶ用。run.invoker + runtime への actAs |
 | SA: deployer | CI（`deploy_worker.yml`）用。AR writer + run.developer + actAs |
-| Cloud Run Job | `topic-analysis-worker`（batch 向け設定）。**無ければ作成**、以後の image 更新は CI |
+| Cloud Run Job | `topic-analysis-worker-<DEPLOY_ENV>`（batch 向け設定）。**無ければ作成**、以後の image 更新は CI |
+
+## 環境（staging / production）の分離
+
+Secret Manager は **プロジェクトでグローバル（名前が一意）** なため、同一プロジェクトに
+複数環境を置く場合は **Secret 名と Job 名を環境ごとに分離**する必要がある。
+本スクリプトは必須の `DEPLOY_ENV`（例 `staging` / `production`）から自動で分離する。
+
+- Secret 名: `SUPABASE_URL` → `SUPABASE_URL_<DEPLOY_ENV 大文字>`（例 `SUPABASE_URL_STAGING`）
+- Job 名（既定）: `topic-analysis-worker-<DEPLOY_ENV>`
+- worker が読む **環境変数名は固定**（`SUPABASE_URL` 等）。Job の `--set-secrets` が
+  「`SUPABASE_URL=SUPABASE_URL_STAGING:latest`」のように環境別 Secret へマッピングする。
+
+> ⚠️ `DEPLOY_ENV` を指定しないとエラーで停止する（環境を跨いで Secret を上書きする事故を防ぐため）。
+
+**CI（`deploy_worker.yml`）との対応**: ワークフローは `main`→`topic-analysis-worker-production` /
+`develop`→`topic-analysis-worker-staging` を既定 Job 名として更新する。provision 時に別名の Job を
+作った場合は、各 GitHub Environment の Secret `GCP_TOPIC_ANALYSIS_JOB` を**その Job 名に合わせて**設定すること
+（不一致だと `gcloud run jobs update` が `NOT_FOUND` で失敗する）。
+
+**サービスアカウントの分離（任意）**: 既定では runtime / invoker / deployer SA は環境間で**共有**される
+（runtime SA は `*_STAGING` と `*_PRODUCTION` の両 Secret にアクセス可能）。環境ごとに IAM を完全分離したい場合は
+`RUNTIME_SA_NAME` / `INVOKER_SA_NAME` / `DEPLOYER_SA_NAME` を環境別の名前（例 `topic-analysis-runtime-staging`）で
+上書きして実行する。
 
 ## 前提
 
@@ -27,12 +50,22 @@
 ## 使い方
 
 ```bash
-# 1. 設定（実値は config.env に。gitignore 済み）
+# 1. 設定（実値は config.env に。config.env* は gitignore 済み）
 cp infra/cloud-run/config.example.env infra/cloud-run/config.env
-$EDITOR infra/cloud-run/config.env        # GCP_PROJECT_ID は必須
+$EDITOR infra/cloud-run/config.env        # GCP_PROJECT_ID と DEPLOY_ENV は必須
 
 # 2. 実行（冪等。何度実行しても安全）
 bash infra/cloud-run/provision.sh
+```
+
+環境を分けて運用する場合は、環境別の設定ファイルを `CONFIG_FILE` で指定する（いずれも gitignore 対象）:
+
+```bash
+cp infra/cloud-run/config.example.env infra/cloud-run/config.env.staging      # DEPLOY_ENV=staging + staging 値
+cp infra/cloud-run/config.example.env infra/cloud-run/config.env.production    # DEPLOY_ENV=production + 本番値
+
+CONFIG_FILE=infra/cloud-run/config.env.staging    bash infra/cloud-run/provision.sh
+CONFIG_FILE=infra/cloud-run/config.env.production bash infra/cloud-run/provision.sh
 ```
 
 ## OSS・セキュリティ上の約束

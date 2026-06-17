@@ -16,6 +16,7 @@ async function createOpinion(opts: {
   configId: string;
   userId: string;
   isPublicByUser: boolean;
+  isPublicByAdmin?: boolean;
   moderationScore: number;
   role:
     | "daily_life_affected"
@@ -42,6 +43,7 @@ async function createOpinion(opts: {
     .insert({
       interview_session_id: session.id,
       is_public_by_user: opts.isPublicByUser,
+      is_public_by_admin: opts.isPublicByAdmin ?? true,
       moderation_score: opts.moderationScore,
       role: opts.role,
       summary: "s",

@@ -23,7 +23,9 @@ jobs:
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_REGION: ${{ secrets.GCP_REGION || 'asia-northeast1' }}
       GCP_AR_REPO: ${{ secrets.GCP_AR_REPO || 'topic-analysis' }}
-      GCP_TOPIC_ANALYSIS_JOB: ${{ secrets.GCP_TOPIC_ANALYSIS_JOB || 'topic-analysis-worker' }}
+      # 既定は環境別 Job 名（provision.sh の topic-analysis-worker-<DEPLOY_ENV> に合わせる）。
+      # provision 時に別名を使った場合は各環境の Secret GCP_TOPIC_ANALYSIS_JOB で上書きすること。
+      GCP_TOPIC_ANALYSIS_JOB: ${{ secrets.GCP_TOPIC_ANALYSIS_JOB || (github.ref_name == 'main' && 'topic-analysis-worker-production' || 'topic-analysis-worker-staging') }}
     steps:
       # Environment の Secret は job 開始後のステップでしか参照できない
       # （job-level if からは Environment スコープの vars/secrets が見えない）。

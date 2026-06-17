@@ -15,13 +15,20 @@ export const opinionSchema = z
       .string()
       .nullable()
       .describe(
-        "この意見の根拠となる引用。引用単体で意味が通じれば原文ママ、文脈が必要なら「（○○について）原文の発言」の形で自己完結させる。個人名などの固有名詞は含めない"
+        "source_message_id が指すユーザー発言からの逐語引用のみ。言い換え・要約・複数発言の結合・語句の補完をしない。文脈が必要な場合のみ先頭に「（○○について）」を付けてよいが、引用本体は原文ママとする。個人名などの固有名詞は含めない。適切な逐語引用が切り出せなければ null"
       ),
     bill_sentiment: z
       .enum(["期待", "懸念"])
       .nullable()
       .describe(
         "この意見が法案に対して示す期待か懸念か。どちらでもなければ null"
+      ),
+    // 意見単位の情報充実度（トピックカードで充実した引用を優先表示するため）
+    richness: z
+      .number()
+      .nullable()
+      .describe(
+        "この意見の情報充実度を 0-100 の整数で総合評価したスコア。論点の明確さ・具体性（事例や数値）・影響への言及・提案の広がりを総合する。**content だけでなく contextual_quote（引用文）も含めて評価する**（文脈の伴う具体的な引用ほど高くする）。0=ほぼ情報がない、100=非常に充実"
       ),
   })
   .strict();
@@ -50,24 +57,26 @@ export const interviewReportSchema = z
       ])
       .nullable()
       .describe(
-        "インタビュイーの立場タイプ（subject_expert:専門的な有識者, work_related:業務に関係, daily_life_affected:暮らしに影響, general_citizen:一般的な関心）"
+        "インタビュイーの立場タイプ（subject_expert:専門的な有識者, work_related:業務に関係, daily_life_affected:暮らしに影響, general_citizen:一般的な関心）。ログ内に根拠のある立場のみを用い（発言にない立場を推測で付与しない）、過去の経歴と現在の立場は区別する"
       ),
     role_description: z
       .string()
       .nullable()
-      .describe("ユーザーの役割や背景についての詳細な説明"),
+      .describe(
+        "ユーザーの役割や背景についての詳細な説明。ログ内の本人発言のみを根拠にし、根拠があれば具体的な経歴・専門性を書いてよい。ただし過去の経歴は「元〜」「〜した経験がある」のように現在の立場と誤読されない表現にする"
+      ),
     role_title: z
       .string()
       .max(10)
       .nullable()
       .describe(
-        "ユーザーの役割を10文字以内で端的に表現したタイトル（例: 物流業者、主婦、教師）"
+        "ユーザーの役割を10文字以内で端的に表現したタイトル（例: 物流業者、主婦、教師）。発言に根拠のある具体的な立場を表し、過去の職歴を現在の職業のように表記しない（過去の職歴なら「元〜」を付ける。例: 元復興関係職員）"
       ),
     opinions: z
       .array(opinionSchema)
       .max(3)
       .describe(
-        "ユーザーの具体的な主張（最大3件）。議案を検討する人にとって示唆として有益な順（具体性・建設性・独自性が高い順）に並べ、先頭ほど有益・重要な主張とする。元の対話ログにないことは記載しない"
+        "ユーザーの具体的な主張（最大3件）。議案を検討する人にとって示唆として有益な順（具体性・建設性・独自性が高い順）に並べ、先頭ほど有益・重要な主張とする。ユーザー本人の発言のみを根拠にし、インタビュアーの発言・言い換え・提示情報をユーザーの意見として記載しない。本人が明言していない要望・賛成・結論への格上げをしない。元の対話ログにないことは記載しない"
       ),
     content_richness: contentRichnessResultSchema.describe(
       "インタビューの情報充実度評価"
@@ -87,4 +96,5 @@ export type InterviewOpinionSource = {
   source_message_id?: string | null;
   contextual_quote?: string | null;
   bill_sentiment?: string | null;
+  richness?: number | null;
 };

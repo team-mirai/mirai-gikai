@@ -41,6 +41,7 @@ export function convertPartialReport(
               source_message_id?: string | null;
               contextual_quote?: string | null;
               bill_sentiment?: "期待" | "懸念" | null;
+              richness?: number | null;
             }
           | undefined
         > | null;
@@ -59,6 +60,7 @@ export function convertPartialReport(
           source_message_id: op.source_message_id ?? null,
           contextual_quote: op.contextual_quote ?? null,
           bill_sentiment: op.bill_sentiment ?? null,
+          richness: op.richness ?? null,
         }))
         .filter((op) => op.title || op.content)
     : [];

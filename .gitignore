@@ -12,5 +12,7 @@ node_modules
 !.env.example
 
 # Cloud Run infra（秘密・鍵はコミットしない）
+# config.env / config.env.<env>（環境別）をまとめて除外（config.example.env は対象外）
 infra/cloud-run/config.env
+infra/cloud-run/config.env.*
 *-key.json

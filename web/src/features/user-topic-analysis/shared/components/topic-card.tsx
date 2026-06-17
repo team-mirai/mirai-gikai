@@ -103,7 +103,7 @@ export function TopicCard({
         href={href as Route}
         prefetch={false}
         aria-label={topic.title}
-        className="absolute inset-0 z-0 rounded-[14px]"
+        className="absolute inset-0 z-0 rounded-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       />
 
       {/* タイトル〜期待懸念〜カテゴリ（クリックはオーバーレイに通す） */}

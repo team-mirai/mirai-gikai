@@ -1,3 +1,4 @@
+import { isKnownModel } from "@mirai-gikai/shared/ai/models";
 import { describe, expect, it } from "vitest";
 import {
   CHAT_MODEL_GROUPS,
@@ -9,6 +10,15 @@ describe("CHAT_MODEL_OPTIONS", () => {
   it("全てのオプションがprovider/model形式のvalueを持つ", () => {
     for (const option of CHAT_MODEL_OPTIONS) {
       expect(option.value).toMatch(/^(openai|google|anthropic)\//);
+    }
+  });
+
+  // UI で選べるモデルは必ず AI_MODELS（isKnownModel）のサブセットであること。
+  // ここが崩れると、UI で選べるのに backfill dispatch が「未知のモデルID」で
+  // 400 を返す乖離が起きる。
+  it("全てのオプションが AI_MODELS に登録済み（isKnownModel=true）", () => {
+    for (const option of CHAT_MODEL_OPTIONS) {
+      expect(isKnownModel(option.value)).toBe(true);
     }
   });
 
