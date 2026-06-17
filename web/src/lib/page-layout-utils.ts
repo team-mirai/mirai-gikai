@@ -6,11 +6,6 @@
  * - チャットサイドバー用のオフセットレイアウトを使用
  */
 
-/** TOPページ（ルート）かどうかを判定 */
-export function isTopPage(pathname: string): boolean {
-  return pathname === "/";
-}
-
 /** メインページ（TOP、法案詳細）かどうかを判定 */
 export function isMainPage(pathname: string): boolean {
   // トップページ

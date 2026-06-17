@@ -115,7 +115,7 @@ export async function TopicDetailPage({
   ];
 
   return (
-    <div className="min-h-dvh bg-mirai-surface">
+    <div className="min-h-dvh bg-mirai-surface pt-24 md:pt-0">
       <Container>
         <div className="flex flex-col gap-6 py-8">
           {/* パンくず + 法案タイトル */}

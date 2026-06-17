@@ -5,22 +5,7 @@ import {
   isInterviewPage,
   isInterviewSection,
   isMainPage,
-  isTopPage,
 } from "./page-layout-utils";
-
-describe("isTopPage", () => {
-  it("returns true only for the root path", () => {
-    expect(isTopPage("/")).toBe(true);
-  });
-
-  it("returns false for a bill detail page", () => {
-    expect(isTopPage("/bills/abc-123")).toBe(false);
-  });
-
-  it("returns false for unrelated paths", () => {
-    expect(isTopPage("/about")).toBe(false);
-  });
-});
 
 describe("isMainPage", () => {
   it("returns true for the top page", () => {
