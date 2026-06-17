@@ -16,8 +16,8 @@ import { useFilteredPagination } from "../hooks/use-filtered-pagination";
 import { TopicFilterChips } from "./topic-filter-chips";
 
 /** 最初に表示するトピック件数と、「もっと見る」で1回に追加する件数。 */
-const INITIAL_VISIBLE = 20;
-const LOAD_STEP = 20;
+const INITIAL_VISIBLE = 40;
+const LOAD_STEP = 40;
 
 interface TopicListProps {
   billId: string;
