@@ -49,8 +49,23 @@ export function TopicFilterChips({
   counts,
   countSuffix = "",
 }: TopicFilterChipsProps) {
+  const allActive = activeFilter === "all";
   return (
     <div className="flex gap-2 overflow-x-auto">
+      {/* 「すべて」: フィルタ解除（all）。アイコン・件数・解除Xは持たない。 */}
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={() => onSelect("all")}
+        className={cn(
+          "h-auto shrink-0 rounded-[50px] border border-mirai-text px-3 py-1.5 text-[13px] font-bold text-mirai-text",
+          allActive
+            ? "bg-mirai-gradient hover:opacity-90"
+            : "bg-white hover:bg-mirai-surface-gray"
+        )}
+      >
+        すべて
+      </Button>
       {topicFilterOptions.map((option) => {
         const Icon = filterIcons[option.value];
         const isActive = activeFilter === option.value;
