@@ -1,6 +1,6 @@
 import "server-only";
 
-import { MessageSquareText, Undo2 } from "lucide-react";
+import { Info, Undo2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -56,13 +56,13 @@ export async function BillOpinionsPage({ billId }: BillOpinionsPageProps) {
           {/* タイトル + 人数 + 説明 */}
           <div className="flex flex-col gap-4">
             <h1 className="flex items-center gap-3 font-bold leading-9 text-mirai-text">
-              <span className="flex items-center gap-1 text-[22px]">
-                <MessageSquareText className="size-6 shrink-0 text-primary" />
-                AIインタビューの回答一覧
-              </span>
+              <span className="text-[22px]">👫AIインタビューの回答一覧</span>
               <span className="text-[20px]">{respondents.length}人</span>
             </h1>
             <div className="flex items-center gap-2.5 rounded-[10px] bg-topic-info-bg px-3 py-2.5">
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-[10px] bg-white">
+                <Info className="size-3 text-primary-accent" />
+              </span>
               <p className="text-[12px] leading-5 text-mirai-text">
                 実際に回答された一人ひとりのAIインタビューの内容と、会話ログを読むことができます。公開に同意されたインタビュー回答のみ掲載しています。
               </p>

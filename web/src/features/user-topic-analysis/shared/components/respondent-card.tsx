@@ -1,4 +1,4 @@
-import { TrendingDown, TrendingUp, UserRound } from "lucide-react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
@@ -9,17 +9,8 @@ import {
   userCategoryColorClass,
   userCategoryLabels,
 } from "../utils/topic-category";
+import { PersonAvatar } from "./person-avatar";
 import { userCategoryIcons } from "./topic-meta";
-
-/** stance(期待/懸念) に応じたアバター背景色。 */
-const avatarBgClass: Record<
-  NonNullable<PublicRespondent["bill_sentiment"]> | "none",
-  string
-> = {
-  期待: "bg-stance-for-bg",
-  懸念: "bg-stance-against-bg",
-  none: "bg-mirai-surface-warm",
-};
 
 interface RespondentCardProps {
   respondent: PublicRespondent;
@@ -46,19 +37,7 @@ export function RespondentCard({ respondent, now }: RespondentCardProps) {
       className="flex items-start gap-3 rounded-2xl bg-white p-4 shadow-sm transition-colors hover:bg-mirai-surface-gray"
     >
       {/* アバター */}
-      <span
-        className={cn(
-          "flex size-12 shrink-0 items-center justify-center rounded-full",
-          avatarBgClass[respondent.bill_sentiment ?? "none"]
-        )}
-      >
-        <UserRound
-          className={cn(
-            "size-6",
-            userCategoryColorClass[respondent.user_category]
-          )}
-        />
-      </span>
+      <PersonAvatar sentiment={respondent.bill_sentiment} />
 
       {/* アバター横: ロール・バッジ・要約を同じインデントで縦並び */}
       <div className="flex min-w-0 flex-1 flex-col gap-3">
