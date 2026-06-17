@@ -6,6 +6,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layouts/container";
 import { Breadcrumb, type BreadcrumbItem } from "@/components/ui/breadcrumb";
+import { InterviewLandingSection } from "@/features/interview-config/client/components/interview-landing-section";
+import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
 import { ShareArticleButton } from "@/features/interview-report/client/components/share-article-button";
 import { routes } from "@/lib/routes";
 import { getOrigin } from "@/lib/utils/url";
@@ -32,6 +34,7 @@ export async function PublicReportPage({
     notFound();
   }
 
+  const interviewConfig = await getInterviewConfig(data.bill_id);
   const billName = data.bill.bill_content?.title || data.bill.name;
   const opinions = parseOpinions(data.opinions);
   const origin = await getOrigin();
@@ -80,6 +83,11 @@ export async function PublicReportPage({
           {/* すべての会話ログ */}
           {data.messages.length > 0 && (
             <ChatLogSection messages={data.messages} />
+          )}
+
+          {/* AIインタビューCTA */}
+          {interviewConfig != null && (
+            <InterviewLandingSection billId={data.bill_id} />
           )}
 
           {/* アクション */}
