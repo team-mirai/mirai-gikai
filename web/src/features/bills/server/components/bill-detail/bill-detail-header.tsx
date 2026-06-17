@@ -19,6 +19,7 @@ import type { BillWithContent } from "../../../shared/types";
 interface BillDetailHeaderProps {
   bill: BillWithContent;
   hasInterviewConfig?: boolean;
+  /** 意見数（トピック分析の total_opinions）。回答者数（人数）ではない点に注意。 */
   opinionCount?: number;
   /** 公開トピック数。1件以上ならトピック一覧への導線として件数を併記する。 */
   topicCount?: number;
