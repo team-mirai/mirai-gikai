@@ -16,16 +16,7 @@ import {
   userCategoryColorClass,
   userCategoryLabels,
 } from "../utils/topic-category";
-
-/** stance に応じたアバター背景色。 */
-const avatarBgClass: Record<
-  NonNullable<PublicOpinion["bill_sentiment"]> | "none",
-  string
-> = {
-  期待: "bg-stance-for-bg",
-  懸念: "bg-stance-against-bg",
-  none: "bg-mirai-surface-warm",
-};
+import { PersonAvatar } from "./person-avatar";
 
 function SentimentLabel({
   sentiment,
@@ -70,21 +61,6 @@ function CategoryChip({
         )}
       />
       {userCategoryLabels[opinion.user_category]}
-    </span>
-  );
-}
-
-function Avatar({ opinion }: { opinion: PublicOpinion }) {
-  return (
-    <span
-      className={cn(
-        "flex size-9 shrink-0 items-center justify-center rounded-full",
-        avatarBgClass[opinion.bill_sentiment ?? "none"]
-      )}
-    >
-      <UserRound
-        className={cn("size-5", userCategoryColorClass[opinion.user_category])}
-      />
     </span>
   );
 }
@@ -141,8 +117,8 @@ export function OpinionCard({
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
       {/* アバター + 意見タイトル */}
-      <div className="flex items-start gap-2.5">
-        <Avatar opinion={opinion} />
+      <div className="flex items-center gap-2.5">
+        <PersonAvatar sentiment={opinion.bill_sentiment} />
         <h3 className="min-w-0 flex-1 text-[15px] font-bold leading-6 text-mirai-text">
           {opinion.title}
         </h3>
@@ -154,7 +130,7 @@ export function OpinionCard({
         <SentimentLabel sentiment={opinion.bill_sentiment} />
         <CategoryChip opinion={opinion} includeCitizen />
         {opinion.user_category !== "citizen" && opinion.role_title && (
-          <span className="inline-flex items-center rounded-xl bg-topic-chip-bg px-1.5 py-1 text-[13px] font-medium text-mirai-text">
+          <span className="inline-flex items-center rounded bg-topic-chip-bg px-2 py-1 text-[13px] font-medium text-mirai-text-secondary">
             {opinion.role_title}
           </span>
         )}
@@ -170,7 +146,7 @@ export function OpinionCard({
           <Link
             href={reportHref as Route}
             prefetch={false}
-            className="flex items-center gap-0.5 text-[13px] font-medium text-primary-accent hover:underline"
+            className="flex items-center gap-0.5 text-[13px] font-bold text-primary-accent hover:underline"
           >
             インタビューレポートを読む
             <ChevronRight className="size-[14px] shrink-0" />
