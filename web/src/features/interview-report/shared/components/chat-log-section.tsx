@@ -14,14 +14,14 @@ interface ChatLogMessage {
   content: string;
 }
 
-/** メッセージ本文を表示し、引用一致部分を太字にする。 */
+/** メッセージ本文を表示し、引用一致部分を太字＋プライマリ色で強調する。 */
 function MessageText({ text, quote }: { text: string; quote?: string }) {
   return (
     <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap text-gray-800">
       {splitByQuote(text, quote).map((segment, index) =>
         segment.highlight ? (
           // biome-ignore lint/suspicious/noArrayIndexKey: セグメントは順序固定で再並びしない
-          <strong key={index} className="font-bold text-mirai-text">
+          <strong key={index} className="font-bold text-primary-accent">
             {segment.text}
           </strong>
         ) : (
