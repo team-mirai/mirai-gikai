@@ -107,7 +107,7 @@ describe("getInterviewMessageLink", () => {
     );
   });
 
-  it("appends encoded quote as query before the hash", () => {
+  it("appends encoded quote and mid as query before the hash", () => {
     expect(
       getInterviewMessageLink(
         "report-456",
@@ -116,7 +116,7 @@ describe("getInterviewMessageLink", () => {
         "戻ったら違う部署"
       )
     ).toBe(
-      `/report/report-456?quote=${encodeURIComponent("戻ったら違う部署")}#message-abc-123`
+      `/report/report-456?quote=${encodeURIComponent("戻ったら違う部署")}&mid=abc-123#message-abc-123`
     );
   });
 
@@ -124,7 +124,7 @@ describe("getInterviewMessageLink", () => {
     expect(
       getInterviewMessageLink("report-456", "abc-123", "opinions", "引用")
     ).toBe(
-      `/report/report-456?from=opinions&quote=${encodeURIComponent("引用")}#message-abc-123`
+      `/report/report-456?from=opinions&quote=${encodeURIComponent("引用")}&mid=abc-123#message-abc-123`
     );
   });
 });

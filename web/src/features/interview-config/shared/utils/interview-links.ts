@@ -101,7 +101,9 @@ export function getInterviewChatLogLink(
 /**
  * インタビュー会話ログ内の個別メッセージへのリンクを取得
  * @param from - 遷移元のコンテキスト。"complete" の場合は完了ページ内、"opinions" の場合は公開レポート一覧からの戻り文脈を維持する
- * @param quote - 引用文（逐語）。指定すると `?quote=` で渡し、レポート側で該当メッセージ内の該当部分を太字表示する
+ * @param quote - 引用文（逐語）。指定すると `?quote=` で渡し、レポート側で該当メッセージ内の該当部分を太字表示する。
+ *   このとき `?mid=`（メッセージID）も併せて渡し、ハイライト対象を該当メッセージ1件に限定する
+ *   （テキスト一致だけだと無関係なメッセージまで太字になるため）。
  */
 export function getInterviewMessageLink(
   reportId: string,
@@ -110,8 +112,9 @@ export function getInterviewMessageLink(
   quote?: string | null
 ): string {
   const base = getReportLinkForChatLogContext(reportId, from);
+  const sep = base.includes("?") ? "&" : "?";
   const query = quote
-    ? `${base.includes("?") ? "&" : "?"}quote=${encodeURIComponent(quote)}`
+    ? `${sep}quote=${encodeURIComponent(quote)}&mid=${encodeURIComponent(messageId)}`
     : "";
   return `${base}${query}#message-${messageId}`;
 }

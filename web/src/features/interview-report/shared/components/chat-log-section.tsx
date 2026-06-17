@@ -6,6 +6,11 @@ interface ChatLogSectionProps {
   messages: ChatLogMessage[];
   /** 引用元の逐語テキスト。該当メッセージ内の一致部分を太字表示する。 */
   highlightQuote?: string;
+  /**
+   * ハイライト対象のメッセージID。指定時はこのIDのメッセージ内だけを太字化し、
+   * 同じ文言を含む無関係なメッセージはハイライトしない。
+   */
+  highlightMessageId?: string;
 }
 
 interface ChatLogMessage {
@@ -36,10 +41,16 @@ function MessageText({ text, quote }: { text: string; quote?: string }) {
 export function ChatLogSection({
   messages,
   highlightQuote,
+  highlightMessageId,
 }: ChatLogSectionProps) {
   if (messages.length === 0) {
     return null;
   }
+
+  // highlightMessageId が指定されている場合は該当メッセージのみハイライトする。
+  // 未指定（古いリンク等）の場合は従来どおり全メッセージをテキスト一致で対象にする。
+  const shouldHighlight = (message: ChatLogMessage) =>
+    highlightMessageId == null || message.id === highlightMessageId;
 
   return (
     <section id="chat-log" className="flex flex-col gap-4 scroll-mt-24">
@@ -50,7 +61,9 @@ export function ChatLogSection({
             <ChatMessage
               key={message.id}
               message={message}
-              highlightQuote={highlightQuote}
+              highlightQuote={
+                shouldHighlight(message) ? highlightQuote : undefined
+              }
             />
           ))}
         </div>

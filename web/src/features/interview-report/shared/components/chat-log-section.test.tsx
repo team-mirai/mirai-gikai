@@ -37,4 +37,37 @@ describe("ChatLogSection", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("highlights only the message matching highlightMessageId", () => {
+    render(
+      <ChatLogSection
+        messages={[
+          { id: "m1", role: "user", content: "同じ引用文です" },
+          { id: "m2", role: "user", content: "同じ引用文です" },
+        ]}
+        highlightQuote="引用文"
+        highlightMessageId="m2"
+      />
+    );
+
+    // 対象外メッセージ(m1)は同じ文言でも太字化しない
+    expect(document.querySelector("#message-m1 strong")).toBeNull();
+    // 対象メッセージ(m2)のみ太字化する
+    expect(document.querySelector("#message-m2 strong")).toBeInTheDocument();
+  });
+
+  it("falls back to highlighting all matches when no highlightMessageId", () => {
+    render(
+      <ChatLogSection
+        messages={[
+          { id: "m1", role: "user", content: "同じ引用文です" },
+          { id: "m2", role: "user", content: "同じ引用文です" },
+        ]}
+        highlightQuote="引用文"
+      />
+    );
+
+    expect(document.querySelector("#message-m1 strong")).toBeInTheDocument();
+    expect(document.querySelector("#message-m2 strong")).toBeInTheDocument();
+  });
 });

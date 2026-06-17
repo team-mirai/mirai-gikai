@@ -24,12 +24,15 @@ interface PublicReportPageProps {
   from?: "opinions";
   /** 引用元の逐語テキスト。会話ログ内の該当箇所を太字表示する。 */
   highlightQuote?: string;
+  /** ハイライト対象のメッセージID。指定したメッセージ内のみ太字化し、無関係なメッセージは対象外にする。 */
+  highlightMessageId?: string;
 }
 
 export async function PublicReportPage({
   reportId,
   from,
   highlightQuote,
+  highlightMessageId,
 }: PublicReportPageProps) {
   const data = await getPublicReportById(reportId);
 
@@ -88,6 +91,7 @@ export async function PublicReportPage({
             <ChatLogSection
               messages={data.messages}
               highlightQuote={highlightQuote}
+              highlightMessageId={highlightMessageId}
             />
           )}
 
