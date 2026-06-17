@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
@@ -31,7 +31,7 @@ export function ReportMainOpinions({
               {opinion.title}
             </h3>
             {opinion.content && (
-              <div className="ml-2 border-l border-mirai-border pl-4">
+              <div className="ml-2 border-l-2 border-mirai-border pl-4">
                 <p className="font-mirai-serif text-[14px] font-medium leading-[22px] text-mirai-text">
                   <span className="mr-1 align-[-0.1em] text-[18px] text-primary-accent">
                     “
@@ -49,10 +49,10 @@ export function ReportMainOpinions({
                   ) as Route
                 }
                 prefetch={false}
-                className="flex items-center gap-0.5 self-end text-[13px] font-medium text-primary-accent hover:underline"
+                className="flex items-center gap-2 self-end text-[13px] font-bold text-primary-accent hover:underline"
               >
                 インタビューの前後を読む
-                <ChevronRight className="size-[14px] shrink-0" />
+                <ArrowDown className="size-[18px] shrink-0" />
               </Link>
             )}
           </div>
