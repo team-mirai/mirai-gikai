@@ -1,9 +1,4 @@
-import {
-  ChevronRight,
-  TrendingDown,
-  TrendingUp,
-  UserRound,
-} from "lucide-react";
+import { TrendingDown, TrendingUp, UserRound } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
@@ -48,68 +43,70 @@ export function RespondentCard({ respondent, now }: RespondentCardProps) {
     <Link
       href={routes.publicReport(respondent.id) as Route}
       prefetch={false}
-      className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm transition-colors hover:bg-mirai-surface-gray"
+      className="flex items-start gap-3 rounded-2xl bg-white p-4 shadow-sm transition-colors hover:bg-mirai-surface-gray"
     >
-      {/* アバター + ロール */}
-      <div className="flex items-center gap-2.5">
-        <span
+      {/* アバター */}
+      <span
+        className={cn(
+          "flex size-12 shrink-0 items-center justify-center rounded-full",
+          avatarBgClass[respondent.bill_sentiment ?? "none"]
+        )}
+      >
+        <UserRound
           className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-full",
-            avatarBgClass[respondent.bill_sentiment ?? "none"]
+            "size-6",
+            userCategoryColorClass[respondent.user_category]
           )}
-        >
-          <UserRound
-            className={cn(
-              "size-5",
-              userCategoryColorClass[respondent.user_category]
-            )}
-          />
-        </span>
-        <h3 className="min-w-0 flex-1 text-[15px] font-bold leading-6 text-mirai-text">
-          {heading}
-        </h3>
-        <ChevronRight className="size-5 shrink-0 text-primary" />
-      </div>
+        />
+      </span>
 
-      {/* 期待懸念 + カテゴリ + 日付 */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        {respondent.bill_sentiment && (
-          <span
-            className={cn(
-              "flex items-center gap-1 text-[13px] font-medium",
-              respondent.bill_sentiment === "期待"
-                ? "text-primary-accent"
-                : "text-stance-against-light"
+      {/* アバター横: ロール・バッジ・要約を同じインデントで縦並び */}
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-2">
+          <h3 className="text-[15px] font-bold leading-6 text-mirai-text">
+            {heading}
+          </h3>
+          {/* 期待懸念 + カテゴリ + 日付 */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {respondent.bill_sentiment && (
+              <span
+                className={cn(
+                  "flex items-center gap-1 text-[13px] font-medium",
+                  respondent.bill_sentiment === "期待"
+                    ? "text-primary-accent"
+                    : "text-stance-against-light"
+                )}
+              >
+                {respondent.bill_sentiment === "期待" ? (
+                  <TrendingUp className="size-4 shrink-0" />
+                ) : (
+                  <TrendingDown className="size-4 shrink-0" />
+                )}
+                {respondent.bill_sentiment}
+              </span>
             )}
-          >
-            {respondent.bill_sentiment === "期待" ? (
-              <TrendingUp className="size-4 shrink-0" />
-            ) : (
-              <TrendingDown className="size-4 shrink-0" />
+            <span className="inline-flex items-center gap-1 rounded-xl bg-topic-chip-bg px-2 py-1 text-[13px] font-medium text-mirai-text">
+              <CategoryIcon
+                className={cn(
+                  "size-[14px] shrink-0",
+                  userCategoryColorClass[respondent.user_category]
+                )}
+              />
+              {userCategoryLabels[respondent.user_category]}
+            </span>
+            {dateLabel && (
+              <span className="text-[13px] text-topic-label">{dateLabel}</span>
             )}
-            {respondent.bill_sentiment}
-          </span>
-        )}
-        <span className="inline-flex items-center gap-1 rounded-xl bg-topic-chip-bg px-1.5 py-1 text-[13px] font-medium text-mirai-text">
-          <CategoryIcon
-            className={cn(
-              "size-[14px] shrink-0",
-              userCategoryColorClass[respondent.user_category]
-            )}
-          />
-          {userCategoryLabels[respondent.user_category]}
-        </span>
-        {dateLabel && (
-          <span className="text-[11px] text-topic-label">{dateLabel}</span>
+          </div>
+        </div>
+
+        {/* 要約テキスト */}
+        {respondent.summary && (
+          <p className="line-clamp-3 text-[12px] leading-[22px] text-mirai-text-secondary">
+            {respondent.summary}
+          </p>
         )}
       </div>
-
-      {/* 要約テキスト */}
-      {respondent.summary && (
-        <p className="line-clamp-3 text-[13px] leading-5 text-mirai-text-secondary">
-          {respondent.summary}
-        </p>
-      )}
     </Link>
   );
 }
