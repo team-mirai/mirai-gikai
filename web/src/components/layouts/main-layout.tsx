@@ -17,7 +17,9 @@ export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div
       className={cn(
-        "relative max-w-[700px] mx-auto md:mt-24",
+        // 固定ヘッダー（top-4 + h-16 ≈ 80px）に本文が潜らないよう上余白を確保する。
+        // モバイルで余白が無くパンくず等が埋もれていたため md: 限定をやめ全幅で適用。
+        "relative max-w-[700px] mx-auto mt-24",
         // インタビューページ以外ではshadowを表示
         !isInterview && "sm:shadow-lg",
         // TOPページと法案詳細ページのみ、チャットサイドバー用のオフセット
