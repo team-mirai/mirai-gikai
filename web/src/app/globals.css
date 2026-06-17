@@ -340,3 +340,13 @@
 button {
   cursor: pointer;
 }
+
+/* スクロールは保持しつつスクロールバーを非表示にするユーティリティ。 */
+@utility scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+}

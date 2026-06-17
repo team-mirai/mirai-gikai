@@ -51,7 +51,7 @@ export function TopicFilterChips({
 }: TopicFilterChipsProps) {
   const allActive = activeFilter === "all";
   return (
-    <div className="flex gap-2 overflow-x-auto">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
       {/* 「すべて」: フィルタ解除（all）。アイコン・件数・解除Xは持たない。 */}
       <Button
         type="button"
