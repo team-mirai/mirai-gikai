@@ -10,6 +10,7 @@ interface PublicReportRouteProps {
   }>;
   searchParams: Promise<{
     from?: string;
+    quote?: string;
   }>;
 }
 
@@ -70,11 +71,12 @@ export default async function PublicReportRoute({
   searchParams,
 }: PublicReportRouteProps) {
   const { reportId } = await params;
-  const { from } = await searchParams;
+  const { from, quote } = await searchParams;
   return (
     <PublicReportPage
       reportId={reportId}
       from={from === "opinions" ? "opinions" : undefined}
+      highlightQuote={quote}
     />
   );
 }

@@ -22,11 +22,14 @@ import { getPublicReportById } from "../loaders/get-public-report-by-id";
 interface PublicReportPageProps {
   reportId: string;
   from?: "opinions";
+  /** 引用元の逐語テキスト。会話ログ内の該当箇所を太字表示する。 */
+  highlightQuote?: string;
 }
 
 export async function PublicReportPage({
   reportId,
   from,
+  highlightQuote,
 }: PublicReportPageProps) {
   const data = await getPublicReportById(reportId);
 
@@ -82,7 +85,10 @@ export async function PublicReportPage({
 
           {/* すべての会話ログ */}
           {data.messages.length > 0 && (
-            <ChatLogSection messages={data.messages} />
+            <ChatLogSection
+              messages={data.messages}
+              highlightQuote={highlightQuote}
+            />
           )}
 
           {/* AIインタビューCTA */}
