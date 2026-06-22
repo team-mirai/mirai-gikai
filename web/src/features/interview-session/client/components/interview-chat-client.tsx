@@ -68,6 +68,7 @@ export function InterviewChatClient({
     handleSubmit,
     handleQuickReply,
     handleRetry,
+    handleResumeInterview,
   } = useInterviewChat({
     billId,
     initialMessages,
@@ -297,6 +298,7 @@ export function InterviewChatClient({
               input={input}
               onInputChange={setInput}
               onSubmit={handleSubmit}
+              onResume={handleResumeInterview}
               isLoading={isLoading}
               error={error}
             />

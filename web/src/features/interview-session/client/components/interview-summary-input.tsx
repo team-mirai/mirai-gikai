@@ -18,6 +18,8 @@ interface InterviewSummaryInputProps {
   input: string;
   onInputChange: (value: string) => void;
   onSubmit: (message: PromptInputMessage) => void;
+  /** レポート未生成時の「インタビューを続ける」で呼ぶ再開処理 */
+  onResume?: () => void;
   isLoading: boolean;
   error: Error | null | undefined;
 }
@@ -30,6 +32,7 @@ export function InterviewSummaryInput({
   input,
   onInputChange,
   onSubmit,
+  onResume,
   isLoading,
   error,
 }: InterviewSummaryInputProps) {
@@ -51,16 +54,10 @@ export function InterviewSummaryInput({
             </Button>
           ) : (
             <>
-              <p className="text-sm text-mirai-text">
+              <p className="text-sm font-medium leading-[1.8] text-mirai-text mb-2">
                 お話しいただいた内容が短く、レポートを作成できませんでした。もう少しインタビューを続けると、レポートを作成できます。
               </p>
-              <Button
-                onClick={() =>
-                  onSubmit({ text: "もう少しインタビューを続けたいです。" })
-                }
-              >
-                インタビューを続ける
-              </Button>
+              <Button onClick={() => onResume?.()}>インタビューを続ける</Button>
               <Button variant="outline" asChild>
                 <Link href={getBillDetailLink(billId, previewToken) as Route}>
                   インタビューを終了する

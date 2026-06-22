@@ -384,6 +384,56 @@ describe("useInterviewChat", () => {
     });
   });
 
+  describe("handleResumeInterview（レポート未生成時の続行）", () => {
+    it("summary_completeでもsubmitがcurrentStage=chatで呼ばれ、stageがchatに戻る", () => {
+      const { result } = renderHook(() =>
+        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+      );
+
+      // チャット送信 → summary_complete へ遷移
+      act(() => {
+        result.current.handleSubmit({ text: "終了したい" });
+      });
+      act(() => {
+        mockState.onFinish?.({
+          object: { text: "完了しました", next_stage: "summary_complete" },
+          error: undefined,
+        });
+      });
+      expect(result.current.stage).toBe("summary_complete");
+
+      // 既存仕様: summary_complete では handleSubmit はブロックされる（これがバグの原因）
+      mockSubmit.mockClear();
+      act(() => {
+        result.current.handleSubmit({ text: "続けたい" });
+      });
+      expect(mockSubmit).not.toHaveBeenCalled();
+
+      // 修正: handleResumeInterview なら chat フェーズで再開できる
+      act(() => {
+        result.current.handleResumeInterview();
+      });
+      expect(result.current.stage).toBe("chat");
+      expect(mockSubmit).toHaveBeenCalledOnce();
+      expect(mockSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ currentStage: "chat" })
+      );
+    });
+
+    it("ローディング中はsubmitを呼ばない", () => {
+      mockState.isLoading = true;
+      const { result } = renderHook(() =>
+        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+      );
+
+      act(() => {
+        result.current.handleResumeInterview();
+      });
+
+      expect(mockSubmit).not.toHaveBeenCalled();
+    });
+  });
+
   describe("handleRetry", () => {
     it("canRetryがfalse: submitを呼ばない", () => {
       const { result } = renderHook(() =>
