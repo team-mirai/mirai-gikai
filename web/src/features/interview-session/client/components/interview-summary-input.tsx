@@ -1,12 +1,10 @@
 "use client";
 
-import type { Route } from "next";
-import Link from "next/link";
 import { useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { InterviewPublicConsentModal } from "@/features/interview-report/client/components/interview-public-consent-modal";
+import { useEndInterview } from "../hooks/use-end-interview";
 import { useInterviewCompletion } from "../hooks/use-interview-completion";
 import { InterviewChatInput } from "./interview-chat-input";
 
@@ -40,6 +38,11 @@ export function InterviewSummaryInput({
   const { isCompleting, completeError, handleSubmit } = useInterviewCompletion({
     sessionId,
   });
+  const { endInterview, isEnding } = useEndInterview(
+    sessionId,
+    billId,
+    previewToken
+  );
 
   return (
     <>
@@ -58,10 +61,12 @@ export function InterviewSummaryInput({
                 お話しいただいた内容が短く、レポートを作成できませんでした。もう少しインタビューを続けると、レポートを作成できます。
               </p>
               <Button onClick={() => onResume?.()}>インタビューを続ける</Button>
-              <Button variant="outline" asChild>
-                <Link href={getBillDetailLink(billId, previewToken) as Route}>
-                  インタビューを終了する
-                </Link>
+              <Button
+                variant="outline"
+                onClick={endInterview}
+                disabled={isEnding}
+              >
+                {isEnding ? "終了中..." : "インタビューを終了する"}
               </Button>
             </>
           )}
