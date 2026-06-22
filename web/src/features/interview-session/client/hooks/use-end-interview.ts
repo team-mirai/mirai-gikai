@@ -2,7 +2,7 @@
 
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { archiveInterviewSession } from "../../server/actions/archive-interview-session";
 
@@ -21,8 +21,15 @@ export function useEndInterview(
 ) {
   const router = useRouter();
   const [isEnding, setIsEnding] = useState(false);
+  // setIsEnding は即時反映されないため、UI の disabled だけでは
+  // 連続呼び出し時に二重実行されうる。ref で再入を確実にガードする。
+  const isEndingRef = useRef(false);
 
   const endInterview = async () => {
+    if (isEndingRef.current) {
+      return;
+    }
+    isEndingRef.current = true;
     setIsEnding(true);
     try {
       const result = await archiveInterviewSession(sessionId);
