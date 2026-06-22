@@ -50,11 +50,23 @@ export function InterviewSummaryInput({
               {isCompleting ? "送信中..." : "レポート内容に同意して提出"}
             </Button>
           ) : (
-            <Button variant="outline" asChild>
-              <Link href={getBillDetailLink(billId, previewToken) as Route}>
-                インタビューを終了する
-              </Link>
-            </Button>
+            <>
+              <p className="text-sm text-mirai-text">
+                お話しいただいた内容が短く、レポートを作成できませんでした。もう少しインタビューを続けると、レポートを作成できます。
+              </p>
+              <Button
+                onClick={() =>
+                  onSubmit({ text: "もう少しインタビューを続けたいです。" })
+                }
+              >
+                インタビューを続ける
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href={getBillDetailLink(billId, previewToken) as Route}>
+                  インタビューを終了する
+                </Link>
+              </Button>
+            </>
           )}
           {completeError && (
             <p className="text-sm text-red-500">{completeError}</p>

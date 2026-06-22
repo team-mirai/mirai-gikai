@@ -53,6 +53,11 @@ export const previewRegistry: PreviewGroup[] = [
         label: "InterviewRatingWidget",
         description: "満足度評価ウィジェット（星評価＋フィードバック）",
       },
+      {
+        path: "/dev/features/interview/summary-input",
+        label: "InterviewSummaryInput",
+        description: "要約フェーズの入力欄（レポート提出／未生成時の安全網）",
+      },
     ],
   },
 ];
