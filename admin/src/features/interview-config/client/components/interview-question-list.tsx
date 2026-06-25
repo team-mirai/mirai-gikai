@@ -117,7 +117,8 @@ export function InterviewQuestionList({
       })
     )
   );
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  // 並び替えでインデックスがずれても編集中の行を見失わないよう _uid で管理する
+  const [editingUid, setEditingUid] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const sensors = useSensors(
@@ -181,22 +182,23 @@ export function InterviewQuestionList({
   };
 
   const handleUpdate = (
-    index: number,
+    uid: string,
     updatedQuestion: InterviewQuestionInput
   ) => {
-    const newQuestions = [...questions];
-    newQuestions[index] = { ...updatedQuestion, _uid: questions[index]._uid };
+    const newQuestions = questions.map((q) =>
+      q._uid === uid ? { ...updatedQuestion, _uid: uid } : q
+    );
     setQuestions(newQuestions);
-    setEditingIndex(null);
+    setEditingUid(null);
     saveQuestions(newQuestions);
     toast.success("質問を更新しました");
   };
 
-  const handleDelete = (index: number) => {
+  const handleDelete = (uid: string) => {
     if (confirm("この質問を削除してもよろしいですか？")) {
-      const newQuestions = questions.filter((_, i) => i !== index);
+      const newQuestions = questions.filter((q) => q._uid !== uid);
       setQuestions(newQuestions);
-      setEditingIndex(null);
+      if (editingUid === uid) setEditingUid(null);
       saveQuestions(newQuestions);
       toast.success("質問を削除しました");
     }
@@ -212,8 +214,6 @@ export function InterviewQuestionList({
 
     const newQuestions = arrayMove(questions, oldIndex, newIndex);
     setQuestions(newQuestions);
-    // 並び替えでインデックスがずれるため、編集中の状態は解除する
-    setEditingIndex(null);
     saveQuestions(newQuestions);
     toast.success("質問の順番を変更しました");
   };
@@ -245,7 +245,7 @@ export function InterviewQuestionList({
               >
                 <div className="space-y-4">
                   {questions.map((question, index) => {
-                    const isEditing = editingIndex === index;
+                    const isEditing = editingUid === question._uid;
                     return (
                       <SortableQuestionItem
                         key={question._uid}
@@ -254,8 +254,10 @@ export function InterviewQuestionList({
                       >
                         {isEditing ? (
                           <InterviewQuestionForm
-                            onSubmit={(updated) => handleUpdate(index, updated)}
-                            onCancel={() => setEditingIndex(null)}
+                            onSubmit={(updated) =>
+                              handleUpdate(question._uid, updated)
+                            }
+                            onCancel={() => setEditingUid(null)}
                             initialData={question}
                             submitLabel="更新"
                           />
@@ -303,7 +305,7 @@ export function InterviewQuestionList({
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setEditingIndex(index)}
+                                    onClick={() => setEditingUid(question._uid)}
                                   >
                                     編集
                                   </Button>
@@ -311,7 +313,7 @@ export function InterviewQuestionList({
                                     type="button"
                                     variant="destructive"
                                     size="sm"
-                                    onClick={() => handleDelete(index)}
+                                    onClick={() => handleDelete(question._uid)}
                                   >
                                     削除
                                   </Button>
