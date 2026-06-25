@@ -22,6 +22,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@mirai-gikai/supabase": path.resolve(repoRoot, "packages/supabase/src"),
+      "@mirai-gikai/topic-analysis-core/public-server": path.resolve(
+        repoRoot,
+        "packages/topic-analysis-core/src/public/public-server.ts"
+      ),
       "@": path.resolve(repoRoot, "admin/src"),
       // ルート node_modules には zod / MCP SDK が無いため、
       // admin の node_modules（pnpm の symlink）経由で解決する。
