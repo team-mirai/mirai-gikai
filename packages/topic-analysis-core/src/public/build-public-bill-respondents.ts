@@ -1,9 +1,11 @@
-import type { PublicRespondent, RawRespondentRow } from "../types";
 import { mapRoleToCategory } from "./build-public-topic-analysis";
-import { normalizeRoleTitle } from "./topic-category";
+import { normalizeRoleTitle } from "./normalize-role-title";
+import type { PublicRespondent, RawRespondentRow } from "./public-types";
 
-/** interview_report.stance を 期待/懸念 に正規化（neutral 等は null）。 */
-function toBillSentiment(stance: string | null): "期待" | "懸念" | null {
+/** interview_report.stance（for/against）を 期待/懸念 に正規化（neutral 等は null）。 */
+function normalizeStanceToSentiment(
+  stance: string | null
+): "期待" | "懸念" | null {
   if (stance === "for") return "期待";
   if (stance === "against") return "懸念";
   return null;
@@ -20,7 +22,7 @@ export function buildPublicBillRespondents(
     id: r.id,
     user_category: mapRoleToCategory(r.role),
     role_title: normalizeRoleTitle(r.role_title),
-    bill_sentiment: toBillSentiment(r.stance),
+    bill_sentiment: normalizeStanceToSentiment(r.stance),
     summary: r.summary,
     created_at: r.created_at,
   }));

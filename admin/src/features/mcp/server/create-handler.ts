@@ -8,6 +8,7 @@ import { registerBillsTools } from "./tools/register-bills-tools";
 import { registerDietSessionsTools } from "./tools/register-diet-sessions-tools";
 import { registerPreviewTools } from "./tools/register-preview-tools";
 import { registerTagsTools } from "./tools/register-tags-tools";
+import { registerTopicAnalysisTools } from "./tools/register-topic-analysis-tools";
 import { verifyMcpToken } from "./verify-token";
 
 export function createAdminMcpHandler() {
@@ -17,6 +18,7 @@ export function createAdminMcpHandler() {
       registerDietSessionsTools(server);
       registerPreviewTools(server);
       registerTagsTools(server);
+      registerTopicAnalysisTools(server);
     },
     {
       serverInfo: {

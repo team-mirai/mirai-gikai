@@ -19,6 +19,7 @@
     "@ai-sdk/react": "^3.0.3",
     "@mirai-gikai/shared": "workspace:*",
     "@mirai-gikai/supabase": "workspace:*",
+    "@mirai-gikai/topic-analysis-core": "workspace:*",
     "@opentelemetry/sdk-node": "^0.206.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-collapsible": "^1.1.12",

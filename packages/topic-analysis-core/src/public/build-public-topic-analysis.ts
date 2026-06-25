@@ -1,3 +1,4 @@
+import { normalizeRoleTitle } from "./normalize-role-title";
 import type {
   PublicOpinion,
   PublicTopic,
@@ -6,8 +7,7 @@ import type {
   RawOpinionRow,
   RawTopicRow,
   UserCategory,
-} from "../types";
-import { normalizeRoleTitle } from "./topic-category";
+} from "./public-types";
 
 /** interview_report.role → §9 の4区分。未知/null は一般市民に倒す。 */
 export function mapRoleToCategory(role: string | null): UserCategory {

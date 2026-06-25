@@ -1,4 +1,8 @@
 import {
+  buildPublicTopicAnalysis,
+  findPublishedAnalysis,
+} from "@mirai-gikai/topic-analysis-core/public-server";
+import {
   adminClient,
   cleanupTestBill,
   cleanupTestUser,
@@ -7,8 +11,6 @@ import {
   type TestUser,
 } from "@test-utils/utils";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { findPublishedAnalysis } from "@/features/user-topic-analysis/server/repositories/topic-analysis-read-repository";
-import { buildPublicTopicAnalysis } from "@/features/user-topic-analysis/shared/utils/build-public-topic-analysis";
 import { GET } from "./route";
 
 /** report + interview_opinion を1件作り、opinionId を返す。 */

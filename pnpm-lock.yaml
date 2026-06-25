@@ -256,6 +256,9 @@ importers:
       '@mirai-gikai/supabase':
         specifier: workspace:*
         version: link:../packages/supabase
+      '@mirai-gikai/topic-analysis-core':
+        specifier: workspace:*
+        version: link:../packages/topic-analysis-core
       '@opentelemetry/sdk-node':
         specifier: ^0.206.0
         version: 0.206.0(@opentelemetry/api@1.9.0)

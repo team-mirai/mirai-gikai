@@ -1,5 +1,4 @@
-import { findPublishedAnalysis } from "@/features/user-topic-analysis/server/repositories/topic-analysis-read-repository";
-import { buildPublicTopicAnalysis } from "@/features/user-topic-analysis/shared/utils/build-public-topic-analysis";
+import { getPublicTopicAnalysis } from "@mirai-gikai/topic-analysis-core/public-server";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -26,11 +25,11 @@ export async function GET(
   }
 
   try {
-    const data = await findPublishedAnalysis(billId);
-    if (!data) {
+    const analysis = await getPublicTopicAnalysis(billId);
+    if (!analysis) {
       return json({ error: "no published analysis" }, 404);
     }
-    return json(buildPublicTopicAnalysis(data.meta, data.rawTopics));
+    return json(analysis);
   } catch (error) {
     console.error("[TopicAnalysis] public read failed:", error);
     return json(

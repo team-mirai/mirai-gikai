@@ -25,6 +25,14 @@
       "types": "./src/repositories/repository.ts",
       "default": "./src/repositories/repository.ts"
     },
+    "./public": {
+      "types": "./src/public/public.ts",
+      "default": "./src/public/public.ts"
+    },
+    "./public-server": {
+      "types": "./src/public/public-server.ts",
+      "default": "./src/public/public-server.ts"
+    },
     "./constants": {
       "types": "./src/shared/constants.ts",
       "default": "./src/shared/constants.ts"

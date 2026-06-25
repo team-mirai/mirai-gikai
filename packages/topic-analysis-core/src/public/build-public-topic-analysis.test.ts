@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { RawOpinionRow, RawTopicRow } from "../types";
+import type { RawOpinionRow, RawTopicRow } from "./public-types";
 import {
   buildPublicTopicAnalysis,
   mapRoleToCategory,

@@ -1,12 +1,10 @@
-import "server-only";
-
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
   PublishedVersionMeta,
   RawOpinionRow,
   RawRespondentRow,
   RawTopicRow,
-} from "../../shared/types";
+} from "./public-types";
 
 export type PublishedAnalysisData = {
   meta: PublishedVersionMeta;
@@ -108,6 +106,7 @@ export async function findPublishedAnalysis(
     rawTopics,
   };
 }
+
 /**
  * 議案に紐づく公開レポート（回答者）を全件取得する。
  * 公開レポート（管理者公開 × ユーザー公開）と同一基準でフィルタし、
