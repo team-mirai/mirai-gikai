@@ -1,3 +1,5 @@
+import "server-only";
+
 // 公開（PII セーフ）読み取りの**サーバ専用**エントリポイント。
 // Supabase（createAdminClient / SUPABASE_SECRET_KEY）に触れる repository / loaders を
 // ここに集約し、ブラウザ安全な純粋ロジック（./public）と分離する。
