@@ -26,6 +26,12 @@ export default defineConfig({
         repoRoot,
         "packages/topic-analysis-core/src/public/public-server.ts"
       ),
+      // server-only は非 react-server 環境で throw するため空 stub に差し替える
+      // （tests/supabase と同方式。alias は deep import 経由でも確実に効く）。
+      "server-only": path.resolve(
+        repoRoot,
+        "tests/supabase/server-only-stub.ts"
+      ),
       "@": path.resolve(repoRoot, "admin/src"),
       // ルート node_modules には zod / MCP SDK が無いため、
       // admin の node_modules（pnpm の symlink）経由で解決する。
