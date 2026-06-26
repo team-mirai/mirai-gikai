@@ -55,10 +55,8 @@ export function TranscriptViewer({
 
         return (
           <li
-            key={
-              t.question_id ??
-              `${t.role}-${t.topic_title ?? "no-topic"}-${t.next_stage ?? "no-stage"}-${t.content}`
-            }
+            // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+            key={`${idx}-${t.role}`}
             className={`rounded-md border p-3 ${baseClass} ${highlightClass}`}
           >
             <div className="mb-1.5 text-xs">
@@ -76,9 +74,10 @@ export function TranscriptViewer({
             </p>
             {t.quick_replies && t.quick_replies.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {t.quick_replies.map((qr) => (
+                {t.quick_replies.map((qr, qrIdx) => (
                   <span
-                    key={`$${qr}`}
+                    // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+                    key={`${qrIdx}-${qr}`}
                     className="inline-flex items-center rounded-full border bg-background px-2 py-0.5 text-xs text-muted-foreground"
                   >
                     {qr}

@@ -150,8 +150,9 @@ function EvaluationList({
         {title}
       </p>
       <ul className="list-disc pl-5 text-sm space-y-1">
-        {items.map((item) => (
-          <li key={item}>{item}</li>
+        {items.map((item, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+          <li key={`${index}-${item}`}>{item}</li>
         ))}
       </ul>
     </div>

@@ -357,8 +357,11 @@ function AssistantMessage({
                 提案テーマ:
               </p>
               <ul className="text-sm space-y-1">
-                {themes.map((theme) => (
-                  <li key={`theme-${theme}`}>・{theme}</li>
+                {themes.map((theme, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+                  <li key={`theme-${i}-${theme?.slice(0, 10) ?? ""}`}>
+                    ・{theme}
+                  </li>
                 ))}
               </ul>
             </CardContent>

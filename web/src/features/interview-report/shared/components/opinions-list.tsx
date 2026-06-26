@@ -31,7 +31,8 @@ export function OpinionsList({
       <div className="bg-white rounded-2xl p-6 flex flex-col gap-6">
         {opinions.map((opinion, index) => (
           <div
-            key={`opinion-${opinion.source_message_id ?? opinion.title}`}
+            // biome-ignore lint/suspicious/noArrayIndexKey: index以外にuniqueであることが保証できるキーがない
+            key={`opinion-${index}-${opinion.title.slice(0, 20)}`}
             className="flex flex-col gap-2"
           >
             <div className="flex flex-col gap-1">
