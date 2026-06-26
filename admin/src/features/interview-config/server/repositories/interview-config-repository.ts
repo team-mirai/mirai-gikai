@@ -15,6 +15,7 @@ export async function findAllInterviewConfigs(): Promise<
   const { data, error } = await supabase
     .from("interview_configs")
     .select("*, bill:bills!inner(id, name)")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -32,6 +33,7 @@ export async function findInterviewConfigsByBillId(
     .from("interview_configs")
     .select("*")
     .eq("bill_id", billId)
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -190,6 +192,10 @@ export async function countSessionsByConfigIds(
   return result;
 }
 
+/**
+ * インタビュー設定を物理削除する
+ * 複製時のロールバックなど、作成直後のレコードを完全に取り消す用途で使用する
+ */
 export async function deleteInterviewConfigRecord(
   configId: string
 ): Promise<void> {
@@ -198,6 +204,28 @@ export async function deleteInterviewConfigRecord(
     .from("interview_configs")
     .delete()
     .eq("id", configId);
+
+  if (error) {
+    throw new Error(`Failed to delete interview config: ${error.message}`);
+  }
+}
+
+/**
+ * インタビュー設定を論理削除する（deleted_atを設定）
+ * 紐づく質問・セッション・レポートは保持され、一覧・公開取得から除外される。
+ * 同時に status を closed にし、status="public" を見る公開判定
+ * （法案一覧の「AIインタビュー受付中」バッジ等）からも除外されるようにする。
+ */
+export async function softDeleteInterviewConfigRecord(
+  configId: string
+): Promise<void> {
+  const supabase = createAdminClient();
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("interview_configs")
+    .update({ deleted_at: now, status: "closed", updated_at: now })
+    .eq("id", configId)
+    .is("deleted_at", null);
 
   if (error) {
     throw new Error(`Failed to delete interview config: ${error.message}`);

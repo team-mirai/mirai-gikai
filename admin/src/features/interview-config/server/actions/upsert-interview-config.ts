@@ -20,6 +20,7 @@ import {
   findInterviewConfigBillId,
   findInterviewConfigById,
   findInterviewQuestionsByConfigId,
+  softDeleteInterviewConfigRecord,
   updateInterviewConfigRecord,
 } from "../repositories/interview-config-repository";
 
@@ -215,7 +216,7 @@ export async function deleteInterviewConfig(
   try {
     await requireAdmin();
 
-    await deleteInterviewConfigRecord(configId);
+    await softDeleteInterviewConfigRecord(configId);
 
     // web側のキャッシュを無効化
     await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);

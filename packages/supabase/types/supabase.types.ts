@@ -342,6 +342,7 @@ export type Database = {
           bill_id: string
           chat_model: string | null
           created_at: string
+          deleted_at: string | null
           estimated_duration: number | null
           id: string
           mode: Database["public"]["Enums"]["interview_mode_enum"]
@@ -354,6 +355,7 @@ export type Database = {
           bill_id: string
           chat_model?: string | null
           created_at?: string
+          deleted_at?: string | null
           estimated_duration?: number | null
           id?: string
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
@@ -366,6 +368,7 @@ export type Database = {
           bill_id?: string
           chat_model?: string | null
           created_at?: string
+          deleted_at?: string | null
           estimated_duration?: number | null
           id?: string
           mode?: Database["public"]["Enums"]["interview_mode_enum"]

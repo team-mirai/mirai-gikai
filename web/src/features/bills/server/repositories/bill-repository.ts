@@ -472,6 +472,10 @@ export async function findPreviewToken(billId: string, token: string) {
 
 /**
  * 複数のbill_idに対して、公開中のインタビュー設定があるかを一括判定
+ *
+ * status="public" のみで判定する。論理削除（deleted_at）された設定は
+ * 削除時に status="closed" へ変更されるため、ここで自然に除外される
+ * （softDeleteInterviewConfigRecord 参照）。
  */
 export async function findBillIdsWithPublicInterview(
   billIds: string[]
