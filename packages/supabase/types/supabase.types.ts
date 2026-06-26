@@ -1261,6 +1261,10 @@ export type Database = {
         Args: { from_iso: string; to_iso: string }
         Returns: number
       }
+      unpublish_reports_by_config_id: {
+        Args: { p_config_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       bill_publish_status: "draft" | "published" | "coming_soon"

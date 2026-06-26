@@ -232,6 +232,27 @@ export async function softDeleteInterviewConfigRecord(
   }
 }
 
+/**
+ * 論理削除した設定に紐づくレポートを公開停止する（is_public_by_admin=false）。
+ * 公開レポートの全取得経路（個別ページ・公開一覧・各 RPC）が
+ * is_public_by_admin=true でゲートしているため、これにより一括で公開対象から除外される。
+ *
+ * セッション数が PostgREST の行数上限（既定1000件）を超える設定でも漏れなく
+ * 更新できるよう、DB側の UPDATE で一括処理する RPC を利用する。
+ */
+export async function unpublishReportsByConfigId(
+  configId: string
+): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase.rpc("unpublish_reports_by_config_id", {
+    p_config_id: configId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to unpublish reports: ${error.message}`);
+  }
+}
+
 export async function createInterviewQuestions(
   questions: {
     interview_config_id: string;

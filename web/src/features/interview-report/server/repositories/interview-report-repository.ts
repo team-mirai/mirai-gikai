@@ -171,6 +171,11 @@ export async function findPublicReportWithSessionById(reportId: string) {
     .single();
 
   if (error) {
+    // 公開条件を満たすレポートが存在しない場合（非公開・削除済み設定配下など）は
+    // null を返す。呼び出し側で notFound（404）として扱う。
+    if (error.code === "PGRST116") {
+      return null;
+    }
     throw new Error(
       `Failed to fetch public interview report: ${error.message}`
     );
