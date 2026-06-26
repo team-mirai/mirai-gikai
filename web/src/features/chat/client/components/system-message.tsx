@@ -37,7 +37,8 @@ export function SystemMessage({
           if (part.type === "text") {
             return (
               <Response
-                key={`${message.id}-${part.type}-${part.text}`}
+                // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+                key={`${message.id}-${i}`}
                 className="break-words"
                 rehypePlugins={rehypePlugins}
               >
@@ -48,7 +49,8 @@ export function SystemMessage({
           if (part.type === "reasoning") {
             return (
               <Reasoning
-                key={`${message.id}-${part.type}-${part.text}`}
+                // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+                key={`${message.id}-${i}`}
                 className="w-full"
                 isStreaming={isStreaming && i === message.parts.length - 1}
               >
@@ -60,7 +62,8 @@ export function SystemMessage({
           if (part.type === SUGGEST_INTERVIEW_TOOL_TYPE && billId && billName) {
             return (
               <InterviewSuggestionBanner
-                key={`${message.id}-${part.type}-${part.toolCallId}`}
+                // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+                key={`${message.id}-${i}`}
                 billId={billId}
                 billName={billName}
               />

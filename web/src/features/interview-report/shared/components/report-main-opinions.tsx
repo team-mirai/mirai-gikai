@@ -22,12 +22,10 @@ export function ReportMainOpinions({
         💬主な意見
       </h2>
       <div className="flex flex-col gap-4">
-        {opinions.map((opinion) => (
+        {opinions.map((opinion, index) => (
           <div
-            key={
-              opinion.source_message_id ??
-              `${opinion.title.slice(0, 32)}-${(opinion.content ?? "").slice(0, 32)}`
-            }
+            // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+            key={`${index}-${opinion.title.slice(0, 16)}`}
             className="flex flex-col gap-3 rounded-2xl bg-white px-4 py-5"
           >
             <h3 className="text-base font-bold leading-6 text-mirai-text">

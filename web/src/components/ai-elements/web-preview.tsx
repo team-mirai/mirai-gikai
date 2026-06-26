@@ -228,7 +228,7 @@ export const WebPreviewConsole = ({
           {logs.length === 0 ? (
             <p className="text-muted-foreground">No console output</p>
           ) : (
-            logs.map((log) => (
+            logs.map((log, index) => (
               <div
                 className={cn(
                   "text-xs",
@@ -236,7 +236,8 @@ export const WebPreviewConsole = ({
                   log.level === "warn" && "text-yellow-600",
                   log.level === "log" && "text-foreground"
                 )}
-                key={`${log.timestamp.getTime()}-${log.level}-${log.message}`}
+                // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+                key={`${log.timestamp.getTime()}-${index}`}
               >
                 <span className="text-muted-foreground">
                   {log.timestamp.toLocaleTimeString()}
