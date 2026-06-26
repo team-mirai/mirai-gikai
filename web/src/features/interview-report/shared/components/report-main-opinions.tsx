@@ -22,9 +22,12 @@ export function ReportMainOpinions({
         💬主な意見
       </h2>
       <div className="flex flex-col gap-4">
-        {opinions.map((opinion, index) => (
+        {opinions.map((opinion) => (
           <div
-            key={`${index}-${opinion.title.slice(0, 16)}`}
+            key={
+              opinion.source_message_id ??
+              `${opinion.title.slice(0, 32)}-${(opinion.content ?? "").slice(0, 32)}`
+            }
             className="flex flex-col gap-3 rounded-2xl bg-white px-4 py-5"
           >
             <h3 className="text-base font-bold leading-6 text-mirai-text">

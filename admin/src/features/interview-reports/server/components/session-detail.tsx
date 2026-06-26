@@ -213,7 +213,7 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                   <div className="space-y-3">
                     {parseOpinions(report.opinions).map((opinion, index) => (
                       <div
-                        key={`opinion-${index}-${opinion.title.slice(0, 20)}`}
+                        key={`opinion-${opinion.title}-${opinion.content.slice(0, 20)}`}
                         className="bg-gray-50 p-3 rounded-lg"
                       >
                         <div className="flex items-center gap-2 mb-1">

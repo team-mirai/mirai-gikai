@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/features/auth/client/components/login-form";
 
-export default function LoginPage() {
+export default async function LoginPage() {
   return (
     <div className="min-h-dvh flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <Card className="w-full max-w-md">

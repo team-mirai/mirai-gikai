@@ -67,8 +67,8 @@ export function PersonaResultCard({ slotState }: PersonaResultCardProps) {
             <div className="pt-1 border-t">
               <p className="text-xs font-medium mb-0.5">伝えたいこと</p>
               <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-0.5">
-                {result.persona.message_to_politicians.map((m, i) => (
-                  <li key={`${i}-${m}`}>{m}</li>
+                {result.persona.message_to_politicians.map((m) => (
+                  <li key={m}>{m}</li>
                 ))}
               </ul>
             </div>
@@ -168,8 +168,8 @@ function SatisfactionBlock({
             伝えきれなかったポイント
           </p>
           <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-0.5">
-            {satisfaction.uncovered_points.map((p, i) => (
-              <li key={`${i}-${p}`}>{p}</li>
+            {satisfaction.uncovered_points.map((p) => (
+              <li key={p}>{p}</li>
             ))}
           </ul>
         </div>

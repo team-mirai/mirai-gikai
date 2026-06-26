@@ -357,10 +357,8 @@ function AssistantMessage({
                 提案テーマ:
               </p>
               <ul className="text-sm space-y-1">
-                {themes.map((theme, i) => (
-                  <li key={`theme-${i}-${theme?.slice(0, 10) ?? ""}`}>
-                    ・{theme}
-                  </li>
+                {themes.map((theme) => (
+                  <li key={`theme-${theme}`}>・{theme}</li>
                 ))}
               </ul>
             </CardContent>
@@ -374,7 +372,7 @@ function AssistantMessage({
               </p>
               <div className="text-sm space-y-2">
                 {questions.map((q, i) => (
-                  <div key={`q-${i}-${q.question?.slice(0, 10) ?? ""}`}>
+                  <div key={`q-${q.question}`}>
                     <p className="font-medium">
                       Q{i + 1}: {q.question}
                     </p>

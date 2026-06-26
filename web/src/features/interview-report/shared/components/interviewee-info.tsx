@@ -23,8 +23,8 @@ export function IntervieweeInfo({
       </Heading>
       <div className="bg-white rounded-2xl p-6">
         <div className="text-sm text-gray-800 whitespace-pre-wrap font-medium">
-          {lines.map((line, index) => (
-            <p key={`${index}-${line.slice(0, 20)}`}>{line}</p>
+          {lines.map((line) => (
+            <p key={line}>{line}</p>
           ))}
         </div>
       </div>

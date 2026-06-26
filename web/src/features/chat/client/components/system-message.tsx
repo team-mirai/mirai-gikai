@@ -37,7 +37,7 @@ export function SystemMessage({
           if (part.type === "text") {
             return (
               <Response
-                key={`${message.id}-${i}`}
+                key={`${message.id}-${part.type}-${part.text}`}
                 className="break-words"
                 rehypePlugins={rehypePlugins}
               >
@@ -48,7 +48,7 @@ export function SystemMessage({
           if (part.type === "reasoning") {
             return (
               <Reasoning
-                key={`${message.id}-${i}`}
+                key={`${message.id}-${part.type}-${part.text}`}
                 className="w-full"
                 isStreaming={isStreaming && i === message.parts.length - 1}
               >
@@ -60,7 +60,7 @@ export function SystemMessage({
           if (part.type === SUGGEST_INTERVIEW_TOOL_TYPE && billId && billName) {
             return (
               <InterviewSuggestionBanner
-                key={`${message.id}-${i}`}
+                key={`${message.id}-${part.type}-${part.toolCallId}`}
                 billId={billId}
                 billName={billName}
               />

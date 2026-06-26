@@ -150,8 +150,8 @@ function EvaluationList({
         {title}
       </p>
       <ul className="list-disc pl-5 text-sm space-y-1">
-        {items.map((item, i) => (
-          <li key={`${i}-${item}`}>{item}</li>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
         ))}
       </ul>
     </div>

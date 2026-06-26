@@ -12,11 +12,11 @@ export function UserMessage({ message }: UserMessageProps) {
         variant="flat"
         className="max-w-fit text-sm font-medium leading-[2] text-black bg-mirai-gradient rounded-2xl px-4 !py-0.5"
       >
-        {message.parts.map((part, i: number) => {
+        {message.parts.map((part) => {
           if (part.type === "text") {
             return (
               <span
-                key={`${message.id}-${i}`}
+                key={`${message.id}-${part.text}`}
                 className="whitespace-pre-wrap break-words"
               >
                 {part.text}
