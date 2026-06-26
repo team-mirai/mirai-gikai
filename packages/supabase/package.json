@@ -13,10 +13,10 @@
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.57.0"
+    "@supabase/supabase-js": "^2.108.2"
   },
   "devDependencies": {
-    "@types/node": "^22.5.5",
-    "typescript": "^5.6.2"
+    "@types/node": "^24.13.2",
+    "typescript": "^5.9.3"
   }
 }
