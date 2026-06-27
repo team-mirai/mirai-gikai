@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 
 interface UseTooltipPositionProps {
   rect: DOMRect | null;
@@ -24,26 +24,30 @@ const TOOLTIP_DIMENSIONS = {
 export function useTooltipPosition({
   rect,
   isVisible,
-}: UseTooltipPositionProps): Position {
-  const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
+}: UseTooltipPositionProps): CSSProperties {
+  const [position, setPosition] = useState<CSSProperties>({
+    position: "fixed",
+    top: 0,
+    left: 0,
+  });
 
   useEffect(() => {
     if (!rect || !isVisible) return;
 
-    const dimensions = TOOLTIP_DIMENSIONS;
-    const { width, margin } = dimensions;
+    const { width, margin } = TOOLTIP_DIMENSIONS;
 
-    // 選択範囲の直下に配置
     const top = rect.bottom + margin;
 
-    // 中央揃えで配置
     let left = rect.left + rect.width / 2 - width / 2;
 
-    // 画面端からはみ出さないよう調整
     const maxLeft = window.innerWidth - width - margin;
     left = Math.max(margin, Math.min(left, maxLeft));
 
-    setPosition({ top, left });
+    setPosition({
+      position: "fixed",
+      top,
+      left,
+    });
   }, [rect, isVisible]);
 
   return position;

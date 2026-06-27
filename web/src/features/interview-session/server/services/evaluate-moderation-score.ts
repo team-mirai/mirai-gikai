@@ -1,6 +1,6 @@
 import "server-only";
 
-import { generateObject, type LanguageModel } from "ai";
+import { generateText, Output, type LanguageModel } from "ai";
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { moderationResultSchema } from "@mirai-gikai/shared/moderation/schemas";
 import { buildModerationPrompt } from "@mirai-gikai/shared/moderation/build-prompt";
@@ -37,19 +37,21 @@ export async function evaluateModerationScore(
   const prompt = buildModerationPrompt(input);
   const model = deps?.model ?? DEFAULT_INTERVIEW_CHAT_MODEL;
 
-  const { object } = await generateObject({
+  const { output } = await generateText({
     model,
-    schema: moderationResultSchema,
+    output: Output.object({
+      schema: moderationResultSchema,
+    }),
     prompt,
   });
 
-  const status = determineModerationStatus(object.score);
+  const status = determineModerationStatus(output.score);
 
-  console.log(`Moderation result: score=${object.score}, status=${status}`);
+  console.log(`Moderation result: score=${output.score}, status=${status}`);
 
   return {
-    score: object.score,
+    score: output.score,
     status,
-    reasoning: object.reasoning,
+    reasoning: output.reasoning,
   };
 }
