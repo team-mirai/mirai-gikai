@@ -4,4 +4,10 @@ packages:
   - "web"
   - "worker"
 
+allowBuilds:
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  simple-git-hooks: true
+
 minimumReleaseAge: 4320
