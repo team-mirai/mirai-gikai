@@ -124,3 +124,51 @@ export type RawRespondentRow = {
   summary: string | null;
   created_at: string | null;
 };
+
+// ── 回答者詳細（立場説明＋会話ログ／分析用） ──
+//
+// 注意: role_description と messages.content は回答者の**自由記述**であり、
+// LLM で構造化・要約されたものではない。§8 のレポート公開判定
+// （管理者公開×ユーザー公開）は通すが、自由記述ゆえ固有名詞等が含まれ得る。
+// それでも user_id・email・有識者登録情報（expert_registrations）等の
+// 識別子は含めない。
+
+/** 会話ログ1メッセージ。speaker="assistant"=AIの質問 / "user"=回答者の発言。 */
+export type TranscriptMessage = {
+  id: string;
+  speaker: "assistant" | "user";
+  content: string;
+  created_at: string | null;
+};
+
+/** 公開レポート1件の詳細（立場説明と会話ログを含む）。 */
+export type PublicRespondentDetail = {
+  /** 出典インタビューレポートID。 */
+  id: string;
+  user_category: UserCategory;
+  /** 発言者の立場の短縮タイトル（interview_report.role_title）。 */
+  role_title: string | null;
+  /** 回答者が自由記述した立場説明（interview_report.role_description）。 */
+  role_description: string | null;
+  /** 賛否（for=期待 / against=懸念 / それ以外=null）。 */
+  bill_sentiment: "期待" | "懸念" | null;
+  /** レポートの要約テキスト。 */
+  summary: string | null;
+  /** 出典レポートの作成日時。 */
+  created_at: string | null;
+  /** AIとの会話ログ（質問と回答のやり取り、作成日時昇順）。 */
+  messages: TranscriptMessage[];
+};
+
+/** 詳細取得の生レポート行（pure 関数の入力）。回答一覧の行に立場説明を加えたもの。 */
+export type RawRespondentDetailRow = RawRespondentRow & {
+  role_description: string | null;
+};
+
+/** 生の会話メッセージ行（pure 関数の入力）。 */
+export type RawTranscriptMessageRow = {
+  id: string;
+  role: string | null;
+  content: string;
+  created_at: string | null;
+};

@@ -1,9 +1,13 @@
+import "server-only";
+
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
   PublishedVersionMeta,
   RawOpinionRow,
+  RawRespondentDetailRow,
   RawRespondentRow,
   RawTopicRow,
+  RawTranscriptMessageRow,
 } from "./public-types";
 
 export type PublishedAnalysisData = {
@@ -138,4 +142,58 @@ export async function findPublicBillRespondentRows(
     summary: r.summary,
     created_at: r.created_at,
   }));
+}
+
+export type RespondentDetailData = {
+  report: RawRespondentDetailRow;
+  messages: RawTranscriptMessageRow[];
+};
+
+/**
+ * 公開レポート1件の詳細（立場説明＋会話ログ）を生データで取得する。
+ * 回答一覧と同一基準（管理者公開×ユーザー公開）でフィルタし、
+ * 非公開・存在しない場合は null（呼び出し側で not_found 扱い）。
+ * 会話メッセージは作成日時昇順。
+ */
+export async function findPublicRespondentDetail(
+  reportId: string
+): Promise<RespondentDetailData | null> {
+  const supabase = createAdminClient();
+
+  const { data: report, error } = await supabase
+    .from("interview_report")
+    .select(
+      "id, role, role_title, stance, summary, role_description, created_at, interview_session_id"
+    )
+    .eq("id", reportId)
+    .eq("is_public_by_admin", true)
+    .eq("is_public_by_user", true)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Failed to fetch respondent detail: ${error.message}`);
+  }
+  if (!report) return null;
+
+  const { data: messages, error: messagesError } = await supabase
+    .from("interview_messages")
+    .select("id, role, content, created_at")
+    .eq("interview_session_id", report.interview_session_id)
+    .order("created_at", { ascending: true });
+  if (messagesError) {
+    throw new Error(`Failed to fetch transcript: ${messagesError.message}`);
+  }
+
+  return {
+    report: {
+      id: report.id,
+      role: report.role,
+      role_title: report.role_title,
+      stance: report.stance,
+      summary: report.summary,
+      role_description: report.role_description,
+      created_at: report.created_at,
+    },
+    // select 列が RawTranscriptMessageRow と一致するためそのまま渡す。
+    messages: messages ?? [],
+  };
 }

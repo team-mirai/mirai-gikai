@@ -1,15 +1,7 @@
 import { mapRoleToCategory } from "./build-public-topic-analysis";
 import { normalizeRoleTitle } from "./normalize-role-title";
+import { normalizeStanceToSentiment } from "./normalize-stance";
 import type { PublicRespondent, RawRespondentRow } from "./public-types";
-
-/** interview_report.stance（for/against）を 期待/懸念 に正規化（neutral 等は null）。 */
-function normalizeStanceToSentiment(
-  stance: string | null
-): "期待" | "懸念" | null {
-  if (stance === "for") return "期待";
-  if (stance === "against") return "懸念";
-  return null;
-}
 
 /**
  * 公開レポートの生行から、回答一覧カード用の表示データを構築する純粋関数。

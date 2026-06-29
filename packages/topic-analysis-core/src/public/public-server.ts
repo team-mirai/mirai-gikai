@@ -7,10 +7,13 @@ import "server-only";
 export * from "./public";
 export {
   type PublishedAnalysisData,
+  type RespondentDetailData,
   findPublicBillRespondentRows,
+  findPublicRespondentDetail,
   findPublishedAnalysis,
 } from "./public-read-repository";
 export {
   getPublicBillRespondents,
+  getPublicRespondentDetail,
   getPublicTopicAnalysis,
 } from "./loaders";

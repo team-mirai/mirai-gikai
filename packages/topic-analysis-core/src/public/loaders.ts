@@ -1,8 +1,16 @@
+import "server-only";
+
 import { buildPublicBillRespondents } from "./build-public-bill-respondents";
+import { buildPublicRespondentDetail } from "./build-public-respondent-detail";
 import { buildPublicTopicAnalysis } from "./build-public-topic-analysis";
-import type { PublicRespondent, PublicTopicAnalysis } from "./public-types";
+import type {
+  PublicRespondent,
+  PublicRespondentDetail,
+  PublicTopicAnalysis,
+} from "./public-types";
 import {
   findPublicBillRespondentRows,
+  findPublicRespondentDetail,
   findPublishedAnalysis,
 } from "./public-read-repository";
 
@@ -29,4 +37,17 @@ export async function getPublicBillRespondents(
 ): Promise<PublicRespondent[]> {
   const rows = await findPublicBillRespondentRows(billId);
   return buildPublicBillRespondents(rows);
+}
+
+/**
+ * 公開レポート1件の詳細（立場説明＋会話ログ）を取得する。
+ * 回答一覧と同一基準（管理者公開×ユーザー公開）でフィルタ。
+ * 非公開・存在しない場合は null（呼び出し側で not_found 扱い）。
+ */
+export async function getPublicRespondentDetail(
+  reportId: string
+): Promise<PublicRespondentDetail | null> {
+  const data = await findPublicRespondentDetail(reportId);
+  if (!data) return null;
+  return buildPublicRespondentDetail(data.report, data.messages);
 }

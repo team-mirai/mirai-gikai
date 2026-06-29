@@ -10,7 +10,10 @@ import {
 } from "../supabase/utils";
 import { createTestRegistry, type TestMcpRegistry } from "./utils";
 
-/** session + report + interview_opinion を1件作り、{ reportId, opinionId } を返す。 */
+/**
+ * session + report + interview_opinion を1件作り、{ reportId, opinionId } を返す。
+ * roleDescription / messages を渡すと立場説明・会話ログも投入する。
+ */
 async function createReportWithOpinion(opts: {
   configId: string;
   userId: string;
@@ -20,6 +23,8 @@ async function createReportWithOpinion(opts: {
   stance?: string;
   title: string;
   billSentiment?: string;
+  roleDescription?: string;
+  messages?: Array<{ role: "assistant" | "user"; content: string }>;
 }): Promise<{ reportId: string; opinionId: string }> {
   const { data: session } = await adminClient
     .from("interview_sessions")
@@ -42,12 +47,26 @@ async function createReportWithOpinion(opts: {
       moderation_score: 5,
       role: opts.role,
       role_title: "育休経験者",
+      role_description: opts.roleDescription ?? null,
       stance: opts.stance ?? null,
       summary: `${opts.title}の要約`,
     })
     .select()
     .single();
   if (!report) throw new Error("report insert failed");
+
+  if (opts.messages?.length) {
+    const { error: messagesError } = await adminClient
+      .from("interview_messages")
+      .insert(
+        opts.messages.map((m) => ({
+          interview_session_id: session.id,
+          role: m.role,
+          content: m.content,
+        }))
+      );
+    if (messagesError) throw new Error("messages insert failed");
+  }
 
   const { data: opinion } = await adminClient
     .from("interview_opinion")
@@ -97,6 +116,11 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
       stance: "for",
       title: "公開OK",
       billSentiment: "期待",
+      roleDescription: "育休を取得した当事者です",
+      messages: [
+        { role: "assistant", content: "この法案についてどう思いますか？" },
+        { role: "user", content: "賛成です。負担が軽くなります" },
+      ],
     });
     publicReportId = ok.reportId;
     const userPrivate = await createReportWithOpinion({
@@ -169,7 +193,11 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
 
   it("登録されているツール名が想定通り", () => {
     expect(registry.toolNames().sort()).toEqual(
-      ["get_public_topic_analysis", "list_public_respondents"].sort()
+      [
+        "get_public_topic_analysis",
+        "list_public_respondents",
+        "get_respondent_detail",
+      ].sort()
     );
   });
 
@@ -234,6 +262,48 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
       const serialized = JSON.stringify(result);
       expect(serialized).not.toContain("user_id");
       expect(serialized).not.toContain("email");
+      expect(serialized).not.toContain(testUser.id);
+    });
+  });
+
+  describe("get_respondent_detail", () => {
+    it("公開レポートの立場説明と会話ログを返す", async () => {
+      const result = await registry.callTool<{
+        id: string;
+        user_category: string;
+        role_description: string | null;
+        bill_sentiment: unknown;
+        messages: Array<{ speaker: string; content: string }>;
+      }>("get_respondent_detail", { reportId: publicReportId });
+
+      expect(result.id).toBe(publicReportId);
+      expect(result.user_category).toBe("affected");
+      expect(result.role_description).toBe("育休を取得した当事者です");
+      expect(result.bill_sentiment).toBe("期待");
+      expect(
+        result.messages.map((m) => ({ speaker: m.speaker, content: m.content }))
+      ).toEqual([
+        { speaker: "assistant", content: "この法案についてどう思いますか？" },
+        { speaker: "user", content: "賛成です。負担が軽くなります" },
+      ]);
+    });
+
+    it("非公開レポートは status=not_found を返す", async () => {
+      const result = await registry.callTool<{ status: string }>(
+        "get_respondent_detail",
+        { reportId: privateReportId }
+      );
+      expect(result.status).toBe("not_found");
+    });
+
+    it("個人情報（user_id・email・session）を返さない", async () => {
+      const result = await registry.callTool("get_respondent_detail", {
+        reportId: publicReportId,
+      });
+      const serialized = JSON.stringify(result);
+      expect(serialized).not.toContain("user_id");
+      expect(serialized).not.toContain("email");
+      expect(serialized).not.toContain("interview_session");
       expect(serialized).not.toContain(testUser.id);
     });
   });
