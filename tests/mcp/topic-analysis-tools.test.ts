@@ -119,7 +119,7 @@ async function createPublicReports(
   if (error) throw new Error("reports insert failed");
 }
 
-describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () => {
+describe("MCP topic-analysis tools（内部向け・識別子フリー読み取り）", () => {
   let registry: TestMcpRegistry;
   let testUser: TestUser;
   let billWithAnalysis: string;
@@ -266,36 +266,60 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
 
   it("登録されているツール名が想定通り", () => {
     expect(registry.toolNames().sort()).toEqual(
-      [
-        "get_public_topic_analysis",
-        "list_public_respondents",
-        "get_respondent_detail",
-      ].sort()
+      ["get_topic_analysis", "list_respondents", "get_respondent_detail"].sort()
     );
   });
 
-  describe("get_public_topic_analysis", () => {
-    it("§8 を通る公開意見のみ返し、件数も再計算する", async () => {
+  describe("get_topic_analysis", () => {
+    it("既定（フィルタ無し）では公開・非公開を問わず全意見を返す", async () => {
       const result = await registry.callTool<{
         topics: Array<{
           opinion_count: number;
           affected_count: number;
+          citizen_count: number;
           sentiment: { 期待: number; 懸念: number };
+        }>;
+        total_opinions: number;
+      }>("get_topic_analysis", { billId: billWithAnalysis });
+
+      // ok（公開）/ ユーザー非公開 / 管理者非公開 の3意見すべて。
+      expect(result.total_opinions).toBe(3);
+      expect(result.topics).toHaveLength(1);
+      expect(result.topics[0].opinion_count).toBe(3);
+      expect(result.topics[0].affected_count).toBe(1);
+      expect(result.topics[0].citizen_count).toBe(2);
+      expect(result.topics[0].sentiment).toEqual({ 期待: 1, 懸念: 0 });
+    });
+
+    it("公開フラグ＋モデレーションOKで絞り込める", async () => {
+      const result = await registry.callTool<{
+        topics: Array<{
+          opinion_count: number;
           opinions: Array<{ title: string }>;
         }>;
         total_opinions: number;
-      }>("get_public_topic_analysis", { billId: billWithAnalysis });
+      }>("get_topic_analysis", {
+        billId: billWithAnalysis,
+        isPublicByAdmin: true,
+        isPublicByUser: true,
+        moderationStatus: "ok",
+      });
 
       expect(result.total_opinions).toBe(1);
-      expect(result.topics).toHaveLength(1);
       expect(result.topics[0].opinion_count).toBe(1);
-      expect(result.topics[0].affected_count).toBe(1);
-      expect(result.topics[0].sentiment).toEqual({ 期待: 1, 懸念: 0 });
       expect(result.topics[0].opinions[0].title).toBe("公開OK");
     });
 
+    it("requireDisplayThreshold 指定時、公開20件未満なら status=not_ready", async () => {
+      const result = await registry.callTool<{ status: string }>(
+        "get_topic_analysis",
+        { billId: billWithAnalysis, requireDisplayThreshold: true }
+      );
+      expect(result.status).toBe("not_ready");
+    });
+
     it("個人情報（user_id・email・session）を返さない", async () => {
-      const result = await registry.callTool("get_public_topic_analysis", {
+      const result = await registry.callTool("get_topic_analysis", {
         billId: billWithAnalysis,
       });
       const serialized = JSON.stringify(result);
@@ -305,20 +329,34 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
       expect(serialized).not.toContain(testUser.id);
     });
 
-    it("公開版が無ければ status=not_ready を返す", async () => {
+    it("版が無ければ status=not_ready を返す", async () => {
       const result = await registry.callTool<{ status: string }>(
-        "get_public_topic_analysis",
+        "get_topic_analysis",
         { billId: billWithout }
       );
       expect(result.status).toBe("not_ready");
     });
   });
 
-  describe("list_public_respondents", () => {
-    it("公開（管理者公開×ユーザー公開）のレポートのみ返す", async () => {
+  describe("list_respondents", () => {
+    it("既定（フィルタ無し）では公開・非公開を問わず全件返す", async () => {
+      const result = await registry.callTool<Array<{ id: string }>>(
+        "list_respondents",
+        { billId: billWithAnalysis }
+      );
+      const ids = result.map((r) => r.id);
+      expect(ids).toContain(publicReportId);
+      expect(ids).toContain(privateReportId);
+    });
+
+    it("公開フラグで絞り込める", async () => {
       const result = await registry.callTool<
         Array<{ id: string; summary: string | null; bill_sentiment: unknown }>
-      >("list_public_respondents", { billId: billWithAnalysis });
+      >("list_respondents", {
+        billId: billWithAnalysis,
+        isPublicByAdmin: true,
+        isPublicByUser: true,
+      });
 
       const ids = result.map((r) => r.id);
       expect(ids).toContain(publicReportId);
@@ -328,8 +366,16 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
       expect(pub?.bill_sentiment).toBe("期待");
     });
 
+    it("requireDisplayThreshold 指定時、公開20件未満なら status=below_threshold", async () => {
+      const result = await registry.callTool<{ status: string }>(
+        "list_respondents",
+        { billId: billWithAnalysis, requireDisplayThreshold: true }
+      );
+      expect(result.status).toBe("below_threshold");
+    });
+
     it("個人情報（user_id・email・session）を返さない", async () => {
-      const result = await registry.callTool("list_public_respondents", {
+      const result = await registry.callTool("list_respondents", {
         billId: billWithAnalysis,
       });
       const serialized = JSON.stringify(result);
@@ -341,16 +387,16 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
   });
 
   describe("get_respondent_detail", () => {
-    it("公開件数が十分な議案では立場説明と会話ログを返す", async () => {
+    it("既定（フィルタ無し）では公開条件に関わらず立場説明と会話ログを返す", async () => {
       const result = await registry.callTool<{
         id: string;
         user_category: string;
         role_description: string | null;
         bill_sentiment: unknown;
         messages: Array<{ speaker: string; content: string }>;
-      }>("get_respondent_detail", { reportId: detailReportId });
+      }>("get_respondent_detail", { reportId: publicReportId });
 
-      expect(result.id).toBe(detailReportId);
+      expect(result.id).toBe(publicReportId);
       expect(result.user_category).toBe("affected");
       expect(result.role_description).toBe("育休を取得した当事者です");
       expect(result.bill_sentiment).toBe("期待");
@@ -362,21 +408,38 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
       ]);
     });
 
-    it("公開レポートが20件未満の議案は status=not_found（k-匿名性ゲート）", async () => {
-      // billWithAnalysis の公開レポートは publicReportId の1件のみ（< 20）。
+    it("既定では非公開レポートも返す（内部向け）", async () => {
+      const result = await registry.callTool<{ id?: string; status?: string }>(
+        "get_respondent_detail",
+        { reportId: privateReportId }
+      );
+      expect(result.id).toBe(privateReportId);
+      expect(result.status).toBeUndefined();
+    });
+
+    it("公開フラグフィルタで非公開レポートを除外できる（status=not_found）", async () => {
       const result = await registry.callTool<{ status: string }>(
         "get_respondent_detail",
-        { reportId: publicReportId }
+        { reportId: privateReportId, isPublicByUser: true }
       );
       expect(result.status).toBe("not_found");
     });
 
-    it("非公開レポートは status=not_found を返す", async () => {
+    it("requireDisplayThreshold 指定時、公開20件未満は status=not_found", async () => {
       const result = await registry.callTool<{ status: string }>(
         "get_respondent_detail",
-        { reportId: privateReportId }
+        { reportId: publicReportId, requireDisplayThreshold: true }
       );
       expect(result.status).toBe("not_found");
+    });
+
+    it("requireDisplayThreshold 指定でも公開20件以上の議案は詳細を返す", async () => {
+      const result = await registry.callTool<{ id?: string; status?: string }>(
+        "get_respondent_detail",
+        { reportId: detailReportId, requireDisplayThreshold: true }
+      );
+      expect(result.id).toBe(detailReportId);
+      expect(result.status).toBeUndefined();
     });
 
     it("個人情報（user_id・email・session）を返さない", async () => {

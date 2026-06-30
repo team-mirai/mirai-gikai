@@ -1,19 +1,18 @@
 import "server-only";
 
-// 公開（PII セーフ）読み取りの**サーバ専用**エントリポイント。
-// Supabase（createAdminClient / SUPABASE_SECRET_KEY）に触れる repository / loaders を
-// ここに集約し、ブラウザ安全な純粋ロジック（./public）と分離する。
-// サーバ（web の loaders / Server Components / admin MCP）からのみ import すること。
+// 公開（PII セーフ・§8 固定）読み取りの**サーバ専用**エントリポイント。
+// web の公開ページ / 公開 API が使う。Supabase（createAdminClient）に触れる
+// repository / loaders をここに集約し、ブラウザ安全な純粋ロジック（./public）と分離する。
+//
+// 内部用途（admin MCP）の「全件＋任意フィルタ」経路は
+// `@mirai-gikai/topic-analysis-core/internal-server` に分離している。
 export * from "./public";
 export {
   type PublishedAnalysisData,
-  type RespondentDetailData,
   findPublicBillRespondentRows,
-  findPublicRespondentDetail,
   findPublishedAnalysis,
 } from "./public-read-repository";
 export {
   getPublicBillRespondents,
-  getPublicRespondentDetail,
   getPublicTopicAnalysis,
 } from "./loaders";

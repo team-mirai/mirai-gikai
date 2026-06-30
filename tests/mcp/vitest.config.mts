@@ -26,6 +26,10 @@ export default defineConfig({
         repoRoot,
         "packages/topic-analysis-core/src/public/public-server.ts"
       ),
+      "@mirai-gikai/topic-analysis-core/internal-server": path.resolve(
+        repoRoot,
+        "packages/topic-analysis-core/src/internal/internal-server.ts"
+      ),
       // server-only は非 react-server 環境で throw するため空 stub に差し替える
       // （tests/supabase と同方式。alias は deep import 経由でも確実に効く）。
       "server-only": path.resolve(

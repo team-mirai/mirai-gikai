@@ -1,36 +1,63 @@
 import "server-only";
 
 import {
-  getPublicBillRespondents,
-  getPublicRespondentDetail,
-  getPublicTopicAnalysis,
-} from "@mirai-gikai/topic-analysis-core/public-server";
+  getRespondentDetail,
+  getTopicAnalysis,
+  listRespondents,
+} from "@mirai-gikai/topic-analysis-core/internal-server";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { jsonResult } from "../utils/json-result";
 
 /**
- * ユーザー向けトピック分析・公開インタビュー回答の「公開（PII セーフ）読み取り」ツール群。
+ * AIインタビュー内容・トピック分析の**内部向け**読み取りツール群。
  *
- * 集計系（get_public_topic_analysis / list_public_respondents）は web 公開表示と同一の
- * §8 フィルタを通過した構造化データのみで、会話生ログ等は含まない。
- * get_respondent_detail は分析用に role_description・会話ログ（自由記述）を返すが、
- * いずれもレポート公開判定（管理者公開 × ユーザー公開）を通過した公開レポートに限り、
- * user_id・email・有識者登録情報（expert_registrations）等の識別子は含めない。
+ * これは管理者トークン（ADMIN_MCP_TOKEN）で到達する内部ツールであり、**既定では
+ * 公開・非公開・モデレーション状態を問わず全件取得**する。プロンプト等から取得条件
+ * （公開フラグ・モデレーション状態・公開件数ゲート）を指定したときのみ、その条件で
+ * クエリを絞り込む。
+ *
+ * 取得対象には未公開・未モデレーションのレポートや会話ログ（自由記述）が含まれ得る。
+ * ただし user_id・email・有識者登録情報（expert_registrations）等の**直接識別子は
+ * 返却型に含めない**。web 公開ページの「公開（§8 固定）」表示とは別経路。
  */
+
+/** 全ツール共通の任意フィルタ。未指定の項目は絞り込まない（＝全件対象）。 */
+const filterInput = {
+  isPublicByAdmin: z
+    .boolean()
+    .optional()
+    .describe("管理者公開フラグで絞り込む（未指定なら絞らない）"),
+  isPublicByUser: z
+    .boolean()
+    .optional()
+    .describe("ユーザー公開（同意）フラグで絞り込む（未指定なら絞らない）"),
+  moderationStatus: z
+    .enum(["ok", "warning", "ng"])
+    .optional()
+    .describe("モデレーション状態で絞り込む（例: ok のみ対象にする）"),
+  requireDisplayThreshold: z
+    .boolean()
+    .optional()
+    .describe(
+      "true で web と同じ k-匿名性ゲート（公開レポートが20件以上の議案のみ）を適用する"
+    ),
+};
+
 export function registerTopicAnalysisTools(server: McpServer): void {
   server.registerTool(
-    "get_public_topic_analysis",
+    "get_topic_analysis",
     {
-      title: "公開トピック分析を取得",
+      title: "トピック分析を取得（内部向け）",
       description:
-        "指定議案の公開中トピック分析を返す。トピックごとの意見件数・属性内訳（当事者/事業者/専門家/市民）・期待/懸念の集計と、公開済み意見（タイトル・本文・引用）を含む。公開済み（ユーザー同意×管理者公開×モデレーションOK）の意見のみ。公開版が無ければ status=not_ready を返す。個人を特定する情報（user_id・email等）は含まない。",
+        "指定議案の最新トピック分析（公開・非公開を問わず最新版）を返す。トピックごとの意見件数・属性内訳（当事者/事業者/専門家/市民）・期待/懸念の集計と意見（タイトル・本文・引用）を含む。既定では全意見が対象。任意フィルタ（公開フラグ・モデレーション状態・公開件数ゲート）で絞り込める。版が無い／件数ゲートで隠す場合は status=not_ready。user_id・email 等の直接識別子は含まない。",
       inputSchema: {
         billId: z.string().uuid().describe("対象議案のID"),
+        ...filterInput,
       },
     },
-    async ({ billId }) => {
-      const analysis = await getPublicTopicAnalysis(billId);
+    async ({ billId, ...filter }) => {
+      const analysis = await getTopicAnalysis(billId, filter);
       if (!analysis) {
         return jsonResult({ status: "not_ready", bill_id: billId });
       }
@@ -39,17 +66,21 @@ export function registerTopicAnalysisTools(server: McpServer): void {
   );
 
   server.registerTool(
-    "list_public_respondents",
+    "list_respondents",
     {
-      title: "公開インタビュー回答一覧を取得",
+      title: "インタビュー回答一覧を取得（内部向け）",
       description:
-        "指定議案の公開済みAIインタビュー回答（回答者1人=1件）を新しい順で返す。各件は立場区分・肩書・賛否（期待/懸念）・要約を含む。公開済み（ユーザー同意×管理者公開）のレポートのみ。個人を特定する情報（user_id・email・会話生ログ等）は含まない。",
+        "指定議案のAIインタビュー回答（回答者1人=1件）を新しい順で返す。各件は立場区分・肩書・賛否（期待/懸念）・要約を含む。既定では公開・非公開を問わず全件。任意フィルタ（公開フラグ・モデレーション状態・公開件数ゲート）で絞り込める。件数ゲートで隠す場合は status=below_threshold。user_id・email 等の直接識別子は含まない。",
       inputSchema: {
         billId: z.string().uuid().describe("対象議案のID"),
+        ...filterInput,
       },
     },
-    async ({ billId }) => {
-      const respondents = await getPublicBillRespondents(billId);
+    async ({ billId, ...filter }) => {
+      const respondents = await listRespondents(billId, filter);
+      if (respondents === null) {
+        return jsonResult({ status: "below_threshold", bill_id: billId });
+      }
       return jsonResult(respondents);
     }
   );
@@ -57,18 +88,19 @@ export function registerTopicAnalysisTools(server: McpServer): void {
   server.registerTool(
     "get_respondent_detail",
     {
-      title: "公開インタビュー回答の詳細（会話ログ）を取得",
+      title: "インタビュー回答の詳細（会話ログ）を取得（内部向け）",
       description:
-        "指定レポートID（list_public_respondents の id）の公開AIインタビュー回答の詳細を返す。立場区分・肩書・立場説明（role_description）・賛否・要約に加え、AIとの会話ログ（質問と回答のやり取り）を含む。公開済み（ユーザー同意×管理者公開）のレポートのみ。立場説明・会話ログは回答者の自由記述のため固有名詞等が含まれ得る点に留意。見つからない／非公開なら status=not_found。user_id・email・有識者登録情報は含まない。",
+        "指定レポートID（list_respondents の id）の回答詳細を返す。立場区分・肩書・立場説明（role_description）・賛否・要約に加え、AIとの会話ログ（質問と回答のやり取り）を含む。既定では公開・非公開・モデレーション状態を問わず取得。任意フィルタ（公開フラグ・モデレーション状態・公開件数ゲート requireDisplayThreshold）で絞り込める。立場説明・会話ログは自由記述のため固有名詞等が含まれ得る。条件に合致しない／存在しないなら status=not_found。user_id・email・有識者登録情報は含まない。",
       inputSchema: {
         reportId: z
           .string()
           .uuid()
-          .describe("対象レポートID（list_public_respondents の id）"),
+          .describe("対象レポートID（list_respondents の id）"),
+        ...filterInput,
       },
     },
-    async ({ reportId }) => {
-      const detail = await getPublicRespondentDetail(reportId);
+    async ({ reportId, ...filter }) => {
+      const detail = await getRespondentDetail(reportId, filter);
       if (!detail) {
         return jsonResult({ status: "not_found", report_id: reportId });
       }
