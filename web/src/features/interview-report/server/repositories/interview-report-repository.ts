@@ -133,26 +133,9 @@ export async function countPublicReportsByStance(billId: string) {
 /**
  * 議案IDの公開インタビューレポート件数を取得
  */
-export async function countPublicReportsByBillId(billId: string) {
-  const supabase = createAdminClient();
-  const { count, error } = await supabase
-    .from("interview_report")
-    .select("id, interview_sessions!inner(interview_configs!inner(bill_id))", {
-      count: "exact",
-      head: true,
-    })
-    .eq("is_public_by_admin", true)
-    .eq("is_public_by_user", true)
-    .eq("interview_sessions.interview_configs.bill_id", billId);
-
-  if (error) {
-    throw new Error(
-      `Failed to count public interview reports: ${error.message}`
-    );
-  }
-
-  return count ?? 0;
-}
+// 公開レポート件数のカウントは web・admin MCP で共有するため
+// @mirai-gikai/shared に集約。既存の呼び出し元はこの re-export 経由で参照する。
+export { countPublicReportsByBillId } from "@mirai-gikai/shared/report-publication/count-public-reports";
 
 /**
  * 公開レポートをIDから取得（認証不要）

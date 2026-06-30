@@ -1,6 +1,7 @@
 import "server-only";
 
 import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { countPublicReportsByBillId } from "@mirai-gikai/shared/report-publication/count-public-reports";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
   PublishedVersionMeta,
@@ -149,27 +150,6 @@ export type RespondentDetailData = {
   report: RawRespondentDetailRow;
   messages: RawTranscriptMessageRow[];
 };
-
-/**
- * 議案の公開レポート件数を数える（web の countPublicReportsByBillId と同一定義）。
- * k-匿名性しきい値（shouldDisplayPublicReports）の判定に使う。
- */
-async function countPublicReportsByBillId(billId: string): Promise<number> {
-  const supabase = createAdminClient();
-  const { count, error } = await supabase
-    .from("interview_report")
-    .select("id, interview_sessions!inner(interview_configs!inner(bill_id))", {
-      count: "exact",
-      head: true,
-    })
-    .eq("is_public_by_admin", true)
-    .eq("is_public_by_user", true)
-    .eq("interview_sessions.interview_configs.bill_id", billId);
-  if (error) {
-    throw new Error(`Failed to count public reports: ${error.message}`);
-  }
-  return count ?? 0;
-}
 
 /**
  * 公開レポート1件の詳細（立場説明＋会話ログ）を生データで取得する。
