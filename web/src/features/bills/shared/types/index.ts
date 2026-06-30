@@ -114,4 +114,5 @@ export const STANCE_LABELS: Record<StanceTypeEnum, string> = {
   conditional_against: "条件付き反対",
   considering: "検討中",
   continued_deliberation: "継続審査中",
+  free_vote: "自由投票",
 };
