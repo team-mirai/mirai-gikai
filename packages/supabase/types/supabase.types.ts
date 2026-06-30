@@ -1294,6 +1294,7 @@ export type Database = {
         | "conditional_against"
         | "considering"
         | "continued_deliberation"
+        | "free_vote"
       topic_analysis_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
@@ -1462,9 +1463,9 @@ export const Constants = {
         "conditional_against",
         "considering",
         "continued_deliberation",
+        "free_vote",
       ],
       topic_analysis_status: ["pending", "running", "completed", "failed"],
     },
   },
 } as const
-
