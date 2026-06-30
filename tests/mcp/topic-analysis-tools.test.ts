@@ -83,6 +83,42 @@ async function createReportWithOpinion(opts: {
   return { reportId: report.id, opinionId: opinion.id };
 }
 
+/**
+ * 件数ゲート用に、最小構成の公開レポート（session + report）を n 件まとめて作る。
+ * k-匿名性しきい値（公開レポート >= 20 件）を満たすための水増しに使う。
+ */
+async function createPublicReports(
+  configId: string,
+  userId: string,
+  n: number
+): Promise<void> {
+  const now = new Date().toISOString();
+  const { data: sessions } = await adminClient
+    .from("interview_sessions")
+    .insert(
+      Array.from({ length: n }, () => ({
+        interview_config_id: configId,
+        user_id: userId,
+        started_at: now,
+        completed_at: now,
+      }))
+    )
+    .select("id");
+  if (!sessions) throw new Error("sessions insert failed");
+
+  const { error } = await adminClient.from("interview_report").insert(
+    sessions.map((s) => ({
+      interview_session_id: s.id,
+      is_public_by_user: true,
+      is_public_by_admin: true,
+      moderation_score: 5,
+      role: "general_citizen",
+      summary: "件数ゲート用",
+    }))
+  );
+  if (error) throw new Error("reports insert failed");
+}
+
 describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () => {
   let registry: TestMcpRegistry;
   let testUser: TestUser;
@@ -90,6 +126,9 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
   let billWithout: string;
   let publicReportId: string;
   let privateReportId: string;
+  // 公開レポート >= 20 件で k-匿名性ゲートを通過する議案と、その詳細対象レポート
+  let billDisplayable: string;
+  let detailReportId: string;
 
   beforeAll(async () => {
     registry = createTestRegistry();
@@ -183,11 +222,45 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
 
     const bill2 = await createTestBill();
     billWithout = bill2.id;
+
+    // k-匿名性ゲートを通過する議案（公開レポート 20 件）。
+    // 詳細対象 1 件（立場説明＋会話ログ）＋ 件数水増し 19 件 = 20 件。
+    const bill3 = await createTestBill();
+    billDisplayable = bill3.id;
+    const { data: config3 } = await adminClient
+      .from("interview_configs")
+      .insert({
+        bill_id: billDisplayable,
+        status: "public",
+        name: "mcp-detail",
+      })
+      .select()
+      .single();
+    if (!config3) throw new Error("config3 insert failed");
+
+    const detail = await createReportWithOpinion({
+      configId: config3.id,
+      userId: testUser.id,
+      isPublicByUser: true,
+      isPublicByAdmin: true,
+      role: "daily_life_affected",
+      stance: "for",
+      title: "詳細対象",
+      billSentiment: "期待",
+      roleDescription: "育休を取得した当事者です",
+      messages: [
+        { role: "assistant", content: "この法案についてどう思いますか？" },
+        { role: "user", content: "賛成です。負担が軽くなります" },
+      ],
+    });
+    detailReportId = detail.reportId;
+    await createPublicReports(config3.id, testUser.id, 19);
   });
 
   afterAll(async () => {
     if (billWithAnalysis) await cleanupTestBill(billWithAnalysis);
     if (billWithout) await cleanupTestBill(billWithout);
+    if (billDisplayable) await cleanupTestBill(billDisplayable);
     if (testUser?.id) await cleanupTestUser(testUser.id);
   });
 
@@ -255,28 +328,29 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
       expect(pub?.bill_sentiment).toBe("期待");
     });
 
-    it("個人情報（user_id・email）を返さない", async () => {
+    it("個人情報（user_id・email・session）を返さない", async () => {
       const result = await registry.callTool("list_public_respondents", {
         billId: billWithAnalysis,
       });
       const serialized = JSON.stringify(result);
       expect(serialized).not.toContain("user_id");
       expect(serialized).not.toContain("email");
+      expect(serialized).not.toContain("interview_session");
       expect(serialized).not.toContain(testUser.id);
     });
   });
 
   describe("get_respondent_detail", () => {
-    it("公開レポートの立場説明と会話ログを返す", async () => {
+    it("公開件数が十分な議案では立場説明と会話ログを返す", async () => {
       const result = await registry.callTool<{
         id: string;
         user_category: string;
         role_description: string | null;
         bill_sentiment: unknown;
         messages: Array<{ speaker: string; content: string }>;
-      }>("get_respondent_detail", { reportId: publicReportId });
+      }>("get_respondent_detail", { reportId: detailReportId });
 
-      expect(result.id).toBe(publicReportId);
+      expect(result.id).toBe(detailReportId);
       expect(result.user_category).toBe("affected");
       expect(result.role_description).toBe("育休を取得した当事者です");
       expect(result.bill_sentiment).toBe("期待");
@@ -286,6 +360,15 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
         { speaker: "assistant", content: "この法案についてどう思いますか？" },
         { speaker: "user", content: "賛成です。負担が軽くなります" },
       ]);
+    });
+
+    it("公開レポートが20件未満の議案は status=not_found（k-匿名性ゲート）", async () => {
+      // billWithAnalysis の公開レポートは publicReportId の1件のみ（< 20）。
+      const result = await registry.callTool<{ status: string }>(
+        "get_respondent_detail",
+        { reportId: publicReportId }
+      );
+      expect(result.status).toBe("not_found");
     });
 
     it("非公開レポートは status=not_found を返す", async () => {
@@ -298,7 +381,7 @@ describe("MCP topic-analysis tools（公開・PIIセーフ読み取り）", () =
 
     it("個人情報（user_id・email・session）を返さない", async () => {
       const result = await registry.callTool("get_respondent_detail", {
-        reportId: publicReportId,
+        reportId: detailReportId,
       });
       const serialized = JSON.stringify(result);
       expect(serialized).not.toContain("user_id");

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
   PublishedVersionMeta,
@@ -150,9 +151,32 @@ export type RespondentDetailData = {
 };
 
 /**
+ * 議案の公開レポート件数を数える（web の countPublicReportsByBillId と同一定義）。
+ * k-匿名性しきい値（shouldDisplayPublicReports）の判定に使う。
+ */
+async function countPublicReportsByBillId(billId: string): Promise<number> {
+  const supabase = createAdminClient();
+  const { count, error } = await supabase
+    .from("interview_report")
+    .select("id, interview_sessions!inner(interview_configs!inner(bill_id))", {
+      count: "exact",
+      head: true,
+    })
+    .eq("is_public_by_admin", true)
+    .eq("is_public_by_user", true)
+    .eq("interview_sessions.interview_configs.bill_id", billId);
+  if (error) {
+    throw new Error(`Failed to count public reports: ${error.message}`);
+  }
+  return count ?? 0;
+}
+
+/**
  * 公開レポート1件の詳細（立場説明＋会話ログ）を生データで取得する。
- * 回答一覧と同一基準（管理者公開×ユーザー公開）でフィルタし、
- * 非公開・存在しない場合は null（呼び出し側で not_found 扱い）。
+ * 回答一覧と同一基準（管理者公開×ユーザー公開）でフィルタし、加えて
+ * **web の個別レポート詳細（getPublicReportById）と同じ k-匿名性ゲート**
+ * （公開レポートが `shouldDisplayPublicReports` を満たす＝20件以上）を適用する。
+ * 件数未満・非公開・存在しない場合は null（呼び出し側で not_found 扱い）。
  * 会話メッセージは作成日時昇順。
  */
 export async function findPublicRespondentDetail(
@@ -163,7 +187,7 @@ export async function findPublicRespondentDetail(
   const { data: report, error } = await supabase
     .from("interview_report")
     .select(
-      "id, role, role_title, stance, summary, role_description, created_at, interview_session_id"
+      "id, role, role_title, stance, summary, role_description, created_at, interview_session_id, interview_sessions!inner(interview_configs!inner(bill_id))"
     )
     .eq("id", reportId)
     .eq("is_public_by_admin", true)
@@ -173,6 +197,16 @@ export async function findPublicRespondentDetail(
     throw new Error(`Failed to fetch respondent detail: ${error.message}`);
   }
   if (!report) return null;
+
+  // k-匿名性ゲート: 公開レポートが少数の議案では会話ログを返さない（web と統一）。
+  // これにより get_public_topic_analysis(interview_report_id) → detail のピボットも塞ぐ。
+  const session = report.interview_sessions as unknown as {
+    interview_configs: { bill_id: string } | null;
+  } | null;
+  const billId = session?.interview_configs?.bill_id ?? null;
+  if (!billId) return null;
+  const publicReportCount = await countPublicReportsByBillId(billId);
+  if (!shouldDisplayPublicReports(publicReportCount)) return null;
 
   const { data: messages, error: messagesError } = await supabase
     .from("interview_messages")
