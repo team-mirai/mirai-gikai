@@ -103,7 +103,39 @@ describe("MCP mirai-stance tools", () => {
     });
   });
 
+  describe("get_mirai_stance", () => {
+    it("スタンス未設定の議案は stance=null を返す", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+
+      const result = await registry.callTool<{
+        billId: string;
+        stance: { type: string; comment: string | null } | null;
+      }>("get_mirai_stance", { billId: bill.id });
+      expect(result.billId).toBe(bill.id);
+      expect(result.stance).toBeNull();
+    });
+
+    it("設定済みの議案は type / comment を返す", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "against",
+        comment: "反対の理由",
+      });
+
+      const result = await registry.callTool<{
+        stance: { type: string; comment: string | null } | null;
+      }>("get_mirai_stance", { billId: bill.id });
+      expect(result.stance).toEqual({ type: "against", comment: "反対の理由" });
+    });
+  });
+
   it("登録されているツール名が想定通り", () => {
-    expect(registry.toolNames().sort()).toEqual(["upsert_mirai_stance"]);
+    expect(registry.toolNames().sort()).toEqual([
+      "get_mirai_stance",
+      "upsert_mirai_stance",
+    ]);
   });
 });

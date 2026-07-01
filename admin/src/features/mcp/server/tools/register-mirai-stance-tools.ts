@@ -12,6 +12,25 @@ import { jsonResult } from "../utils/json-result";
 
 export function registerMiraiStanceTools(server: McpServer): void {
   server.registerTool(
+    "get_mirai_stance",
+    {
+      title: "チームみらいの賛否を取得",
+      description:
+        "指定議案に対するチームみらいの賛否スタンス(mirai_stances)を返す。未設定なら stance=null。差分反映（既に同じ賛否が設定済みなら再提案・再反映しない）の判定に使う。",
+      inputSchema: {
+        billId: z.string().uuid(),
+      },
+    },
+    async ({ billId }) => {
+      const stance = await findStanceByBillId(billId);
+      return jsonResult({
+        billId,
+        stance: stance ? { type: stance.type, comment: stance.comment } : null,
+      });
+    }
+  );
+
+  server.registerTool(
     "upsert_mirai_stance",
     {
       title: "チームみらいの賛否を設定",
