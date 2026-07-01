@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "db:types:gen": "npx supabase gen types typescript --local > packages/supabase/types/supabase.types.ts",
+    "db:types:gen": "npx --yes supabase gen types typescript --local > packages/supabase/types/supabase.types.ts",
     "db:migrate": "npx supabase migration up --include-all && pnpm run db:types:gen",
     "db:reset": "dotenv -e .env -- npx supabase db reset && pnpm db:types:gen && pnpm seed",
     "dev": "dotenv -e .env -- pnpm -r --stream --parallel run dev",
