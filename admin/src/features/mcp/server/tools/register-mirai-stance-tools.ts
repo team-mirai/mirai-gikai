@@ -25,8 +25,14 @@ export function registerMiraiStanceTools(server: McpServer): void {
     async ({ billId, type, comment }) => {
       // created は「新規か更新か」を呼び出し側（Slack bot）に伝えるための
       // best-effort な情報。実際の書き込みは upsertMiraiStance が
-      // onConflict(bill_id) で atomic に行うため、この事前 read は正しさに影響しない。
-      const existing = await findStanceByBillId(billId);
+      // onConflict(bill_id) で atomic に行う。事前 read が失敗しても created の
+      // 精度が落ちるだけで、書き込み自体はブロックしない。
+      let existing: Awaited<ReturnType<typeof findStanceByBillId>> = null;
+      try {
+        existing = await findStanceByBillId(billId);
+      } catch {
+        // best-effort: read 失敗時は created を判定できないため未知扱い
+      }
       await upsertMiraiStance(billId, { type, comment });
       await invalidateBillsCache();
       return jsonResult({ ok: true, created: existing === null, type });
