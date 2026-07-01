@@ -44,6 +44,10 @@
       "types": "./src/report-publication/auto-publish.ts",
       "default": "./src/report-publication/auto-publish.ts"
     },
+    "./report-publication/count-public-reports": {
+      "types": "./src/report-publication/count-public-reports.ts",
+      "default": "./src/report-publication/count-public-reports.ts"
+    },
     "./interview-prompts/types": {
       "types": "./src/interview-prompts/types.ts",
       "default": "./src/interview-prompts/types.ts"

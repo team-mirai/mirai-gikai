@@ -20,6 +20,8 @@ import {
   findInterviewConfigBillId,
   findInterviewConfigById,
   findInterviewQuestionsByConfigId,
+  softDeleteInterviewConfigRecord,
+  unpublishReportsByConfigId,
   updateInterviewConfigRecord,
 } from "../repositories/interview-config-repository";
 
@@ -215,10 +217,19 @@ export async function deleteInterviewConfig(
   try {
     await requireAdmin();
 
-    await deleteInterviewConfigRecord(configId);
+    // 先に配下レポートを公開停止してから設定を論理削除する。
+    // この順序なら、途中で失敗しても「設定は一覧に残る／レポートも公開のまま」
+    // の整合した状態になり、再実行で安全にやり直せる（いずれも冪等）。
+    await unpublishReportsByConfigId(configId);
+    await softDeleteInterviewConfigRecord(configId);
 
     // web側のキャッシュを無効化
-    await invalidateWebCache([WEB_CACHE_TAGS.INTERVIEW_CONFIGS]);
+    // - INTERVIEW_CONFIGS: 公開設定の取得
+    // - BILLS: 法案一覧の「AIインタビュー受付中」バッジ・法案ページの公開レポート件数
+    await invalidateWebCache([
+      WEB_CACHE_TAGS.BILLS,
+      WEB_CACHE_TAGS.INTERVIEW_CONFIGS,
+    ]);
 
     return { success: true, data: { id: configId } };
   } catch (error) {

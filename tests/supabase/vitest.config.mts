@@ -28,6 +28,10 @@ export default defineConfig({
         __dirname,
         "../../packages/topic-analysis-core/src/repositories/repository.ts"
       ),
+      "@mirai-gikai/topic-analysis-core/public-server": path.resolve(
+        __dirname,
+        "../../packages/topic-analysis-core/src/public/public-server.ts"
+      ),
       "server-only": path.resolve(__dirname, "server-only-stub.ts"),
     },
   },

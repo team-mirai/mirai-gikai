@@ -15,6 +15,7 @@ export async function findAllInterviewConfigs(): Promise<
   const { data, error } = await supabase
     .from("interview_configs")
     .select("*, bill:bills!inner(id, name)")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -32,6 +33,7 @@ export async function findInterviewConfigsByBillId(
     .from("interview_configs")
     .select("*")
     .eq("bill_id", billId)
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -190,6 +192,10 @@ export async function countSessionsByConfigIds(
   return result;
 }
 
+/**
+ * インタビュー設定を物理削除する
+ * 複製時のロールバックなど、作成直後のレコードを完全に取り消す用途で使用する
+ */
 export async function deleteInterviewConfigRecord(
   configId: string
 ): Promise<void> {
@@ -201,6 +207,49 @@ export async function deleteInterviewConfigRecord(
 
   if (error) {
     throw new Error(`Failed to delete interview config: ${error.message}`);
+  }
+}
+
+/**
+ * インタビュー設定を論理削除する（deleted_atを設定）
+ * 紐づく質問・セッション・レポートは保持され、一覧・公開取得から除外される。
+ * 同時に status を closed にし、status="public" を見る公開判定
+ * （法案一覧の「AIインタビュー受付中」バッジ等）からも除外されるようにする。
+ */
+export async function softDeleteInterviewConfigRecord(
+  configId: string
+): Promise<void> {
+  const supabase = createAdminClient();
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("interview_configs")
+    .update({ deleted_at: now, status: "closed", updated_at: now })
+    .eq("id", configId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw new Error(`Failed to delete interview config: ${error.message}`);
+  }
+}
+
+/**
+ * 論理削除した設定に紐づくレポートを公開停止する（is_public_by_admin=false）。
+ * 公開レポートの全取得経路（個別ページ・公開一覧・各 RPC）が
+ * is_public_by_admin=true でゲートしているため、これにより一括で公開対象から除外される。
+ *
+ * セッション数が PostgREST の行数上限（既定1000件）を超える設定でも漏れなく
+ * 更新できるよう、DB側の UPDATE で一括処理する RPC を利用する。
+ */
+export async function unpublishReportsByConfigId(
+  configId: string
+): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase.rpc("unpublish_reports_by_config_id", {
+    p_config_id: configId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to unpublish reports: ${error.message}`);
   }
 }
 

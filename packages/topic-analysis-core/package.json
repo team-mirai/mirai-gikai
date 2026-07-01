@@ -25,6 +25,18 @@
       "types": "./src/repositories/repository.ts",
       "default": "./src/repositories/repository.ts"
     },
+    "./public": {
+      "types": "./src/public/public.ts",
+      "default": "./src/public/public.ts"
+    },
+    "./public-server": {
+      "types": "./src/public/public-server.ts",
+      "default": "./src/public/public-server.ts"
+    },
+    "./internal-server": {
+      "types": "./src/internal/internal-server.ts",
+      "default": "./src/internal/internal-server.ts"
+    },
     "./constants": {
       "types": "./src/shared/constants.ts",
       "default": "./src/shared/constants.ts"
@@ -37,7 +49,8 @@
   "dependencies": {
     "@mirai-gikai/shared": "workspace:*",
     "@mirai-gikai/supabase": "workspace:*",
-    "ai": "^6.0.3"
+    "ai": "^6.0.3",
+    "server-only": "^0.0.1"
   },
   "peerDependencies": {
     "zod": "^4.4.0"

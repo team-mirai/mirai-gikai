@@ -28,6 +28,9 @@ export async function getReportOgData(
   } catch {
     return null;
   }
+  if (!report) {
+    return null;
+  }
 
   const session = report.interview_sessions as {
     started_at: string;

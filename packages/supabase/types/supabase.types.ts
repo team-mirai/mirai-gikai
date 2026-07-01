@@ -342,6 +342,7 @@ export type Database = {
           bill_id: string
           chat_model: string | null
           created_at: string
+          deleted_at: string | null
           estimated_duration: number | null
           id: string
           mode: Database["public"]["Enums"]["interview_mode_enum"]
@@ -354,6 +355,7 @@ export type Database = {
           bill_id: string
           chat_model?: string | null
           created_at?: string
+          deleted_at?: string | null
           estimated_duration?: number | null
           id?: string
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
@@ -366,6 +368,7 @@ export type Database = {
           bill_id?: string
           chat_model?: string | null
           created_at?: string
+          deleted_at?: string | null
           estimated_duration?: number | null
           id?: string
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
@@ -1258,6 +1261,10 @@ export type Database = {
         Args: { from_iso: string; to_iso: string }
         Returns: number
       }
+      unpublish_reports_by_config_id: {
+        Args: { p_config_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       bill_publish_status: "draft" | "published" | "coming_soon"
@@ -1294,6 +1301,7 @@ export type Database = {
         | "conditional_against"
         | "considering"
         | "continued_deliberation"
+        | "free_vote"
       topic_analysis_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
@@ -1462,9 +1470,9 @@ export const Constants = {
         "conditional_against",
         "considering",
         "continued_deliberation",
+        "free_vote",
       ],
       topic_analysis_status: ["pending", "running", "completed", "failed"],
     },
   },
 } as const
-

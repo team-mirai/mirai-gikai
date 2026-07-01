@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { RawRespondentRow } from "../types";
+import type { RawRespondentRow } from "./public-types";
 import { buildPublicBillRespondents } from "./build-public-bill-respondents";
 
 function row(overrides: Partial<RawRespondentRow> = {}): RawRespondentRow {

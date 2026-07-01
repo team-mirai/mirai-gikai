@@ -1,4 +1,7 @@
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  buildPublicTopicAnalysis,
+  findPublishedAnalysis,
+} from "@mirai-gikai/topic-analysis-core/public-server";
 import {
   createVersion,
   finalizeVersion,
@@ -6,8 +9,7 @@ import {
   saveTopicsAndAssignments,
   setVersionPublished,
 } from "@mirai-gikai/topic-analysis-core/repository";
-import { findPublishedAnalysis } from "../../web/src/features/user-topic-analysis/server/repositories/topic-analysis-read-repository";
-import { buildPublicTopicAnalysis } from "../../web/src/features/user-topic-analysis/shared/utils/build-public-topic-analysis";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   adminClient,
   cleanupTestBill,

@@ -26,10 +26,13 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       # マイグレーション適用（idempotent）
+      # --yes: CI(非TTY)で確認プロンプト待ちハングを防ぐ（prod に未適用マイグレーションが
+      # あると supabase db push が [Y/n] を出して stdin 待ちで停止するため。実際に本番デプロイが
+      # db push で数時間ハングした）
       - name: Supabase db push
         run: |
-          supabase db push --include-all
-          supabase config push
+          supabase db push --include-all --yes
+          supabase config push --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}

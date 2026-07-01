@@ -41,7 +41,14 @@ export async function getInterviewConfigById(
   configId: string
 ): Promise<InterviewConfig | null> {
   try {
-    return await findInterviewConfigById(configId);
+    const config = await findInterviewConfigById(configId);
+    // 論理削除済みの設定は編集ページから除外する（notFound 扱い）。
+    // findInterviewConfigById 自体はシミュレーション詳細などの
+    // 個別アクセス経路と共有するためフィルタせず、ここで弾く。
+    if (config?.deleted_at) {
+      return null;
+    }
+    return config;
   } catch (error) {
     console.error("Failed to fetch interview config:", error);
     return null;

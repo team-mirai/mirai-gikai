@@ -96,6 +96,15 @@ describe("getStanceStyles", () => {
     });
   });
 
+  it("free_vote スタンスでデフォルトスタイルを返す", () => {
+    const result = getStanceStyles(makeStance("free_vote"), false);
+    expect(result).toEqual({
+      bg: "bg-mirai-surface-muted",
+      textColor: "text-black",
+      label: "自由投票",
+    });
+  });
+
   it("stance=undefined, isPreparing=false のとき中立ラベルを返す", () => {
     const result = getStanceStyles(undefined, false);
     expect(result).toEqual({

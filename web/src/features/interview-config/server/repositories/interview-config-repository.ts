@@ -12,6 +12,7 @@ export async function findPublicInterviewConfigByBillId(billId: string) {
     .select("*")
     .eq("bill_id", billId)
     .eq("status", "public")
+    .is("deleted_at", null)
     .single();
 
   return { data, error };
@@ -26,6 +27,7 @@ export async function findLatestInterviewConfigByBillId(billId: string) {
     .from("interview_configs")
     .select("*")
     .eq("bill_id", billId)
+    .is("deleted_at", null)
     .order("updated_at", { ascending: false })
     .limit(1)
     .single();

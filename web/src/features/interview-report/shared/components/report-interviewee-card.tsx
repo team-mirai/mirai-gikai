@@ -1,5 +1,5 @@
+import { mapRoleToCategory } from "@mirai-gikai/topic-analysis-core/public";
 import { CalendarDays, NotebookText, UserRound } from "lucide-react";
-import { mapRoleToCategory } from "@/features/user-topic-analysis/shared/utils/build-public-topic-analysis";
 import {
   userCategoryColorClass,
   userCategoryLabels,

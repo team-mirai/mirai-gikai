@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { MIN_PUBLIC_REPORTS_FOR_DISPLAY } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { afterEach, describe, expect, it } from "vitest";
 import {
@@ -107,6 +108,15 @@ describe("公開レポート loader 統合テスト", () => {
     await createPublicReports(context, MIN_PUBLIC_REPORTS_FOR_DISPLAY - 2);
 
     await expect(getPublicReportById(target.report.id)).resolves.toBeNull();
+  });
+
+  it("公開条件を満たさないレポートIDでは loader が null を返す（404扱い）", async () => {
+    // 公開設定が削除された場合など、公開条件を満たすレポートが存在しないケース。
+    // repository が PGRST116 で null を返し、各 loader はそれを null として扱う。
+    const missingReportId = randomUUID();
+
+    await expect(getPublicReportById(missingReportId)).resolves.toBeNull();
+    await expect(getReportOgData(missingReportId)).resolves.toBeNull();
   });
 
   it("公開直リンク loader は表示可能なレポートとユーザー文字数を返す", async () => {

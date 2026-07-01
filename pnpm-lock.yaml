@@ -239,7 +239,10 @@ importers:
         version: link:../supabase
       ai:
         specifier: ^6.0.3
-        version: 6.0.3(zod@4.4.3)
+        version: 6.0.3(zod@4.1.12)
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
     devDependencies:
       typescript:
         specifier: ^5.6.2
@@ -265,6 +268,9 @@ importers:
       '@mirai-gikai/supabase':
         specifier: workspace:*
         version: link:../packages/supabase
+      '@mirai-gikai/topic-analysis-core':
+        specifier: workspace:*
+        version: link:../packages/topic-analysis-core
       '@opentelemetry/sdk-node':
         specifier: ^0.219.0
         version: 0.219.0(@opentelemetry/api@1.9.1)

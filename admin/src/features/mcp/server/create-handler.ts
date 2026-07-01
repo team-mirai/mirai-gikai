@@ -6,8 +6,10 @@ import {
 } from "mcp-handler";
 import { registerBillsTools } from "./tools/register-bills-tools";
 import { registerDietSessionsTools } from "./tools/register-diet-sessions-tools";
+import { registerMiraiStanceTools } from "./tools/register-mirai-stance-tools";
 import { registerPreviewTools } from "./tools/register-preview-tools";
 import { registerTagsTools } from "./tools/register-tags-tools";
+import { registerTopicAnalysisTools } from "./tools/register-topic-analysis-tools";
 import { verifyMcpToken } from "./verify-token";
 
 export function createAdminMcpHandler() {
@@ -15,8 +17,10 @@ export function createAdminMcpHandler() {
     (server) => {
       registerBillsTools(server);
       registerDietSessionsTools(server);
+      registerMiraiStanceTools(server);
       registerPreviewTools(server);
       registerTagsTools(server);
+      registerTopicAnalysisTools(server);
     },
     {
       serverInfo: {

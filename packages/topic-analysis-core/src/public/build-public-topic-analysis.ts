@@ -1,3 +1,4 @@
+import { normalizeRoleTitle } from "./normalize-role-title";
 import type {
   PublicOpinion,
   PublicTopic,
@@ -6,8 +7,7 @@ import type {
   RawOpinionRow,
   RawTopicRow,
   UserCategory,
-} from "../types";
-import { normalizeRoleTitle } from "./topic-category";
+} from "./public-types";
 
 /** interview_report.role → §9 の4区分。未知/null は一般市民に倒す。 */
 export function mapRoleToCategory(role: string | null): UserCategory {
@@ -27,8 +27,9 @@ export function mapRoleToCategory(role: string | null): UserCategory {
 /**
  * §8 表示時フィルタの最終ゲート: 管理者公開 × ユーザー公開 × モデレーションOK のみ通す。
  * 分析後に管理者が非公開化・ユーザーが同意撤回した意見は即座に除外される。
+ * web 公開ページのデフォルト述語。内部用途では別の述語を渡して上書きできる。
  */
-function isDisplayable(o: RawOpinionRow): boolean {
+export function isDisplayable(o: RawOpinionRow): boolean {
   return (
     o.is_public_by_admin === true &&
     o.is_public_by_user === true &&
@@ -51,18 +52,21 @@ function toBillSentiment(value: string | null): "期待" | "懸念" | null {
  */
 export function buildPublicTopicAnalysis(
   meta: PublishedVersionMeta,
-  rawTopics: RawTopicRow[]
+  rawTopics: RawTopicRow[],
+  // 含める意見の述語。デフォルトは web 公開ページの §8 フィルタ。
+  // 内部用途（admin MCP）では任意の述語を渡して取得条件を変えられる。
+  includeOpinion: (o: RawOpinionRow) => boolean = isDisplayable
 ): PublicTopicAnalysis {
   const topics: PublicTopic[] = [];
   let totalOpinions = 0;
 
   for (const rawTopic of rawTopics) {
-    // §8 フィルタ後、richness（情報充実度）降順で並べる。
+    // フィルタ後、richness（情報充実度）降順で並べる。
     // 充実した引用が先頭になり、カード・詳細ともに優先表示される。
     // null（旧データ・未生成）は最後尾。同点は元順序（report_id, opinion_index）を保つ
     // ＝ V8 の安定ソートに依存。集計（件数・内訳・sentiment）は順序の影響を受けない。
     const displayable = rawTopic.opinions
-      .filter(isDisplayable)
+      .filter(includeOpinion)
       .slice()
       .sort((a, b) => (b.richness ?? -1) - (a.richness ?? -1));
     if (displayable.length === 0) {

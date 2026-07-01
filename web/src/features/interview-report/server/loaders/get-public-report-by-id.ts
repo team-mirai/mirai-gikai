@@ -38,17 +38,11 @@ export type PublicReportData = InterviewReport & {
  */
 export const getPublicReportById = cache(
   async (reportId: string): Promise<PublicReportData | null> => {
-    let report: Awaited<ReturnType<typeof findPublicReportWithSessionById>>;
-    try {
-      report = await findPublicReportWithSessionById(reportId);
-    } catch (error) {
-      // レポートが見つからない場合（PGRST116: single row not found）はnullを返す
-      const message = error instanceof Error ? error.message : String(error);
-      if (message.includes("PGRST116") || message.includes("not found")) {
-        return null;
-      }
-      // それ以外のエラー（インフラ障害等）は再throwする
-      throw error;
+    // 公開条件を満たさない場合（非公開・削除済み設定配下など）は null が返る。
+    // インフラ障害等の場合は repository が throw し、ここでは捕捉せず伝播させる。
+    const report = await findPublicReportWithSessionById(reportId);
+    if (!report) {
+      return null;
     }
 
     const session = report.interview_sessions as {

@@ -15,6 +15,7 @@ export const stanceInputSchema = z.object({
       "conditional_against",
       "considering",
       "continued_deliberation",
+      "free_vote",
     ] as const)
     .refine((val) => val !== undefined, {
       message: "スタンスを選択してください",
@@ -33,4 +34,5 @@ export const STANCE_TYPE_LABELS: Record<StanceTypeEnum, string> = {
   conditional_against: "条件付き反対",
   considering: "検討中",
   continued_deliberation: "継続審査中",
+  free_vote: "自由投票",
 };
