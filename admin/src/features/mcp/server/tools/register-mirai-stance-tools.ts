@@ -3,9 +3,8 @@ import "server-only";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
-  createMiraiStance,
   findStanceByBillId,
-  updateMiraiStance,
+  upsertMiraiStance,
 } from "@/features/mirai-stance/server/repositories/mirai-stance-repository";
 import { stanceInputSchema } from "@/features/mirai-stance/shared/types";
 import { invalidateBillsCache } from "../utils/invalidate-bills-cache";
@@ -24,13 +23,11 @@ export function registerMiraiStanceTools(server: McpServer): void {
       },
     },
     async ({ billId, type, comment }) => {
+      // created は「新規か更新か」を呼び出し側（Slack bot）に伝えるための
+      // best-effort な情報。実際の書き込みは upsertMiraiStance が
+      // onConflict(bill_id) で atomic に行うため、この事前 read は正しさに影響しない。
       const existing = await findStanceByBillId(billId);
-      const input = { type, comment };
-      if (existing) {
-        await updateMiraiStance(existing.id, input);
-      } else {
-        await createMiraiStance(billId, input);
-      }
+      await upsertMiraiStance(billId, { type, comment });
       await invalidateBillsCache();
       return jsonResult({ ok: true, created: existing === null, type });
     }

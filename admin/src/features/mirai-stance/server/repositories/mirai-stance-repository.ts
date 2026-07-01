@@ -50,6 +50,28 @@ export async function updateMiraiStance(stanceId: string, input: StanceInput) {
   }
 }
 
+/**
+ * bill_id をキーにスタンスを atomic に upsert する。
+ * mirai_stances.bill_id は UNIQUE 制約があるため、onConflict で
+ * 「あれば更新／なければ作成」を単一クエリで行い、check-then-act の競合を避ける。
+ */
+export async function upsertMiraiStance(billId: string, input: StanceInput) {
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("mirai_stances").upsert(
+    {
+      bill_id: billId,
+      type: input.type,
+      comment: input.comment || null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "bill_id" }
+  );
+
+  if (error) {
+    throw new Error(`Failed to upsert stance: ${error.message}`);
+  }
+}
+
 export async function deleteMiraiStance(stanceId: string) {
   const supabase = createAdminClient();
   const { error } = await supabase
