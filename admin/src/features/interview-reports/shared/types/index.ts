@@ -20,6 +20,23 @@ export type ReactionCounts = {
   helpful: number;
 };
 
+export interface MatchedUserMessage {
+  id: string;
+  interview_session_id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface SessionMatchGroup {
+  sessionId: string;
+  messages: MatchedUserMessage[];
+}
+
+export type MessageSearchSession = InterviewSession & {
+  interview_report: InterviewReport | null;
+  matched_messages: MatchedUserMessage[];
+};
+
 export type InterviewSessionDetail = InterviewSession & {
   interview_report: InterviewReport | null;
   interview_messages: InterviewMessage[];

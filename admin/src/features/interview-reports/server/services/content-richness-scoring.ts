@@ -1,9 +1,9 @@
 import "server-only";
 
+import { buildContentRichnessPrompt } from "@mirai-gikai/shared/content-richness/build-prompt";
+import { contentRichnessResultSchema } from "@mirai-gikai/shared/content-richness/schemas";
 import { generateObject } from "ai";
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
-import { contentRichnessResultSchema } from "@mirai-gikai/shared/content-richness/schemas";
-import { buildContentRichnessPrompt } from "@mirai-gikai/shared/content-richness/build-prompt";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
 import {
   findInterviewMessagesBySessionId,

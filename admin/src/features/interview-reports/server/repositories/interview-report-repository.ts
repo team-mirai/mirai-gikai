@@ -1,9 +1,10 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { createAdminClient } from "@mirai-gikai/supabase";
 import type { SessionFilterConfig } from "../../shared/types";
 import { DEFAULT_SESSION_FILTER } from "../../shared/types";
+import { escapeIlikePattern } from "../../shared/utils/escape-ilike-pattern";
 
 function toRpcFilterParams(filters: SessionFilterConfig) {
   return {
@@ -438,6 +439,35 @@ export async function findInterviewMessagesBySessionId(sessionId: string) {
   }
 
   return data;
+}
+
+export async function searchUserMessagesByConfigId(
+  configId: string,
+  query: string,
+  limit: number
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_messages")
+    .select(
+      "id, interview_session_id, content, created_at, interview_sessions!inner(interview_config_id)"
+    )
+    .eq("role", "user")
+    .eq("interview_sessions.interview_config_id", configId)
+    .ilike("content", `%${escapeIlikePattern(query)}%`)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(`Failed to search user messages: ${error.message}`);
+  }
+
+  return (data || []).map((row) => ({
+    id: row.id,
+    interview_session_id: row.interview_session_id,
+    content: row.content,
+    created_at: row.created_at,
+  }));
 }
 
 export async function findReactionCountsByReportId(

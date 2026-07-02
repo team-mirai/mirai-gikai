@@ -1,15 +1,15 @@
 import {
   DEFAULT_SESSION_FILTER,
   MODERATION_FILTER_VALUES,
-  ROLE_FILTER_VALUES,
-  SESSION_STATUS_FILTER_VALUES,
-  STANCE_FILTER_VALUES,
-  VISIBILITY_FILTER_VALUES,
   type ModerationFilter,
+  ROLE_FILTER_VALUES,
   type RoleFilter,
+  SESSION_STATUS_FILTER_VALUES,
   type SessionFilterConfig,
   type SessionStatusFilter,
+  STANCE_FILTER_VALUES,
   type StanceFilter,
+  VISIBILITY_FILTER_VALUES,
   type VisibilityFilter,
 } from "../types";
 

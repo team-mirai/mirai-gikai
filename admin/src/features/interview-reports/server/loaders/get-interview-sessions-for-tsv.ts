@@ -7,6 +7,7 @@ import type {
   InterviewSession,
 } from "../../shared/types";
 import type { InterviewSessionForTsv } from "../../shared/utils/build-interview-tsv";
+import { normalizeInterviewReport } from "../../shared/utils/normalize-interview-report";
 
 const PAGE_SIZE = 1000;
 
@@ -86,16 +87,9 @@ export async function getInterviewSessionsForTsv(
     }
   }
 
-  return sessions.map((session) => {
-    // 1:1 リレーションでも Supabase の生成型では配列で返るケースがあるため正規化
-    const reportRelation = session.interview_report;
-    const report = Array.isArray(reportRelation)
-      ? (reportRelation[0] ?? null)
-      : reportRelation;
-    return {
-      ...session,
-      interview_report: report,
-      interview_messages: messagesBySessionId.get(session.id) ?? [],
-    };
-  });
+  return sessions.map((session) => ({
+    ...session,
+    interview_report: normalizeInterviewReport(session.interview_report),
+    interview_messages: messagesBySessionId.get(session.id) ?? [],
+  }));
 }

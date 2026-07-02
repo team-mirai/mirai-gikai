@@ -11,6 +11,7 @@ import type { InterviewSessionDetail } from "../../shared/types";
 import { formatDuration, getSessionStatus } from "../../shared/types";
 import { getMessageDisplayText } from "../../shared/utils/get-message-display-text";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
+import { HighlightedText } from "./highlighted-text";
 import { ModerationBadge } from "./moderation-badge";
 import { RatingStars } from "./rating-stars";
 import { SessionStatusBadge } from "./session-status-badge";
@@ -19,6 +20,7 @@ import { StanceBadge } from "./stance-badge";
 interface SessionDetailProps {
   session: InterviewSessionDetail;
   billId: string;
+  highlightQuery?: string;
 }
 
 const contentRichnessLabels: Record<string, string> = {
@@ -50,7 +52,11 @@ function ContentRichnessBar({
   );
 }
 
-export function SessionDetail({ session, billId }: SessionDetailProps) {
+export function SessionDetail({
+  session,
+  billId,
+  highlightQuery = "",
+}: SessionDetailProps) {
   const status = getSessionStatus(session);
   const duration = formatDuration(session.started_at, session.completed_at);
   const report = session.interview_report;
@@ -384,7 +390,14 @@ export function SessionDetail({ session, billId }: SessionDetailProps) {
                             : "bg-gray-100 text-gray-800 rounded-tr-sm"
                         }`}
                       >
-                        {getMessageDisplayText(message.content)}
+                        {highlightQuery ? (
+                          <HighlightedText
+                            text={getMessageDisplayText(message.content)}
+                            query={highlightQuery}
+                          />
+                        ) : (
+                          getMessageDisplayText(message.content)
+                        )}
                       </div>
                       <div className="text-xs text-gray-400 mt-1 px-1">
                         {new Date(message.created_at).toLocaleString("ja-JP", {

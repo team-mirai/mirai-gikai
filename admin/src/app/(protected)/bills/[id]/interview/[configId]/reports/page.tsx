@@ -1,8 +1,9 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { BatchModerationButton } from "@/features/interview-reports/client/components/batch-moderation-button";
 import { BatchPublishButton } from "@/features/interview-reports/client/components/batch-publish-button";
@@ -83,6 +84,12 @@ export default async function ReportsPage({
           <p className="text-gray-600 mt-1">議案「{bill.name}」のレポート</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href={routes.billReportsSearch(id, configId) as Route}>
+              <Search className="h-4 w-4" />
+              発言検索
+            </Link>
+          </Button>
           <CopyTsvButton billId={id} configId={configId} />
           <BatchPublishButton billId={id} configId={configId} />
           <BatchModerationButton />
