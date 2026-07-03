@@ -35,7 +35,10 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     inputPerMillion: 2,
     outputPerMillion: 12,
   },
-  "google/gemma-4-26b-a4b-it": { inputPerMillion: 0.06, outputPerMillion: 0.33 },
+  "google/gemma-4-26b-a4b-it": {
+    inputPerMillion: 0.06,
+    outputPerMillion: 0.33,
+  },
   // --- Anthropic ---
   "anthropic/claude-haiku-4.5": { inputPerMillion: 1, outputPerMillion: 5 },
   "anthropic/claude-sonnet-4.6": { inputPerMillion: 3, outputPerMillion: 15 },
