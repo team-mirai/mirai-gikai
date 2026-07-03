@@ -5,11 +5,6 @@ interface UseTooltipPositionProps {
   isVisible: boolean;
 }
 
-interface Position {
-  top: number;
-  left: number;
-}
-
 // 定数を定義
 const TOOLTIP_DIMENSIONS = {
   height: 40,
