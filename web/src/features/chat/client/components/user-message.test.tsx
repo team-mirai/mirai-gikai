@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import type { UIMessage } from "@ai-sdk/react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { UserMessage } from "./user-message"; // ← 実際のパスに合わせて調整してください
+import { UserMessage } from "./user-message";
 
 describe("UserMessage", () => {
   it("複数のテキストパーツが含まれている場合、すべて正しくレンダリングされること", () => {
@@ -43,8 +43,8 @@ describe("UserMessage", () => {
     // テキストパーツは表示される
     expect(screen.getByText("表示されるテキスト")).toBeInTheDocument();
 
-    // ツール呼び出しなどの要素が描画を阻害していないことを確認
+    // テキストパーツのみが子要素としてレンダリングされていることを確認
     const textElement = screen.getByText("表示されるテキスト");
-    expect(textElement.parentElement).not.toHaveTextContent("tool-call");
+    expect(textElement.parentElement?.children).toHaveLength(1);
   });
 });
