@@ -14,12 +14,18 @@ interface ReportDetailPageProps {
     configId: string;
     sessionId: string;
   }>;
+  searchParams: Promise<{
+    highlight?: string;
+  }>;
 }
 
 export default async function ReportDetailPage({
   params,
+  searchParams,
 }: ReportDetailPageProps) {
   const { id, configId, sessionId } = await params;
+  const { highlight } = await searchParams;
+  const highlightQuery = (highlight ?? "").trim();
   const [bill, session] = await Promise.all([
     getBillById(id),
     getInterviewSessionDetail(sessionId),
@@ -52,7 +58,11 @@ export default async function ReportDetailPage({
         </p>
       </div>
 
-      <SessionDetail session={session} billId={id} />
+      <SessionDetail
+        session={session}
+        billId={id}
+        highlightQuery={highlightQuery}
+      />
     </div>
   );
 }

@@ -1,17 +1,6 @@
 import { CheckCircle2, Clock, Lightbulb, XCircle } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationFirst,
-  PaginationItem,
-  PaginationLast,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
   Table,
@@ -35,9 +24,10 @@ import {
   formatDuration,
   getSessionStatus,
 } from "../../shared/types";
-import { generatePageNumbers } from "../../shared/utils/pagination-utils";
+import { formatJstDateTime } from "../../shared/utils/format-jst-date-time";
 import { SESSIONS_PER_PAGE } from "../loaders/get-interview-sessions";
 import { ModerationBadge } from "./moderation-badge";
+import { PaginationNav } from "./pagination-nav";
 import { RatingStars } from "./rating-stars";
 import { SessionStatusBadge } from "./session-status-badge";
 import { StanceBadge } from "./stance-badge";
@@ -267,14 +257,7 @@ export function SessionList({
                     <TableCell className="text-gray-600">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {new Date(session.started_at).toLocaleString("ja-JP", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          timeZone: "Asia/Tokyo",
-                        })}
+                        {formatJstDateTime(session.started_at)}
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-600">{duration}</TableCell>
@@ -305,84 +288,14 @@ export function SessionList({
       )}
 
       {/* ページネーション */}
-      {totalPages > 1 && (
-        <Pagination className="mt-4">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationFirst
-                href={buildPageUrl(billId, configId, 1, sort, filters)}
-                aria-disabled={currentPage <= 1}
-                className={
-                  currentPage <= 1 ? "pointer-events-none opacity-50" : ""
-                }
-              />
-            </PaginationItem>
-
-            <PaginationItem>
-              <PaginationPrevious
-                href={buildPageUrl(
-                  billId,
-                  configId,
-                  currentPage > 1 ? currentPage - 1 : 1,
-                  sort,
-                  filters
-                )}
-                aria-disabled={currentPage <= 1}
-                className={
-                  currentPage <= 1 ? "pointer-events-none opacity-50" : ""
-                }
-              />
-            </PaginationItem>
-
-            {generatePageNumbers(totalPages, currentPage).map((page) =>
-              typeof page === "string" ? (
-                <PaginationItem key={page}>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    href={buildPageUrl(billId, configId, page, sort, filters)}
-                    isActive={page === currentPage}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            )}
-
-            <PaginationItem>
-              <PaginationNext
-                href={buildPageUrl(
-                  billId,
-                  configId,
-                  currentPage < totalPages ? currentPage + 1 : totalPages,
-                  sort,
-                  filters
-                )}
-                aria-disabled={currentPage >= totalPages}
-                className={
-                  currentPage >= totalPages
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
-              />
-            </PaginationItem>
-
-            <PaginationItem>
-              <PaginationLast
-                href={buildPageUrl(billId, configId, totalPages, sort, filters)}
-                aria-disabled={currentPage >= totalPages}
-                className={
-                  currentPage >= totalPages
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <PaginationNav
+        className="mt-4"
+        totalPages={totalPages}
+        currentPage={currentPage}
+        buildHref={(page) =>
+          buildPageUrl(billId, configId, page, sort, filters)
+        }
+      />
     </div>
   );
 }

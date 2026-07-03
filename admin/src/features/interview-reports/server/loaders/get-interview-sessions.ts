@@ -9,6 +9,7 @@ import {
   DEFAULT_SESSION_FILTER,
   DEFAULT_SESSION_SORT,
 } from "../../shared/types";
+import { normalizeInterviewReport } from "../../shared/utils/normalize-interview-report";
 import { calculatePaginationRange } from "../../shared/utils/pagination-utils";
 import {
   countInterviewSessionsByConfigId,
@@ -86,14 +87,9 @@ export async function getInterviewSessions(
   // 全セッションのメッセージ数・リアクション数を一括取得
   const sessionIds = sessions.map((s) => s.id);
 
-  // interview_reportは配列で返ってくるので最初の要素を取得するヘルパー
-  const normalizeReport = (
-    report: (typeof sessions)[number]["interview_report"]
-  ) => (Array.isArray(report) ? report[0] || null : report);
-
   // レポートIDを収集
   const reportIds = sessions
-    .map((s) => normalizeReport(s.interview_report)?.id)
+    .map((s) => normalizeInterviewReport(s.interview_report)?.id)
     .filter((id): id is string => id != null);
 
   let messageCounts:
@@ -143,7 +139,7 @@ export async function getInterviewSessions(
   // セッションにメッセージ数・リアクション数を付与
   const sessionsWithDetails: InterviewSessionWithDetails[] = sessions.map(
     (session) => {
-      const report = normalizeReport(session.interview_report);
+      const report = normalizeInterviewReport(session.interview_report);
       const helpfulCount = report ? (helpfulCountsMap.get(report.id) ?? 0) : 0;
 
       return {

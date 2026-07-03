@@ -1,9 +1,9 @@
 import "server-only";
 
+import { buildModerationPrompt } from "@mirai-gikai/shared/moderation/build-prompt";
+import { moderationResultSchema } from "@mirai-gikai/shared/moderation/schemas";
 import { generateObject } from "ai";
 import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
-import { moderationResultSchema } from "@mirai-gikai/shared/moderation/schemas";
-import { buildModerationPrompt } from "@mirai-gikai/shared/moderation/build-prompt";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
 import {
   findInterviewMessagesBySessionId,

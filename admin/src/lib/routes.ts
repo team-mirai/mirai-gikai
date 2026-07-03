@@ -36,6 +36,8 @@ export const routes = {
   // レポート（インタビュー設定配下）
   billReports: (billId: string, configId: string) =>
     `/bills/${billId}/interview/${configId}/reports` as const,
+  billReportsSearch: (billId: string, configId: string) =>
+    `/bills/${billId}/interview/${configId}/reports/search` as const,
   billReportDetail: (billId: string, configId: string, sessionId: string) =>
     `/bills/${billId}/interview/${configId}/reports/${sessionId}` as const,
 
