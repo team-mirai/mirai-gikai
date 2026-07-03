@@ -83,6 +83,10 @@ export const modelPricing: Record<string, ModelPricing> = {
     inputTokensPerMillionUsd: 2,
     outputTokensPerMillionUsd: 12,
   },
+  [AI_MODELS.gemma4_26b_a4b]: {
+    inputTokensPerMillionUsd: 0.06,
+    outputTokensPerMillionUsd: 0.33,
+  },
   // --- Anthropic ---
   [AI_MODELS.claude_haiku_4_5]: {
     inputTokensPerMillionUsd: 1,

@@ -37,6 +37,7 @@ const GOOGLE_MODELS = [
     value: "google/gemini-3.1-pro-preview",
     label: "Gemini 3.1 Pro Preview",
   },
+  { value: "google/gemma-4-26b-a4b-it", label: "Gemma 4 26B A4B (MoE)" },
 ] as const;
 
 const ANTHROPIC_MODELS = [
