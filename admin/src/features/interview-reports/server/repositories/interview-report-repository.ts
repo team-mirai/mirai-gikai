@@ -507,6 +507,35 @@ export async function findFeedbackTagsBySessionId(
   return (data || []).map((row) => row.tag);
 }
 
+export type InterviewMetricsByBillRow = {
+  bill_id: string;
+  bill_name: string;
+  conducted_count: number;
+  completed_count: number;
+  completion_rate: number;
+};
+
+/**
+ * 議案ごとのAIインタビュー実施数・完了数・完了率を取得する。
+ * billId を指定すると単一議案に絞り込み、省略すると設定を持つ全議案を返す。
+ */
+export async function findInterviewMetricsByBill(
+  billId?: string
+): Promise<InterviewMetricsByBillRow[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("get_interview_metrics_by_bill", {
+    p_bill_id: billId,
+  });
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch interview metrics by bill: ${error.message}`
+    );
+  }
+
+  return data ?? [];
+}
+
 export async function findInterviewStatistics(configId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("get_interview_statistics", {

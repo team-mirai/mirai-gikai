@@ -1217,6 +1217,16 @@ export type Database = {
           message_count: number
         }[]
       }
+      get_interview_metrics_by_bill: {
+        Args: { p_bill_id?: string }
+        Returns: {
+          bill_id: string
+          bill_name: string
+          completed_count: number
+          completion_rate: number
+          conducted_count: number
+        }[]
+      }
       get_interview_statistics: {
         Args: { p_config_id: string }
         Returns: {
