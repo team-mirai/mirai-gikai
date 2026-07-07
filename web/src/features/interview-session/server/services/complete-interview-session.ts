@@ -17,6 +17,7 @@ import { evaluateModerationScore } from "./evaluate-moderation-score";
 type CompleteInterviewSessionParams = {
   sessionId: string;
   isPublicByUser?: boolean;
+  isDataReuseConsented?: boolean;
 };
 
 /**
@@ -25,6 +26,7 @@ type CompleteInterviewSessionParams = {
 export async function completeInterviewSession({
   sessionId,
   isPublicByUser,
+  isDataReuseConsented,
 }: CompleteInterviewSessionParams): Promise<InterviewReport> {
   // メッセージ履歴を取得（新しい順）
   const messages = await findInterviewMessagesBySessionIdDesc(sessionId);
@@ -87,6 +89,7 @@ export async function completeInterviewSession({
       moderationScore,
       moderationReasoning,
       isPublicByUser,
+      isDataReuseConsented,
     })
   );
 

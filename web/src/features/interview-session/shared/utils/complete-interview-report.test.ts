@@ -133,10 +133,32 @@ describe("buildCompletedInterviewReportInsert", () => {
 
     expect(insert).not.toHaveProperty("is_public_by_user");
     expect(insert).not.toHaveProperty("is_public_by_admin");
+    expect(insert).not.toHaveProperty("is_data_reuse_consented");
     expect(insert.opinions).toEqual([
       expect.objectContaining({
         source_message_content: null,
       }),
     ]);
+  });
+
+  it.each([
+    true,
+    false,
+  ])("二次利用許諾の指定(%s)を保存用payloadへ反映する", (isDataReuseConsented) => {
+    const insert = buildCompletedInterviewReportInsert({
+      sessionId: "session-1",
+      messages: [],
+      reportData,
+      moderationScore: 29,
+      moderationReasoning: "問題なし",
+      isPublicByUser: true,
+      isDataReuseConsented,
+    });
+
+    expect(insert).toEqual(
+      expect.objectContaining({
+        is_data_reuse_consented: isDataReuseConsented,
+      })
+    );
   });
 });

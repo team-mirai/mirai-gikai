@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  isInvalidUserPublicSettingInput,
-  parseUserPublicSetting,
-} from "./public-setting";
+  isInvalidOptionalBooleanInput,
+  parseOptionalBoolean,
+} from "./optional-boolean";
 
-describe("parseUserPublicSetting", () => {
+describe("parseOptionalBoolean", () => {
   it.each([
     { input: true, expected: true },
     { input: false, expected: false },
@@ -12,11 +12,8 @@ describe("parseUserPublicSetting", () => {
     { input: 1, expected: undefined },
     { input: null, expected: undefined },
     { input: undefined, expected: undefined },
-  ])("boolean だけをユーザー公開設定として扱う ($input)", ({
-    input,
-    expected,
-  }) => {
-    expect(parseUserPublicSetting(input)).toBe(expected);
+  ])("boolean だけを設定値として扱う ($input)", ({ input, expected }) => {
+    expect(parseOptionalBoolean(input)).toBe(expected);
   });
 
   it.each([
@@ -25,7 +22,7 @@ describe("parseUserPublicSetting", () => {
     { input: false, expected: false },
     { input: "true", expected: true },
     { input: null, expected: true },
-  ])("不正なユーザー公開設定入力を判定する ($input)", ({ input, expected }) => {
-    expect(isInvalidUserPublicSettingInput(input)).toBe(expected);
+  ])("不正な入力を判定する ($input)", ({ input, expected }) => {
+    expect(isInvalidOptionalBooleanInput(input)).toBe(expected);
   });
 });
