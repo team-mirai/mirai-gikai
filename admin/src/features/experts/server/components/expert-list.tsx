@@ -62,7 +62,7 @@ export function ExpertList({ experts }: ExpertListProps) {
                               report.configId,
                               report.sessionId
                             )}
-                            className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                            className="flex items-center gap-1.5 text-sm text-blue-600 visited:text-purple-600 hover:text-blue-800 hover:underline"
                           >
                             <FileText className="h-3.5 w-3.5 shrink-0" />
                             <span className="truncate max-w-48">
