@@ -513,10 +513,11 @@ export type InterviewMetricsByBillRow = {
   conducted_count: number;
   completed_count: number;
   completion_rate: number;
+  total_duration_seconds: number;
 };
 
 /**
- * 議案ごとのAIインタビュー実施数・完了数・完了率を取得する。
+ * 議案ごとのAIインタビュー実施数・完了数・完了率・総回答時間を取得する。
  * billId を指定すると単一議案に絞り込み、省略すると設定を持つ全議案を返す。
  */
 export async function findInterviewMetricsByBill(
