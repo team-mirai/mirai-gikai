@@ -1228,6 +1228,7 @@ export type Database = {
           completed_count: number
           completion_rate: number
           conducted_count: number
+          total_duration_seconds: number
         }[]
       }
       get_interview_statistics: {
