@@ -137,7 +137,9 @@ function BillRow({ bill }: { bill: BillWithDietSession }) {
       </TableCell>
       <TableCell className="text-gray-600">
         {bill.submitted_date
-          ? new Date(bill.submitted_date).toLocaleDateString("ja-JP")
+          ? new Date(bill.submitted_date).toLocaleDateString("ja-JP", {
+              timeZone: "Asia/Tokyo",
+            })
           : "-"}
       </TableCell>
       <TableCell>
