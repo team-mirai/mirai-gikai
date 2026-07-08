@@ -5,7 +5,10 @@ import {
   userCategoryLabels,
 } from "@/features/user-topic-analysis/shared/utils/topic-category";
 import { cn } from "@/lib/utils";
-import { formatRoleDescriptionLines } from "../utils/format-utils";
+import {
+  formatAnsweredAt,
+  formatRoleDescriptionLines,
+} from "../utils/format-utils";
 
 /** stance を 期待/懸念 ラベルにマップ（neutral 等は表示しない）。 */
 function stanceLabel(stance: string | null): {
@@ -19,15 +22,6 @@ function stanceLabel(stance: string | null): {
     return { text: "懸念", className: "text-stance-against-light" };
   }
   return null;
-}
-
-/** 回答日時を "YYYY.M.D HH:mm" で表示する。 */
-function formatAnsweredAt(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 /** セッションの所要時間（分）。算出できなければ null。 */

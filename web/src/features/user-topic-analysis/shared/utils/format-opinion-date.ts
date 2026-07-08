@@ -1,8 +1,10 @@
+import { formatDateWithDots } from "@/lib/utils/date";
+
 /**
  * トピック詳細の意見カードに表示する日時を整形する純粋関数。
  *
  * - 30日以内: 相対表記（例: "2時間前" "1週間前"）
- * - それ以前: 絶対日付 "YYYY.M.D"
+ * - それ以前: 絶対日付 "YYYY.M.D"（日本時間）
  *
  * null/不正な値のときは空文字を返す。
  */
@@ -24,5 +26,5 @@ export function formatOpinionDate(
   if (diffHours < 24) return `${diffHours}時間前`;
   if (diffDays < 7) return `${diffDays}日前`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}週間前`;
-  return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
+  return formatDateWithDots(dateString);
 }

@@ -26,4 +26,11 @@ describe("formatOpinionDate", () => {
     );
     expect(formatOpinionDate("2025-01-06T00:00:00.000Z", now)).toBe("2025.1.6");
   });
+
+  it("絶対表記は実行環境のタイムゾーンによらずJSTの暦日で表示する", () => {
+    // 2025-12-05T15:00:00Z = 2025-12-06T00:00:00+09:00（UTC暦日では前日）
+    expect(formatOpinionDate("2025-12-05T15:00:00.000Z", now)).toBe(
+      "2025.12.6"
+    );
+  });
 });

@@ -1,5 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { formatRoleDescriptionLines, parseOpinions } from "./format-utils";
+import {
+  formatAnsweredAt,
+  formatRoleDescriptionLines,
+  parseOpinions,
+} from "./format-utils";
+
+describe("formatAnsweredAt", () => {
+  it("null・不正な値は空文字", () => {
+    expect(formatAnsweredAt(null)).toBe("");
+    expect(formatAnsweredAt("not-a-date")).toBe("");
+  });
+
+  it("YYYY.M.D HH:mm 形式（日本時間）で整形する", () => {
+    // 2026-06-30T01:05:00Z = 2026-06-30T10:05:00+09:00
+    expect(formatAnsweredAt("2026-06-30T01:05:00.000Z")).toBe(
+      "2026.6.30 10:05"
+    );
+  });
+
+  it("実行環境のタイムゾーンによらずJSTの暦日・時刻で整形する", () => {
+    // 2026-06-29T15:30:00Z = 2026-06-30T00:30:00+09:00（UTC暦日では前日）
+    expect(formatAnsweredAt("2026-06-29T15:30:00.000Z")).toBe(
+      "2026.6.30 00:30"
+    );
+  });
+});
 
 describe("formatRoleDescriptionLines", () => {
   it("splits by newlines, trims, and adds bullet prefix", () => {
