@@ -1120,6 +1120,10 @@ export type Database = {
           session_count: number
         }[]
       }
+      extract_assistant_question_id: {
+        Args: { content: string }
+        Returns: string
+      }
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: {
           p_bill_id: string
@@ -1239,6 +1243,16 @@ export type Database = {
           total_cost_usd: number
           total_duration_seconds: number
           total_sessions: number
+        }[]
+      }
+      get_question_answer_counts: {
+        Args: { p_config_id: string }
+        Returns: {
+          answered_session_count: number
+          asked_session_count: number
+          question: string
+          question_id: string
+          question_order: number
         }[]
       }
       is_admin: { Args: never; Returns: boolean }

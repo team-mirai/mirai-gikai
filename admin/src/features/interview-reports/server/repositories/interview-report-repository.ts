@@ -490,6 +490,19 @@ export async function findInterviewStatistics(configId: string) {
   return data?.[0] ?? null;
 }
 
+export async function findQuestionAnswerCounts(configId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("get_question_answer_counts", {
+    p_config_id: configId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to fetch question answer counts: ${error.message}`);
+  }
+
+  return data ?? [];
+}
+
 export async function updateReportVisibility(
   reportId: string,
   isPublic: boolean
