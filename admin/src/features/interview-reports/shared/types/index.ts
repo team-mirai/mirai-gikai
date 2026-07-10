@@ -1,5 +1,9 @@
 import type { Database } from "@mirai-gikai/supabase";
 import type { SortConfig } from "@/lib/sort";
+import {
+  type InterviewReportStance,
+  interviewReportStances,
+} from "../constants";
 
 export type InterviewSession =
   Database["public"]["Tables"]["interview_sessions"]["Row"];
@@ -110,6 +114,26 @@ export const DEFAULT_SESSION_FILTER: SessionFilterConfig = {
   stance: "all",
   role: "all",
   moderation: "all",
+};
+
+// 発言検索のスタンスフィルタ。バッジ表示と同じ全スタンスを対象にする
+// （セッション一覧の StanceFilter は賛成/反対/中立のみ）
+export type MessageSearchStanceFilter = "all" | InterviewReportStance;
+
+export const MESSAGE_SEARCH_STANCE_FILTER_VALUES: readonly MessageSearchStanceFilter[] =
+  ["all", ...interviewReportStances] as const;
+
+// 発言検索のフィルタ。roleTitle は部分一致（空文字 = フィルタなし）
+export interface MessageSearchFilterConfig {
+  stance: MessageSearchStanceFilter;
+  role: RoleFilter;
+  roleTitle: string;
+}
+
+export const DEFAULT_MESSAGE_SEARCH_FILTER: MessageSearchFilterConfig = {
+  stance: "all",
+  role: "all",
+  roleTitle: "",
 };
 
 export type InterviewStatistics = {

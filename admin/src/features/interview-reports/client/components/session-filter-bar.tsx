@@ -2,15 +2,10 @@
 
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ROLE_FILTER_OPTIONS, stanceLabels } from "../../shared/constants";
 import type { SessionFilterConfig } from "../../shared/types";
 import { DEFAULT_SESSION_FILTER } from "../../shared/types";
+import { FilterSelect } from "./filter-select";
 
 interface SessionFilterBarProps {
   currentFilters: SessionFilterConfig;
@@ -31,18 +26,11 @@ const VISIBILITY_OPTIONS = [
 
 const STANCE_OPTIONS = [
   { value: "all", label: "すべて" },
-  { value: "for", label: "賛成" },
-  { value: "against", label: "反対" },
-  { value: "neutral", label: "中立" },
-] as const;
-
-const ROLE_OPTIONS = [
-  { value: "all", label: "すべて" },
-  { value: "subject_expert", label: "専門的な有識者" },
-  { value: "work_related", label: "業務に関係" },
-  { value: "daily_life_affected", label: "暮らしに影響" },
-  { value: "general_citizen", label: "一般的な関心" },
-] as const;
+  ...(["for", "against", "neutral"] as const).map((stance) => ({
+    value: stance,
+    label: stanceLabels[stance],
+  })),
+];
 
 const MODERATION_OPTIONS = [
   { value: "all", label: "すべて" },
@@ -96,7 +84,7 @@ export function SessionFilterBar({ currentFilters }: SessionFilterBarProps) {
       <FilterSelect
         label="役割"
         value={currentFilters.role}
-        options={ROLE_OPTIONS}
+        options={ROLE_FILTER_OPTIONS}
         onChange={(v) => handleFilterChange("role", v)}
       />
       <FilterSelect
@@ -105,38 +93,6 @@ export function SessionFilterBar({ currentFilters }: SessionFilterBarProps) {
         options={MODERATION_OPTIONS}
         onChange={(v) => handleFilterChange("moderation", v)}
       />
-    </div>
-  );
-}
-
-function FilterSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: readonly { value: string; label: string }[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-        {label}
-      </span>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger aria-label={label} className="w-40 h-9">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
     </div>
   );
 }

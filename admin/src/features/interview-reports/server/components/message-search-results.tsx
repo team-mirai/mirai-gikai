@@ -3,9 +3,13 @@ import type { Route } from "next";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { routes } from "@/lib/routes";
-import type { MessageSearchSession } from "../../shared/types";
+import type {
+  MessageSearchFilterConfig,
+  MessageSearchSession,
+} from "../../shared/types";
 import { buildSnippet } from "../../shared/utils/build-snippet";
 import { formatJstDateTime } from "../../shared/utils/format-jst-date-time";
+import { appendMessageSearchFilterParams } from "../../shared/utils/parse-message-search-filter-params";
 import type { MessageSearchResult } from "../loaders/search-user-messages";
 import { SEARCH_SESSIONS_PER_PAGE } from "../loaders/search-user-messages";
 import { HighlightedText } from "./highlighted-text";
@@ -19,6 +23,7 @@ interface MessageSearchResultsProps {
   billId: string;
   configId: string;
   query: string;
+  filters: MessageSearchFilterConfig;
   result: MessageSearchResult;
   currentPage: number;
 }
@@ -27,10 +32,12 @@ function buildSearchPageUrl(
   billId: string,
   configId: string,
   query: string,
+  filters: MessageSearchFilterConfig,
   page: number
 ): Route {
   const params = new URLSearchParams();
   params.set("q", query);
+  appendMessageSearchFilterParams(params, filters);
   if (page > 1) {
     params.set("page", String(page));
   }
@@ -120,6 +127,7 @@ export function MessageSearchResults({
   billId,
   configId,
   query,
+  filters,
   result,
   currentPage,
 }: MessageSearchResultsProps) {
@@ -163,7 +171,9 @@ export function MessageSearchResults({
         className="mt-6"
         totalPages={totalPages}
         currentPage={currentPage}
-        buildHref={(page) => buildSearchPageUrl(billId, configId, query, page)}
+        buildHref={(page) =>
+          buildSearchPageUrl(billId, configId, query, filters, page)
+        }
       />
     </div>
   );

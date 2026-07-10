@@ -7,6 +7,7 @@ import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id
 import { MessageSearchForm } from "@/features/interview-reports/client/components/message-search-form";
 import { MessageSearchResults } from "@/features/interview-reports/server/components/message-search-results";
 import { searchUserMessages } from "@/features/interview-reports/server/loaders/search-user-messages";
+import { parseMessageSearchFilterParams } from "@/features/interview-reports/shared/utils/parse-message-search-filter-params";
 import { routes } from "@/lib/routes";
 
 interface ReportsSearchPageProps {
@@ -17,6 +18,9 @@ interface ReportsSearchPageProps {
   searchParams: Promise<{
     q?: string;
     page?: string;
+    stance?: string;
+    role?: string;
+    roleTitle?: string;
   }>;
 }
 
@@ -25,13 +29,14 @@ export default async function ReportsSearchPage({
   searchParams,
 }: ReportsSearchPageProps) {
   const { id, configId } = await params;
-  const { q, page } = await searchParams;
+  const { q, page, stance, role, roleTitle } = await searchParams;
   const query = (q ?? "").trim();
   const currentPage = Math.max(1, Number(page) || 1);
+  const filters = parseMessageSearchFilterParams(stance, role, roleTitle);
 
   const [bill, result] = await Promise.all([
     getBillById(id),
-    query ? searchUserMessages(configId, query, currentPage) : null,
+    query ? searchUserMessages(configId, query, currentPage, filters) : null,
   ]);
 
   if (!bill) {
@@ -58,7 +63,7 @@ export default async function ReportsSearchPage({
       </div>
 
       <div className="mb-6">
-        <MessageSearchForm initialQuery={query} />
+        <MessageSearchForm initialQuery={query} initialFilters={filters} />
       </div>
 
       {result ? (
@@ -66,6 +71,7 @@ export default async function ReportsSearchPage({
           billId={id}
           configId={configId}
           query={query}
+          filters={filters}
           result={result}
           currentPage={currentPage}
         />

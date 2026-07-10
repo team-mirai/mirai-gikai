@@ -13,7 +13,7 @@ import {
   type VisibilityFilter,
 } from "../types";
 
-function parseEnum<T extends string>(
+export function parseEnum<T extends string>(
   value: string | undefined,
   validValues: readonly T[],
   defaultValue: T
