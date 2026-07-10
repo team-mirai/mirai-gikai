@@ -49,4 +49,9 @@ export const policyLinks: FooterPolicyLink[] = [
     label: "プライバシーポリシー",
     href: routes.privacy(),
   },
+  {
+    label: "自主制作ガイドライン",
+    href: EXTERNAL_LINKS.FORK_GUIDELINES_NOTE,
+    external: true,
+  },
 ];
