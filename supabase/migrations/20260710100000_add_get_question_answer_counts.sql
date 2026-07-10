@@ -7,6 +7,8 @@
 -- legacy plain-text messages, non-object JSON, or non-UUID ids.
 -- Keep in sync with the TypeScript parser:
 -- web/src/features/interview-session/shared/message-utils.ts (parseMessageContent)
+-- Requires PostgreSQL 16+ (pg_input_is_valid). This project runs PG 17
+-- (see supabase/config.toml major_version).
 CREATE OR REPLACE FUNCTION extract_assistant_question_id(content TEXT)
 RETURNS UUID AS $$
 DECLARE
