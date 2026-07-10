@@ -29,6 +29,38 @@ describe("estimateInterviewCostUsd", () => {
     expect(cost).toBeCloseTo(0.0515, 4);
   });
 
+  it("GPT-5.6 Solの推定コストを正しく算出する", () => {
+    // input: 5 * 85000 / 1M = 0.425
+    // output: 30 * 3000 / 1M = 0.09
+    // total: 0.515
+    const cost = estimateInterviewCostUsd("openai/gpt-5.6-sol");
+    expect(cost).toBeCloseTo(0.515, 4);
+  });
+
+  it("GPT-5.6 Terraの推定コストを正しく算出する", () => {
+    // input: 2.5 * 85000 / 1M = 0.2125
+    // output: 15 * 3000 / 1M = 0.045
+    // total: 0.2575
+    const cost = estimateInterviewCostUsd("openai/gpt-5.6-terra");
+    expect(cost).toBeCloseTo(0.2575, 4);
+  });
+
+  it("GPT-5.6 Lunaの推定コストを正しく算出する", () => {
+    // input: 1 * 85000 / 1M = 0.085
+    // output: 6 * 3000 / 1M = 0.018
+    // total: 0.103
+    const cost = estimateInterviewCostUsd("openai/gpt-5.6-luna");
+    expect(cost).toBeCloseTo(0.103, 4);
+  });
+
+  it("Claude Sonnet 5の推定コストを正しく算出する", () => {
+    // input: 3 * 85000 / 1M = 0.255
+    // output: 15 * 3000 / 1M = 0.045
+    // total: 0.30
+    const cost = estimateInterviewCostUsd("anthropic/claude-sonnet-5");
+    expect(cost).toBeCloseTo(0.3, 4);
+  });
+
   it("不明なモデルに対してnullを返す", () => {
     expect(estimateInterviewCostUsd("unknown/model")).toBeNull();
   });
