@@ -1217,6 +1217,17 @@ export type Database = {
           last_sign_in_at: string
         }[]
       }
+      get_chat_usage_metrics: {
+        Args: { p_bill_id?: string; p_from?: string; p_to?: string }
+        Returns: {
+          event_count: number
+          prompt_name: string
+          total_cost_usd: number
+          total_tokens: number
+          unique_session_count: number
+          unique_user_count: number
+        }[]
+      }
       get_interview_message_counts: {
         Args: { session_ids: string[] }
         Returns: {
