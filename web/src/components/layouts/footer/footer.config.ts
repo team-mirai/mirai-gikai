@@ -49,4 +49,8 @@ export const policyLinks: FooterPolicyLink[] = [
     label: "プライバシーポリシー",
     href: routes.privacy(),
   },
+  {
+    label: "AIインタビューデータ利用規約",
+    href: routes.interviewDataTerms(),
+  },
 ];
