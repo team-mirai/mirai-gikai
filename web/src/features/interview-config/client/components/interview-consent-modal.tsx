@@ -64,6 +64,18 @@ export function InterviewConsentModal({
             <li>
               インタビュー回答後に公開を許可するかを選択できます。公開を許可した場合、のちにみらい議会に全文が掲載される場合があります。
             </li>
+            <li>
+              公開を許可した内容は、「
+              <Link
+                href={routes.interviewDataTerms()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                みらい議会AIインタビューデータ利用規約
+              </Link>
+              」に基づき、第三者にオープンデータとして提供されることがあります。
+            </li>
           </ul>
 
           <div className="flex items-center gap-3">

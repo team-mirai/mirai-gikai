@@ -27,7 +27,7 @@ export function ConsentCheckListItem({ children }: { children: ReactNode }) {
 export function OpenDataNoticeItem() {
   return (
     <ConsentCheckListItem>
-      公開を許可した内容は、氏名などの個人を識別できる情報を除去した上で、
+      公開を許可した内容は、「
       <Link
         href={routes.interviewDataTerms()}
         target="_blank"
@@ -35,7 +35,7 @@ export function OpenDataNoticeItem() {
       >
         みらい議会AIインタビューデータ利用規約
       </Link>
-      に基づき、オープンデータとして第三者に提供されることがあります。
+      」に基づき、第三者にオープンデータとして提供されることがあります。
     </ConsentCheckListItem>
   );
 }
