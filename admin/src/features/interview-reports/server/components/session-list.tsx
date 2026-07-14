@@ -188,7 +188,7 @@ export function SessionList({
                             session.id
                           ) as Route
                         }
-                        className="text-blue-600 hover:underline"
+                        className="text-blue-600 visited:text-purple-600 hover:underline"
                       >
                         {session.id.substring(0, 8)}...
                       </Link>

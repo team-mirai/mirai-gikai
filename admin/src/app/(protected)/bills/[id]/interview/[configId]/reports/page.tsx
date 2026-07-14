@@ -9,12 +9,14 @@ import { BatchModerationButton } from "@/features/interview-reports/client/compo
 import { BatchPublishButton } from "@/features/interview-reports/client/components/batch-publish-button";
 import { CopyTsvButton } from "@/features/interview-reports/client/components/copy-tsv-button";
 import { InterviewStatistics } from "@/features/interview-reports/server/components/interview-statistics";
+import { QuestionAnswerCounts } from "@/features/interview-reports/server/components/question-answer-counts";
 import { SessionList } from "@/features/interview-reports/server/components/session-list";
 import {
   getInterviewSessions,
   getInterviewSessionsCount,
 } from "@/features/interview-reports/server/loaders/get-interview-sessions";
 import { getInterviewStatistics } from "@/features/interview-reports/server/loaders/get-interview-statistics";
+import { getQuestionAnswerCounts } from "@/features/interview-reports/server/loaders/get-question-answer-counts";
 import { parseSessionFilterParams } from "@/features/interview-reports/shared/utils/parse-session-filter-params";
 import { parseSessionSortParams } from "@/features/interview-reports/shared/utils/parse-session-sort-params";
 import { routes } from "@/lib/routes";
@@ -53,12 +55,14 @@ export default async function ReportsPage({
     moderation
   );
 
-  const [bill, sessions, totalCount, statistics] = await Promise.all([
-    getBillById(id),
-    getInterviewSessions(configId, currentPage, sortConfig, filterConfig),
-    getInterviewSessionsCount(configId, filterConfig),
-    getInterviewStatistics(configId),
-  ]);
+  const [bill, sessions, totalCount, statistics, questionAnswerCounts] =
+    await Promise.all([
+      getBillById(id),
+      getInterviewSessions(configId, currentPage, sortConfig, filterConfig),
+      getInterviewSessionsCount(configId, filterConfig),
+      getInterviewStatistics(configId),
+      getQuestionAnswerCounts(configId),
+    ]);
 
   if (!bill) {
     notFound();
@@ -99,6 +103,12 @@ export default async function ReportsPage({
       {statistics && (
         <div className="mb-6">
           <InterviewStatistics statistics={statistics} />
+        </div>
+      )}
+
+      {questionAnswerCounts.length > 0 && (
+        <div className="mb-6">
+          <QuestionAnswerCounts counts={questionAnswerCounts} />
         </div>
       )}
 

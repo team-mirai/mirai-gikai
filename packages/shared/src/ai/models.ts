@@ -17,6 +17,9 @@ export const AI_MODELS = {
   gpt5_1_instant: "openai/gpt-5.1-instant",
   gpt5_1_thinking: "openai/gpt-5.1-thinking",
   gpt5_2: "openai/gpt-5.2",
+  gpt5_6_sol: "openai/gpt-5.6-sol",
+  gpt5_6_terra: "openai/gpt-5.6-terra",
+  gpt5_6_luna: "openai/gpt-5.6-luna",
   // --- Google ---
   gemini3_flash: "google/gemini-3-flash",
   gemini3_flash_preview: "google/gemini-3-flash-preview",
@@ -26,6 +29,7 @@ export const AI_MODELS = {
   // --- Anthropic ---
   claude_haiku_4_5: "anthropic/claude-haiku-4.5",
   claude_sonnet_4_6: "anthropic/claude-sonnet-4.6",
+  claude_sonnet_5: "anthropic/claude-sonnet-5",
   claude_opus_4_6: "anthropic/claude-opus-4.6",
 } as const;
 

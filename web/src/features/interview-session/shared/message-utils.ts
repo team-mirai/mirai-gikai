@@ -19,6 +19,10 @@ export function isValidReport(
 
 /**
  * JSONとして保存されたメッセージをパースして、textとreportとquickRepliesに分離する
+ *
+ * question_id の抽出規約はDB側の extract_assistant_question_id 関数
+ * （supabase/migrations/20260710100000_add_get_question_answer_counts.sql）
+ * と同期を保つこと
  */
 export function parseMessageContent(content: string): {
   text: string;

@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { MessageSearchSession } from "../../shared/types";
+import type {
+  MessageSearchFilterConfig,
+  MessageSearchSession,
+} from "../../shared/types";
 import { groupMatchedMessagesBySession } from "../../shared/utils/group-matched-messages";
 import { normalizeInterviewReport } from "../../shared/utils/normalize-interview-report";
 import {
@@ -26,12 +29,14 @@ export interface MessageSearchResult {
 export async function searchUserMessages(
   configId: string,
   query: string,
-  page = 1
+  page: number,
+  filters: MessageSearchFilterConfig
 ): Promise<MessageSearchResult> {
   const matchedMessages = await searchUserMessagesByConfigId(
     configId,
     query,
-    MAX_SEARCH_MESSAGES
+    MAX_SEARCH_MESSAGES,
+    filters
   );
   const groups = groupMatchedMessagesBySession(matchedMessages);
 

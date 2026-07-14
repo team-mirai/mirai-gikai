@@ -29,6 +29,9 @@ const OPENAI_MODELS = [
   { value: "openai/gpt-5.1-instant", label: "GPT-5.1 Instant" },
   { value: "openai/gpt-5.1-thinking", label: "GPT-5.1 Thinking" },
   { value: "openai/gpt-5.2", label: "GPT-5.2" },
+  { value: "openai/gpt-5.6-sol", label: "GPT-5.6 Sol" },
+  { value: "openai/gpt-5.6-terra", label: "GPT-5.6 Terra" },
+  { value: "openai/gpt-5.6-luna", label: "GPT-5.6 Luna" },
 ] as const;
 
 const GOOGLE_MODELS = [
@@ -43,6 +46,7 @@ const GOOGLE_MODELS = [
 const ANTHROPIC_MODELS = [
   { value: "anthropic/claude-haiku-4.5", label: "Claude Haiku 4.5" },
   { value: "anthropic/claude-sonnet-4.6", label: "Claude Sonnet 4.6" },
+  { value: "anthropic/claude-sonnet-5", label: "Claude Sonnet 5" },
   { value: "anthropic/claude-opus-4.6", label: "Claude Opus 4.6" },
 ] as const;
 

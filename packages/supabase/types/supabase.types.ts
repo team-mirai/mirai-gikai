@@ -1126,6 +1126,10 @@ export type Database = {
           session_count: number
         }[]
       }
+      extract_assistant_question_id: {
+        Args: { content: string }
+        Returns: string
+      }
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: {
           p_bill_id: string
@@ -1213,6 +1217,17 @@ export type Database = {
           last_sign_in_at: string
         }[]
       }
+      get_chat_usage_metrics: {
+        Args: { p_bill_id?: string; p_from?: string; p_to?: string }
+        Returns: {
+          event_count: number
+          prompt_name: string
+          total_cost_usd: number
+          total_tokens: number
+          unique_session_count: number
+          unique_user_count: number
+        }[]
+      }
       get_interview_message_counts: {
         Args: { session_ids: string[] }
         Returns: {
@@ -1228,6 +1243,7 @@ export type Database = {
           completed_count: number
           completion_rate: number
           conducted_count: number
+          total_duration_seconds: number
         }[]
       }
       get_interview_statistics: {
@@ -1255,6 +1271,16 @@ export type Database = {
           total_cost_usd: number
           total_duration_seconds: number
           total_sessions: number
+        }[]
+      }
+      get_question_answer_counts: {
+        Args: { p_config_id: string }
+        Returns: {
+          answered_session_count: number
+          asked_session_count: number
+          question: string
+          question_id: string
+          question_order: number
         }[]
       }
       is_admin: { Args: never; Returns: boolean }

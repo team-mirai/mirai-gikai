@@ -1,10 +1,18 @@
+const jstLongDateFormat = new Intl.DateTimeFormat("ja-JP", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "Asia/Tokyo",
+});
+
+const jstNumericDateFormat = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+});
+
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat("ja-JP", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(date);
+  if (Number.isNaN(date.getTime())) return "";
+  return jstLongDateFormat.format(date);
 }
 
 /**
@@ -13,10 +21,8 @@ export function formatDate(dateString: string): string {
  */
 export function formatDateWithDots(dateString: string): string {
   const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${year}.${month}.${day}`;
+  if (Number.isNaN(date.getTime())) return "";
+  return jstNumericDateFormat.format(date).replaceAll("/", ".");
 }
 
 /**

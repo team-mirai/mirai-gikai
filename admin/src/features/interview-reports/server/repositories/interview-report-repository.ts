@@ -2,9 +2,13 @@ import "server-only";
 
 import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { SessionFilterConfig } from "../../shared/types";
+import type {
+  MessageSearchFilterConfig,
+  SessionFilterConfig,
+} from "../../shared/types";
 import { DEFAULT_SESSION_FILTER } from "../../shared/types";
 import { escapeIlikePattern } from "../../shared/utils/escape-ilike-pattern";
+import { hasReportLevelSearchFilters } from "../../shared/utils/parse-message-search-filter-params";
 
 function toRpcFilterParams(filters: SessionFilterConfig) {
   return {
@@ -444,17 +448,45 @@ export async function findInterviewMessagesBySessionId(sessionId: string) {
 export async function searchUserMessagesByConfigId(
   configId: string,
   query: string,
-  limit: number
+  limit: number,
+  filters: MessageSearchFilterConfig
 ) {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+  // レポートレベルのフィルタ指定時のみ interview_report まで inner join し、
+  // レポート未生成のセッションを除外する。
+  // embed のカラムはフィルタにのみ使うため取得しない（空の embed でも
+  // inner join とネストしたフィルタは機能する）
+  const selectQuery = hasReportLevelSearchFilters(filters)
+    ? "id, interview_session_id, content, created_at, interview_sessions!inner(interview_report!inner())"
+    : "id, interview_session_id, content, created_at, interview_sessions!inner()";
+
+  let queryBuilder = supabase
     .from("interview_messages")
-    .select(
-      "id, interview_session_id, content, created_at, interview_sessions!inner(interview_config_id)"
-    )
+    .select(selectQuery)
     .eq("role", "user")
     .eq("interview_sessions.interview_config_id", configId)
-    .ilike("content", `%${escapeIlikePattern(query)}%`)
+    .ilike("content", `%${escapeIlikePattern(query)}%`);
+
+  if (filters.stance !== "all") {
+    queryBuilder = queryBuilder.eq(
+      "interview_sessions.interview_report.stance",
+      filters.stance
+    );
+  }
+  if (filters.role !== "all") {
+    queryBuilder = queryBuilder.eq(
+      "interview_sessions.interview_report.role",
+      filters.role
+    );
+  }
+  if (filters.roleTitle !== "") {
+    queryBuilder = queryBuilder.ilike(
+      "interview_sessions.interview_report.role_title",
+      `%${escapeIlikePattern(filters.roleTitle)}%`
+    );
+  }
+
+  const { data, error } = await queryBuilder
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -513,10 +545,11 @@ export type InterviewMetricsByBillRow = {
   conducted_count: number;
   completed_count: number;
   completion_rate: number;
+  total_duration_seconds: number;
 };
 
 /**
- * 議案ごとのAIインタビュー実施数・完了数・完了率を取得する。
+ * 議案ごとのAIインタビュー実施数・完了数・完了率・総回答時間を取得する。
  * billId を指定すると単一議案に絞り込み、省略すると設定を持つ全議案を返す。
  */
 export async function findInterviewMetricsByBill(
@@ -547,6 +580,19 @@ export async function findInterviewStatistics(configId: string) {
   }
 
   return data?.[0] ?? null;
+}
+
+export async function findQuestionAnswerCounts(configId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("get_question_answer_counts", {
+    p_config_id: configId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to fetch question answer counts: ${error.message}`);
+  }
+
+  return data ?? [];
 }
 
 export async function updateReportVisibility(

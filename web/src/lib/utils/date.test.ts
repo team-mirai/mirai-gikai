@@ -14,6 +14,15 @@ describe("formatDate", () => {
   it("formats an ISO datetime string", () => {
     expect(formatDate("2025-03-05T10:00:00Z")).toBe("2025年3月5日");
   });
+
+  it("formats a JST-midnight timestamptz as the JST date regardless of runtime timezone", () => {
+    // 2026-06-30T00:00:00+09:00 = 2026-06-29T15:00:00Z（UTC暦日では前日）
+    expect(formatDate("2026-06-30T00:00:00+09:00")).toBe("2026年6月30日");
+  });
+
+  it("returns an empty string for an invalid date string", () => {
+    expect(formatDate("not-a-date")).toBe("");
+  });
 });
 
 describe("formatDateWithDots", () => {
@@ -27,6 +36,15 @@ describe("formatDateWithDots", () => {
 
   it("formats double-digit month and day", () => {
     expect(formatDateWithDots("2025-12-31")).toBe("2025.12.31");
+  });
+
+  it("formats a JST-midnight timestamptz as the JST date regardless of runtime timezone", () => {
+    // 2026-06-30T00:00:00+09:00 = 2026-06-29T15:00:00Z（UTC暦日では前日）
+    expect(formatDateWithDots("2026-06-30T00:00:00+09:00")).toBe("2026.6.30");
+  });
+
+  it("returns an empty string for an invalid date string", () => {
+    expect(formatDateWithDots("not-a-date")).toBe("");
   });
 });
 
