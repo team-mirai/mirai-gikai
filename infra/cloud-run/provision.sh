@@ -40,8 +40,13 @@ AR_REPO="${GCP_AR_REPO:-topic-analysis}"
 RUNTIME_SA_NAME="${RUNTIME_SA_NAME:-topic-analysis-runtime}"
 INVOKER_SA_NAME="${INVOKER_SA_NAME:-topic-analysis-invoker}"
 DEPLOYER_SA_NAME="${DEPLOYER_SA_NAME:-topic-analysis-deployer}"
+SCHEDULER_SA_NAME="${SCHEDULER_SA_NAME:-topic-analysis-scheduler}"
 WORKER_IMAGE="${WORKER_IMAGE:-}"      # 空なら初回 Job 作成時に bootstrap をビルド
 GENERATE_KEYS="${GENERATE_KEYS:-0}"   # 1 のとき SA キーを発行（既定は無効＝安全側）
+# Cloud Scheduler（定期実行）。cron 式と一時停止フラグは環境ごとに config.env で調整する。
+SCHEDULER_CRON="${SCHEDULER_CRON:-0 6 * * *}"
+SCHEDULER_TIMEZONE="${SCHEDULER_TIMEZONE:-Asia/Tokyo}"
+SCHEDULER_PAUSED="${SCHEDULER_PAUSED:-0}"   # 1 のとき一時停止状態にする（リソースは作る）
 
 if [[ -z "$PROJECT_ID" ]]; then
   echo "ERROR: GCP_PROJECT_ID が未設定です（config.env か環境変数で指定）。" >&2
@@ -60,10 +65,12 @@ fi
 ENV_UPPER="$(printf '%s' "$DEPLOY_ENV" | tr '[:lower:]' '[:upper:]')"
 SECRET_SUFFIX="${SECRET_SUFFIX:-_${ENV_UPPER}}"
 JOB="${GCP_TOPIC_ANALYSIS_JOB:-topic-analysis-worker-${DEPLOY_ENV}}"
+SCHEDULER_JOB="${SCHEDULER_JOB_NAME:-topic-analysis-cron-${DEPLOY_ENV}}"
 
 RUNTIME_SA="${RUNTIME_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 INVOKER_SA="${INVOKER_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 DEPLOYER_SA="${DEPLOYER_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
+SCHEDULER_SA="${SCHEDULER_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 # worker が読む環境変数名（固定）。実体の Secret 名は ${ENV_VAR}${SECRET_SUFFIX}。
 SECRET_ENV_VARS=(SUPABASE_URL SUPABASE_SECRET_KEY AI_GATEWAY_API_KEY)
 # この環境で作成・参照する実 Secret 名。
@@ -78,11 +85,12 @@ log "環境: DEPLOY_ENV=${DEPLOY_ENV} / Secret 接尾辞=${SECRET_SUFFIX} / Job=
 gcloud config set project "$PROJECT_ID" >/dev/null
 
 # ── 1. API 有効化（services enable は冪等） ──
-log "API 有効化 (run / artifactregistry / secretmanager)"
+log "API 有効化 (run / artifactregistry / secretmanager / cloudscheduler)"
 gcloud services enable \
   run.googleapis.com \
   artifactregistry.googleapis.com \
   secretmanager.googleapis.com \
+  cloudscheduler.googleapis.com \
   --project "$PROJECT_ID"
 
 # ── 2. Artifact Registry リポジトリ ──
@@ -140,6 +148,7 @@ ensure_sa() {
 ensure_sa "$RUNTIME_SA_NAME" "Topic Analysis Worker Runtime"
 ensure_sa "$INVOKER_SA_NAME" "Topic Analysis Job Invoker (admin)"
 ensure_sa "$DEPLOYER_SA_NAME" "Topic Analysis Worker Deployer (CI)"
+ensure_sa "$SCHEDULER_SA_NAME" "Topic Analysis Scheduler (cron)"
 
 # ── 5. runtime SA に各 secret の読み取り権限（add-iam-policy-binding は冪等） ──
 for s in "${SECRETS[@]}"; do
@@ -187,9 +196,10 @@ else
     --memory 1Gi
 fi
 
-# ── 7. invoker SA（admin が Job を起動）: jobs.run + jobs.runWithOverrides + actAs ──
-# admin は overrides（--mode 等の args 上書き）で起動するため run.jobs.runWithOverrides が要る。
-# roles/run.invoker には含まれないので、最小権限のカスタムロールを定義して付与する
+# ── 7. invoker / scheduler SA（Job を起動する側）: jobs.run + jobs.runWithOverrides + actAs ──
+# admin・Cloud Scheduler とも overrides（--mode 等の args 上書き）で起動するため
+# run.jobs.runWithOverrides が要る。roles/run.invoker には含まれないので、
+# 最小権限のカスタムロールを定義して付与する
 # （roles/run.developer は job 更新・削除まで許してしまい broad すぎるため避ける）。
 INVOKER_ROLE_ID="topicAnalysisJobInvoker"
 if gcloud iam roles describe "$INVOKER_ROLE_ID" \
@@ -204,17 +214,62 @@ else
     --description="Execute the topic-analysis Cloud Run job (with overrides)" \
     --permissions="run.jobs.run,run.jobs.runWithOverrides" >/dev/null
 fi
-gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-  --member="serviceAccount:${INVOKER_SA}" \
-  --role="projects/${PROJECT_ID}/roles/${INVOKER_ROLE_ID}" \
-  --condition=None >/dev/null
-gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA" \
-  --project "$PROJECT_ID" \
-  --member="serviceAccount:${INVOKER_SA}" \
-  --role="roles/iam.serviceAccountUser" >/dev/null
-log "invoker SA に jobs.run/runWithOverrides（custom role）+ runtime SA への actAs を付与"
+for sa in "$INVOKER_SA" "$SCHEDULER_SA"; do
+  gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+    --member="serviceAccount:${sa}" \
+    --role="projects/${PROJECT_ID}/roles/${INVOKER_ROLE_ID}" \
+    --condition=None >/dev/null
+  gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA" \
+    --project "$PROJECT_ID" \
+    --member="serviceAccount:${sa}" \
+    --role="roles/iam.serviceAccountUser" >/dev/null
+done
+log "invoker / scheduler SA に jobs.run/runWithOverrides（custom role）+ runtime SA への actAs を付与"
 
-# ── 8. deployer SA（CI がイメージ push + Job 更新）: AR writer + run.developer + actAs ──
+# ── 8. Cloud Scheduler（定期実行: 全議案の増分分析）──
+# run.jobs.run（Cloud Run Admin API v2）を OAuth で叩き、overrides で --mode=analyze-all を渡す。
+# 設計・運用は docs/20260715_1043_トピック分析スケジューラー化.md を参照。
+RUN_JOB_URI="https://run.googleapis.com/v2/projects/${PROJECT_ID}/locations/${REGION}/jobs/${JOB}:run"
+SCHEDULER_BODY='{"overrides":{"containerOverrides":[{"args":["--mode=analyze-all"]}]}}'
+scheduler_flags=(
+  --location "$REGION"
+  --project "$PROJECT_ID"
+  --schedule "$SCHEDULER_CRON"
+  --time-zone "$SCHEDULER_TIMEZONE"
+  --uri "$RUN_JOB_URI"
+  --http-method POST
+  --message-body "$SCHEDULER_BODY"
+  --oauth-service-account-email "$SCHEDULER_SA"
+  --attempt-deadline 180s
+)
+# describe 1回で存在確認と state 取得を兼ねる（update は state を保持する）。
+scheduler_state="$(gcloud scheduler jobs describe "$SCHEDULER_JOB" \
+  --location "$REGION" --project "$PROJECT_ID" \
+  --format='value(state)' 2>/dev/null || true)"
+if [[ -n "$scheduler_state" ]]; then
+  log "scheduler '$SCHEDULER_JOB' は既存（設定を更新: cron='${SCHEDULER_CRON}' tz=${SCHEDULER_TIMEZONE}）"
+  gcloud scheduler jobs update http "$SCHEDULER_JOB" \
+    "${scheduler_flags[@]}" \
+    --update-headers Content-Type=application/json >/dev/null
+else
+  log "scheduler '$SCHEDULER_JOB' を作成（cron='${SCHEDULER_CRON}' tz=${SCHEDULER_TIMEZONE}）"
+  gcloud scheduler jobs create http "$SCHEDULER_JOB" \
+    "${scheduler_flags[@]}" \
+    --headers Content-Type=application/json >/dev/null
+  scheduler_state="ENABLED"   # 新規作成直後は必ず ENABLED
+fi
+# 望む状態（有効/一時停止）へ冪等に揃える。
+if [[ "$SCHEDULER_PAUSED" == "1" && "$scheduler_state" != "PAUSED" ]]; then
+  log "scheduler '$SCHEDULER_JOB' を一時停止（SCHEDULER_PAUSED=1）"
+  gcloud scheduler jobs pause "$SCHEDULER_JOB" \
+    --location "$REGION" --project "$PROJECT_ID" >/dev/null
+elif [[ "$SCHEDULER_PAUSED" != "1" && "$scheduler_state" == "PAUSED" ]]; then
+  log "scheduler '$SCHEDULER_JOB' を再開"
+  gcloud scheduler jobs resume "$SCHEDULER_JOB" \
+    --location "$REGION" --project "$PROJECT_ID" >/dev/null
+fi
+
+# ── 9. deployer SA（CI がイメージ push + Job 更新）: AR writer + run.developer + actAs ──
 gcloud artifacts repositories add-iam-policy-binding "$AR_REPO" \
   --location "$REGION" --project "$PROJECT_ID" \
   --member="serviceAccount:${DEPLOYER_SA}" \
@@ -229,7 +284,7 @@ gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA" \
   --role="roles/iam.serviceAccountUser" >/dev/null
 log "deployer SA に artifactregistry.writer + run.developer + actAs を付与"
 
-# ── 9. SA キー発行（任意・GENERATE_KEYS=1 のときのみ。鍵はコミットしない＝gitignore 済み） ──
+# ── 10. SA キー発行（任意・GENERATE_KEYS=1 のときのみ。鍵はコミットしない＝gitignore 済み） ──
 if [[ "$GENERATE_KEYS" == "1" ]]; then
   log "SA キーを発行（invoker-key.json / deployer-key.json）"
   gcloud iam service-accounts keys create "${REPO_ROOT}/invoker-key.json" \
