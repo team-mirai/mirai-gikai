@@ -5,6 +5,7 @@ import type {
   TargetOpinion,
   TopicDraft,
 } from "../shared/types";
+import { toAlphaLocalId } from "./alpha-local-id";
 
 /** getTopicsWithOpinions の戻り（topic + topic_opinion→interview_opinion）の最小形 */
 export type RawVersionTopic = {
@@ -37,7 +38,7 @@ export function selectUnextractedOpinions(
 }
 
 export type IncrementalPlan = {
-  /** 既存 + 新規トピックに local_id を振った最終集合（e0.. が既存, n0.. が新規） */
+  /** 既存 + 新規トピックに local_id を振った最終集合（eA.. が既存, nA.. が新規） */
   finalTopics: FinalTopicWithId[];
   /** 既存トピックの割当をそのまま引き継いだペア（再割当しない） */
   carriedAssignments: OpinionAssignment[];
@@ -47,7 +48,7 @@ export type IncrementalPlan = {
 
 /**
  * 増分分析の保存計画を組み立てる純粋関数。
- * - 既存トピックは local_id `e{i}`、新規採用トピックは `n{i}` を振る。
+ * - 既存トピックは local_id `eA..`、新規採用トピックは `nA..` を振る（英字のみ・意見番号エコー対策）。
  * - 既存の割当は carriedAssignments としてそのまま引き継ぐ（既存トピックは凍結）。
  * - 既存のどのトピックにも割り当てられていない意見を unassignedOpinions として返す
  *   （これを後段で finalTopics 全体に対して割当する）。
@@ -60,12 +61,12 @@ export function buildIncrementalPlan(
   const existingTopics: FinalTopicWithId[] = existing.map((t, i) => ({
     title: t.title,
     description: t.description,
-    local_id: `e${i}`,
+    local_id: toAlphaLocalId("e", i),
   }));
   const newTopics: FinalTopicWithId[] = acceptedNew.map((t, i) => ({
     title: t.title,
     description: t.description,
-    local_id: `n${i}`,
+    local_id: toAlphaLocalId("n", i),
   }));
 
   // 現在の対象意見集合。前回 version 以降に対象外（公開撤回・モデレーション変化等）に
@@ -83,7 +84,7 @@ export function buildIncrementalPlan(
       assignedIds.add(opinionId);
       carriedAssignments.push({
         opinion_id: opinionId,
-        topic_local_id: `e${i}`,
+        topic_local_id: toAlphaLocalId("e", i),
       });
     }
   });

@@ -10,7 +10,7 @@ export const MAX_CONCURRENCY = 10;
 /** 各 Phase で使用するモデル（§4.4: Haiku が安定） */
 export const TOPIC_MODEL = AI_MODELS.claude_haiku_4_5;
 /** プロンプト版（再現性のため version に記録）。プロンプト/出力スキーマ変更時に上げる。 */
-export const PROMPT_VERSION = "v2";
+export const PROMPT_VERSION = "v3";
 /** 実行ステップ（current_step） */
 export const ANALYSIS_STEPS = {
   EXTRACT: "extract",
