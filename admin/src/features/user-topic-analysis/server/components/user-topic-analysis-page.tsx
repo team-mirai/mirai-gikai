@@ -5,6 +5,7 @@ import {
   getTopicsWithOpinions,
   listVersionsByBill,
 } from "@mirai-gikai/topic-analysis-core/repository";
+import { DeleteTopicButton } from "../../client/components/delete-topic-button";
 import { PublishToggleButton } from "../../client/components/publish-toggle-button";
 import { RunAnalysisButton } from "../../client/components/run-analysis-button";
 
@@ -118,9 +119,17 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
                   <li key={topic.id} className="rounded border p-4">
                     <div className="flex items-baseline justify-between gap-2">
                       <h3 className="font-semibold">{topic.title}</h3>
-                      <span className="shrink-0 text-sm text-gray-500">
-                        {opinions.length}件
-                      </span>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="text-sm text-gray-500">
+                          {opinions.length}件
+                        </span>
+                        <DeleteTopicButton
+                          topicId={topic.id}
+                          versionId={latestCompleted.id}
+                          billId={billId}
+                          title={topic.title}
+                        />
+                      </div>
                     </div>
                     <p className="mt-1 text-sm text-gray-600">
                       {topic.description}
