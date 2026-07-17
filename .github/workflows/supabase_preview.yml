@@ -1,0 +1,220 @@
+name: Supabase Preview Branch
+
+# supabase/ 配下に変更がある open な PR に対してのみ Supabase の preview ブランチ
+# （独立した DB）を作成し、Vercel の該当 git ブランチの Preview 環境変数に
+# 接続情報を注入する。PR クローズ時にはブランチと環境変数を削除する。
+# 設計の詳細は docs/20260717_1200_Supabase_PreviewブランチCI設計.md を参照。
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+concurrency:
+  group: supabase-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  manage-preview-branch:
+    runs-on: ubuntu-latest
+    # fork からの PR は secrets を参照できないため対象外
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    environment: staging
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_WEB_PROJECT_ID: ${{ secrets.WEB_VERCEL_PROJECT_ID }}
+      VERCEL_ADMIN_PROJECT_ID: ${{ secrets.ADMIN_VERCEL_PROJECT_ID }}
+      GIT_BRANCH: ${{ github.event.pull_request.head.ref }}
+    steps:
+      # Supabase のブランチ名に使えるよう git ブランチ名を英数字とハイフンに正規化する。
+      # 正規化による衝突（feat/foo と feat-foo 等）を避けるため PR 番号を付与する
+      - name: Compute branch name
+        id: branch
+        run: |
+          base=$(echo "$GIT_BRANCH" | tr -cs 'a-zA-Z0-9' '-' | sed 's/^-//; s/-$//' | cut -c1-40)
+          echo "name=${base:+$base-}pr${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Detect supabase changes
+        id: changes
+        if: github.event.action != 'closed'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # パイプで直接 grep すると gh api の失敗が握りつぶされるため、変数に受けてから判定する
+          files=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
+            --paginate --jq '.[].filename')
+          if echo "$files" | grep -q '^supabase/'; then
+            echo "supabase=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "supabase=false" >> "$GITHUB_OUTPUT"
+            echo "No supabase/ changes in this PR. Skipping preview branch."
+          fi
+
+      # checkout は db push が supabase/migrations を読むときだけ必要
+      - uses: actions/checkout@v5
+        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+
+      - uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+        with:
+          version: latest
+
+      # ---------- クリーンアップ: PR クローズ時、または supabase/ 変更が PR から消えたとき ----------
+      # 後者は「一度ブランチを作った後に supabase/ 変更が revert された PR」の課金リークを防ぐ
+
+      - name: Delete preview branch
+        if: github.event.action == 'closed' || steps.changes.outputs.supabase == 'false'
+        run: |
+          # ブランチ不在（作成していない PR）は正常系として静かに抜ける。
+          # 認証エラー等の判定不能な失敗は課金リークにつながるため明示的に失敗させる
+          if output=$(supabase branches get "${{ steps.branch.outputs.name }}" \
+            --project-ref "$SUPABASE_PROJECT_REF" -o json 2>&1); then
+            supabase branches delete "${{ steps.branch.outputs.name }}" \
+              --project-ref "$SUPABASE_PROJECT_REF" --yes
+          elif echo "$output" | grep -qiE 'not.?found|404'; then
+            echo "No preview branch to delete."
+          else
+            echo "$output" >&2
+            exit 1
+          fi
+
+      - name: Delete Vercel branch env vars
+        if: github.event.action == 'closed' || steps.changes.outputs.supabase == 'false'
+        run: |
+          # このワークフローが管理する4キーのみ削除し、手動設定されたブランチ別の
+          # 環境変数（feature flag 等）には触れない
+          managed_keys='["NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY","SUPABASE_URL","SUPABASE_SECRET_KEY"]'
+          for project_id in "$VERCEL_WEB_PROJECT_ID" "$VERCEL_ADMIN_PROJECT_ID"; do
+            # API の失敗をパイプで握りつぶさないよう変数に受ける。jq 側の select は
+            # クエリパラメータが無視された場合に無関係な環境変数を消さないための安全網
+            response=$(curl -sfG "https://api.vercel.com/v9/projects/${project_id}/env" \
+              --data-urlencode "gitBranch=${GIT_BRANCH}" \
+              --data-urlencode "teamId=${VERCEL_TEAM_ID}" \
+              -H "Authorization: Bearer $VERCEL_TOKEN")
+            env_ids=$(echo "$response" \
+              | jq -r --arg branch "$GIT_BRANCH" --argjson keys "$managed_keys" \
+                '.envs[] | select(.gitBranch == $branch) | select(.key as $k | $keys | index($k)) | .id')
+            for env_id in $env_ids; do
+              curl -sf -X DELETE \
+                "https://api.vercel.com/v9/projects/${project_id}/env/${env_id}?teamId=${VERCEL_TEAM_ID}" \
+                -H "Authorization: Bearer $VERCEL_TOKEN" > /dev/null
+            done
+          done
+
+      # ---------- PR オープン・更新時: ブランチ作成とマイグレーション適用 ----------
+
+      - name: Create preview branch if absent
+        id: create
+        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        run: |
+          if supabase branches get "${{ steps.branch.outputs.name }}" \
+            --project-ref "$SUPABASE_PROJECT_REF" -o json > /dev/null 2>&1; then
+            echo "created=false" >> "$GITHUB_OUTPUT"
+          else
+            supabase branches create "${{ steps.branch.outputs.name }}" \
+              --project-ref "$SUPABASE_PROJECT_REF" \
+              --git-branch "$GIT_BRANCH" \
+              --size micro --yes
+            echo "created=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Wait for branch to be ready
+        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        run: |
+          # 20秒間隔 × 30回 = 最大10分待つ（新規作成時のプロビジョニングを想定）
+          for i in $(seq 1 30); do
+            status=$(supabase branches get "${{ steps.branch.outputs.name }}" \
+              --project-ref "$SUPABASE_PROJECT_REF" -o json | jq -r '.status // empty')
+            echo "Branch status: ${status:-unknown} (attempt $i)"
+            case "$status" in
+              ACTIVE_HEALTHY|MIGRATIONS_PASSED|FUNCTIONS_DEPLOYED) exit 0 ;;
+              *FAILED*|*UNHEALTHY*)
+                echo "Branch entered failure status: $status" >&2
+                exit 1
+                ;;
+            esac
+            sleep 20
+          done
+          echo "Branch did not become healthy in time" >&2
+          exit 1
+
+      - name: Load branch credentials
+        id: creds
+        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        run: |
+          supabase branches get "${{ steps.branch.outputs.name }}" \
+            --project-ref "$SUPABASE_PROJECT_REF" -o env > branch.env
+          for key in SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY POSTGRES_URL_NON_POOLING; do
+            if ! grep -q "^${key}=" branch.env; then
+              echo "Missing ${key} in branch credentials. Available keys:" >&2
+              cut -d= -f1 branch.env >&2
+              exit 1
+            fi
+          done
+          # 後続 step 用に GITHUB_ENV へ読み込む（値はログに出さない）
+          while IFS= read -r line; do
+            key=${line%%=*}
+            value=${line#*=}
+            value=${value#\"}; value=${value%\"}
+            echo "::add-mask::$value"
+            echo "BRANCH_${key}=${value}" >> "$GITHUB_ENV"
+          done < branch.env
+          rm branch.env
+
+      - name: Apply migrations
+        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        run: |
+          if [ "${{ steps.create.outputs.created }}" = "true" ]; then
+            supabase db push --db-url "$BRANCH_POSTGRES_URL_NON_POOLING" \
+              --include-all --include-seed --yes
+          else
+            supabase db push --db-url "$BRANCH_POSTGRES_URL_NON_POOLING" \
+              --include-all --yes
+          fi
+
+      # ---------- Vercel 環境変数の設定と再デプロイ ----------
+      # Vercel API のバージョン（v9/v10/v13）はエンドポイントごとに独立しており、
+      # それぞれ公式ドキュメント記載の最新版を使用している
+
+      # upsert のため冪等。作成時に一度失敗しても次の synchronize で回復できるよう毎回実行する
+      - name: Set Vercel branch env vars
+        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        run: |
+          set_env() {
+            local project_id=$1 key=$2 value=$3
+            curl -sf -X POST \
+              "https://api.vercel.com/v10/projects/${project_id}/env?upsert=true&teamId=${VERCEL_TEAM_ID}" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n --arg key "$key" --arg value "$value" --arg branch "$GIT_BRANCH" \
+                '{key: $key, value: $value, type: "encrypted", target: ["preview"], gitBranch: $branch}')" \
+              > /dev/null
+          }
+          for project_id in "$VERCEL_WEB_PROJECT_ID" "$VERCEL_ADMIN_PROJECT_ID"; do
+            set_env "$project_id" NEXT_PUBLIC_SUPABASE_URL "$BRANCH_SUPABASE_URL"
+            set_env "$project_id" NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY "$BRANCH_SUPABASE_ANON_KEY"
+            set_env "$project_id" SUPABASE_URL "$BRANCH_SUPABASE_URL"
+            set_env "$project_id" SUPABASE_SECRET_KEY "$BRANCH_SUPABASE_SERVICE_ROLE_KEY"
+          done
+
+      # 環境変数を設定した後に再デプロイし、Preview がブランチ DB を向くようにする。
+      # Vercel はデプロイ時に環境変数をスナップショットするため、push で並行して走る
+      # git 連携ビルドが env 設定前の値を掴む可能性があり、env 設定後に毎回再デプロイする
+      # （同一ブランチの古いビルドは Vercel の auto job cancelation で整理される）
+      - name: Redeploy Vercel previews
+        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        run: |
+          for project_id in "$VERCEL_WEB_PROJECT_ID" "$VERCEL_ADMIN_PROJECT_ID"; do
+            project_name=$(curl -sf \
+              "https://api.vercel.com/v9/projects/${project_id}?teamId=${VERCEL_TEAM_ID}" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" | jq -r '.name')
+            curl -sf -X POST \
+              "https://api.vercel.com/v13/deployments?teamId=${VERCEL_TEAM_ID}" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n --arg name "$project_name" --arg ref "$GIT_BRANCH" \
+                --argjson repoId "${{ github.event.repository.id }}" \
+                '{name: $name, target: "preview", gitSource: {type: "github", repoId: $repoId, ref: $ref}}')" \
+              > /dev/null || echo "Redeploy request for ${project_name} failed (preview will pick up env vars on next push)"
+          done
