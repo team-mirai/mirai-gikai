@@ -41,6 +41,10 @@ Supabase Branching（preview ブランチ）を PR のライフサイクルに�
 - `VERCEL_TEAM_ID` … Vercel のチーム ID
 - `WEB_VERCEL_PROJECT_ID` / `ADMIN_VERCEL_PROJECT_ID` … 各 Vercel プロジェクトの ID
 
+### 段階的ロールアウト
+
+ワークフローは実行の冒頭で前提条件（Branching が利用可能か・Vercel 系 secrets が設定済みか）をチェックし、未整備の場合は **警告を出して no-op** で成功する。このためワークフロー自体を先にマージし、後から secrets 設定・プラン変更を行っても既存 PR の CI は落ちない。
+
 ### Supabase 側の前提
 
 - staging プロジェクトで **Branching が利用可能なプラン**（Pro 以上）であること

@@ -60,11 +60,31 @@ jobs:
         with:
           version: latest
 
+      # secrets 未設定・Branching 未対応の段階では警告を出して no-op にする
+      # （このワークフローを先にマージし、後から secrets / プランを整備できるようにするため）
+      - name: Check prerequisites
+        id: ready
+        run: |
+          if supabase branches list --project-ref "$SUPABASE_PROJECT_REF" > /dev/null 2>&1; then
+            echo "branching=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "branching=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Supabase Branching が利用できないため（プラン未対応・API障害・secrets未設定）、previewブランチ操作をスキップします"
+          fi
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_WEB_PROJECT_ID" ] && [ -n "$VERCEL_ADMIN_PROJECT_ID" ]; then
+            echo "vercel=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "vercel=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::VERCEL_TOKEN / VERCEL_*_PROJECT_ID が未設定のため、Vercel環境変数の操作をスキップします"
+          fi
+
       # ---------- クリーンアップ: PR クローズ時、または supabase/ 変更が PR から消えたとき ----------
       # 後者は「一度ブランチを作った後に supabase/ 変更が revert された PR」の課金リークを防ぐ
 
       - name: Delete preview branch
-        if: github.event.action == 'closed' || steps.changes.outputs.supabase == 'false'
+        if: >-
+          steps.ready.outputs.branching == 'true' &&
+          (github.event.action == 'closed' || steps.changes.outputs.supabase == 'false')
         run: |
           # ブランチ不在（作成していない PR）は正常系として静かに抜ける。
           # 認証エラー等の判定不能な失敗は課金リークにつながるため明示的に失敗させる
@@ -80,7 +100,9 @@ jobs:
           fi
 
       - name: Delete Vercel branch env vars
-        if: github.event.action == 'closed' || steps.changes.outputs.supabase == 'false'
+        if: >-
+          steps.ready.outputs.vercel == 'true' &&
+          (github.event.action == 'closed' || steps.changes.outputs.supabase == 'false')
         run: |
           # このワークフローが管理する4キーのみ削除し、手動設定されたブランチ別の
           # 環境変数（feature flag 等）には触れない
@@ -106,7 +128,9 @@ jobs:
 
       - name: Create preview branch if absent
         id: create
-        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        if: >-
+          github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
+          steps.ready.outputs.branching == 'true'
         run: |
           if supabase branches get "${{ steps.branch.outputs.name }}" \
             --project-ref "$SUPABASE_PROJECT_REF" -o json > /dev/null 2>&1; then
@@ -120,7 +144,9 @@ jobs:
           fi
 
       - name: Wait for branch to be ready
-        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        if: >-
+          github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
+          steps.ready.outputs.branching == 'true'
         run: |
           # 20秒間隔 × 30回 = 最大10分待つ（新規作成時のプロビジョニングを想定）
           for i in $(seq 1 30); do
@@ -141,7 +167,9 @@ jobs:
 
       - name: Load branch credentials
         id: creds
-        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        if: >-
+          github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
+          steps.ready.outputs.branching == 'true'
         run: |
           supabase branches get "${{ steps.branch.outputs.name }}" \
             --project-ref "$SUPABASE_PROJECT_REF" -o env > branch.env
@@ -163,7 +191,9 @@ jobs:
           rm branch.env
 
       - name: Apply migrations
-        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        if: >-
+          github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
+          steps.ready.outputs.branching == 'true'
         run: |
           if [ "${{ steps.create.outputs.created }}" = "true" ]; then
             supabase db push --db-url "$BRANCH_POSTGRES_URL_NON_POOLING" \
@@ -179,7 +209,9 @@ jobs:
 
       # upsert のため冪等。作成時に一度失敗しても次の synchronize で回復できるよう毎回実行する
       - name: Set Vercel branch env vars
-        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        if: >-
+          github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
+          steps.ready.outputs.branching == 'true' && steps.ready.outputs.vercel == 'true'
         run: |
           set_env() {
             local project_id=$1 key=$2 value=$3
@@ -203,7 +235,9 @@ jobs:
       # git 連携ビルドが env 設定前の値を掴む可能性があり、env 設定後に毎回再デプロイする
       # （同一ブランチの古いビルドは Vercel の auto job cancelation で整理される）
       - name: Redeploy Vercel previews
-        if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
+        if: >-
+          github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
+          steps.ready.outputs.branching == 'true' && steps.ready.outputs.vercel == 'true'
         run: |
           for project_id in "$VERCEL_WEB_PROJECT_ID" "$VERCEL_ADMIN_PROJECT_ID"; do
             project_name=$(curl -sf \
