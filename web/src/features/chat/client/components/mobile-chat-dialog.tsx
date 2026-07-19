@@ -6,6 +6,9 @@ import type { CSSProperties, ReactNode, RefObject } from "react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 
+export const CHAT_PANEL_RESPONSIVE_CLASSES =
+  "md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl";
+
 interface MobileChatDialogProps {
   children: ReactNode;
   disableAutoFocus?: boolean;
@@ -16,6 +19,9 @@ interface MobileChatDialogProps {
   style?: CSSProperties;
 }
 
+/**
+ * モバイル表示のチャットを、背景から隔離されたフォーカス管理付きダイアログとして表示する。
+ */
 export function MobileChatDialog({
   children,
   disableAutoFocus = false,
@@ -41,7 +47,7 @@ export function MobileChatDialog({
         <DialogPrimitive.Content
           aria-describedby={undefined}
           aria-modal="true"
-          className="fixed inset-x-0 bottom-0 z-50 h-[80vh] bg-white shadow-md rounded-t-2xl flex flex-col outline-none md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl"
+          className={`fixed inset-x-0 bottom-0 z-50 h-[80vh] bg-white shadow-md rounded-t-2xl flex flex-col outline-none ${CHAT_PANEL_RESPONSIVE_CLASSES}`}
           style={style}
           onOpenAutoFocus={(event) => {
             event.preventDefault();

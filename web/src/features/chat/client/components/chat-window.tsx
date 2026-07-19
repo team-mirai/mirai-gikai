@@ -18,11 +18,15 @@ import {
   type PromptInputMessage,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
+import { Button } from "@/components/ui/button";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useViewportHeight } from "@/hooks/use-viewport-height";
-import { MobileChatDialog } from "./mobile-chat-dialog";
+import {
+  CHAT_PANEL_RESPONSIVE_CLASSES,
+  MobileChatDialog,
+} from "./mobile-chat-dialog";
 import { SystemMessage } from "./system-message";
 import { UserMessage } from "./user-message";
 
@@ -251,8 +255,10 @@ export function ChatWindow({
               className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
             />
           </PromptInputBody>
-          <button
+          <Button
             type="submit"
+            variant="ghost"
+            size="icon"
             disabled={!input || isResponding}
             className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
           >
@@ -263,7 +269,7 @@ export function ChatWindow({
               height={40}
               className="w-full h-full"
             />
-          </button>
+          </Button>
         </PromptInput>
         <PromptInputError status={status} error={error} />
         {messages.length > 0 && <PromptInputHint />}
@@ -281,7 +287,7 @@ export function ChatWindow({
     return createPortal(
       <section
         aria-label="国会や法案についてAIに質問する"
-        className="fixed inset-x-0 bottom-0 z-50 bg-white shadow-md rounded-t-2xl flex flex-col md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl pc:h-[70vh] xl:right-[calc(calc(100%-1180px)/2)]"
+        className={`fixed inset-x-0 bottom-0 z-50 bg-white shadow-md rounded-t-2xl flex flex-col pc:h-[70vh] xl:right-[calc(calc(100%-1180px)/2)] ${CHAT_PANEL_RESPONSIVE_CLASSES}`}
       >
         {chatPanelContent}
       </section>,
