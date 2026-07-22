@@ -1,15 +1,15 @@
 "use client";
 
-import type { Route } from "next";
 import { ArrowRight } from "lucide-react";
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RestartInterviewButton } from "@/features/interview-session/client/components/restart-interview-button";
-import { NewInterviewButton } from "@/features/interview-session/client/components/new-interview-button";
-import type { LatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import { getInterviewChatLink } from "@/features/interview-config/shared/utils/interview-links";
+import { NewInterviewButton } from "@/features/interview-session/client/components/new-interview-button";
+import { RestartInterviewButton } from "@/features/interview-session/client/components/restart-interview-button";
+import type { LatestInterviewSession } from "@/features/interview-session/server/loaders/get-latest-interview-session";
 import { InterviewConsentModal } from "./interview-consent-modal";
 
 interface InterviewActionButtonsProps {
