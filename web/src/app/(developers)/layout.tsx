@@ -19,7 +19,8 @@ export default function DevelopersGroupLayout({
       <GoogleAnalytics gaId={env.analytics.gaTrackingId ?? ""} />
       <AuthGate />
       <Header />
-      <main className="min-h-dvh bg-mirai-surface-light pt-24">{children}</main>
+      {/* 背景は (main) 配下の開発者向けページ（bg-mirai-surface）と揃える */}
+      <main className="min-h-dvh bg-mirai-surface pt-24">{children}</main>
     </>
   );
 }

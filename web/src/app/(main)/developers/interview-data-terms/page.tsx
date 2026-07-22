@@ -19,12 +19,11 @@ export default function InterviewDataTermsPage() {
   return (
     <LegalPageLayout
       title="みらい議会AIインタビューデータ利用規約"
-      description="みらい議会のAIインタビューデータをオープンデータとして利用するにあたっての条件を定めています。"
       className="pt-24 md:pt-12"
     >
       <Container className="space-y-10">
         <LegalParagraph className="text-right">
-          最終更新日：2026年7月8日
+          最終更新日：2026年7月23日
         </LegalParagraph>
 
         <LegalParagraph>

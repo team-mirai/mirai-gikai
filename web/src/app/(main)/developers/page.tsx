@@ -27,57 +27,46 @@ const links = [
     href: routes.developersOpenDataApi(),
     icon: Database,
     title: "オープンデータAPI",
-    description:
-      "AIインタビューの回答データをオープンデータとして取得できるAPIの利用方法",
     external: false,
   },
   {
     href: routes.interviewDataTerms(),
     icon: ScrollText,
     title: "みらい議会AIインタビューデータ利用規約",
-    description: "オープンデータとして提供するデータの利用条件（CC BY 4.0）",
     external: false,
   },
   {
     href: EXTERNAL_LINKS.GITHUB_REPO,
     icon: Github,
     title: "GitHubリポジトリ",
-    description:
-      "みらい議会のソースコード。IssueやPull Requestでの貢献を歓迎しています",
     external: true,
   },
   {
     href: EXTERNAL_LINKS.FORK_GUIDELINES_NOTE,
     icon: BookOpen,
     title: "自主制作ガイドライン",
-    description: "みらい議会をフォーク・改変して自主制作する際のガイドライン",
     external: true,
   },
 ];
 
 const cardClassName =
-  "group flex items-start gap-4 rounded-xl border border-slate-200 p-5 transition-colors hover:border-primary-accent";
+  "group flex items-center gap-4 rounded-xl border border-slate-200 p-5 transition-colors hover:border-primary-accent";
 
 function LinkCardBody({
   icon: Icon,
   title,
-  description,
   external,
 }: {
   icon: typeof Database;
   title: string;
-  description: string;
   external: boolean;
 }) {
   const Arrow = external ? ArrowUpRight : ArrowRight;
   return (
     <>
-      <Icon className="mt-1 size-6 shrink-0 text-primary-accent" />
-      <div className="flex-1 space-y-1">
-        <p className="font-semibold text-slate-900">{title}</p>
-        <p className="text-sm leading-relaxed text-slate-600">{description}</p>
-      </div>
-      <Arrow className="mt-1 size-5 shrink-0 text-slate-400 transition-colors group-hover:text-primary-accent" />
+      <Icon className="size-6 shrink-0 text-primary-accent" />
+      <p className="flex-1 font-semibold text-slate-900">{title}</p>
+      <Arrow className="size-5 shrink-0 text-slate-400 transition-colors group-hover:text-primary-accent" />
     </>
   );
 }
@@ -91,7 +80,7 @@ export default function DevelopersPage() {
     >
       <Container className="space-y-6">
         <LegalParagraph>
-          みらい議会は、AIインタビューで得られた法案への意見データを公共財と位置づけ、シビックエンジニアや研究機関など第三者が分析できる形で提供することを目指しています。
+          みらい議会では、AIインタビューに寄せられた法案への意見を、誰でも分析・活用できるオープンデータとして公開しています。
         </LegalParagraph>
 
         <div className="flex flex-col gap-4">

@@ -23,7 +23,7 @@ export default function PrivacyPage() {
     >
       <Container className="space-y-8">
         <p className="text-sm text-mirai-text-muted">
-          最終更新日：2026年7月8日
+          最終更新日：2026年7月23日
         </p>
 
         <section className="space-y-4">
