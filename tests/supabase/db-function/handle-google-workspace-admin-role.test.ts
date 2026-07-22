@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { adminClient, cleanupTestUser } from "../utils";
 
 describe("apply_admin_role_if_eligible 関数", () => {

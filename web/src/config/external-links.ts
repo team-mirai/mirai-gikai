@@ -10,4 +10,5 @@ export const EXTERNAL_LINKS = {
   PRIVACY: "https://team-mir.ai/privacy",
   FAQ: "https://team-mirai.notion.site/FAQ-28cf6f56bae180bd84e7f7ae80f806a1",
   FORK_GUIDELINES_NOTE: "https://note.com/team_mirai_jp/n/nc59ec347e8c7",
+  GITHUB_REPO: "https://github.com/team-mirai/mirai-gikai",
 } as const;

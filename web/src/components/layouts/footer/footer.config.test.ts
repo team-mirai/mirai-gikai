@@ -3,12 +3,12 @@ import { routes } from "@/lib/routes";
 import { policyLinks, primaryLinks } from "./footer.config";
 
 describe("footer.config", () => {
-  it("policyLinks に規約3ページへの内部リンクが含まれる", () => {
+  it("policyLinks に規約ページと開発者向けページへの内部リンクが含まれる", () => {
     const hrefs = policyLinks.map((link) => link.href);
 
     expect(hrefs).toContain(routes.terms());
     expect(hrefs).toContain(routes.privacy());
-    expect(hrefs).toContain(routes.interviewDataTerms());
+    expect(hrefs).toContain(routes.developers());
   });
 
   it("内部リンクには external フラグが付かない", () => {
@@ -16,7 +16,7 @@ describe("footer.config", () => {
       routes.home(),
       routes.terms(),
       routes.privacy(),
-      routes.interviewDataTerms(),
+      routes.developers(),
     ]);
 
     for (const link of [...primaryLinks, ...policyLinks]) {
