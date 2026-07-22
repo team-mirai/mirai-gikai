@@ -19,8 +19,8 @@ export default function DevelopersGroupLayout({
       <GoogleAnalytics gaId={env.analytics.gaTrackingId ?? ""} />
       <AuthGate />
       <Header />
-      {/* 背景は (main) 配下の開発者向けページ（bg-mirai-surface）と揃える */}
-      <main className="min-h-dvh bg-mirai-surface pt-24">{children}</main>
+      {/* Team Mirai デザインシステム準拠: 白を基調のキャンバスにする */}
+      <main className="min-h-dvh bg-white pt-24">{children}</main>
     </>
   );
 }
