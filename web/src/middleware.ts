@@ -13,9 +13,18 @@ import {
 } from "./lib/basic-auth";
 import { updateSupabaseSession } from "./lib/supabase/middleware";
 
+/**
+ * 開発用プレビュー（/dev 配下）のルートか判定する。
+ * 単純な startsWith("/dev") だと /developers 等の通常ページまで
+ * 巻き込むため、完全一致か "/dev/" 配下のみを対象にする。
+ */
+export function isDevRoute(pathname: string): boolean {
+  return pathname === "/dev" || pathname.startsWith("/dev/");
+}
+
 export async function middleware(request: NextRequest) {
   // /dev routes: 本番では404、開発ではauthスキップ
-  if (request.nextUrl.pathname.startsWith("/dev")) {
+  if (isDevRoute(request.nextUrl.pathname)) {
     if (process.env.NODE_ENV !== "development") {
       return NextResponse.rewrite(new URL("/not-found", request.url));
     }

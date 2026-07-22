@@ -88,7 +88,7 @@ export default function InterviewDataTermsPage() {
             items={[
               "データ出典：「みらい議会AIインタビュー（チームみらい）」",
               "データ提供元URL：https://gikai.team-mir.ai/",
-              "本規約のURL：https://gikai.team-mir.ai/interview-data-terms",
+              "本規約のURL：https://gikai.team-mir.ai/developers/interview-data-terms",
               {
                 id: "license",
                 content: (

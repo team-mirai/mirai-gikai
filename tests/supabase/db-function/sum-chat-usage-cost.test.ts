@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   adminClient,
-  createTestUser,
   cleanupTestUser,
+  createTestUser,
   type TestUser,
 } from "../utils";
 

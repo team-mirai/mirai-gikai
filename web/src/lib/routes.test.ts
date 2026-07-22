@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { isDevRoute } from "../middleware";
 import { routes } from "./routes";
 
 /**
@@ -74,7 +75,9 @@ describe("routes", () => {
     .filter(
       (r) =>
         !r.startsWith("/api") &&
-        !r.startsWith("/dev") &&
+        // 開発用プレビュー（/dev 完全一致・/dev/ 配下）のみ除外する。
+        // /developers 等の通常ページは対象に含める（判定はmiddlewareと共有）
+        !isDevRoute(r) &&
         !r.startsWith("/preview")
     )
     .map(normalizeAppRoute)
