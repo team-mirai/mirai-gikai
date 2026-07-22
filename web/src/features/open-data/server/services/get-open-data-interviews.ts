@@ -8,6 +8,7 @@ import type {
 } from "../../shared/types/open-data";
 import { encodeCursor, type OpenDataCursor } from "../../shared/utils/cursor";
 import { toOpenDataOpinions } from "../../shared/utils/opinions";
+import { toOpenDataMessage } from "../../shared/utils/to-open-data-message";
 import {
   findMessagesBySessionIds,
   findOpenDataReports,
@@ -36,7 +37,7 @@ export async function getOpenDataInterviews(params: {
   const messagesBySession = new Map<string, OpenDataMessage[]>();
   for (const message of messages) {
     const list = messagesBySession.get(message.interview_session_id) ?? [];
-    list.push({ role: message.role, content: message.content });
+    list.push(toOpenDataMessage(message));
     messagesBySession.set(message.interview_session_id, list);
   }
 
