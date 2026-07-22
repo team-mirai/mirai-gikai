@@ -151,21 +151,20 @@ jobs:
           github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
           steps.ready.outputs.branching == 'true'
         run: |
+          # `branches get` の出力に status フィールドは無い（接続情報のみ）ため、
+          # 後続ステップが実際に必要とする接続情報が取得できることを準備完了とみなす。
           # 20秒間隔 × 30回 = 最大10分待つ（新規作成時のプロビジョニングを想定）
           for i in $(seq 1 30); do
-            status=$(supabase branches get "${{ steps.branch.outputs.name }}" \
-              --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json | jq -r '.status // empty')
-            echo "Branch status: ${status:-unknown} (attempt $i)"
-            case "$status" in
-              ACTIVE_HEALTHY|MIGRATIONS_PASSED|FUNCTIONS_DEPLOYED) exit 0 ;;
-              *FAILED*|*UNHEALTHY*)
-                echo "Branch entered failure status: $status" >&2
-                exit 1
-                ;;
-            esac
+            if supabase branches get "${{ steps.branch.outputs.name }}" \
+              --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o env 2>/dev/null \
+              | grep -q '^POSTGRES_URL_NON_POOLING=.'; then
+              echo "Branch credentials available (attempt $i)"
+              exit 0
+            fi
+            echo "Waiting for branch to be ready (attempt $i)"
             sleep 20
           done
-          echo "Branch did not become healthy in time" >&2
+          echo "Branch did not become ready in time" >&2
           exit 1
 
       - name: Load branch credentials
