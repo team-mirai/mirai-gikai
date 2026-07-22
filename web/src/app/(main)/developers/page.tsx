@@ -23,14 +23,15 @@ const links = [
     href: routes.developersOpenDataApi(),
     icon: Database,
     title: "オープンデータAPI",
-    description: "AIインタビューの回答データを取得できるAPIのリファレンス",
+    description: "AIインタビューの回答データを取得できるAPIのリファレンス。",
     external: false,
   },
   {
     href: routes.interviewDataTerms(),
     icon: ScrollText,
     title: "みらい議会AIインタビューデータ利用規約",
-    description: "オープンデータとして提供されるインタビューデータの利用条件",
+    description:
+      "オープンデータとして提供されるインタビューデータの利用条件。APIで取得したデータを利用・再配布する際にご参照ください。",
     external: false,
   },
   {
@@ -38,14 +39,15 @@ const links = [
     icon: Github,
     title: "GitHubリポジトリ",
     description:
-      "みらい議会のソースコード。IssueやPull Requestでの貢献を歓迎しています",
+      "みらい議会のソースコード。フォークして自由にご活用いただけます。",
     external: true,
   },
   {
     href: EXTERNAL_LINKS.FORK_GUIDELINES_NOTE,
     icon: BookOpen,
     title: "自主制作ガイドライン",
-    description: "みらい議会をフォーク・改変して自主制作する際のガイドライン",
+    description:
+      "フォーク・改変に関するガイドライン。ソースコードをご活用される際や、改変される際にご参照ください。",
     external: true,
   },
 ];
