@@ -8,8 +8,10 @@ import {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { Button } from "@/components/ui/button";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { ChatWindow } from "./chat-window";
 
@@ -45,6 +47,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     const [isCompact, setIsCompact] = useState(false);
     const [showText, setShowText] = useState(true);
     const [openedWithText, setOpenedWithText] = useState(false);
+    const chatTriggerRef = useRef<HTMLButtonElement>(null);
     const pathname = usePathname();
 
     // Chat state をここで管理することで、モーダルが閉じても状態が保持される
@@ -118,8 +121,10 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
               transitionDuration: `${ANIMATION_DURATION.SIZE_TRANSITION}ms`,
             }}
           >
-            <button
+            <Button
+              ref={chatTriggerRef}
               type="button"
+              variant="ghost"
               onClick={() => setIsOpen(true)}
               className={`relative bg-white rounded-[50px] hover:opacity-90 flex items-center w-full py-2 transition-all ease-in-out ${
                 isCompact
@@ -130,6 +135,8 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
                 transitionDuration: `${ANIMATION_DURATION.SIZE_TRANSITION}ms`,
               }}
               aria-label="議案について質問する"
+              aria-haspopup="dialog"
+              aria-expanded={isOpen}
             >
               <span
                 className={`text-mirai-text-placeholder text-sm font-medium leading-[1.5em] tracking-[0.01em] ${
@@ -160,7 +167,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
                   />
                 </div>
               )}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -176,6 +183,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
           }}
           pageContext={pageContext}
           disableAutoFocus={openedWithText}
+          returnFocusRef={chatTriggerRef}
           sessionId={sessionId}
         />
       </>

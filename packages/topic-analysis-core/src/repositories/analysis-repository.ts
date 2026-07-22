@@ -425,6 +425,31 @@ export async function listVersionsByBill(billId: string) {
   return data ?? [];
 }
 
+/**
+ * トピックを個別削除する（Admin 手動操作）。
+ * LLM の誤割当でタイトル・概要と紐づく意見が整合しないトピックを取り除くための操作。
+ * versionId も条件に入れて別 version の同名 topic を誤削除しないようにする。
+ * topic_opinion（割当）は FK ON DELETE CASCADE で自動削除される（意見自体は削除されない）。
+ */
+export async function deleteTopic(
+  topicId: string,
+  versionId: string
+): Promise<void> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("topic")
+    .delete()
+    .eq("id", topicId)
+    .eq("version_id", versionId)
+    .select("id");
+  if (error) {
+    throw new Error(`Failed to delete topic: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error(`Topic not found: ${topicId}`);
+  }
+}
+
 /** version のトピックと割当意見（結果ビュー用）。 */
 export async function getTopicsWithOpinions(versionId: string) {
   const supabase = createAdminClient();

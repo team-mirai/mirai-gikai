@@ -1,8 +1,7 @@
 "use client";
 
-import { X } from "lucide-react";
 import Image from "next/image";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useStickToBottomContext } from "use-stick-to-bottom";
@@ -19,9 +18,15 @@ import {
   type PromptInputMessage,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
+import { Button } from "@/components/ui/button";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useViewportHeight } from "@/hooks/use-viewport-height";
+import {
+  CHAT_PANEL_RESPONSIVE_CLASSES,
+  MobileChatDialog,
+} from "./mobile-chat-dialog";
 import { SystemMessage } from "./system-message";
 import { UserMessage } from "./user-message";
 
@@ -42,6 +47,7 @@ interface ChatWindowProps {
     }>;
   };
   disableAutoFocus?: boolean;
+  returnFocusRef: RefObject<HTMLElement | null>;
   sessionId: string;
 }
 
@@ -161,12 +167,14 @@ export function ChatWindow({
   onClose,
   pageContext,
   disableAutoFocus = false,
+  returnFocusRef,
   sessionId,
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const { messages, sendMessage, status, error } = chatState;
   const isDesktop = useIsDesktop();
+  const isPc = useMediaQuery("(min-width: 1000px)");
   const viewportHeight = useViewportHeight();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -175,13 +183,6 @@ export function ChatWindow({
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  // チャットが開かれたときにinputにフォーカス（disableAutoFocusがfalseの場合のみ）
-  useEffect(() => {
-    if (isOpen && textareaRef.current && !disableAutoFocus) {
-      textareaRef.current?.focus();
-    }
-  }, [isOpen, disableAutoFocus]);
 
   // Auto-resize textarea based on content
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -217,94 +218,61 @@ export function ChatWindow({
     setInput("");
   };
 
-  const chatContent = (
+  const chatPanelContent = (
     <>
-      {/* オーバーレイ（1400px未満でのみ表示） */}
-      {isOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity cursor-default pc:hidden"
-          onClick={onClose}
-          aria-label="モーダルを閉じる"
-        />
-      )}
+      {/* メッセージエリア（スクロール可能） */}
+      <Conversation className="flex-1 min-h-0">
+        <ConversationContent className="p-0 flex flex-col gap-3 pc:pt-6 pb-2 px-6">
+          <ChatMessages
+            billContext={billContext}
+            hasInterviewConfig={hasInterviewConfig}
+            difficultyLevel={difficultyLevel}
+            messages={messages}
+            sendMessage={sendMessage}
+            status={status}
+            pageContext={pageContext}
+            sessionId={sessionId}
+          />
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
 
-      {/* チャットウィンドウ */}
-      <div
-        // xlサイズでは、横幅1180px（メイン + チャット）の中央寄せにする
-        className={`fixed inset-x-0 bottom-0 z-50
-          bg-white shadow-md rounded-t-2xl flex flex-col
-          md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl
-					pc:visible pc:opacity-100 h-[80vh] pc:h-[70vh]
-          xl:right-[calc(calc(100%-1180px)/2)]
-					${isOpen ? "visible opacity-100" : "invisible opacity-0 pc:visible pc:opacity-100"}
-				`}
-        style={
-          viewportHeight && !isDesktop
-            ? { maxHeight: `${viewportHeight}px` }
-            : undefined
-        }
-      >
-        <button
-          type="button"
-          className="pc:hidden self-end p-2 m-2 hover:bg-gray-100 rounded-full"
-          onClick={onClose}
-          aria-label="モーダルを閉じる"
+      {/* 入力エリア（固定下部） */}
+      <div className="px-6 pb-4 pt-2">
+        <PromptInput
+          onSubmit={handleSubmit}
+          className="flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
         >
-          <X className="h-5 w-5" />
-        </button>
-        {/* メッセージエリア（スクロール可能） */}
-        <Conversation className="flex-1 min-h-0">
-          <ConversationContent className="p-0 flex flex-col gap-3 pc:pt-6 pb-2 px-6">
-            <ChatMessages
-              billContext={billContext}
-              hasInterviewConfig={hasInterviewConfig}
-              difficultyLevel={difficultyLevel}
-              messages={messages}
-              sendMessage={sendMessage}
-              status={status}
-              pageContext={pageContext}
-              sessionId={sessionId}
+          <PromptInputBody className="flex-1">
+            <PromptInputTextarea
+              ref={textareaRef}
+              onChange={handleInputChange}
+              value={input}
+              placeholder="わからないことをAIに質問する"
+              rows={1}
+              submitOnEnter={isDesktop}
+              // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
+              className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
             />
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
-
-        {/* 入力エリア（固定下部） */}
-        <div className="px-6 pb-4 pt-2">
-          <PromptInput
-            onSubmit={handleSubmit}
-            className="flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
+          </PromptInputBody>
+          <Button
+            type="submit"
+            variant="ghost"
+            size="icon"
+            disabled={!input || isResponding}
+            className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
           >
-            <PromptInputBody className="flex-1">
-              <PromptInputTextarea
-                ref={textareaRef}
-                onChange={handleInputChange}
-                value={input}
-                placeholder="わからないことをAIに質問する"
-                rows={1}
-                submitOnEnter={isDesktop}
-                // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
-                className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
-              />
-            </PromptInputBody>
-            <button
-              type="submit"
-              disabled={!input || isResponding}
-              className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
-            >
-              <Image
-                src="/icons/send-button-icon.svg"
-                alt="送信"
-                width={40}
-                height={40}
-                className="w-full h-full"
-              />
-            </button>
-          </PromptInput>
-          <PromptInputError status={status} error={error} />
-          {messages.length > 0 && <PromptInputHint />}
-        </div>
+            <Image
+              src="/icons/send-button-icon.svg"
+              alt="送信"
+              width={40}
+              height={40}
+              className="w-full h-full"
+            />
+          </Button>
+        </PromptInput>
+        <PromptInputError status={status} error={error} />
+        {messages.length > 0 && <PromptInputHint />}
       </div>
     </>
   );
@@ -314,6 +282,33 @@ export function ChatWindow({
     return null;
   }
 
-  // チャットのストリーミング表示がルビ機能と競合して表示がおかしくなるため、body直下に移動してルビ機能の影響を受けないようにする
-  return createPortal(chatContent, document.body);
+  // PCでは常設の補助領域、モバイルでは背景を操作不能にするモーダルとして扱う
+  if (isPc) {
+    return createPortal(
+      <section
+        aria-label="国会や法案についてAIに質問する"
+        className={`fixed inset-x-0 bottom-0 z-50 bg-white shadow-md rounded-t-2xl flex flex-col pc:h-[70vh] xl:right-[calc(calc(100%-1180px)/2)] ${CHAT_PANEL_RESPONSIVE_CLASSES}`}
+      >
+        {chatPanelContent}
+      </section>,
+      document.body
+    );
+  }
+
+  return (
+    <MobileChatDialog
+      disableAutoFocus={disableAutoFocus}
+      initialFocusRef={textareaRef}
+      isOpen={isOpen}
+      onClose={onClose}
+      returnFocusRef={returnFocusRef}
+      style={
+        viewportHeight && !isDesktop
+          ? { maxHeight: `${viewportHeight}px` }
+          : undefined
+      }
+    >
+      {chatPanelContent}
+    </MobileChatDialog>
+  );
 }
