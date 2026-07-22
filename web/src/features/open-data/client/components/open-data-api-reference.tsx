@@ -56,6 +56,11 @@ export function OpenDataApiReference() {
                Scalarに伝える（(developers) レイアウトの pt-24 = 6rem と揃える） */
             --scalar-custom-header-height: 6rem;
           }
+          /* 開いた直後にサイドバーのSearchと本文の上端が揃うよう、
+             イントロセクションの上余白（既定48px）を詰める */
+          .scalar-api-reference .introduction-section {
+            padding-top: 12px;
+          }
           /* イントロ右カラムの Server / Client Libraries カードは冗長なため非表示 */
           .scalar-api-reference .scalar-reference-intro-server,
           .scalar-api-reference .scalar-reference-intro-clients {
