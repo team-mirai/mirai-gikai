@@ -21,7 +21,10 @@ jobs:
     environment: staging
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      # ブランチ管理 API は親プロジェクト（main ブランチ）の ref に対して呼ぶ必要がある。
+      # 既存の SUPABASE_PROJECT_REF は staging「ブランチ」の ref（deploy.yml の link 用）
+      # のため、ここでは使わないこと（ブランチ ref に branches API を呼ぶと 403 になる）
+      SUPABASE_MAIN_PROJECT_REF: ${{ secrets.SUPABASE_MAIN_PROJECT_REF }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
       VERCEL_WEB_PROJECT_ID: ${{ secrets.WEB_VERCEL_PROJECT_ID }}
@@ -65,7 +68,7 @@ jobs:
       - name: Check prerequisites
         id: ready
         run: |
-          if supabase branches list --project-ref "$SUPABASE_PROJECT_REF" > /dev/null 2>&1; then
+          if supabase branches list --project-ref "$SUPABASE_MAIN_PROJECT_REF" > /dev/null 2>&1; then
             echo "branching=true" >> "$GITHUB_OUTPUT"
           else
             echo "branching=false" >> "$GITHUB_OUTPUT"
@@ -89,9 +92,9 @@ jobs:
           # ブランチ不在（作成していない PR）は正常系として静かに抜ける。
           # 認証エラー等の判定不能な失敗は課金リークにつながるため明示的に失敗させる
           if output=$(supabase branches get "${{ steps.branch.outputs.name }}" \
-            --project-ref "$SUPABASE_PROJECT_REF" -o json 2>&1); then
+            --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json 2>&1); then
             supabase branches delete "${{ steps.branch.outputs.name }}" \
-              --project-ref "$SUPABASE_PROJECT_REF" --yes
+              --project-ref "$SUPABASE_MAIN_PROJECT_REF" --yes
           elif echo "$output" | grep -qiE 'not.?found|404'; then
             echo "No preview branch to delete."
           else
@@ -133,11 +136,11 @@ jobs:
           steps.ready.outputs.branching == 'true'
         run: |
           if supabase branches get "${{ steps.branch.outputs.name }}" \
-            --project-ref "$SUPABASE_PROJECT_REF" -o json > /dev/null 2>&1; then
+            --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json > /dev/null 2>&1; then
             echo "created=false" >> "$GITHUB_OUTPUT"
           else
             supabase branches create "${{ steps.branch.outputs.name }}" \
-              --project-ref "$SUPABASE_PROJECT_REF" \
+              --project-ref "$SUPABASE_MAIN_PROJECT_REF" \
               --git-branch "$GIT_BRANCH" \
               --size micro --yes
             echo "created=true" >> "$GITHUB_OUTPUT"
@@ -151,7 +154,7 @@ jobs:
           # 20秒間隔 × 30回 = 最大10分待つ（新規作成時のプロビジョニングを想定）
           for i in $(seq 1 30); do
             status=$(supabase branches get "${{ steps.branch.outputs.name }}" \
-              --project-ref "$SUPABASE_PROJECT_REF" -o json | jq -r '.status // empty')
+              --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json | jq -r '.status // empty')
             echo "Branch status: ${status:-unknown} (attempt $i)"
             case "$status" in
               ACTIVE_HEALTHY|MIGRATIONS_PASSED|FUNCTIONS_DEPLOYED) exit 0 ;;
@@ -172,7 +175,7 @@ jobs:
           steps.ready.outputs.branching == 'true'
         run: |
           supabase branches get "${{ steps.branch.outputs.name }}" \
-            --project-ref "$SUPABASE_PROJECT_REF" -o env > branch.env
+            --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o env > branch.env
           for key in SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY POSTGRES_URL_NON_POOLING; do
             if ! grep -q "^${key}=" branch.env; then
               echo "Missing ${key} in branch credentials. Available keys:" >&2

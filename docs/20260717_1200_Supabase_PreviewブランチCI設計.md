@@ -33,10 +33,10 @@ Supabase Branching（preview ブランチ）を PR のライフサイクルに�
 既存（deploy.yml と共用）:
 
 - `SUPABASE_ACCESS_TOKEN`
-- `SUPABASE_PROJECT_REF` … staging プロジェクト。preview ブランチはこのプロジェクト配下に作られる
 
 新規追加が必要:
 
+- `SUPABASE_MAIN_PROJECT_REF` … Supabase の**親プロジェクト（main ブランチ）の ref**。preview ブランチはこのプロジェクト配下（staging ブランチの兄弟）に作られる。既存の `SUPABASE_PROJECT_REF` は staging **ブランチ**の ref（deploy.yml の `supabase link` 用）であり、ブランチ ref に branches API を呼ぶと 403 になるため流用できない
 - `VERCEL_TOKEN` … Vercel の API トークン（web/admin 両プロジェクトにアクセスできるスコープ）
 - `VERCEL_TEAM_ID` … Vercel のチーム ID
 - `WEB_VERCEL_PROJECT_ID` / `ADMIN_VERCEL_PROJECT_ID` … 各 Vercel プロジェクトの ID
@@ -47,7 +47,8 @@ Supabase Branching（preview ブランチ）を PR のライフサイクルに�
 
 ### Supabase 側の前提
 
-- staging プロジェクトで **Branching が利用可能なプラン**（Pro 以上）であること
+- 本プロジェクトは「1つの Supabase プロジェクト + persistent ブランチ `staging`（develop に対応）」という Branching 前提の構成で運用されており、**Branching は有効化済み**（追加のプラン作業は不要）
+- preview ブランチは親プロジェクト配下に `staging` ブランチと並ぶ形で作られる（設定は main = 本番から複製、データは引き継がない）
 - 課金: preview ブランチは micro で **約 $0.01344/時**（≒ $0.32/日）。Compute Credits・Spend Cap の対象外。PR クローズで削除されるため、open な PR の数だけ課金される
 
 ## 環境変数のマッピング
