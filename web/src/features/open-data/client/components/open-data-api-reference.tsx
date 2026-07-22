@@ -70,6 +70,14 @@ export function OpenDataApiReference() {
           .scalar-api-reference .scalar-mcp-layer {
             display: none;
           }
+          /* サイドバー先頭の "Introduction" ラベルを日本語化 */
+          .scalar-api-reference aside ul > li:first-of-type > div > button [class*="button-label"] {
+            font-size: 0;
+          }
+          .scalar-api-reference aside ul > li:first-of-type > div > button [class*="button-label"]::after {
+            content: "はじめに";
+            font-size: var(--scalar-small, 13px);
+          }
           /* "Test Request" ボタンのラベルを日本語化。
              ボタンはflexなので ::after をflexアイテムとして並べ、元ラベルは非表示にする */
           .scalar-api-reference .show-api-client-button > span:first-of-type {
