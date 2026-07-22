@@ -151,20 +151,27 @@ jobs:
           github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
           steps.ready.outputs.branching == 'true'
         run: |
-          # `branches get` の出力に status フィールドは無い（接続情報のみ）ため、
-          # 後続ステップが実際に必要とする接続情報が取得できることを準備完了とみなす。
-          # 20秒間隔 × 30回 = 最大10分待つ（新規作成時のプロビジョニングを想定）
+          # 20秒間隔 × 30回 = 最大10分待つ（新規作成時のプロビジョニングを想定）。
+          # 注意: `branches get` の JSON は接続情報のみで status を含まないため、
+          # status は `branches list` からブランチ名で引く（PR #934 の初回実運用で判明）
           for i in $(seq 1 30); do
-            if supabase branches get "${{ steps.branch.outputs.name }}" \
-              --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o env 2>/dev/null \
-              | grep -q '^POSTGRES_URL_NON_POOLING=.'; then
-              echo "Branch credentials available (attempt $i)"
-              exit 0
-            fi
-            echo "Waiting for branch to be ready (attempt $i)"
+            status=$(supabase branches list \
+              --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json \
+              | jq -r --arg name "${{ steps.branch.outputs.name }}" \
+                'try ([.[] | select(.name == $name)][0].status) // empty')
+            echo "Branch status: ${status:-unknown} (attempt $i)"
+            case "$status" in
+              ACTIVE_HEALTHY|MIGRATIONS_PASSED|FUNCTIONS_DEPLOYED) exit 0 ;;
+              *FAILED*|*UNHEALTHY*)
+                echo "Branch entered failure status: $status" >&2
+                exit 1
+                ;;
+            esac
             sleep 20
           done
-          echo "Branch did not become ready in time" >&2
+          # 調査用にブランチ一覧の生出力を残してから失敗させる
+          supabase branches list --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json || true
+          echo "Branch did not become healthy in time" >&2
           exit 1
 
       - name: Load branch credentials
@@ -175,7 +182,7 @@ jobs:
         run: |
           supabase branches get "${{ steps.branch.outputs.name }}" \
             --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o env > branch.env
-          for key in SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY POSTGRES_URL_NON_POOLING; do
+          for key in SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY POSTGRES_URL; do
             if ! grep -q "^${key}=" branch.env; then
               echo "Missing ${key} in branch credentials. Available keys:" >&2
               cut -d= -f1 branch.env >&2
@@ -197,11 +204,13 @@ jobs:
           github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
           steps.ready.outputs.branching == 'true'
         run: |
+          # POSTGRES_URL_NON_POOLING（直接接続）は IPv6 必須で GitHub Actions の
+          # ランナーから到達できないため、IPv4 対応の pooler 経由（POSTGRES_URL）を使う
           if [ "${{ steps.create.outputs.created }}" = "true" ]; then
-            supabase db push --db-url "$BRANCH_POSTGRES_URL_NON_POOLING" \
+            supabase db push --db-url "$BRANCH_POSTGRES_URL" \
               --include-all --include-seed --yes
           else
-            supabase db push --db-url "$BRANCH_POSTGRES_URL_NON_POOLING" \
+            supabase db push --db-url "$BRANCH_POSTGRES_URL" \
               --include-all --yes
           fi
 
