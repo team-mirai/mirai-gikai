@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 
 interface LegalPageLayoutProps {
   title: string;
+  /** Team Mirai デザインシステムの節見出しに使う英字ラベル（例: "Terms of Service"） */
+  enLabel?: string;
   description?: string;
   className?: string;
   children: ReactNode;
@@ -11,27 +13,35 @@ interface LegalPageLayoutProps {
 
 export function LegalPageLayout({
   title,
+  enLabel,
   description,
   className,
   children,
 }: LegalPageLayoutProps) {
   return (
-    <section className={cn("py-12", className)}>
-      <Container className="space-y-10">
-        <header className="space-y-3 border-b border-slate-200/70 pb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            {title}
-          </h1>
-          {description ? (
-            <p className="text-base leading-relaxed text-slate-600">
-              {description}
-            </p>
-          ) : null}
-        </header>
+    <div className="min-h-dvh bg-white">
+      <section className={cn("py-12", className)}>
+        <Container className="space-y-10">
+          <header className="space-y-2 border-b border-neutral-200 pb-6">
+            {enLabel ? (
+              <p className="font-lexend text-sm font-semibold tracking-[0.14em] text-mirai-brand-teal-hover">
+                {enLabel}
+              </p>
+            ) : null}
+            <h1 className="text-2xl font-bold tracking-wider text-black sm:text-3xl">
+              {title}
+            </h1>
+            {description ? (
+              <p className="pt-1 text-[15px] leading-loose tracking-wide text-mirai-text-subtle">
+                {description}
+              </p>
+            ) : null}
+          </header>
 
-        <div className="space-y-8 text-slate-600">{children}</div>
-      </Container>
-    </section>
+          <div className="space-y-8 text-mirai-text">{children}</div>
+        </Container>
+      </section>
+    </div>
   );
 }
 
@@ -47,7 +57,7 @@ export function LegalSectionTitle({
   return (
     <h2
       className={cn(
-        "text-lg font-semibold tracking-tight text-slate-900 sm:text-xl",
+        "text-lg font-bold tracking-[0.04em] text-black sm:text-xl",
         className
       )}
     >
@@ -68,7 +78,7 @@ export function LegalSubSectionTitle({
   return (
     <h3
       className={cn(
-        "text-base font-semibold tracking-tight text-slate-800",
+        "text-base font-bold tracking-[0.04em] text-mirai-text",
         className
       )}
     >
@@ -86,7 +96,7 @@ export function LegalParagraph({ children, className }: LegalParagraphProps) {
   return (
     <p
       className={cn(
-        "text-sm leading-relaxed text-slate-600 sm:text-base",
+        "text-sm leading-[1.8] tracking-[0.04em] text-mirai-text sm:text-[15px]",
         className
       )}
     >
@@ -109,7 +119,7 @@ export function LegalList({ items, ordered, className }: LegalListProps) {
   return (
     <ListTag
       className={cn(
-        "space-y-1 text-sm leading-relaxed text-slate-600 sm:text-base",
+        "space-y-1 text-sm leading-[1.8] tracking-[0.04em] text-mirai-text sm:text-[15px]",
         ordered ? "list-decimal pl-5" : "list-disc pl-5",
         className
       )}

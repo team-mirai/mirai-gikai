@@ -19,6 +19,7 @@ export default function InterviewDataTermsPage() {
   return (
     <LegalPageLayout
       title="みらい議会AIインタビューデータ利用規約"
+      enLabel="Data Terms"
       className="pt-24 md:pt-12"
     >
       <Container className="space-y-10">

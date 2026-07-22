@@ -23,24 +23,29 @@ const links = [
     href: routes.developersOpenDataApi(),
     icon: Database,
     title: "オープンデータAPI",
+    description: "AIインタビューの回答データを取得できるAPIのリファレンス",
     external: false,
   },
   {
     href: routes.interviewDataTerms(),
     icon: ScrollText,
     title: "みらい議会AIインタビューデータ利用規約",
+    description: "オープンデータとして提供されるインタビューデータの利用条件",
     external: false,
   },
   {
     href: EXTERNAL_LINKS.GITHUB_REPO,
     icon: Github,
     title: "GitHubリポジトリ",
+    description:
+      "みらい議会のソースコード。IssueやPull Requestでの貢献を歓迎しています",
     external: true,
   },
   {
     href: EXTERNAL_LINKS.FORK_GUIDELINES_NOTE,
     icon: BookOpen,
     title: "自主制作ガイドライン",
+    description: "みらい議会をフォーク・改変して自主制作する際のガイドライン",
     external: true,
   },
 ];
@@ -54,19 +59,26 @@ const rowClassName =
 function LinkRowBody({
   icon: Icon,
   title,
+  description,
   external,
 }: {
   icon: typeof Database;
   title: string;
+  description: string;
   external: boolean;
 }) {
   const Chevron = external ? ArrowUpRight : ChevronRight;
   return (
     <>
       <Icon className="size-5 shrink-0 text-mirai-brand-teal-hover" />
-      <p className="flex-1 text-[15px] font-medium leading-relaxed tracking-wide text-black transition-colors duration-150 group-hover:text-mirai-brand-teal-hover">
-        {title}
-      </p>
+      <div className="flex-1 space-y-0.5">
+        <p className="text-[15px] font-medium leading-relaxed tracking-wide text-black transition-colors duration-150 group-hover:text-mirai-brand-teal-hover">
+          {title}
+        </p>
+        <p className="text-[13px] leading-relaxed tracking-wide text-mirai-text-subtle">
+          {description}
+        </p>
+      </div>
       <Chevron className="size-5 shrink-0 text-mirai-brand-teal-hover" />
     </>
   );

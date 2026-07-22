@@ -19,6 +19,7 @@ export default function TermsPage() {
   return (
     <LegalPageLayout
       title="利用規約"
+      enLabel="Terms of Service"
       description="みらい議会をご利用いただくにあたっての基本的なルールを定めています。"
       className="pt-24 md:pt-12"
     >
