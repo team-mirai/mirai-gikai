@@ -53,7 +53,7 @@ describe("selectUnextractedOpinions", () => {
 });
 
 describe("buildIncrementalPlan", () => {
-  it("既存にe・新規にnのlocal_idを振り、既存割当を引き継ぎ、未割当を返す", () => {
+  it("既存にeA..・新規にnA..のlocal_idを振り、既存割当を引き継ぎ、未割当を返す", () => {
     const existing = [
       { title: "既存1", description: "d1", opinion_ids: ["o1", "o2"] },
       { title: "既存2", description: "d2", opinion_ids: ["o3"] },
@@ -70,14 +70,14 @@ describe("buildIncrementalPlan", () => {
     const plan = buildIncrementalPlan(existing, acceptedNew, allTargets);
 
     expect(plan.finalTopics).toEqual([
-      { title: "既存1", description: "d1", local_id: "e0" },
-      { title: "既存2", description: "d2", local_id: "e1" },
-      { title: "新規1", description: "n1", local_id: "n0" },
+      { title: "既存1", description: "d1", local_id: "eA" },
+      { title: "既存2", description: "d2", local_id: "eB" },
+      { title: "新規1", description: "n1", local_id: "nA" },
     ]);
     expect(plan.carriedAssignments).toEqual([
-      { opinion_id: "o1", topic_local_id: "e0" },
-      { opinion_id: "o2", topic_local_id: "e0" },
-      { opinion_id: "o3", topic_local_id: "e1" },
+      { opinion_id: "o1", topic_local_id: "eA" },
+      { opinion_id: "o2", topic_local_id: "eA" },
+      { opinion_id: "o3", topic_local_id: "eB" },
     ]);
     expect(plan.unassignedOpinions.map((o) => o.opinion_id)).toEqual([
       "o4",
@@ -92,7 +92,7 @@ describe("buildIncrementalPlan", () => {
     // o2 は対象外（allTargets に無い）→ 引き継がない
     const plan = buildIncrementalPlan(existing, [], [op("o1", "x")]);
     expect(plan.carriedAssignments).toEqual([
-      { opinion_id: "o1", topic_local_id: "e0" },
+      { opinion_id: "o1", topic_local_id: "eA" },
     ]);
     expect(plan.unassignedOpinions).toEqual([]);
   });
@@ -104,7 +104,7 @@ describe("buildIncrementalPlan", () => {
     ];
     const plan = buildIncrementalPlan(existing, [], [op("o1", "x")]);
     expect(plan.carriedAssignments).toEqual([
-      { opinion_id: "o1", topic_local_id: "e0" },
+      { opinion_id: "o1", topic_local_id: "eA" },
     ]);
     expect(plan.unassignedOpinions).toEqual([]);
   });

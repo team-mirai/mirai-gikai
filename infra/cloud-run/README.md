@@ -11,13 +11,15 @@
 
 | リソース | 内容 |
 | --- | --- |
-| API | run / artifactregistry / secretmanager を有効化 |
+| API | run / artifactregistry / secretmanager / cloudscheduler を有効化 |
 | Artifact Registry | docker リポジトリ（既定 `topic-analysis`） |
 | Secret Manager | `SUPABASE_URL` / `SUPABASE_SECRET_KEY` / `AI_GATEWAY_API_KEY` に **環境サフィックス**を付けたもの（例 `SUPABASE_URL_STAGING`）。**コンテナのみ**・値は別途 |
 | SA: runtime | Job 実行用。secret 読み取り権限 |
-| SA: invoker | admin が `jobs:run` を呼ぶ用。run.invoker + runtime への actAs |
+| SA: invoker | admin が `jobs:run` を呼ぶ用。custom invoker role + runtime への actAs |
+| SA: scheduler | Cloud Scheduler が `jobs:run` を呼ぶ用。custom invoker role + runtime への actAs（**鍵は発行しない**） |
 | SA: deployer | CI（`deploy_worker.yml`）用。AR writer + run.developer + actAs |
 | Cloud Run Job | `topic-analysis-worker-<DEPLOY_ENV>`（batch 向け設定）。**無ければ作成**、以後の image 更新は CI |
+| Cloud Scheduler | `topic-analysis-cron-<DEPLOY_ENV>`。日次（既定 6:00 JST）で Job を `--mode=analyze-all`（全議案・増分）で起動。**作成 or 設定更新**（冪等） |
 
 ## 環境（staging / production）の分離
 
@@ -77,11 +79,22 @@ CONFIG_FILE=infra/cloud-run/config.env.production bash infra/cloud-run/provision
 - **SA キーの発行**は既定で無効。`GENERATE_KEYS=1` のときだけ発行し、Vercel/GitHub へ登録後に
   ローカルの鍵ファイル（`*-key.json`・gitignore 済み）を必ず削除する。
 
+## 定期実行（Cloud Scheduler）
+
+日次（既定 6:00 JST）で Cloud Run Job を `--mode=analyze-all`（全議案・増分）で起動する
+Cloud Scheduler ジョブを作成する。スケジュールは `SCHEDULER_CRON` / `SCHEDULER_TIMEZONE`、
+停止したい環境は `SCHEDULER_PAUSED=1` で調整する（config.example.env 参照）。
+設計の背景・動作確認・運用は
+[docs/20260715_1043_トピック分析スケジューラー化.md](../../docs/20260715_1043_トピック分析スケジューラー化.md)
+を参照。
+
 ## 冪等性
 
 - 既存リソースは `describe` で検知して skip（API 有効化・IAM binding は元来冪等）。
 - Cloud Run Job は「無ければ作成」のみ。**イメージ差し替えは CI（`deploy_worker.yml`）**が担うため、
   既存 Job には触れない。
+- Cloud Scheduler は provision.sh が設定のオーナー。既存なら **設定を更新**し、
+  有効/一時停止も `SCHEDULER_PAUSED` に揃える。
 
 ## 関連
 

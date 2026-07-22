@@ -20,6 +20,7 @@ import { judgeNewTopics } from "./services/judge-new-topics";
 import { mergeTopics } from "./services/merge-topics";
 import { ANALYSIS_STEPS, PROMPT_VERSION, TOPIC_MODEL } from "./shared/constants";
 import type { FinalTopicWithId, TopicDraft } from "./shared/types";
+import { toAlphaLocalId } from "./utils/alpha-local-id";
 import { buildSortedTopicsAndPairs } from "./utils/build-sorted-topics";
 import {
   buildIncrementalPlan,
@@ -61,7 +62,7 @@ async function executeMerge(versionId: string): Promise<void> {
   const merged = await mergeTopics(progress.candidates ?? [], progress.bill);
   const finalTopics: FinalTopicWithId[] = merged.map((t, i) => ({
     ...t,
-    local_id: `t${i}`,
+    local_id: toAlphaLocalId("t", i),
   }));
 
   await saveProgress(versionId, { ...progress, final_topics: finalTopics });
