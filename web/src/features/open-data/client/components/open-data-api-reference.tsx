@@ -16,12 +16,13 @@ export function OpenDataApiReference() {
         hideDarkModeToggle: true,
         hideClientButton: true,
         showDeveloperTools: "never",
-        // Team Mirai デザインシステム準拠: 白キャンバス + ミントのサイドバー + teal アクセント
+        // Team Mirai デザインシステム準拠: 白キャンバス + teal アクセント。
+        // ミントは面積を絞り、サイドバーの1面のみに使う（パネル類はニュートラル）
         customCss: `
           .scalar-api-reference {
             --scalar-background-1: var(--color-white);
-            --scalar-background-2: var(--color-mirai-brand-mint);
-            --scalar-background-3: var(--color-mirai-surface-gray);
+            --scalar-background-2: var(--color-mirai-surface-gray);
+            --scalar-background-3: var(--color-mirai-surface-tag);
             --scalar-sidebar-background-1: var(--color-mirai-brand-mint);
             --scalar-color-accent: var(--color-mirai-brand-teal-hover);
           }
