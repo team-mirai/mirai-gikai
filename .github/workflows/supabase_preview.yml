@@ -151,10 +151,14 @@ jobs:
           github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
           steps.ready.outputs.branching == 'true'
         run: |
-          # 20秒間隔 × 30回 = 最大10分待つ（新規作成時のプロビジョニングを想定）
+          # 20秒間隔 × 30回 = 最大10分待つ（新規作成時のプロビジョニングを想定）。
+          # 注意: `branches get` の JSON は接続情報のみで status を含まないため、
+          # status は `branches list` からブランチ名で引く（PR #934 の初回実運用で判明）
           for i in $(seq 1 30); do
-            status=$(supabase branches get "${{ steps.branch.outputs.name }}" \
-              --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json | jq -r '.status // empty')
+            status=$(supabase branches list \
+              --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json \
+              | jq -r --arg name "${{ steps.branch.outputs.name }}" \
+                'try ([.[] | select(.name == $name)][0].status) // empty')
             echo "Branch status: ${status:-unknown} (attempt $i)"
             case "$status" in
               ACTIVE_HEALTHY|MIGRATIONS_PASSED|FUNCTIONS_DEPLOYED) exit 0 ;;
@@ -165,6 +169,8 @@ jobs:
             esac
             sleep 20
           done
+          # 調査用にブランチ一覧の生出力を残してから失敗させる
+          supabase branches list --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o json || true
           echo "Branch did not become healthy in time" >&2
           exit 1
 
