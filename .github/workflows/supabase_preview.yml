@@ -182,7 +182,7 @@ jobs:
         run: |
           supabase branches get "${{ steps.branch.outputs.name }}" \
             --project-ref "$SUPABASE_MAIN_PROJECT_REF" -o env > branch.env
-          for key in SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY POSTGRES_URL_NON_POOLING; do
+          for key in SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY POSTGRES_URL; do
             if ! grep -q "^${key}=" branch.env; then
               echo "Missing ${key} in branch credentials. Available keys:" >&2
               cut -d= -f1 branch.env >&2
@@ -204,11 +204,13 @@ jobs:
           github.event.action != 'closed' && steps.changes.outputs.supabase == 'true' &&
           steps.ready.outputs.branching == 'true'
         run: |
+          # POSTGRES_URL_NON_POOLING（直接接続）は IPv6 必須で GitHub Actions の
+          # ランナーから到達できないため、IPv4 対応の pooler 経由（POSTGRES_URL）を使う
           if [ "${{ steps.create.outputs.created }}" = "true" ]; then
-            supabase db push --db-url "$BRANCH_POSTGRES_URL_NON_POOLING" \
+            supabase db push --db-url "$BRANCH_POSTGRES_URL" \
               --include-all --include-seed --yes
           else
-            supabase db push --db-url "$BRANCH_POSTGRES_URL_NON_POOLING" \
+            supabase db push --db-url "$BRANCH_POSTGRES_URL" \
               --include-all --yes
           fi
 

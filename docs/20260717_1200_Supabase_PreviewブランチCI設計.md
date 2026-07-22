@@ -66,6 +66,7 @@ Supabase Branching（preview ブランチ）を PR のライフサイクルに�
 
 - **初回実運用時に要確認**: `branches get -o env` の出力キーはワークフロー内で検証しており、想定と異なる場合は明示的に失敗する（Available keys がログに出る）。`branches get / delete` がブランチ名（ID ではなく）を受け付けることは初回実運用（PR #934）で確認済み
 - **`branches get` の JSON に status は含まれない**: `branches get -o json` が返すのは接続情報のみ。ブランチの status（`ACTIVE_HEALTHY` 等）は `branches list -o json` からブランチ名で引く必要がある（初回実運用で待機ループが `unknown` のままタイムアウトした原因。修正済み）
+- **マイグレーション適用は pooler 経由（`POSTGRES_URL`）**: 直接接続の `POSTGRES_URL_NON_POOLING` は IPv6 必須で GitHub Actions のランナーから到達できない（`network is unreachable` で失敗。初回実運用で判明し修正済み）
 - **Google 認証は動かない**: ブランチ DB には `supabase config push`（Google OAuth のリダイレクト URL 等）を適用していないため、認証が必要な画面の検証は staging 共有の Preview と同様の制約が残る
 - **synchronize 時のレース**: push 直後は Vercel のビルドとマイグレーション適用が並行するため、ビルド完了直後の一瞬だけ新スキーマ未適用の可能性がある（リロードで解消）
 - **データは seed のみ**: ブランチ DB は本番/staging のデータを引き継がず、`supabase/seed.sql` で初期化される（`--with-data` オプションは将来検討）
