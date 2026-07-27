@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   type BasicAuthConfig,
-  isPageSpeedInsightsUA,
   parseBasicAuth,
   validateBasicAuthHeader,
 } from "./basic-auth";
@@ -42,30 +41,6 @@ describe("parseBasicAuth", () => {
 
   it("returns null for invalid base64 input", () => {
     expect(parseBasicAuth("Basic !!!invalid-base64!!!")).toBeNull();
-  });
-});
-
-describe("isPageSpeedInsightsUA", () => {
-  it("should return true for Chrome-Lighthouse UA", () => {
-    expect(isPageSpeedInsightsUA("Mozilla/5.0 Chrome-Lighthouse")).toBe(true);
-  });
-
-  it("should return true for PageSpeed Insights UA", () => {
-    expect(isPageSpeedInsightsUA("Mozilla/5.0 PageSpeed Insights")).toBe(true);
-  });
-
-  it("should return true for Google Page Speed Insights UA", () => {
-    expect(isPageSpeedInsightsUA("Google Page Speed Insights")).toBe(true);
-  });
-
-  it("should return false for normal browser UA", () => {
-    expect(
-      isPageSpeedInsightsUA("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)")
-    ).toBe(false);
-  });
-
-  it("should return false for empty string", () => {
-    expect(isPageSpeedInsightsUA("")).toBe(false);
   });
 });
 

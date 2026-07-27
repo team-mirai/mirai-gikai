@@ -8,7 +8,6 @@ import {
 import {
   createUnauthorizedResponse,
   getBasicAuthConfig,
-  isPageSpeedInsights,
   validateBasicAuth,
 } from "./lib/basic-auth";
 import { updateSupabaseSession } from "./lib/supabase/middleware";
@@ -37,11 +36,6 @@ export async function middleware(request: NextRequest) {
 
   // HTML ナビゲーションだけ認証（画像やJSON, css/js, fetch等は通す）
   if (!_isHtmlRequest(request)) return response;
-
-  // PageSpeed Insightsからのアクセスは認証をスキップ
-  if (isPageSpeedInsights(request)) {
-    return response;
-  }
 
   // Basic認証の検証
   if (validateBasicAuth(request, authConfig)) {
