@@ -8,6 +8,7 @@ import {
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { jsonResult } from "../utils/json-result";
+import { untrustedJsonResult } from "../utils/untrusted-json-result";
 
 /**
  * AIインタビュー内容・トピック分析の**内部向け**読み取りツール群。
@@ -20,6 +21,11 @@ import { jsonResult } from "../utils/json-result";
  * 取得対象には未公開・未モデレーションのレポートや会話ログ（自由記述）が含まれ得る。
  * ただし user_id・email・有識者登録情報（expert_registrations）等の**直接識別子は
  * 返却型に含めない**。web 公開ページの「公開（§8 固定）」表示とは別経路。
+ *
+ * 返す本文（立場説明・要約・会話ログ・意見・トピック）はいずれも公開サイトの匿名利用者の
+ * 自由記述に由来する。同じ MCP サーバーには議案コンテンツやスタンスを書き換えるツールも
+ * 登録されているため、本文中の「〜を更新して」がエージェントへの指示と解釈されないよう、
+ * データ本体は `untrustedJsonResult` で境界マーカー付きで返す（値自体は加工しない）。
  */
 
 /** 全ツール共通の任意フィルタ。未指定の項目は絞り込まない（＝全件対象）。 */
@@ -61,7 +67,7 @@ export function registerTopicAnalysisTools(server: McpServer): void {
       if (!analysis) {
         return jsonResult({ status: "not_ready", bill_id: billId });
       }
-      return jsonResult(analysis);
+      return untrustedJsonResult(analysis);
     }
   );
 
@@ -81,7 +87,7 @@ export function registerTopicAnalysisTools(server: McpServer): void {
       if (respondents === null) {
         return jsonResult({ status: "below_threshold", bill_id: billId });
       }
-      return jsonResult(respondents);
+      return untrustedJsonResult(respondents);
     }
   );
 
@@ -104,7 +110,7 @@ export function registerTopicAnalysisTools(server: McpServer): void {
       if (!detail) {
         return jsonResult({ status: "not_found", report_id: reportId });
       }
-      return jsonResult(detail);
+      return untrustedJsonResult(detail);
     }
   );
 }
