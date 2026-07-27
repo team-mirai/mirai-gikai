@@ -544,6 +544,7 @@ export type Database = {
       }
       interview_report: {
         Row: {
+          admin_unpublished_at: string | null
           content_richness: Json | null
           created_at: string
           id: string
@@ -567,6 +568,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_unpublished_at?: string | null
           content_richness?: Json | null
           created_at?: string
           id?: string
@@ -592,6 +594,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_unpublished_at?: string | null
           content_richness?: Json | null
           created_at?: string
           id?: string

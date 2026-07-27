@@ -25,6 +25,28 @@ export function isReportAutoPublishEligible({
   );
 }
 
+export type UserSettingAutoPublishInput = AutoPublishReportInput & {
+  isPublicByAdmin: boolean;
+  adminUnpublishedAt: string | null;
+};
+
+/**
+ * ユーザーの公開設定変更に伴って is_public_by_admin を引き上げてよいかを判定する。
+ * 管理者が明示的に非公開にしたレポート（admin_unpublished_at あり）は、
+ * 自動公開条件を満たしていてもユーザー操作では再公開しない。
+ */
+export function shouldAutoPublishOnUserSettingChange({
+  isPublicByAdmin,
+  adminUnpublishedAt,
+  ...eligibility
+}: UserSettingAutoPublishInput): boolean {
+  return (
+    !isPublicByAdmin &&
+    adminUnpublishedAt === null &&
+    isReportAutoPublishEligible(eligibility)
+  );
+}
+
 export function shouldDisplayPublicReports(publicReportCount: number): boolean {
   return publicReportCount >= MIN_PUBLIC_REPORTS_FOR_DISPLAY;
 }
