@@ -27,7 +27,7 @@ export async function runSingleContentRichnessScoring(
     report.interview_session_id
   );
 
-  const prompt = buildContentRichnessPrompt({
+  const { system, user } = buildContentRichnessPrompt({
     summary: report.summary,
     opinions: parseOpinions(report.opinions),
     roleDescription: report.role_description,
@@ -37,7 +37,8 @@ export async function runSingleContentRichnessScoring(
   const { object } = await generateObject({
     model: DEFAULT_INTERVIEW_CHAT_MODEL,
     schema: contentRichnessResultSchema,
-    prompt,
+    system,
+    messages: [{ role: "user", content: user }],
   });
 
   await updateContentRichness(reportId, object);

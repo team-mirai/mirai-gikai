@@ -1,3 +1,10 @@
+import {
+  buildUntrustedContentGuardInstructions,
+  createUntrustedContentNonce,
+  type SplitPrompt,
+  wrapUntrustedContent,
+} from "../prompt-safety/untrusted-content";
+
 type Message = {
   role: string;
   content: string;
@@ -8,14 +15,23 @@ type BuildModerationPromptParams = {
   opinions: Array<{ title: string; content: string }> | null;
   roleDescription: string | null;
   messages: Message[];
+  /**
+   * 区切り行に使うナンス。省略時は呼び出しごとにランダム生成する
+   * （テストで固定するための注入点）
+   */
+  nonce?: string;
 };
 
 /**
  * モデレーション評価用のプロンプトを構築する
+ *
+ * 評価基準（指示チャネル）は system に、利用者が書いた評価対象テキスト
+ * （データチャネル）は user に分離して返す。
  */
 export function buildModerationPrompt(
   params: BuildModerationPromptParams
-): string {
+): SplitPrompt {
+  const nonce = params.nonce ?? createUntrustedContentNonce();
   const parts: string[] = [];
 
   if (params.messages.length > 0) {
@@ -43,12 +59,11 @@ export function buildModerationPrompt(
   const contentToEvaluate =
     parts.length > 0 ? parts.join("\n\n") : "（内容なし）";
 
-  return `あなたはAIインタビューで収集された市民意見のモデレーション評価を行う専門家です。
+  const system = `あなたはAIインタビューで収集された市民意見のモデレーション評価を行う専門家です。
 
-以下のインタビューの会話ログおよびレポート内容を評価し、公開に適さない内容が含まれていないか確認してください。
+user メッセージで渡されるインタビューの会話ログおよびレポート内容を評価し、公開に適さない内容が含まれていないか確認してください。
 
-## 評価対象コンテンツ
-${contentToEvaluate}
+${buildUntrustedContentGuardInstructions(nonce)}
 
 ## 評価カテゴリ
 以下のカテゴリに該当する内容がないか確認してください：
@@ -77,4 +92,9 @@ ${contentToEvaluate}
 - 政策批判や行政への改善要望は、個人攻撃でない限り「適切」です
 - 感情的な表現があっても、それが政策への真摯な意見であれば低スコア（適切寄り）にしてください
 - このモデレーションは市民の多様な意見を尊重しつつ、明らかに不適切な内容のみを検出することが目的です`;
+
+  return {
+    system,
+    user: wrapUntrustedContent(contentToEvaluate, nonce),
+  };
 }

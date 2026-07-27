@@ -34,13 +34,14 @@ export async function evaluateModerationScore(
   input: ModerationInput,
   deps?: ModerationDeps
 ): Promise<ModerationOutput> {
-  const prompt = buildModerationPrompt(input);
+  const { system, user } = buildModerationPrompt(input);
   const model = deps?.model ?? DEFAULT_INTERVIEW_CHAT_MODEL;
 
   const { object } = await generateObject({
     model,
     schema: moderationResultSchema,
-    prompt,
+    system,
+    messages: [{ role: "user", content: user }],
   });
 
   const status = determineModerationStatus(object.score);
