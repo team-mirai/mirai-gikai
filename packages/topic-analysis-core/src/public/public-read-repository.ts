@@ -199,6 +199,9 @@ export async function findRespondentRows(
 /**
  * web 公開ページ用: 公開（管理者公開 × ユーザー公開）のレポートのみ取得する。
  * 挙動は従来どおり（PUBLIC_REPORT_FILTER 固定）。
+ *
+ * k-匿名性ゲート（公開レポート >= 20 件）は適用しない生データ取得のため、
+ * 公開経路からは必ず `getPublicBillRespondents` を経由すること。
  */
 export async function findPublicBillRespondentRows(
   billId: string
