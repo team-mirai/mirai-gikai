@@ -24,7 +24,7 @@ export default function InterviewDataTermsPage() {
     >
       <Container className="space-y-10">
         <LegalParagraph className="text-right">
-          最終更新日：2026年7月23日
+          最終更新日：2026年7月29日
         </LegalParagraph>
 
         <LegalParagraph>
@@ -56,6 +56,9 @@ export default function InterviewDataTermsPage() {
           <LegalParagraph>
             CC BY
             4.0による許諾は、著作権および著作隣接権を対象とするものであり、回答者のプライバシーに関する権利その他ライセンスの対象外の権利について許諾するものではありません。本データの利用にあたっては、次条に定める事項を遵守しなければなりません。
+          </LegalParagraph>
+          <LegalParagraph>
+            本データを継続的に利用する利用者は、同ライセンスの適用の対象から除外されたデータの利用を継続してはならないものとします。
           </LegalParagraph>
         </section>
 
@@ -136,7 +139,7 @@ export default function InterviewDataTermsPage() {
         <section className="space-y-4">
           <LegalSectionTitle>第8条（本データの提供停止）</LegalSectionTitle>
           <LegalParagraph>
-            当組織は、ユーザーへの事前通知なく、本データの提供内容の変更、提供範囲の縮小、または提供の停止を行うことができるものとし、それにより生じた損害について一切の責任を負いません。
+            当組織は、利用者への事前通知なく、本データの提供内容の変更、提供範囲の縮小、または提供の停止を行うことができるものとし、それにより生じた損害について一切の責任を負いません。
           </LegalParagraph>
         </section>
 
