@@ -1,4 +1,4 @@
-import { createAdminClient } from "@mirai-gikai/supabase";
+import { createAdminClient, Database } from "@mirai-gikai/supabase";
 import type {
   BillContext,
   ProgressData,
@@ -7,6 +7,9 @@ import type {
 } from "../shared/types";
 
 type VersionStatus = "pending" | "running" | "completed" | "failed";
+
+type TopicAnalysisVersionUpdate =
+  Database["public"]["Tables"]["topic_analysis_version"]["Update"];
 
 /**
  * §8 フィルタ後の分析対象意見を取得する。
@@ -30,7 +33,7 @@ const TARGET_OPINIONS_SELECT = `id, opinion_index, title, content, contextual_qu
        )`;
 
 export async function fetchTargetOpinions(
-  billId: string
+  billId: string,
 ): Promise<TargetOpinion[]> {
   const supabase = createAdminClient();
   const all: TargetOpinion[] = [];
@@ -49,7 +52,7 @@ export async function fetchTargetOpinions(
       .eq("interview_report.moderation_status", "ok")
       .eq(
         "interview_report.interview_sessions.interview_configs.bill_id",
-        billId
+        billId,
       )
       .order("interview_report_id", { ascending: true })
       .order("opinion_index", { ascending: true })
@@ -58,7 +61,7 @@ export async function fetchTargetOpinions(
     if (cursor) {
       // (report_id, opinion_index) > (cursor) をタプル比較で表現する。
       query = query.or(
-        `interview_report_id.gt.${cursor.reportId},and(interview_report_id.eq.${cursor.reportId},opinion_index.gt.${cursor.opinionIndex})`
+        `interview_report_id.gt.${cursor.reportId},and(interview_report_id.eq.${cursor.reportId},opinion_index.gt.${cursor.opinionIndex})`,
       );
     }
 
@@ -103,7 +106,7 @@ export async function fetchTargetOpinions(
  * DB 関数 mark_opinions_extracted で単一トランザクション一括更新する（部分更新を残さない）。
  */
 export async function markOpinionsExtracted(
-  opinionIds: string[]
+  opinionIds: string[],
 ): Promise<void> {
   if (opinionIds.length === 0) return;
   const supabase = createAdminClient();
@@ -180,7 +183,7 @@ export async function createVersion(
   billId: string,
   trigger: "manual" | "cron",
   model: string,
-  promptVersion: string
+  promptVersion: string,
 ) {
   const supabase = createAdminClient();
   const { data: last, error: lastError } = await supabase
@@ -223,16 +226,27 @@ export async function createVersion(
 export async function updateVersionStatus(
   versionId: string,
   status: VersionStatus,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<void> {
   const supabase = createAdminClient();
-  const patch: Record<string, unknown> = { status };
-  if (status === "running") patch.started_at = new Date().toISOString();
-  if (errorMessage !== undefined) patch.error_message = errorMessage;
+
+  const patch: TopicAnalysisVersionUpdate = {
+    status,
+  };
+
+  if (status === "running") {
+    patch.started_at = new Date().toISOString();
+  }
+
+  if (errorMessage !== undefined) {
+    patch.error_message = errorMessage;
+  }
+
   const { error } = await supabase
     .from("topic_analysis_version")
     .update(patch)
     .eq("id", versionId);
+
   if (error) {
     throw new Error(`Failed to update version status: ${error.message}`);
   }
@@ -240,7 +254,7 @@ export async function updateVersionStatus(
 
 export async function updateVersionStep(
   versionId: string,
-  step: string
+  step: string,
 ): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase
@@ -254,7 +268,7 @@ export async function updateVersionStep(
 
 export async function saveProgress(
   versionId: string,
-  progress: ProgressData
+  progress: ProgressData,
 ): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase
@@ -290,7 +304,7 @@ export async function loadProgress(versionId: string): Promise<ProgressData> {
 export async function saveTopicsAndAssignments(
   versionId: string,
   sortedTopics: TopicDraft[],
-  assignments: Array<{ opinion_id: string; topic_index: number }>
+  assignments: Array<{ opinion_id: string; topic_index: number }>,
 ): Promise<void> {
   const supabase = createAdminClient();
 
@@ -304,7 +318,7 @@ export async function saveTopicsAndAssignments(
         title: t.title,
         description: t.description,
         sort_order: index,
-      }))
+      })),
     )
     .select("id, sort_order");
   if (topicError) {
@@ -340,7 +354,7 @@ export async function saveTopicsAndAssignments(
 /** 完了処理（status=completed, current_step=done, 件数・時刻を記録）。 */
 export async function finalizeVersion(
   versionId: string,
-  sourceOpinionCount: number
+  sourceOpinionCount: number,
 ): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase
@@ -377,7 +391,7 @@ export async function publishVersion(versionId: string): Promise<void> {
 /** 公開/非公開を切り替える（Admin 手動操作・§7）。 */
 export async function setVersionPublished(
   versionId: string,
-  published: boolean
+  published: boolean,
 ): Promise<void> {
   if (published) {
     await publishVersion(versionId);
@@ -399,7 +413,7 @@ export async function getVersionStatus(versionId: string) {
   const { data, error } = await supabase
     .from("topic_analysis_version")
     .select(
-      "id, bill_id, version, status, current_step, source_opinion_count, error_message, started_at, completed_at"
+      "id, bill_id, version, status, current_step, source_opinion_count, error_message, started_at, completed_at",
     )
     .eq("id", versionId)
     .single();
@@ -415,7 +429,7 @@ export async function listVersionsByBill(billId: string) {
   const { data, error } = await supabase
     .from("topic_analysis_version")
     .select(
-      "id, version, status, is_published, current_step, source_opinion_count, created_at, completed_at"
+      "id, version, status, is_published, current_step, source_opinion_count, created_at, completed_at",
     )
     .eq("bill_id", billId)
     .order("version", { ascending: false });
@@ -459,7 +473,7 @@ export async function getTopicsWithOpinions(versionId: string) {
       `id, title, description, sort_order,
        topic_opinion(
          interview_opinion(id, title, content, contextual_quote, bill_sentiment, richness)
-       )`
+       )`,
     )
     .eq("version_id", versionId)
     .order("sort_order", { ascending: true });

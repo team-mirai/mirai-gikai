@@ -236,6 +236,7 @@ export const WebPreviewConsole = ({
                   log.level === "warn" && "text-yellow-600",
                   log.level === "log" && "text-foreground"
                 )}
+                // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
                 key={`${log.timestamp.getTime()}-${index}`}
               >
                 <span className="text-muted-foreground">

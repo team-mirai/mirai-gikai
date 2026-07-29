@@ -55,6 +55,7 @@ export function TranscriptViewer({
 
         return (
           <li
+            // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
             key={`${idx}-${t.role}`}
             className={`rounded-md border p-3 ${baseClass} ${highlightClass}`}
           >
@@ -75,6 +76,7 @@ export function TranscriptViewer({
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {t.quick_replies.map((qr, qrIdx) => (
                   <span
+                    // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
                     key={`${qrIdx}-${qr}`}
                     className="inline-flex items-center rounded-full border bg-background px-2 py-0.5 text-xs text-muted-foreground"
                   >

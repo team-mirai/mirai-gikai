@@ -5,6 +5,8 @@ export type TopicAnalysisVersion =
   Database["public"]["Tables"]["topic_analysis_versions"]["Row"];
 export type TopicAnalysisVersionInsert =
   Database["public"]["Tables"]["topic_analysis_versions"]["Insert"];
+export type TopicAnalysisVersionUpdate =
+  Database["public"]["Tables"]["topic_analysis_versions"]["Update"];
 export type TopicAnalysisTopic =
   Database["public"]["Tables"]["topic_analysis_topics"]["Row"];
 export type TopicAnalysisTopicInsert =

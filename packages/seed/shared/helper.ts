@@ -6,7 +6,7 @@ export type AdminClient = ReturnType<typeof createAdminClient>;
 export function createAdminClient() {
   return createClient<Database>(
     process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
+    process.env.SUPABASE_SECRET_KEY!,
   );
 }
 
@@ -29,10 +29,7 @@ export async function clearAllData(supabase: AdminClient) {
   console.log("🧹 Clearing existing data...");
 
   for (const table of TABLES_TO_CLEAR) {
-    await supabase
-      .from(table)
-      .delete()
-      .neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from(table).delete().gte("created_at", "1900-01-01");
   }
 
   console.log("✅ Cleared existing data");

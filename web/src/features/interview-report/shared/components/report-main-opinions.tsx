@@ -24,6 +24,7 @@ export function ReportMainOpinions({
       <div className="flex flex-col gap-4">
         {opinions.map((opinion, index) => (
           <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
             key={`${index}-${opinion.title.slice(0, 16)}`}
             className="flex flex-col gap-3 rounded-2xl bg-white px-4 py-5"
           >

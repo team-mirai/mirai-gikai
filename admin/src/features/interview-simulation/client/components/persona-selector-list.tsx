@@ -123,6 +123,9 @@ export function PersonaSelectorList({
             // 再マウントが走って Input のフォーカスが外れるので、index のみで固定。
             // 並べ替え UI を入れるときは slot に stable id を持たせる。
             <PersonaSlotCard
+              /* biome-ignore lint/suspicious/noArrayIndexKey: key に可変値（stanceHint/roleHint）を含めると入力のたびに
+              再マウントが走って Input のフォーカスが外れるので、index のみで固定。
+              並べ替え UI を入れるときは slot に stable id を持たせる。 */
               key={`slot-${index}-${slot.kind}${slot.kind === "report" ? `-${slot.reportId}` : ""}`}
               index={index}
               slot={slot}

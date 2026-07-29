@@ -21,12 +21,12 @@
     "postinstall": "npx simple-git-hooks"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.11",
-    "@supabase/supabase-js": "^2.49.4",
-    "dotenv-cli": "^7.4.2",
+    "@biomejs/biome": "^2.5.1",
+    "@supabase/supabase-js": "^2.108.2",
+    "dotenv-cli": "^11.0.0",
     "lint-staged": "^15.5.2",
     "simple-git-hooks": "^2.13.1",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.6"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
@@ -34,5 +34,5 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "pnpm run lint:fix"
   },
-  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
+  "packageManager": "pnpm@11.9.0"
 }

@@ -53,11 +53,14 @@
     "server-only": "^0.0.1"
   },
   "peerDependencies": {
-    "zod": "^4.0.0"
+    "zod": "^4.4.0"
   },
   "devDependencies": {
     "typescript": "^5.6.2",
     "vitest": "^3.2.4",
-    "zod": "^4.1.12"
+    "zod": "^4.4.3"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

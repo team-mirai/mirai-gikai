@@ -10,12 +10,15 @@
   },
   "dependencies": {
     "@mirai-gikai/supabase": "workspace:*",
-    "@supabase/supabase-js": "^2.57.0",
-    "csv-parse": "^6.1.0"
+    "@supabase/supabase-js": "^2.108.2",
+    "csv-parse": "^6.2.1"
   },
   "devDependencies": {
-    "@types/node": "^22.5.5",
-    "tsx": "^4.19.1",
-    "typescript": "^5.0.0"
+    "@types/node": "^24.13.2",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

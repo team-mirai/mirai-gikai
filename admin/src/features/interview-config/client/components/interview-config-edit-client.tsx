@@ -277,7 +277,8 @@ function AiQuestionsPreview({
           <div className="space-y-3">
             {questions.map((question, index) => (
               <Card
-                key={`preview-${index}-${question.question?.slice(0, 10) ?? ""}`}
+                // biome-ignore lint/suspicious/noArrayIndexKey: index以外のユニークなキーはない
+                key={`preview-${question.question ?? question.follow_up_guide ?? question.quick_replies?.join(", ") ?? "unnamed"}-${index}`}
               >
                 <CardContent className="py-3">
                   <div className="space-y-1">
