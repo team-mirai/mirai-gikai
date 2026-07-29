@@ -1,6 +1,8 @@
 "use client";
 
 import Script from "next/script";
+import { sendFuriganaStateEvent } from "@/lib/analytics/preference-state-events";
+import { useOnPageView } from "@/lib/analytics/use-on-page-view";
 import { rubyfulClient } from "./index";
 import "./styles.css";
 
@@ -18,6 +20,14 @@ declare global {
 }
 
 export function RubyfulInitializer() {
+  // レイアウトに常時マウントされるこのコンポーネントで、
+  // 現在のふりがな表示設定をページ表示のたびにGAへ送る
+  // (RubyToggleはPopoverContent内にありポップオーバーを
+  //  開くまでマウントされないため、送信元には適さない)
+  useOnPageView(() => {
+    sendFuriganaStateEvent(rubyfulClient.getIsEnabledFromStorage());
+  });
+
   return (
     <Script
       src="https://rubyful-v2.s3.ap-northeast-1.amazonaws.com/v2/rubyful.js?t=20250507022654"

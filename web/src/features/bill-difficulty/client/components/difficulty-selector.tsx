@@ -3,8 +3,6 @@
 import type { CSSProperties } from "react";
 import { useId, useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { sendDifficultyStateEvent } from "@/lib/analytics/preference-state-events";
-import { useOnPageView } from "@/lib/analytics/use-on-page-view";
 import { setDifficultyLevel } from "../../server/actions/set-difficulty-level";
 import type { DifficultyLevelEnum } from "../../shared/types";
 import {
@@ -34,11 +32,6 @@ export function DifficultySelector({
 
   // ページロード時にスクロール位置を復元
   useRestoreScrollFromBottom(maintainScrollFromBottom ?? false);
-
-  // 保存済み(サーバー確定)の難易度設定を、ページ表示のたびにGAへ送る。
-  // 操作直後の楽観的なselectedLevelではなくcurrentLevelを使うのは、
-  // setDifficultyLevelが失敗してロールバックされた値を送らないため。
-  useOnPageView(() => sendDifficultyStateEvent(currentLevel));
 
   const handleToggle = async (checked: boolean) => {
     const newLevel = checked ? "hard" : "normal";

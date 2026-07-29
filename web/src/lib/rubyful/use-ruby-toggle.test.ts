@@ -3,12 +3,6 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useRubyToggle } from "./use-ruby-toggle";
 
-const sendGAEventMock = vi.hoisted(() => vi.fn());
-
-vi.mock("@next/third-parties/google", () => ({
-  sendGAEvent: sendGAEventMock,
-}));
-
 describe("useRubyToggle", () => {
   const originalLocation = window.location;
 
@@ -18,7 +12,6 @@ describe("useRubyToggle", () => {
       writable: true,
     });
     localStorage.clear();
-    sendGAEventMock.mockClear();
   });
 
   afterEach(() => {
@@ -82,14 +75,5 @@ describe("useRubyToggle", () => {
     expect(localStorage.getItem("rubyful-enabled")).toBe("true");
 
     document.body.innerHTML = "";
-  });
-
-  it("マウント時にふりがな表示の現在値をGAへ送る", () => {
-    localStorage.setItem("rubyful-enabled", "true");
-    renderHook(() => useRubyToggle());
-
-    expect(sendGAEventMock).toHaveBeenCalledWith("event", "furigana_state", {
-      enabled: true,
-    });
   });
 });
