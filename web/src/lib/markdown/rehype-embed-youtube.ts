@@ -1,4 +1,4 @@
-import type { Element, Root } from "hast";
+import type { Element, ElementContent, Root } from "hast";
 import { visit } from "unist-util-visit";
 
 /**
@@ -21,7 +21,7 @@ function extractYouTubeId(url: string): string | null {
 }
 
 /**
- * テキストノードからYouTube URLを探してビデオIDを返す
+ * テキストノードから行頭のYouTube URLを探してビデオIDを返す
  */
 function findYouTubeIdInText(text: string): string | null {
   for (const line of text.split("\n")) {
@@ -38,15 +38,43 @@ function findYouTubeIdInText(text: string): string | null {
 }
 
 /**
- * リンク要素からYouTube URLを探してビデオIDを返す
- *
- * remark-gfmのautolink literalによって裸のURLが<a>要素に変換されるため、
- * テキストノードだけを見ていると埋め込みが成立しなくなる。
- * 表示テキストがhrefと一致するもの（＝裸のURL由来）だけを対象にして、
- * 明示的に書かれた[ラベル](URL)形式のリンクは従来どおりリンクのまま残す。
+ * 空白だけのテキストノードか
  */
-function findYouTubeIdInLink(node: Element): string | null {
-  if (node.tagName !== "a") {
+function isBlankText(node: ElementContent): boolean {
+  return node.type === "text" && node.value.trim() === "";
+}
+
+/**
+ * リンク要素が行頭にある裸のURLか
+ *
+ * remark-gfmのautolink literalは裸のURLを<a>要素に変換するため、
+ * テキストノードだけを見ていると埋め込みが成立しなくなる。
+ * ただし段落をiframeで置き換える以上、周囲の文字を巻き添えで消さないよう、
+ * 「行頭にある」「表示テキストがhrefと一致する」ものだけを対象にする。
+ * 例えば「解説: <URL>」はリンクのまま残り、「解説:」が失われない。
+ */
+function isBareUrlAtLineStart(
+  children: ElementContent[],
+  index: number
+): boolean {
+  for (let i = index - 1; i >= 0; i--) {
+    const previous = children[i];
+    if (isBlankText(previous)) {
+      continue;
+    }
+    // 直前が改行なら行頭とみなす（remarkBreaksがbr要素を挟む）
+    return previous.type === "element" && previous.tagName === "br";
+  }
+
+  // 先行する要素が無ければ段落の先頭＝行頭
+  return true;
+}
+
+/**
+ * リンク要素からYouTube URLを探してビデオIDを返す
+ */
+function findYouTubeIdInLink(node: ElementContent): string | null {
+  if (node.type !== "element" || node.tagName !== "a") {
     return null;
   }
 
@@ -55,6 +83,8 @@ function findYouTubeIdInLink(node: Element): string | null {
     return null;
   }
 
+  // 表示テキストがhrefと一致するもの（＝裸のURL由来）だけを対象にする。
+  // 明示的に書かれた[ラベル](URL)形式のリンクは従来どおりリンクのまま残す。
   const [child] = node.children;
   if (node.children.length !== 1 || child.type !== "text") {
     return null;
@@ -75,12 +105,12 @@ export function rehypeEmbedYouTube() {
     visit(tree, "element", (node: Element, index, parent) => {
       if (node.tagName === "p" && parent && typeof index === "number") {
         // p要素の中のテキストノードとリンク要素をチェック
-        for (const child of node.children) {
+        for (const [childIndex, child] of node.children.entries()) {
           let youtubeId: string | null = null;
 
           if (child.type === "text") {
             youtubeId = findYouTubeIdInText(child.value);
-          } else if (child.type === "element") {
+          } else if (isBareUrlAtLineStart(node.children, childIndex)) {
             youtubeId = findYouTubeIdInLink(child);
           }
 

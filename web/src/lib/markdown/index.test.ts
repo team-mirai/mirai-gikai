@@ -96,4 +96,24 @@ https://www.youtube.com/watch?v=abc123`;
     expect(html).toContain("動画はこちら");
     expect(html).not.toContain("youtube.com/embed/");
   });
+  it("should keep surrounding text when a YouTube URL is not at the start of a line", async () => {
+    // 段落をiframeで置き換えるため、行頭でないURLを埋め込むと前の文字が失われる
+    const markdown = "解説: https://www.youtube.com/watch?v=abc123";
+
+    const result = await parseMarkdown(markdown);
+    const html = renderToStaticMarkup(result);
+
+    expect(html).toContain("解説:");
+    expect(html).not.toContain("youtube.com/embed/");
+  });
+
+  it("should embed a YouTube URL that starts a line after a soft break", async () => {
+    const markdown = `参考動画
+https://www.youtube.com/watch?v=abc123`;
+
+    const result = await parseMarkdown(markdown);
+    const html = renderToStaticMarkup(result);
+
+    expect(html).toContain('src="https://www.youtube.com/embed/abc123"');
+  });
 });
