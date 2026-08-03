@@ -3,7 +3,7 @@ import "server-only";
 import { buildModerationPrompt } from "@mirai-gikai/shared/moderation/build-prompt";
 import { moderationResultSchema } from "@mirai-gikai/shared/moderation/schemas";
 import { generateObject } from "ai";
-import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import { DEFAULT_MODERATION_MODEL } from "@/lib/ai/models";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
 import {
   findInterviewMessagesBySessionId,
@@ -46,7 +46,7 @@ export async function runSingleModerationScoring(
   });
 
   const { object } = await generateObject({
-    model: DEFAULT_INTERVIEW_CHAT_MODEL,
+    model: DEFAULT_MODERATION_MODEL,
     schema: moderationResultSchema,
     prompt,
   });

@@ -3,7 +3,7 @@ import "server-only";
 import { buildContentRichnessPrompt } from "@mirai-gikai/shared/content-richness/build-prompt";
 import { contentRichnessResultSchema } from "@mirai-gikai/shared/content-richness/schemas";
 import { generateObject } from "ai";
-import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import { DEFAULT_CONTENT_RICHNESS_MODEL } from "@/lib/ai/models";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
 import {
   findInterviewMessagesBySessionId,
@@ -35,7 +35,7 @@ export async function runSingleContentRichnessScoring(
   });
 
   const { object } = await generateObject({
-    model: DEFAULT_INTERVIEW_CHAT_MODEL,
+    model: DEFAULT_CONTENT_RICHNESS_MODEL,
     schema: contentRichnessResultSchema,
     prompt,
   });

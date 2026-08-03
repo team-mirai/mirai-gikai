@@ -1,4 +1,4 @@
-import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@mirai-gikai/shared/ai/models";
+import { AI_MODELS, DEFAULT_OPINION_BACKFILL_MODEL } from "@mirai-gikai/shared/ai/models";
 
 // ── 分析（analyze）──
 /** Phase1 一次抽出のバッチサイズ（§A.3: 30〜50件/バッチ） */
@@ -37,5 +37,5 @@ export const STALE_RUNNING_MS = 70 * 60_000;
 export const OPINION_BACKFILL_CHUNK_SIZE = 30;
 /** チャンク内のLLM並列実行数 */
 export const OPINION_BACKFILL_CONCURRENCY = 30;
-/** 再抽出に使うモデル（本番のレポート生成と同じ） */
-export const OPINION_BACKFILL_MODEL = DEFAULT_INTERVIEW_CHAT_MODEL;
+/** 再抽出に使うモデル */
+export const OPINION_BACKFILL_MODEL = DEFAULT_OPINION_BACKFILL_MODEL;
