@@ -116,4 +116,13 @@ https://www.youtube.com/watch?v=abc123`;
 
     expect(html).toContain('src="https://www.youtube.com/embed/abc123"');
   });
+  it("should not embed a lookalike host that merely contains youtube.com", async () => {
+    const markdown = "https://notyoutube.com/watch?v=abc123";
+
+    const result = await parseMarkdown(markdown);
+    const html = renderToStaticMarkup(result);
+
+    expect(html).toContain('href="https://notyoutube.com/watch?v=abc123"');
+    expect(html).not.toContain("youtube.com/embed/");
+  });
 });

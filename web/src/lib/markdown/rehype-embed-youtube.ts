@@ -1,10 +1,35 @@
 import type { Element, ElementContent, Root } from "hast";
 import { visit } from "unist-util-visit";
 
+// 埋め込み対象として許可するホスト名（部分一致だと notyoutube.com 等も通るため完全一致で判定）
+const YOUTUBE_HOSTNAMES = new Set([
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "music.youtube.com",
+  "youtu.be",
+  "www.youtu.be",
+]);
+
+/**
+ * URLのホスト名がYouTubeのものか
+ */
+function isYouTubeHostname(url: string): boolean {
+  try {
+    return YOUTUBE_HOSTNAMES.has(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * YouTube URLからビデオIDを抽出する
  */
 function extractYouTubeId(url: string): string | null {
+  if (!isYouTubeHostname(url)) {
+    return null;
+  }
+
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
     /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
