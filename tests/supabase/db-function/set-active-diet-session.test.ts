@@ -1,8 +1,8 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   adminClient,
-  createTestDietSession,
   cleanupTestDietSession,
+  createTestDietSession,
 } from "../utils";
 
 describe("set_active_diet_session() 関数", () => {

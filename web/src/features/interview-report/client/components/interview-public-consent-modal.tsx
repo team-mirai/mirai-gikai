@@ -1,8 +1,6 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
-import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,27 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  ConsentCheckListItem,
+  OpenDataNoticeItem,
+} from "./consent-check-list-item";
 
 interface InterviewPublicConsentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (isPublic: boolean) => void;
   isSubmitting: boolean;
-}
-
-function CheckListItem({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex items-start gap-3">
-      <Image
-        src="/icons/check-circle.svg"
-        alt=""
-        width={20}
-        height={20}
-        className="flex-shrink-0 mt-1"
-      />
-      <p className="text-sm font-medium leading-relaxed">{children}</p>
-    </div>
-  );
 }
 
 export function InterviewPublicConsentModal({
@@ -60,12 +47,13 @@ export function InterviewPublicConsentModal({
           </h3>
 
           <div className="space-y-4">
-            <CheckListItem>
+            <ConsentCheckListItem>
               公開を許可した場合、今後みらい議会にあなたのご意見の要約とインタビュー原文が匿名で掲載されることがあります。
-            </CheckListItem>
-            <CheckListItem>
+            </ConsentCheckListItem>
+            <OpenDataNoticeItem />
+            <ConsentCheckListItem>
               さまざまな意見が公開されることで、より深い法案議論が実現できます。
-            </CheckListItem>
+            </ConsentCheckListItem>
           </div>
 
           <p className="text-sm text-black">

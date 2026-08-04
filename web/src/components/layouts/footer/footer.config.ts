@@ -50,8 +50,7 @@ export const policyLinks: FooterPolicyLink[] = [
     href: routes.privacy(),
   },
   {
-    label: "自主制作ガイドライン",
-    href: EXTERNAL_LINKS.FORK_GUIDELINES_NOTE,
-    external: true,
+    label: "開発者向け",
+    href: routes.developers(),
   },
 ];

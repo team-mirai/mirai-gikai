@@ -17,3 +17,18 @@ button .rubyful-rt,
 [data-slot="button"] .rubyful-rt {
   display: none;
 }
+
+/* Safari / iOS (WebKit) はルビ（rt）を本文ボックスの完全に外側へ積むため、
+   本文の字面上の余白にルビを食い込ませて配置する Chrome / Edge (Blink) と比べて
+   漢字とルビの間隔が広く見える（issue #187）。
+   WebKit 専有の -webkit-named-image() を Safari/iOS 判定として使い
+   （実測: WebKit=true / Blink=false / Gecko=false）、
+   ルビを下方へ 0.5em（ルビ文字サイズ基準）シフトして Blink の見た目に揃える。
+   なお Blink は ruby-text への transform を適用しないため二重適用は起きないが、
+   意図を明示するため @supports で WebKit に限定している */
+/* biome-ignore lint/correctness/noUnknownFunction: -webkit-named-image は WebKit 専有関数で、それ自体を Safari/iOS 判定に使っている */
+@supports (background: -webkit-named-image(i)) {
+  rt {
+    transform: translateY(0.5em);
+  }
+}

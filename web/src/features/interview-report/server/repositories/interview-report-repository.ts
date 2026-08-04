@@ -196,7 +196,8 @@ export async function findUserReportsByInterviewConfigId(
  */
 export async function updateReportPublicSetting(
   reportId: string,
-  isPublic: boolean
+  isPublic: boolean,
+  isDataReuseConsented?: boolean
 ) {
   const supabase = createAdminClient();
 
@@ -214,10 +215,19 @@ export async function updateReportPublicSetting(
     );
   }
 
+  // 二次利用（オープンデータ提供）同意は、新規約の告知を表示したUIが
+  // 明示的に渡した場合のみ更新する（告知を表示していない旧クライアント
+  // からの呼び出しで同意ありと記録してしまうことを防ぐ）
   const updateValues: {
     is_public_by_user: boolean;
+    is_data_reuse_consented?: boolean;
     is_public_by_admin?: boolean;
-  } = { is_public_by_user: isPublic };
+  } = {
+    is_public_by_user: isPublic,
+    ...(typeof isDataReuseConsented === "boolean"
+      ? { is_data_reuse_consented: isDataReuseConsented }
+      : {}),
+  };
 
   // 管理者が非公開にしたレポート（個別の公開停止・設定の論理削除に伴う一括停止）は
   // admin_unpublished_at が記録されるため、ユーザー操作では再公開しない。

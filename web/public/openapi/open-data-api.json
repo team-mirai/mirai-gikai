@@ -1,0 +1,236 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "みらい議会オープンデータAPI",
+    "version": "1.0.0",
+    "description": "みらい議会のAIインタビューを通じて取得した回答データのうち、回答者本人が公開に同意し、二次利用を許諾したものをオープンデータとして取得できるAPIです。\n\n- データはクリエイティブ・コモンズ 表示 4.0 国際ライセンス（CC BY 4.0）の下で提供されます\n- 利用には[みらい議会AIインタビューデータ利用規約](/developers/interview-data-terms)への同意が必要です。同意の表明として、すべてのリクエストに `agreeToTerms=true` を付与してください\n- APIキーの発行や事前登録は不要ですが、レートリミットがあります\n  - IPあたり毎分30リクエスト、API全体で毎分300リクエスト\n  - 超過時は 429 を返し、`Retry-After` ヘッダーで再試行までの秒数を示します\n- 成果物には利用規約第4条に基づく出典表示を行ってください\n\n  ```text\n  # 表示例\n  データ出典：「みらい議会AIインタビュー（チームみらい）」\n  提供元URL：https://gikai.team-mir.ai/\n  規約URL：https://gikai.team-mir.ai/developers/interview-data-terms\n  ライセンス：CC BY 4.0（https://creativecommons.org/licenses/by/4.0/deed.ja）\n  ```\n\n### 提供されるデータの範囲\n\n- 回答者本人が公開に同意し、二次利用（オープンデータとしての第三者提供）を許諾したインタビューのみ\n- 公開中の議案に紐づくもののみ\n- 議案あたりの公開レポート数が一定数以上ある議案のみ（少数回答の議案は回答者保護のため除外されます）\n\n回答者が公開設定を変更した場合、そのデータは以降のレスポンスに含まれなくなります。データセットを継続的に利用する場合は、提供対象から除外されたデータを利用し続けないことを推奨します。"
+  },
+  "servers": [
+    {
+      "url": "https://gikai.team-mir.ai",
+      "description": "ベースURL"
+    }
+  ],
+  "paths": {
+    "/api/open-data/interviews": {
+      "get": {
+        "summary": "インタビューデータの取得",
+        "description": "二次利用許諾済みの公開インタビューデータを新しい順に返します。`nextCursor` を次のリクエストの `cursor` に指定することで全件を取得できます。",
+        "operationId": "listOpenDataInterviews",
+        "parameters": [
+          {
+            "name": "agreeToTerms",
+            "in": "query",
+            "required": true,
+            "description": "みらい議会AIインタビューデータ利用規約への同意の表明。`true` を指定します。",
+            "schema": {
+              "type": "string",
+              "enum": ["true"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "1ページあたりの取得件数（1〜100）。",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "ページネーション用カーソル。前のレスポンスの `nextCursor` をそのまま指定します。",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenDataInterviewsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "パラメータ不正（limit の範囲外・cursor の形式不正）",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "agreeToTerms=true が未指定",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ErrorResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "termsUrl": {
+                          "type": "string",
+                          "description": "データ利用規約のURL"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "レートリミット超過。`Retry-After` ヘッダで再試行までの秒数を案内します。",
+            "headers": {
+              "Retry-After": {
+                "description": "再試行までの秒数",
+                "schema": { "type": "integer" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "サーバーエラー",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OpenDataInterviewsResponse": {
+        "type": "object",
+        "required": ["items", "nextCursor", "license", "termsUrl"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OpenDataInterviewItem" }
+          },
+          "nextCursor": {
+            "type": ["string", "null"],
+            "description": "次ページのカーソル。最終ページでは null。"
+          },
+          "license": {
+            "type": "string",
+            "const": "CC BY 4.0",
+            "description": "提供データのライセンス"
+          },
+          "termsUrl": {
+            "type": "string",
+            "description": "データ利用規約のURL"
+          }
+        }
+      },
+      "OpenDataInterviewItem": {
+        "type": "object",
+        "required": [
+          "reportId",
+          "billId",
+          "billName",
+          "opinions",
+          "messages",
+          "createdAt"
+        ],
+        "properties": {
+          "reportId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "インタビューレポートのID"
+          },
+          "billId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "議案のID"
+          },
+          "billName": {
+            "type": "string",
+            "description": "議案名"
+          },
+          "stance": {
+            "type": ["string", "null"],
+            "description": "議案への立場（for / against / neutral など）"
+          },
+          "role": {
+            "type": ["string", "null"],
+            "description": "回答者の立場の分類（daily_life_affected / work_related / subject_expert / general_citizen など）"
+          },
+          "roleTitle": {
+            "type": ["string", "null"],
+            "description": "回答者の立場の見出し"
+          },
+          "roleDescription": {
+            "type": ["string", "null"],
+            "description": "回答者の立場の説明"
+          },
+          "summary": {
+            "type": ["string", "null"],
+            "description": "意見の要約"
+          },
+          "opinions": {
+            "type": "array",
+            "description": "抽出された意見の一覧",
+            "items": {
+              "type": "object",
+              "required": ["title", "content"],
+              "properties": {
+                "title": { "type": "string", "description": "意見の見出し" },
+                "content": { "type": "string", "description": "意見の本文" }
+              }
+            }
+          },
+          "messages": {
+            "type": "array",
+            "description": "インタビューの対話ログ（時系列順）",
+            "items": {
+              "type": "object",
+              "required": ["role", "content"],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": ["assistant", "user"],
+                  "description": "発話者（assistant: AI / user: 回答者）"
+                },
+                "content": { "type": "string", "description": "発話内容" }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "回答日時（ISO 8601）"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "エラーメッセージ"
+          }
+        }
+      }
+    }
+  }
+}
