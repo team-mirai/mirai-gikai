@@ -23,7 +23,10 @@ export function PublicStatusSection({
     setIsSubmitting(true);
     try {
       const newStatus = !isPublic;
-      const result = await updatePublicSetting(sessionId, newStatus);
+      // 公開・非公開いずれの切替でも二次利用同意を連動して送る。
+      // 公開への切替は告知付きモーダル（MakePublicModal）で確認済みの同意、
+      // 非公開への切替は同意の撤回（false）にあたる
+      const result = await updatePublicSetting(sessionId, newStatus, newStatus);
       if (result.success) {
         setIsPublic(newStatus);
         setIsModalOpen(false);

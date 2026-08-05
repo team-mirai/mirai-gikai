@@ -34,6 +34,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
+    "@scalar/api-reference-react": "^0.9.54",
     "@supabase/ssr": "^0.5.2",
     "@vercel/speed-insights": "^1.2.0",
     "ai": "^6.0.3",

@@ -600,9 +600,14 @@ export async function updateReportVisibility(
   isPublic: boolean
 ): Promise<void> {
   const supabase = createAdminClient();
+  // 非公開にした管理者判断を admin_unpublished_at に記録し、ユーザー操作による
+  // 自動公開で公開停止が覆されないようにする。公開に戻した場合は記録を消す。
   const { error } = await supabase
     .from("interview_report")
-    .update({ is_public_by_admin: isPublic })
+    .update({
+      is_public_by_admin: isPublic,
+      admin_unpublished_at: isPublic ? null : new Date().toISOString(),
+    })
     .eq("id", reportId);
 
   if (error) {

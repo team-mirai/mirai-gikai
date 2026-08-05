@@ -205,14 +205,9 @@ jobs:
           steps.ready.outputs.branching == 'true'
         run: |
           # POSTGRES_URL_NON_POOLING（直接接続）は IPv6 必須で GitHub Actions の
-          # ランナーから到達できないため、IPv4 対応の pooler 経由（POSTGRES_URL）を使う
-          if [ "${{ steps.create.outputs.created }}" = "true" ]; then
-            supabase db push --db-url "$BRANCH_POSTGRES_URL" \
-              --include-all --include-seed --yes
-          else
-            supabase db push --db-url "$BRANCH_POSTGRES_URL" \
-              --include-all --yes
-          fi
+          # ランナーから到達できないため、IPv4 対応の pooler 経由（POSTGRES_URL）を使う。
+          # seed（supabase/seed.sql）はローカル専用のため --include-seed は付けない
+          supabase db push --db-url "$BRANCH_POSTGRES_URL" --include-all --yes
 
       # ---------- Vercel 環境変数の設定と再デプロイ ----------
       # Vercel API のバージョン（v9/v10/v13）はエンドポイントごとに独立しており、

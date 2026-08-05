@@ -5,6 +5,7 @@ import {
   MIN_PUBLIC_REPORTS_FOR_DISPLAY,
   isPublicReportVisible,
   isReportAutoPublishEligible,
+  shouldAutoPublishOnUserSettingChange,
   shouldDisplayPublicReports,
 } from "./auto-publish";
 
@@ -54,6 +55,47 @@ describe("isReportAutoPublishEligible", () => {
       ).toBe(false);
     }
   );
+});
+
+describe("shouldAutoPublishOnUserSettingChange", () => {
+  const baseInput = {
+    isPublicByAdmin: false,
+    adminUnpublishedAt: null,
+    isPublicByUser: true,
+    moderationScore: AUTO_PUBLISH_MAX_MODERATION_SCORE,
+    totalContentRichness: AUTO_PUBLISH_MIN_CONTENT_RICHNESS,
+  };
+
+  it("管理者操作を受けていない未公開レポートは自動公開する", () => {
+    expect(shouldAutoPublishOnUserSettingChange(baseInput)).toBe(true);
+  });
+
+  it("管理者が非公開にしたレポートはユーザー操作で再公開しない", () => {
+    expect(
+      shouldAutoPublishOnUserSettingChange({
+        ...baseInput,
+        adminUnpublishedAt: "2026-07-01T00:00:00.000Z",
+      })
+    ).toBe(false);
+  });
+
+  it("すでに管理者公開済みのレポートは対象外にする", () => {
+    expect(
+      shouldAutoPublishOnUserSettingChange({
+        ...baseInput,
+        isPublicByAdmin: true,
+      })
+    ).toBe(false);
+  });
+
+  it("自動公開条件を満たさないレポートは対象外にする", () => {
+    expect(
+      shouldAutoPublishOnUserSettingChange({
+        ...baseInput,
+        moderationScore: AUTO_PUBLISH_MAX_MODERATION_SCORE + 1,
+      })
+    ).toBe(false);
+  });
 });
 
 describe("shouldDisplayPublicReports", () => {

@@ -3,7 +3,7 @@ import "server-only";
 import { buildContentRichnessPrompt } from "@mirai-gikai/shared/content-richness/build-prompt";
 import { contentRichnessResultSchema } from "@mirai-gikai/shared/content-richness/schemas";
 import { generateObject } from "ai";
-import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import { DEFAULT_CONTENT_RICHNESS_MODEL } from "@/lib/ai/models";
 import { parseOpinions } from "../../shared/utils/parse-opinions";
 import {
   findInterviewMessagesBySessionId,
@@ -27,7 +27,7 @@ export async function runSingleContentRichnessScoring(
     report.interview_session_id
   );
 
-  const prompt = buildContentRichnessPrompt({
+  const { system, user } = buildContentRichnessPrompt({
     summary: report.summary,
     opinions: parseOpinions(report.opinions),
     roleDescription: report.role_description,
@@ -35,9 +35,10 @@ export async function runSingleContentRichnessScoring(
   });
 
   const { object } = await generateObject({
-    model: DEFAULT_INTERVIEW_CHAT_MODEL,
+    model: DEFAULT_CONTENT_RICHNESS_MODEL,
     schema: contentRichnessResultSchema,
-    prompt,
+    system,
+    messages: [{ role: "user", content: user }],
   });
 
   await updateContentRichness(reportId, object);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/layouts/container";
 import {
   LegalList,
@@ -6,6 +7,7 @@ import {
   LegalParagraph,
   LegalSectionTitle,
 } from "@/components/layouts/legal-page-layout";
+import { routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "プライバシーポリシー | みらい議会",
@@ -17,11 +19,12 @@ export default function PrivacyPage() {
     <LegalPageLayout
       className="bg-transparent pt-24 md:pt-12"
       title="プライバシーポリシー"
+      enLabel="Privacy Policy"
       description="チームみらい（以下「当組織」といいます）における個人情報の取り扱いについてご説明します。"
     >
       <Container className="space-y-8">
         <p className="text-sm text-mirai-text-muted">
-          最終更新日：2026年3月24日
+          最終更新日：2026年7月29日
         </p>
 
         <section className="space-y-4">
@@ -60,8 +63,44 @@ export default function PrivacyPage() {
           </LegalParagraph>
           <LegalList
             items={[
-              "ユーザーが回答した内容は、本人が明示的に拒否した場合を除き、当ウェブサイトや報告書等で公開される可能性があります。",
-              "統計的利用：取得したデータは、個人を特定できない統計情報に加工した上で、第三者へ公表する場合があります。",
+              {
+                id: "publish",
+                content: (
+                  <>
+                    <span className="font-semibold text-slate-800">公開：</span>
+                    ユーザーが回答時に公開に同意した場合に限り、当ウェブサイトや報告書等で公開されることがあります。本人が公開に同意しなかった回答内容は、第三者に公開または提供されることはありません。
+                  </>
+                ),
+              },
+              {
+                id: "open-data",
+                content: (
+                  <>
+                    <span className="font-semibold text-slate-800">
+                      第三者への提供（オープンデータ公開）：
+                    </span>
+                    インタビューデータを、別途定める「
+                    <Link
+                      href={routes.interviewDataTerms()}
+                      className="text-primary-accent underline"
+                    >
+                      みらい議会AIインタビューデータ利用規約
+                    </Link>
+                    」に同意する者であれば誰でもダウンロード可能なオープンデータとして第三者に提供することがあります。
+                  </>
+                ),
+              },
+              {
+                id: "statistics",
+                content: (
+                  <>
+                    <span className="font-semibold text-slate-800">
+                      統計的利用：
+                    </span>
+                    取得したデータは、個人を特定できない統計情報に加工した上で、第三者へ公表する場合があります。
+                  </>
+                ),
+              },
             ]}
           />
         </section>
@@ -73,8 +112,8 @@ export default function PrivacyPage() {
           </LegalParagraph>
           <LegalList
             items={[
-              "「2. 個人情報の収集方法と使用範囲」に定めるみらい議会AIインタビュー機能を通じて当組織が取得した回答内容の公開",
-              "利用者本人の同意がある場合",
+              "「2. 個人情報の収集方法と使用範囲」に定めるみらい議会AIインタビュー機能を通じて当組織が取得した回答内容を、本人が公開に同意した範囲で公開する場合、および別途定める「みらい議会AIインタビューデータ利用規約」に同意する者であれば誰でもダウンロード可能なオープンデータとして第三者に提供する場合",
+              "ユーザー本人の同意がある場合",
               "統計的なデータなど、個人を特定できない状態で提供する場合",
               "法令に基づく開示請求（裁判所・警察等）があった場合",
               "不正アクセスや規約違反など、緊急の対応が必要と判断された場合",
@@ -99,7 +138,7 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <LegalSectionTitle>6. 保管期間と廃棄</LegalSectionTitle>
           <LegalParagraph>
-            取得した個人情報および対話ログは、法令（政治資金規正法等）に基づき必要な期間（原則7年間）保管した後、適切な方法で廃棄・削除します。
+            取得した個人情報および対話ログは、法令（政治資金規正法等）に基づき必要な期間（原則7年間）保管した後、適切な方法で廃棄・削除します。なお、本人の同意に基づき公開された回答内容、および個人を特定できないよう加工した上でオープンデータとして提供されたデータなど当組織が管理していない情報は、廃棄・削除を行うことはできないため、継続して公開・提供されることがあります。
           </LegalParagraph>
         </section>
 
@@ -113,7 +152,7 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <LegalSectionTitle>8. お問い合わせ窓口</LegalSectionTitle>
           <LegalParagraph>
-            個人情報の確認・修正・削除、またはみらい議会AIインタビュー機能の回答公開に関する取り消し等のご相談は、下記までご連絡ください。
+            個人情報の確認・修正・削除、またはみらい議会AIインタビュー機能の回答公開の停止等のご相談は、下記までご連絡ください。
           </LegalParagraph>
           <LegalParagraph>support@team-mir.ai</LegalParagraph>
         </section>

@@ -34,6 +34,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_rate_limits: {
+        Row: {
+          key: string
+          request_count: number
+          window_start: string
+        }
+        Insert: {
+          key: string
+          request_count?: number
+          window_start: string
+        }
+        Update: {
+          key?: string
+          request_count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       bill_contents: {
         Row: {
           bill_id: string
@@ -556,6 +574,7 @@ export type Database = {
       }
       interview_report: {
         Row: {
+          admin_unpublished_at: string | null
           content_richness: Json | null
           created_at: string
           id: string
@@ -579,6 +598,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_unpublished_at?: string | null
           content_richness?: Json | null
           created_at?: string
           id?: string
@@ -604,6 +624,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_unpublished_at?: string | null
           content_richness?: Json | null
           created_at?: string
           id?: string
@@ -1142,6 +1163,27 @@ export type Database = {
         Args: { content: string }
         Returns: string
       }
+      find_open_data_interview_reports: {
+        Args: {
+          p_cursor_created_at?: string
+          p_cursor_id?: string
+          p_limit: number
+          p_min_public_reports: number
+        }
+        Returns: {
+          bill_id: string
+          bill_name: string
+          created_at: string
+          interview_session_id: string
+          opinions: Json
+          report_id: string
+          role: string
+          role_description: string
+          role_title: string
+          stance: string
+          summary: string
+        }[]
+      }
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: {
           p_bill_id: string
@@ -1294,6 +1336,10 @@ export type Database = {
           question_id: string
           question_order: number
         }[]
+      }
+      increment_api_rate_limit: {
+        Args: { p_key: string; p_limit: number; p_window_start: string }
+        Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
       mark_opinions_extracted: {

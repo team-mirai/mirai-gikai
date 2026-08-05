@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
     serverSourceMaps: true,
   },
   typedRoutes: true,
+  redirects: async () => [
+    {
+      // データ利用規約を /developers 配下へ移動した際の旧URL互換
+      source: "/interview-data-terms",
+      destination: "/developers/interview-data-terms",
+      permanent: true,
+    },
+  ],
   turbopack: {
     root: "../",
   },

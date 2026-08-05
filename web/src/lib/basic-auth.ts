@@ -30,19 +30,6 @@ export function parseBasicAuth(
   }
 }
 
-export function isPageSpeedInsightsUA(ua: string): boolean {
-  return (
-    ua.includes("Chrome-Lighthouse") ||
-    ua.includes("PageSpeed Insights") ||
-    ua.includes("Google Page Speed Insights")
-  );
-}
-
-export function isPageSpeedInsights(request: NextRequest): boolean {
-  const userAgent = request.headers.get("user-agent") || "";
-  return isPageSpeedInsightsUA(userAgent);
-}
-
 export function validateBasicAuthHeader(
   header: string | null,
   config: BasicAuthConfig

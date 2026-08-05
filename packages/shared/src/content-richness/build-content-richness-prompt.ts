@@ -1,3 +1,9 @@
+import {
+  buildUntrustedContentGuardInstructions,
+  createUntrustedContentNonce,
+  type SplitPrompt,
+  wrapUntrustedContent,
+} from "../prompt-safety/untrusted-content";
 import { buildContentRichnessInstructions } from "./content-richness-instructions";
 
 type Message = {
@@ -10,14 +16,23 @@ type BuildContentRichnessPromptParams = {
   opinions: Array<{ title: string; content: string }> | null;
   roleDescription: string | null;
   messages: Message[];
+  /**
+   * 区切り行に使うナンス。省略時は呼び出しごとにランダム生成する
+   * （テストで固定するための注入点）
+   */
+  nonce?: string;
 };
 
 /**
  * 情報充実度の再評価用プロンプトを構築する
+ *
+ * 評価基準（指示チャネル）は system に、利用者が書いた評価対象テキスト
+ * （データチャネル）は user に分離して返す。
  */
 export function buildContentRichnessPrompt(
   params: BuildContentRichnessPromptParams
-): string {
+): SplitPrompt {
+  const nonce = params.nonce ?? createUntrustedContentNonce();
   const parts: string[] = [];
 
   if (params.messages.length > 0) {
@@ -45,12 +60,16 @@ export function buildContentRichnessPrompt(
   const contentToEvaluate =
     parts.length > 0 ? parts.join("\n\n") : "（内容なし）";
 
-  return `あなたはAIインタビューで収集された市民意見の情報充実度を評価する専門家です。
+  const system = `あなたはAIインタビューで収集された市民意見の情報充実度を評価する専門家です。
 
-以下のインタビューの会話ログおよびレポート内容を評価し、法案検討にどれだけ活かせる情報が得られたかを判定してください。
+user メッセージで渡されるインタビューの会話ログおよびレポート内容を評価し、法案検討にどれだけ活かせる情報が得られたかを判定してください。
 
-## 評価対象コンテンツ
-${contentToEvaluate}
+${buildUntrustedContentGuardInstructions(nonce)}
 
 ${buildContentRichnessInstructions()}`;
+
+  return {
+    system,
+    user: wrapUntrustedContent(contentToEvaluate, nonce),
+  };
 }

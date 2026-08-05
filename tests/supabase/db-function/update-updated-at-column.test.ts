@@ -1,5 +1,5 @@
-import { describe, expect, it, afterEach } from "vitest";
-import { adminClient, createTestBill, cleanupTestBill } from "../utils";
+import { afterEach, describe, expect, it } from "vitest";
+import { adminClient, cleanupTestBill, createTestBill } from "../utils";
 
 describe("update_updated_at_column トリガー", () => {
   let billId: string | undefined;

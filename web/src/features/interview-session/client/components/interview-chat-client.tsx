@@ -72,6 +72,7 @@ export function InterviewChatClient({
   } = useInterviewChat({
     billId,
     initialMessages,
+    previewToken,
   });
 
   const { remainingMinutes, isTimeUp } = useInterviewTimer({

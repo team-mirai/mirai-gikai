@@ -1,11 +1,34 @@
 # worker/Dockerfile はリポジトリルートをビルドコンテキストとして使う。
-# 不要・巨大・秘匿なものを除外する。
+# 除外漏れがそのままイメージへの秘密の埋め込みになるため、まず全てを除外し、
+# worker イメージに必要なものだけを許可リストで戻す（新規ファイルは既定で除外＝安全側）。
+# 例: infra/cloud-run/config.env*（SECRET_VALUE_*）や *-key.json（SA 鍵）は
+# ここで許可していないのでイメージに入らない。
+*
+
+# pnpm workspace のルート設定
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+
+# worker 本体とその依存（topic-analysis-core / shared / supabase）
+!worker
+!packages
+
+# frozen-lockfile install には全ワークスペースの package.json が必要
+!web/package.json
+!admin/package.json
+
+# 許可したツリーの中の不要・巨大・秘匿なものを再度除外する
+# （.env / *-key.json / *.local.json は .gitignore の秘密パターンと同期）。
 **/node_modules
 **/.next
 **/.turbo
 **/dist
 **/coverage
-.git
 **/*.log
 **/.env
 **/.env.*
+**/*-key.json
+**/*.local.json
+**/config.env
+**/config.env.*

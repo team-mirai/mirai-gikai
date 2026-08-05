@@ -16,6 +16,10 @@
       "types": "./src/stream/inject-json-fields.ts",
       "default": "./src/stream/inject-json-fields.ts"
     },
+    "./prompt-safety/untrusted-content": {
+      "types": "./src/prompt-safety/untrusted-content.ts",
+      "default": "./src/prompt-safety/untrusted-content.ts"
+    },
     "./moderation/build-prompt": {
       "types": "./src/moderation/build-moderation-prompt.ts",
       "default": "./src/moderation/build-moderation-prompt.ts"

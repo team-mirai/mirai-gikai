@@ -1,10 +1,10 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   adminClient,
-  createTestUser,
+  cleanupTestBill,
   cleanupTestUser,
   createTestBill,
-  cleanupTestBill,
+  createTestUser,
   type TestUser,
 } from "../utils";
 

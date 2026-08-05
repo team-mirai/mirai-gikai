@@ -47,6 +47,7 @@ async function createTestReport(
   overrides: Partial<{
     is_public_by_admin: boolean;
     is_public_by_user: boolean;
+    admin_unpublished_at: string | null;
     moderation_score: number | null;
     contentRichnessTotal: number | null;
   }> = {}
@@ -58,6 +59,7 @@ async function createTestReport(
       interview_session_id: sessionId,
       is_public_by_admin: overrides.is_public_by_admin ?? false,
       is_public_by_user: overrides.is_public_by_user ?? false,
+      admin_unpublished_at: overrides.admin_unpublished_at ?? null,
       moderation_score: overrides.moderation_score ?? null,
       content_richness:
         contentRichnessTotal == null ? null : { total: contentRichnessTotal },
@@ -144,6 +146,24 @@ describe("updateReportPublicSetting 統合テスト", () => {
       is_public_by_admin: false,
       is_public_by_user: false,
       moderation_score: AUTO_PUBLISH_MAX_MODERATION_SCORE + 1,
+      contentRichnessTotal: AUTO_PUBLISH_MIN_CONTENT_RICHNESS,
+    });
+    billIds.push(bill.id);
+
+    await updateReportPublicSetting(report.id, true);
+
+    await expect(findPublicFlags(report.id)).resolves.toEqual({
+      is_public_by_user: true,
+      is_public_by_admin: false,
+    });
+  });
+
+  it("管理者が非公開にしたレポートはユーザー操作で再公開しない", async () => {
+    const { bill, report } = await createReportFixture(testUser.id, {
+      is_public_by_admin: false,
+      is_public_by_user: false,
+      admin_unpublished_at: new Date().toISOString(),
+      moderation_score: AUTO_PUBLISH_MAX_MODERATION_SCORE,
       contentRichnessTotal: AUTO_PUBLISH_MIN_CONTENT_RICHNESS,
     });
     billIds.push(bill.id);
