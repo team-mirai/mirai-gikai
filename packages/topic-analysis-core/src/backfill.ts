@@ -13,14 +13,14 @@ import {
   OPINION_BACKFILL_CHUNK_SIZE,
   OPINION_BACKFILL_CONCURRENCY,
 } from "./shared/constants";
+import {
+  type BackfillChunkResult,
+  runWatermarkBackfill,
+  runWatermarkBackfillChunk,
+  type WatermarkBackfillSteps,
+} from "./utils/run-watermark-backfill";
 
-export type BackfillChunkResult = {
-  processed: number;
-  updated: number;
-  skipped: number;
-  failed: number;
-  remaining: number;
-};
+export type { BackfillChunkResult };
 
 /** 再抽出1件あたりの依存（生成関数の差し替え・使用モデル）。 */
 type ReextractDeps = { generateReport?: GenerateReportFn; model?: string };
@@ -35,25 +35,19 @@ export type BackfillOptions = ReextractDeps & {
   scope?: BackfillScope;
 };
 
-type ReextractTally = { updated: number; skipped: number; failed: number };
-
-/** 対象レポート群を CONCURRENCY 件ずつ並列で再抽出し、結果を集計する。 */
-async function processReportsInWaves(
-  targets: BackfillTargetReport[],
-  deps: ReextractDeps
-): Promise<ReextractTally> {
-  const results = [];
-  for (let i = 0; i < targets.length; i += OPINION_BACKFILL_CONCURRENCY) {
-    const wave = targets.slice(i, i + OPINION_BACKFILL_CONCURRENCY);
-    const waveResults = await Promise.all(
-      wave.map((t) => reextractReportOpinions(t, deps))
-    );
-    results.push(...waveResults);
-  }
+/** 共通ドライバに渡すステップ定義を組み立てる。 */
+function buildSteps(
+  deps: { billId?: string } & ReextractDeps
+): WatermarkBackfillSteps<BackfillTargetReport> {
+  const { billId, generateReport, model } = deps;
   return {
-    updated: results.filter((r) => r.status === "updated").length,
-    skipped: results.filter((r) => r.status === "skipped").length,
-    failed: results.filter((r) => r.status === "failed").length,
+    label: "backfill",
+    chunkSize: OPINION_BACKFILL_CHUNK_SIZE,
+    concurrency: OPINION_BACKFILL_CONCURRENCY,
+    findTargets: (limit) => findReportsToReextract(limit, billId),
+    processTarget: (target) =>
+      reextractReportOpinions(target, { generateReport, model }),
+    countRemaining: () => countPendingReextraction(billId),
   };
 }
 
@@ -62,54 +56,10 @@ async function processReportsInWaves(
  * チャンク内は CONCURRENCY 件ずつ並列実行する。
  * 成功・スキップはウォーターマークを進めるが、失敗（生成エラー等）は進めない。
  */
-export async function runOpinionBackfillChunk(
+export function runOpinionBackfillChunk(
   deps: { billId?: string } & ReextractDeps = {}
 ): Promise<BackfillChunkResult> {
-  const { billId, generateReport, model } = deps;
-  const targets = await findReportsToReextract(
-    OPINION_BACKFILL_CHUNK_SIZE,
-    billId
-  );
-  const tally = await processReportsInWaves(targets, { generateReport, model });
-  const remaining = await countPendingReextraction(billId);
-
-  return { processed: targets.length, ...tally, remaining };
-}
-
-/**
- * 未再抽出レポート（opinions_reextracted_at IS NULL）をウォーターマーク方式で
- * 全件完了まで処理する。チャンクを繰り返し、remaining が 0 になるか前進が止まったら終了する。
- * 失敗レポートはウォーターマークが進まないため、チャンク間で remaining が
- * 減らなくなった時点で「全件失敗ループ」と判断して停止する（無限ループ防止）。
- */
-async function runPendingBackfill(
-  deps: { billId?: string } & ReextractDeps
-): Promise<void> {
-  let prevRemaining = Number.POSITIVE_INFINITY;
-
-  while (true) {
-    const result = await runOpinionBackfillChunk(deps);
-    console.log(
-      `[topic-analysis] backfill chunk: processed=${result.processed} updated=${result.updated} skipped=${result.skipped} failed=${result.failed} remaining=${result.remaining}`
-    );
-
-    if (result.remaining === 0) {
-      console.log("[topic-analysis] backfill completed (remaining=0)");
-      return;
-    }
-    if (result.processed === 0) {
-      console.log("[topic-analysis] backfill stopped: nothing to process");
-      return;
-    }
-    if (result.remaining >= prevRemaining) {
-      // 前チャンクから remaining が減っていない = 全件失敗で前進していない。
-      console.warn(
-        `[topic-analysis] backfill stopped: no forward progress (remaining=${result.remaining})`
-      );
-      return;
-    }
-    prevRemaining = result.remaining;
-  }
+  return runWatermarkBackfillChunk(buildSteps(deps));
 }
 
 /**
@@ -135,5 +85,5 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
     );
   }
 
-  await runPendingBackfill({ billId, generateReport, model });
+  await runWatermarkBackfill(buildSteps({ billId, generateReport, model }));
 }

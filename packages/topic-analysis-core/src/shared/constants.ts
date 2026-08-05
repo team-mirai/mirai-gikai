@@ -39,3 +39,21 @@ export const OPINION_BACKFILL_CHUNK_SIZE = 30;
 export const OPINION_BACKFILL_CONCURRENCY = 30;
 /** 再抽出に使うモデル（本番のレポート生成と同じ） */
 export const OPINION_BACKFILL_MODEL = DEFAULT_INTERVIEW_CHAT_MODEL;
+
+// ── タグ付けバックフィル（tag-backfill）──
+// 既存意見の本文を触らず、タグ（concern/proposal/reasoning_types）だけを追加する経路。
+/** 1チャンクでタグ付けするレポート数 */
+export const OPINION_TAG_BACKFILL_CHUNK_SIZE = 30;
+/** チャンク内のLLM並列実行数 */
+export const OPINION_TAG_BACKFILL_CONCURRENCY = 30;
+/**
+ * タグ付けに使うモデル。
+ * 入力は「抽出済みの意見＋その発言原文」に絞られ、出力は短い分類タグのみなので、
+ * レポート生成用のモデルより軽いモデルで足りる。
+ */
+export const OPINION_TAG_MODEL = TOPIC_MODEL;
+/**
+ * タグ付け1回あたりのLLM呼び出しの上限時間。
+ * 並列 CONCURRENCY 本のうち1本が返らないとウェーブ全体が止まるため明示する。
+ */
+export const OPINION_TAG_TIMEOUT_MS = 60_000;

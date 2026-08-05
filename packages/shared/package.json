@@ -80,6 +80,14 @@
       "types": "./src/interview-report/parse-assistant-message.ts",
       "default": "./src/interview-report/parse-assistant-message.ts"
     },
+    "./interview-report/opinion-tags": {
+      "types": "./src/interview-report/opinion-tags.ts",
+      "default": "./src/interview-report/opinion-tags.ts"
+    },
+    "./interview-report/opinion-tags-schema": {
+      "types": "./src/interview-report/opinion-tags-schema.ts",
+      "default": "./src/interview-report/opinion-tags-schema.ts"
+    },
     "./interview-report/build-opinion-rows": {
       "types": "./src/interview-report/build-opinion-rows.ts",
       "default": "./src/interview-report/build-opinion-rows.ts"

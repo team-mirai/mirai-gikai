@@ -17,6 +17,14 @@
       "types": "./src/backfill.ts",
       "default": "./src/backfill.ts"
     },
+    "./tag-backfill-service": {
+      "types": "./src/services/extract-opinion-tags.ts",
+      "default": "./src/services/extract-opinion-tags.ts"
+    },
+    "./tag-backfill": {
+      "types": "./src/tag-backfill.ts",
+      "default": "./src/tag-backfill.ts"
+    },
     "./backfill-params": {
       "types": "./src/shared/backfill-params.ts",
       "default": "./src/shared/backfill-params.ts"

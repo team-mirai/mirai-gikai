@@ -110,9 +110,13 @@ export async function reextractReportOpinions(
     // 再抽出は interview_opinion テーブルのみ更新する（JSONB は原本として書き換えない）。
     // テーブル同期に成功した場合だけウォーターマークを進める。こうすることで
     // 「同期は失敗したのに完了扱い」になるのを防ぐ（次回再実行で再試行される）。
+    // 再抽出は新プロンプトで生成するためタグも同時に得られる。タグ付け済みとして
+    // ウォーターマークを立て、タグ付けバックフィルとの二重処理を避ける。
     await syncInterviewOpinions(
       reportId,
-      buildInterviewOpinionRows(reportId, enrichedOpinions)
+      buildInterviewOpinionRows(reportId, enrichedOpinions, {
+        tagsExtractedAtIso: nowIso,
+      })
     );
     await markReextractionAttempted(reportId, nowIso);
 

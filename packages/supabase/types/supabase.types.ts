@@ -422,40 +422,52 @@ export type Database = {
       interview_opinion: {
         Row: {
           bill_sentiment: string | null
+          concern: string | null
           content: string
           contextual_quote: string | null
           created_at: string
           id: string
           interview_report_id: string
           opinion_index: number
+          proposal: string | null
+          reasoning_types: string[]
           richness: number | null
           source_message_id: string | null
+          tags_extracted_at: string | null
           title: string
           topic_extracted_at: string | null
         }
         Insert: {
           bill_sentiment?: string | null
+          concern?: string | null
           content: string
           contextual_quote?: string | null
           created_at?: string
           id?: string
           interview_report_id: string
           opinion_index: number
+          proposal?: string | null
+          reasoning_types?: string[]
           richness?: number | null
           source_message_id?: string | null
+          tags_extracted_at?: string | null
           title: string
           topic_extracted_at?: string | null
         }
         Update: {
           bill_sentiment?: string | null
+          concern?: string | null
           content?: string
           contextual_quote?: string | null
           created_at?: string
           id?: string
           interview_report_id?: string
           opinion_index?: number
+          proposal?: string | null
+          reasoning_types?: string[]
           richness?: number | null
           source_message_id?: string | null
+          tags_extracted_at?: string | null
           title?: string
           topic_extracted_at?: string | null
         }

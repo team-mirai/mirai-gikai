@@ -90,3 +90,22 @@ export async function fetchBillWithContents(billId: string) {
     billSummary: normalContent?.summary ?? "",
   };
 }
+
+/**
+ * 議案名だけを引く。
+ * タグ付けはレポートごとに並列で走るため、議案本文まで取る fetchBillWithContents は
+ * 使わない（使うのは name 1カラムだけ）。
+ */
+export async function findBillNameById(billId: string): Promise<string | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select("name")
+    .eq("id", billId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch bill name: ${error.message}`);
+  }
+  return data?.name ?? null;
+}

@@ -102,9 +102,13 @@ export async function completeInterviewSession({
     const storedOpinions = Array.isArray(report.opinions)
       ? (report.opinions as InterviewOpinionSource[])
       : [];
+    // レポート生成と同時にタグ（concern/proposal/reasoning_types）も得ているため、
+    // タグ付け済みとしてウォーターマークを立てる（バックフィルの対象から外す）。
     await syncInterviewOpinions(
       report.id,
-      buildInterviewOpinionRows(report.id, storedOpinions)
+      buildInterviewOpinionRows(report.id, storedOpinions, {
+        tagsExtractedAtIso: new Date().toISOString(),
+      })
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
