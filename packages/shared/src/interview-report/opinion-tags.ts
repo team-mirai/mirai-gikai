@@ -27,15 +27,21 @@ export type ReasoningType = (typeof REASONING_TYPES)[number];
 /**
  * 未知の文字列を ReasoningType に絞り込む。
  * LLM 出力・保存済みデータのどちらにも使うため、null / undefined 要素も許容する。
+ *
+ * `none` は「根拠の明示なし」なので他の根拠と同居しない。
+ * `["professional_expertise", "none"]` のような矛盾した組み合わせをそのまま保存すると、
+ * 「根拠なしの意見数」の集計が実態とズレるため、他の値があれば `none` を落とす。
  */
 export function normalizeReasoningTypes(
   values: readonly (string | null | undefined)[] | null | undefined
 ): ReasoningType[] {
   if (!values) return [];
   const known = new Set<string>(REASONING_TYPES);
-  return [
+  const unique = [
     ...new Set(
       values.filter((v): v is ReasoningType => v != null && known.has(v))
     ),
   ];
+  const grounded = unique.filter((v) => v !== "none");
+  return grounded.length > 0 ? grounded : unique;
 }

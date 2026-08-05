@@ -87,8 +87,9 @@ export async function findReportsToTag(
   if (reportIds.length === 0) return [];
 
   // 立場（role / role_title）はプロンプトの接地に使うため別途まとめて引く。
-  // 並びは既存の再抽出（findReportsToReextract）と揃えて公開同意優先・古い順にする。
-  // ジョブが途中で切れたときに公開データから先に埋まる。
+  // 並びは公開同意優先・古い順にするが、対象レポートの集合自体は1段目の
+  // interview_report_id 昇順で決まっているので、この並べ替えが効くのは
+  // チャンク内の処理順だけ（ジョブ全体で公開データが先に埋まるわけではない）。
   const { data: reports, error: reportError } = await supabase
     .from("interview_report")
     .select("id, interview_session_id, role, role_title")
