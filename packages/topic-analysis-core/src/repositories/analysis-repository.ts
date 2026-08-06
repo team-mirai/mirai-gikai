@@ -3,8 +3,12 @@ import type {
   BillContext,
   ProgressData,
   TargetOpinion,
-  TopicDraft,
 } from "../shared/types";
+import type { HierarchyTopicRow } from "../utils/build-hierarchy-save-plan";
+import {
+  hasLinkedOpinion,
+  selectLeafTopics,
+} from "../utils/select-leaf-topics";
 
 type VersionStatus = "pending" | "running" | "completed" | "failed";
 
@@ -283,40 +287,84 @@ export async function loadProgress(versionId: string): Promise<ProgressData> {
 }
 
 /**
- * トピックと割当を保存する。
- * sortedTopics は表示順（opinion 件数降順）に並んだ最終トピック。
- * assignments は opinion_id → topics 配列内の index（未分類は含めない）。
+ * 階層トピックと意見の紐付けを保存する。
+ *
+ * 親を先に insert して id を確定させ、その id を子の parent_topic_id に載せる。
+ * sort_order は平坦化後の並び順（大トピック → 配下の中トピック）。
+ *
+ * 親→子→紐付けの3往復で、単一トランザクションではない。途中で失敗した version は
+ * runAnalysis の catch で failed になり、失敗した version を読む経路が無いため
+ * 中途半端な行は表示に出ない。原子性が要るようになったら RPC に寄せる。
  */
 export async function saveTopicsAndAssignments(
   versionId: string,
-  sortedTopics: TopicDraft[],
+  topics: HierarchyTopicRow[],
   assignments: Array<{ opinion_id: string; topic_index: number }>
 ): Promise<void> {
   const supabase = createAdminClient();
 
-  if (sortedTopics.length === 0) return;
+  if (topics.length === 0) return;
 
-  const { data: inserted, error: topicError } = await supabase
-    .from("topic")
-    .insert(
-      sortedTopics.map((t, index) => ({
-        version_id: versionId,
-        title: t.title,
-        description: t.description,
-        sort_order: index,
-      }))
-    )
-    .select("id, sort_order");
-  if (topicError) {
-    throw new Error(`Failed to insert topics: ${topicError.message}`);
-  }
-
-  // sort_order(=挿入時の index) → topic_id の対応表。
-  // 挿入順ではなく sort_order 値で引くため、返却順に依存しない。
   const idBySortOrder = new Map<number, string>();
-  for (const row of inserted ?? []) {
-    idBySortOrder.set(row.sort_order, row.id);
+
+  const insertRows = async (
+    rows: Array<{
+      version_id: string;
+      title: string;
+      description: string;
+      sort_order: number;
+      parent_topic_id: string | null;
+    }>
+  ) => {
+    if (rows.length === 0) return;
+    const { data, error } = await supabase
+      .from("topic")
+      .insert(rows)
+      .select("id, sort_order");
+    if (error) {
+      throw new Error(`Failed to insert topics: ${error.message}`);
+    }
+    for (const row of data ?? []) {
+      idBySortOrder.set(row.sort_order, row.id);
+    }
+  };
+
+  const parents: HierarchyTopicRow[] = [];
+  const children: Array<HierarchyTopicRow & { parent_sort_order: number }> = [];
+  for (const topic of topics) {
+    if (topic.parent_sort_order === null) {
+      parents.push(topic);
+    } else {
+      children.push({ ...topic, parent_sort_order: topic.parent_sort_order });
+    }
   }
+
+  await insertRows(
+    parents.map((t) => ({
+      version_id: versionId,
+      title: t.title,
+      description: t.description,
+      sort_order: t.sort_order,
+      parent_topic_id: null,
+    }))
+  );
+
+  const childRows = children.map((t) => {
+    const parentId = idBySortOrder.get(t.parent_sort_order);
+    if (!parentId) {
+      throw new Error(
+        `Failed to insert topics: parent not found for sort_order=${t.sort_order}`
+      );
+    }
+    return {
+      version_id: versionId,
+      title: t.title,
+      description: t.description,
+      sort_order: t.sort_order,
+      parent_topic_id: parentId,
+    };
+  });
+  await insertRows(childRows);
 
   const topicOpinionRows = assignments
     .map((a) => {
@@ -456,7 +504,7 @@ export async function getTopicsWithOpinions(versionId: string) {
   const { data, error } = await supabase
     .from("topic")
     .select(
-      `id, title, description, sort_order,
+      `id, title, description, sort_order, parent_topic_id,
        topic_opinion(
          interview_opinion(id, title, content, contextual_quote, bill_sentiment, richness)
        )`
@@ -467,4 +515,16 @@ export async function getTopicsWithOpinions(versionId: string) {
     throw new Error(`Failed to get topics: ${error.message}`);
   }
   return data ?? [];
+}
+
+/**
+ * 葉トピック（意見が紐づくトピック）だけを返す。
+ *
+ * 増分分析の既存トピックと、階層UIを持たない画面の表示はこちらを使う。
+ * 大トピックを混ぜると割当先候補になり、意見が大トピックに直接付いて
+ * 「意見は葉にだけ紐づく」という不変条件が崩れる。
+ * 判定は意見の有無なので、子を全部削除されて子なしになった親も落ちる。
+ */
+export async function getLeafTopicsWithOpinions(versionId: string) {
+  return selectLeafTopics(await getTopicsWithOpinions(versionId), hasLinkedOpinion);
 }
