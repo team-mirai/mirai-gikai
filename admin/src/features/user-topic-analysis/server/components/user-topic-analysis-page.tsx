@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { routes } from "@/lib/routes";
 import "server-only";
 
 import {
@@ -43,8 +45,14 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
         公開に同意された意見（モデレーションOK）のみを対象に、論点（トピック）を抽出・分類します。
       </p>
 
-      <section className="mb-8 rounded-lg border bg-white p-6">
+      <section className="mb-8 flex items-center justify-between gap-4 rounded-lg border bg-white p-6">
         <RunAnalysisButton billId={billId} />
+        <Link
+          href={routes.billAnalysisViewer(billId)}
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          意見分析ビューアを開く
+        </Link>
       </section>
 
       <section className="mb-8 rounded-lg border bg-white p-6">

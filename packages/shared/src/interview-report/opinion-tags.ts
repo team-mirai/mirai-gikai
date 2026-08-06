@@ -45,3 +45,67 @@ export function normalizeReasoningTypes(
   const grounded = unique.filter((v) => v !== "none");
   return grounded.length > 0 ? grounded : unique;
 }
+
+export const REASONING_TYPE_LABELS: Record<ReasoningType, string> = {
+  personal_experience: "個人体験",
+  family_observation: "家族・身近な人の観察",
+  professional_expertise: "専門知識",
+  research_reference: "研究引用",
+  overseas_example: "海外事例",
+  intuition: "直感",
+  none: "根拠なし",
+};
+
+/**
+ * 分析対象の絞り込み。
+ * - all: 絞り込まない
+ * - experts: 一般市民を除く（当事者・業界関係者・専門家）
+ * - specialists: 専門知識を根拠にした意見のみ
+ *
+ * specialists は experts の部分集合ではない。肩書が一般市民でも職業上の知見を
+ * 根拠にした発言は specialists に入る。段階的な絞り込みではなく別の切り口。
+ */
+export const OPINION_AUDIENCES = ["all", "experts", "specialists"] as const;
+
+export type OpinionAudience = (typeof OPINION_AUDIENCES)[number];
+
+export const OPINION_AUDIENCE_LABELS: Record<OpinionAudience, string> = {
+  all: "全体",
+  experts: "有識者・当事者",
+  specialists: "専門家",
+};
+
+/** experts が許容する role（general_citizen を除く3区分）。 */
+const EXPERT_ROLES = new Set([
+  "daily_life_affected",
+  "work_related",
+  "subject_expert",
+]);
+
+/** 文字列を OpinionAudience に絞り込む（URL パラメータ等の検証用）。 */
+export function isOpinionAudience(value: unknown): value is OpinionAudience {
+  return (
+    typeof value === "string" &&
+    (OPINION_AUDIENCES as readonly string[]).includes(value)
+  );
+}
+
+/** 意見1件が指定 audience に含まれるかを判定する純粋関数。 */
+export function opinionPassesAudience(
+  audience: OpinionAudience,
+  opinion: { role: string | null; reasoning_types: readonly string[] | null }
+): boolean {
+  if (audience === "all") return true;
+
+  const { role, reasoning_types } = opinion;
+  if (audience === "experts") {
+    return role != null && EXPERT_ROLES.has(role);
+  }
+
+  // specialists: 肩書が専門家 か、発言が専門知識を根拠にしている。
+  // role 単独では本番実測で全意見の1%未満しか拾えないため後者が本体。
+  return (
+    role === "subject_expert" ||
+    (reasoning_types?.includes("professional_expertise") ?? false)
+  );
+}
