@@ -31,7 +31,7 @@ export function TopicOpinionList({
   nowMs,
 }: TopicOpinionListProps) {
   const now = new Date(nowMs);
-  const { filter, visible, remaining, selectFilter, loadMore } =
+  const { filter, filtered, visible, remaining, selectFilter, loadMore } =
     useFilteredPagination(opinions, filterOpinions, INITIAL_VISIBLE, LOAD_STEP);
 
   // 各フィルタchipに該当意見数を表示する
@@ -45,6 +45,14 @@ export function TopicOpinionList({
 
   return (
     <div className="flex flex-col gap-4">
+      <p
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="text-[13px] font-bold text-topic-label"
+      >
+        {filtered.length}件の意見
+      </p>
       <TopicFilterChips
         ariaLabel="意見を絞り込む"
         activeFilter={filter}
