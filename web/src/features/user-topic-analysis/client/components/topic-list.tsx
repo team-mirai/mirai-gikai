@@ -61,6 +61,7 @@ export function TopicList({
           {sortLabel && `｜${sortLabel}`}
         </p>
         <TopicFilterChips
+          ariaLabel="トピックを絞り込む"
           activeFilter={filter}
           onSelect={selectFilter}
           counts={filterCounts}

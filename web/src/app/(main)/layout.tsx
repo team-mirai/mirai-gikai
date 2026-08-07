@@ -5,6 +5,7 @@ import { Header } from "@/components/header";
 import { AuthGate } from "@/components/layouts/auth-gate";
 import { Footer } from "@/components/layouts/footer/footer";
 import { MainLayout } from "@/components/layouts/main-layout";
+import { SkipLink } from "@/components/layouts/skip-link";
 import { env } from "@/lib/env";
 import { RubyfulInitializer } from "@/lib/rubyful";
 
@@ -21,8 +22,13 @@ export default function MainGroupLayout({
       <AuthGate />
 
       <MainLayout>
+        <SkipLink />
         <Header />
-        <main className="min-h-dvh md:min-h-[calc(100dvh-96px)] bg-mirai-surface">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-h-dvh bg-mirai-surface md:min-h-[calc(100dvh-96px)]"
+        >
           {children}
         </main>
         <Footer />

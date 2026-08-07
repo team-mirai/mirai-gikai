@@ -15,16 +15,19 @@ export function Hero() {
       />
       <div className="absolute bottom-[30vh] left-0 right-0 py-4">
         <Container>
-          <p className="font-bold text-xl md:text-2xl leading-relaxed">
+          <h1 className="font-bold text-xl leading-relaxed md:text-2xl">
             いま国会で議論されていること <br />
             やさしい言葉で説明します
-          </p>
+          </h1>
           <p className="mt-2 font-lexend text-xs">powered by Team Mirai & AI</p>
         </Container>
       </div>
 
       {/* スクロールインジケーター */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce-gentle">
+      <div
+        aria-hidden="true"
+        className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center animate-bounce-gentle"
+      >
         <div className="w-[1px] h-[34px] bg-black"></div>
         <p className="mt-2 font-lexend text-[10px] leading-[20px] text-black">
           Scroll

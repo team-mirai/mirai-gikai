@@ -46,6 +46,7 @@ export function TopicOpinionList({
   return (
     <div className="flex flex-col gap-4">
       <TopicFilterChips
+        ariaLabel="意見を絞り込む"
         activeFilter={filter}
         onSelect={selectFilter}
         counts={counts}

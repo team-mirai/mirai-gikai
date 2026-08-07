@@ -44,7 +44,7 @@ export default async function Home() {
       {/* 議案一覧セクション */}
       <Container className="">
         <div className="py-10">
-          <main className="flex flex-col gap-16">
+          <div className="flex flex-col gap-16">
             {/* 注目の法案セクション */}
             <FeaturedBillSection bills={featuredBills} />
 
@@ -53,7 +53,7 @@ export default async function Home() {
 
             {/* Coming soonセクション */}
             <ComingSoonSection bills={comingSoonBills} />
-          </main>
+          </div>
         </div>
       </Container>
 
