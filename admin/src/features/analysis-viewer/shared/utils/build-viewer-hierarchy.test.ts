@@ -189,4 +189,23 @@ describe("flattenOpinions", () => {
   it("空の階層なら空配列", () => {
     expect(flattenOpinions([])).toEqual([]);
   });
+
+  // 意見は topic_opinion の主キー (version_id, opinion_id) により version 内で
+  // 1トピックにしか紐づかない。加えて未分類への回収も経路が重ならないので、
+  // 親直付け・3階層が混ざっても id は一意になる（React の key に使える）。
+  it("親直付けと3階層が混ざっても id は重複せず、意見も落ちない", () => {
+    const hierarchy = buildViewerHierarchy(
+      [
+        topic("big", null, [opinion("direct")]),
+        topic("mid", "big", [opinion("a")]),
+        topic("deep", "mid", [opinion("b")]),
+        topic("flat", null, [opinion("c")]),
+      ],
+      "all"
+    );
+
+    const ids = flattenOpinions(hierarchy).map((o) => o.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.sort()).toEqual(["a", "b", "c", "direct"]);
+  });
 });
