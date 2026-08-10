@@ -3,7 +3,20 @@ import {
   isDevRoute,
   isHtmlAcceptHeader,
   isValidDifficultyLevel,
+  shouldApplyDifficultyCookie,
 } from "./middleware";
+
+describe("shouldApplyDifficultyCookie", () => {
+  it("通常のページパスではtrueを返す", () => {
+    expect(shouldApplyDifficultyCookie("/")).toBe(true);
+    expect(shouldApplyDifficultyCookie("/bills/abc")).toBe(true);
+  });
+
+  it("APIパスではfalseを返す（レスポンスにSet-Cookieを乗せない）", () => {
+    expect(shouldApplyDifficultyCookie("/api/open-data/bills")).toBe(false);
+    expect(shouldApplyDifficultyCookie("/api/chat")).toBe(false);
+  });
+});
 
 describe("isValidDifficultyLevel", () => {
   it("should return true for 'normal'", () => {

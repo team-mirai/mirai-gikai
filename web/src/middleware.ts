@@ -70,15 +70,22 @@ export function isValidDifficultyLevel(
 }
 
 /**
+ * difficulty Cookie の付与対象パスか判定する。
+ * オープンデータAPI等も difficulty クエリを受け取るため、APIレスポンスに
+ * Set-Cookie が乗ってUIの表示設定を書き換えてしまわないよう除外する
+ */
+export function shouldApplyDifficultyCookie(pathname: string): boolean {
+  return !pathname.startsWith("/api/");
+}
+
+/**
  * URLパラメータからdifficultyを取得し、レスポンスのCookieにセット
  */
 function _applyDifficultyCookie(
   request: NextRequest,
   response: NextResponse
 ): void {
-  // オープンデータAPI等も difficulty クエリを受け取るため、APIレスポンスに
-  // Set-Cookie が乗ってUIの表示設定を書き換えてしまわないよう除外する
-  if (request.nextUrl.pathname.startsWith("/api/")) return;
+  if (!shouldApplyDifficultyCookie(request.nextUrl.pathname)) return;
 
   const { searchParams } = new URL(request.url);
   const difficulty = searchParams.get("difficulty");
