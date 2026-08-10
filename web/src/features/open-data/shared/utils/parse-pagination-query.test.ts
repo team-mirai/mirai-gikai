@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { encodeCursor } from "./cursor";
 import {
   DEFAULT_LIMIT,
-  parseInterviewsQuery,
+  parsePaginationQuery,
   toPositiveInt,
-} from "./parse-interviews-query";
+} from "./parse-pagination-query";
 
-describe("parseInterviewsQuery", () => {
+describe("parsePaginationQuery", () => {
   it("未指定時はデフォルトlimit・cursorなしで解析する", () => {
-    const result = parseInterviewsQuery(new URLSearchParams());
+    const result = parsePaginationQuery(new URLSearchParams());
     expect(result).toEqual({ ok: true, limit: DEFAULT_LIMIT, cursor: null });
   });
 
@@ -22,7 +22,7 @@ describe("parseInterviewsQuery", () => {
       cursor: encodeCursor(cursor),
     });
 
-    expect(parseInterviewsQuery(params)).toEqual({
+    expect(parsePaginationQuery(params)).toEqual({
       ok: true,
       limit: 50,
       cursor,
@@ -35,12 +35,12 @@ describe("parseInterviewsQuery", () => {
     "abc",
     "1.5",
   ])("不正な limit (%s) はエラーを返す", (limit) => {
-    const result = parseInterviewsQuery(new URLSearchParams({ limit }));
+    const result = parsePaginationQuery(new URLSearchParams({ limit }));
     expect(result.ok).toBe(false);
   });
 
   it("不正な cursor はエラーを返す", () => {
-    const result = parseInterviewsQuery(
+    const result = parsePaginationQuery(
       new URLSearchParams({ cursor: "invalid!!" })
     );
     expect(result.ok).toBe(false);

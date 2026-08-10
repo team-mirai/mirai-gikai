@@ -5,8 +5,7 @@ export type OpenDataCursor = {
   id: string;
 };
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from "./uuid";
 
 // Postgres の timestamptz が受理できる ISO 8601 形式（DBから返る +00:00 形式も含む）
 const ISO_TIMESTAMP_PATTERN =
@@ -56,7 +55,7 @@ export function decodeCursor(value: string): OpenDataCursor | null {
   const createdAt = decoded.slice(0, separatorIndex);
   const id = decoded.slice(separatorIndex + 1);
   if (!isValidIsoTimestamp(createdAt)) return null;
-  if (!UUID_PATTERN.test(id)) return null;
+  if (!isUuid(id)) return null;
 
   return { createdAt, id };
 }

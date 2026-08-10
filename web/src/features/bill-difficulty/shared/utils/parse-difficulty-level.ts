@@ -1,8 +1,5 @@
-import {
-  DEFAULT_DIFFICULTY,
-  type DifficultyLevelEnum,
-  VALID_DIFFICULTY_LEVELS,
-} from "../types/index";
+import { DEFAULT_DIFFICULTY, type DifficultyLevelEnum } from "../types/index";
+import { isDifficultyLevel } from "./is-difficulty-level";
 
 /**
  * Cookie値から難易度レベルをパースする純粋関数
@@ -11,13 +8,5 @@ import {
 export function parseDifficultyLevel(
   cookieValue: string | undefined
 ): DifficultyLevelEnum {
-  if (!cookieValue) {
-    return DEFAULT_DIFFICULTY;
-  }
-
-  if (VALID_DIFFICULTY_LEVELS.includes(cookieValue as DifficultyLevelEnum)) {
-    return cookieValue as DifficultyLevelEnum;
-  }
-
-  return DEFAULT_DIFFICULTY;
+  return isDifficultyLevel(cookieValue) ? cookieValue : DEFAULT_DIFFICULTY;
 }
