@@ -1,11 +1,11 @@
+import { isUuid } from "./uuid";
+
 export type OpenDataCursor = {
   /** ISO 8601 の created_at */
   createdAt: string;
-  /** レポートID（UUID） */
+  /** レコードID（UUID）。レポート・議案など一覧対象のID */
   id: string;
 };
-
-import { isUuid } from "./uuid";
 
 // Postgres の timestamptz が受理できる ISO 8601 形式（DBから返る +00:00 形式も含む）
 const ISO_TIMESTAMP_PATTERN =

@@ -9,6 +9,8 @@ import { jsonNoStore } from "@/lib/api/response";
  * - 公開中（publish_status = published）の議案のみを、難易度別コンテンツ・
  *   チームみらいの賛否・タグ付きで新しい順に返す
  * - APIキーは発行せず、オープンデータAPI全体でレートリミットを設ける
+ * - インタビューAPIと異なり license / termsUrl は返さない（インタビュー
+ *   データ利用規約はインタビューデータ専用のため意図的に含めていない）
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);

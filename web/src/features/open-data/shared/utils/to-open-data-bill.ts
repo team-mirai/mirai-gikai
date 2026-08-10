@@ -31,12 +31,12 @@ export type OpenDataBillRow = {
  * DBの議案行をオープンデータAPIのレスポンス項目に変換する。
  */
 export function toOpenDataBillItem(row: OpenDataBillRow): OpenDataBillItem {
-  const content = row.bill_contents[0];
+  const billContent = row.bill_contents[0];
   return {
     billId: row.id,
     name: row.name,
-    title: content?.title ?? "",
-    summary: content?.summary ?? "",
+    title: billContent?.title ?? "",
+    summary: billContent?.summary ?? "",
     status: row.status,
     statusLabel: getBillStatusLabel(row.status, row.originating_house),
     statusNote: row.status_note,
