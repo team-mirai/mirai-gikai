@@ -9,6 +9,9 @@ import {
   createTestTag,
 } from "@test-utils/utils";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
+import type { OpenDataBillItem } from "../../shared/types/open-data-bills";
+import { decodeCursor, type OpenDataCursor } from "../../shared/utils/cursor";
 import { getOpenDataBillDetail } from "./get-open-data-bill-detail";
 import { getOpenDataBills } from "./get-open-data-bills";
 
@@ -87,15 +90,31 @@ describe("getOpenDataBills / getOpenDataBillDetail", () => {
     draftBillId,
   ];
 
+  /**
+   * 全ページを走査して議案を収集する。ローカルDBの件数が1ページ分を
+   * 超えてもテストが影響を受けないようにする。
+   */
+  const fetchAllBills = async (
+    difficulty: DifficultyLevelEnum,
+    cursor: OpenDataCursor | null = null
+  ) => {
+    const items: OpenDataBillItem[] = [];
+    let currentCursor = cursor;
+    do {
+      const page = await getOpenDataBills({
+        limit: 100,
+        cursor: currentCursor,
+        difficulty,
+      });
+      items.push(...page.items);
+      currentCursor = page.nextCursor ? decodeCursor(page.nextCursor) : null;
+    } while (currentCursor);
+    return items;
+  };
+
   it("公開中の議案のみを新しい順に、賛否・タグ付きで返す", async () => {
-    const page = await getOpenDataBills({
-      limit: 1000,
-      cursor: null,
-      difficulty: "normal",
-    });
-    const mine = page.items.filter((item) =>
-      testBillIds().includes(item.billId)
-    );
+    const items = await fetchAllBills("normal");
+    const mine = items.filter((item) => testBillIds().includes(item.billId));
 
     expect(mine.map((item) => item.billId)).toEqual([
       publishedBillId,
@@ -118,35 +137,24 @@ describe("getOpenDataBills / getOpenDataBillDetail", () => {
   });
 
   it("difficulty=hard ではhardコンテンツを持つ議案のみを返す", async () => {
-    const page = await getOpenDataBills({
-      limit: 1000,
-      cursor: null,
-      difficulty: "hard",
-    });
-    const mine = page.items.filter((item) =>
-      testBillIds().includes(item.billId)
-    );
+    const items = await fetchAllBills("hard");
+    const mine = items.filter((item) => testBillIds().includes(item.billId));
 
     expect(mine.map((item) => item.billId)).toEqual([publishedBillId]);
     expect(mine[0]?.title).toBe("難しいタイトル");
   });
 
   it("cursor 以降のページには古い議案だけが含まれる", async () => {
-    const page = await getOpenDataBills({
-      limit: 1000,
-      cursor: null,
-      difficulty: "normal",
-    });
-    const newer = page.items.find((item) => item.billId === publishedBillId);
+    const items = await fetchAllBills("normal");
+    const newer = items.find((item) => item.billId === publishedBillId);
     expect(newer).toBeTruthy();
     if (!newer) return;
 
-    const afterCursor = await getOpenDataBills({
-      limit: 1000,
-      cursor: { createdAt: newer.createdAt, id: newer.billId },
-      difficulty: "normal",
+    const afterCursor = await fetchAllBills("normal", {
+      createdAt: newer.createdAt,
+      id: newer.billId,
     });
-    const mine = afterCursor.items.filter((item) =>
+    const mine = afterCursor.filter((item) =>
       testBillIds().includes(item.billId)
     );
     expect(mine.map((item) => item.billId)).toEqual([
