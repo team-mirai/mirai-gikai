@@ -1,5 +1,5 @@
 import type { ReasoningType } from "@mirai-gikai/shared/interview-report/opinion-tags";
-import type { FlatOpinion, ViewerBigTopic, ViewerOpinion } from "../types";
+import type { FlatOpinion, ViewerBigTopic } from "../types";
 import { flattenOpinions } from "./build-viewer-hierarchy";
 
 export type { FlatOpinion };
@@ -28,37 +28,33 @@ export function collectProposals(
 }
 
 /**
- * 専門知識・研究引用・海外事例を根拠にした意見。
+ * 専門知識・研究引用・海外事例を根拠にした意見。質疑で引用に耐えるのはこの3種。
  *
- * 質疑で引用に耐えるのはこの3種で、なかでも研究引用と海外事例は件数が少ないぶん
- * 探しに行く価値が高い。上に来るよう根拠の希少さで重み付けしてから richness で並べる。
+ * **根拠の種類では並べ替えない。** 当初は希少な根拠を上に出す重み付け（研究引用3・
+ * 海外事例2・専門知識1）を入れていたが、ローカル実データで research_reference の
+ * 誤検出を確認したため外した。同一発言に対してタグ付けの実行ごとに research_reference
+ * が付いたり付かなかったりし、付いた3件はいずれも発言原文に調査・研究への言及が無い。
+ *
+ * 誤検出を最優先で上に出すと、引用候補の先頭に裏付けの無い発言が並ぶ。逐語引用を
+ * 委員会質疑に持ち出す導線なので、希少な根拠を拾える利得より誤りが混入する損失が
+ * 大きいと判断した。richness だけで並べる。
  */
-const GROUNDED_REASONING_WEIGHT: Partial<Record<ReasoningType, number>> = {
-  research_reference: 3,
-  overseas_example: 2,
-  professional_expertise: 1,
-};
+const GROUNDED_REASONING_TYPES: readonly ReasoningType[] = [
+  "research_reference",
+  "overseas_example",
+  "professional_expertise",
+];
 
 export function collectGroundedOpinions(
   bigTopics: readonly ViewerBigTopic[]
 ): FlatOpinion[] {
-  return flattenOpinions(bigTopics)
-    .map((opinion) => ({ opinion, weight: groundingWeight(opinion) }))
-    .filter((entry) => entry.weight > 0)
-    .sort(
-      (a, b) =>
-        b.weight - a.weight ||
-        (b.opinion.richness ?? -1) - (a.opinion.richness ?? -1)
+  return byRichnessDesc(
+    flattenOpinions(bigTopics).filter((opinion) =>
+      opinion.reasoningTypes.some((type) =>
+        GROUNDED_REASONING_TYPES.includes(type)
+      )
     )
-    .map((entry) => entry.opinion);
-}
-
-function groundingWeight(opinion: ViewerOpinion): number {
-  let weight = 0;
-  for (const type of opinion.reasoningTypes) {
-    weight = Math.max(weight, GROUNDED_REASONING_WEIGHT[type] ?? 0);
-  }
-  return weight;
+  );
 }
 
 /**

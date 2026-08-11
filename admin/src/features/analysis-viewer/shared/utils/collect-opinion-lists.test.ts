@@ -109,24 +109,33 @@ describe("collectGroundedOpinions", () => {
     expect(result.map((o) => o.id)).toEqual(["expertise"]);
   });
 
-  // 研究引用と海外事例は件数が少ないぶん、探しに行く価値が高い。
-  it("研究引用 → 海外事例 → 専門知識 の順に重み付けする", () => {
+  // research_reference の誤検出を上位に固定しないため、根拠の種類では並べない。
+  it("根拠の種類では並べ替えず richness 降順にする", () => {
     const result = collectGroundedOpinions(
       hierarchy([
-        opinion("expertise", { reasoningTypes: ["professional_expertise"] }),
-        opinion("overseas", { reasoningTypes: ["overseas_example"] }),
-        opinion("research", { reasoningTypes: ["research_reference"] }),
+        opinion("expertise", {
+          reasoningTypes: ["professional_expertise"],
+          richness: 90,
+        }),
+        opinion("overseas", {
+          reasoningTypes: ["overseas_example"],
+          richness: 50,
+        }),
+        opinion("research", {
+          reasoningTypes: ["research_reference"],
+          richness: 10,
+        }),
       ])
     );
 
     expect(result.map((o) => o.id)).toEqual([
-      "research",
-      "overseas",
       "expertise",
+      "overseas",
+      "research",
     ]);
   });
 
-  it("同じ重みなら richness 降順", () => {
+  it("richness 降順に並べる", () => {
     const result = collectGroundedOpinions(
       hierarchy([
         opinion("low", {
@@ -143,17 +152,21 @@ describe("collectGroundedOpinions", () => {
     expect(result.map((o) => o.id)).toEqual(["high", "low"]);
   });
 
-  it("複数の根拠を持つ場合は最も重い根拠で扱う", () => {
+  it("複数の根拠を持つ意見も1件として扱う", () => {
     const result = collectGroundedOpinions(
       hierarchy([
         opinion("mixed", {
           reasoningTypes: ["professional_expertise", "research_reference"],
+          richness: 20,
         }),
-        opinion("expertise", { reasoningTypes: ["professional_expertise"] }),
+        opinion("expertise", {
+          reasoningTypes: ["professional_expertise"],
+          richness: 80,
+        }),
       ])
     );
 
-    expect(result.map((o) => o.id)).toEqual(["mixed", "expertise"]);
+    expect(result.map((o) => o.id)).toEqual(["expertise", "mixed"]);
   });
 });
 
