@@ -11,23 +11,12 @@
       "description": "ベースURL"
     }
   ],
-  "tags": [
-    {
-      "name": "AIインタビューデータ",
-      "description": "AIインタビューの回答データ"
-    },
-    {
-      "name": "議案データ",
-      "description": "公開中の議案とチームみらいの賛否"
-    }
-  ],
   "paths": {
     "/api/open-data/interviews": {
       "get": {
         "summary": "インタビューデータの取得",
         "description": "二次利用許諾済みの公開インタビューデータを新しい順に返します。`nextCursor` を次のリクエストの `cursor` に指定することで全件を取得できます。",
         "operationId": "listOpenDataInterviews",
-        "tags": ["AIインタビューデータ"],
         "parameters": [
           {
             "name": "agreeToTerms",
@@ -92,7 +81,6 @@
         "summary": "議案一覧の取得",
         "description": "公開中の議案を新しい順（作成日時の降順）に返します。各議案には難易度別の解説（タイトル・概要）、チームみらいの賛否、タグが含まれます。`nextCursor` を次のリクエストの `cursor` に指定することで全件を取得できます。",
         "operationId": "listOpenDataBills",
-        "tags": ["議案データ"],
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -125,7 +113,6 @@
         "summary": "議案詳細の取得",
         "description": "公開中の議案を1件返します。一覧の項目に加えて、議案の本文解説（Markdown）が含まれます。",
         "operationId": "getOpenDataBill",
-        "tags": ["議案データ"],
         "parameters": [
           {
             "name": "billId",
