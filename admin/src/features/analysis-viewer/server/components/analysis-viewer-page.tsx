@@ -8,7 +8,7 @@ import { fetchBillContext } from "@mirai-gikai/topic-analysis-core/repository";
 import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
-import { TopicTree } from "../../client/components/topic-tree";
+import { TopicMindmap } from "../../client/components/topic-mindmap";
 import { OpinionCard } from "../../shared/components/opinion-card";
 import {
   buildViewerHierarchy,
@@ -94,8 +94,12 @@ export async function AnalysisViewerPage({
 
       {params.view === "topics" && (
         // audience を切り替えると大トピックの構成が変わる。key を変えて
-        // 開閉状態を持ち越さない（消えた大トピックを開いたままにしない）。
-        <TopicTree key={params.audience} bigTopics={bigTopics} />
+        // 選択状態を持ち越さない（消えた中トピックを選んだままにしない）。
+        <TopicMindmap
+          key={params.audience}
+          bigTopics={bigTopics}
+          billName={bill.name}
+        />
       )}
       {params.view === "concerns" && (
         <OpinionList
