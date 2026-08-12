@@ -179,6 +179,19 @@ export function buildMindmapGraph(
   };
 }
 
+/**
+ * React Flow の選択状態から、意見パネルが見るノード id を決める純粋関数。
+ *
+ * クリックだけでなくキーボード（ノードにフォーカスして Enter / Space）でも
+ * 選択が変わるため、パネルはクリックイベントではなく選択状態を見る。
+ * 複数選択は使わないので先頭だけを採る。
+ */
+export function resolveSelectedNodeId(
+  selectedNodes: readonly { id: string }[]
+): string | null {
+  return selectedNodes[0]?.id ?? null;
+}
+
 /** ノード id から中トピックを引く。選択中のノードの意見を出すのに使う。 */
 export function findMediumTopic(
   bigTopics: readonly ViewerBigTopic[],

@@ -16,7 +16,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { OpinionCard } from "../../shared/components/opinion-card";
 import type { ViewerBigTopic } from "../../shared/types";
 import {
@@ -24,6 +24,7 @@ import {
   findMediumTopic,
   MINDMAP_NODE_SIZE,
   type MindmapNodeData,
+  resolveSelectedNodeId,
 } from "../../shared/utils/build-mindmap-graph";
 
 type TopicNode = Node<MindmapNodeData, "topic">;
@@ -88,6 +89,15 @@ function MindmapCanvas({
   // minZoom で下限を切るのは、全体を収めると文字が読めなくなるため。中トピックが
   // 30件あるとグラフ高は4000pxを超え、収めるズームは0.1倍を下回る。初期表示は
   // 読める大きさに留め、全体の把握はミニマップ、移動はパンとズームに任せる。
+  // クリックだけを見るとキーボード操作（ノードにフォーカスして Enter / Space）で
+  // 選択したときにパネルが変わらない。React Flow の選択状態を唯一の入力にする。
+  const handleSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: { nodes: TopicNode[] }) => {
+      setSelectedNodeId(resolveSelectedNodeId(selectedNodes));
+    },
+    []
+  );
+
   const nodesInitialized = useNodesInitialized();
   const { fitView } = useReactFlow();
   useEffect(() => {
@@ -104,10 +114,7 @@ function MindmapCanvas({
           onEdgesChange={onEdgesChange}
           nodeTypes={NODE_TYPES}
           defaultEdgeOptions={{ type: "smoothstep" }}
-          onNodeClick={(_, node) =>
-            setSelectedNodeId((prev) => (prev === node.id ? null : node.id))
-          }
-          onPaneClick={() => setSelectedNodeId(null)}
+          onSelectionChange={handleSelectionChange}
           nodesDraggable={false}
           nodesConnectable={false}
           edgesFocusable={false}

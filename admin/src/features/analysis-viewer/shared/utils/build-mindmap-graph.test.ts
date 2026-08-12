@@ -5,6 +5,7 @@ import {
   findMediumTopic,
   MINDMAP_NODE_SIZE,
   MINDMAP_ROOT_ID,
+  resolveSelectedNodeId,
 } from "./build-mindmap-graph";
 
 const BILL = "船荷証券の電子化に関する法律案";
@@ -189,6 +190,26 @@ describe("buildMindmapGraph", () => {
   // 根だけが浮いたグラフを描かないため、トピックが無ければ何も返さない。
   it("トピックが無ければ空のグラフを返す", () => {
     expect(buildMindmapGraph([], BILL)).toEqual({ nodes: [], edges: [] });
+  });
+});
+
+// キーボード（ノードにフォーカスして Enter / Space）でも選択は変わるため、
+// パネルはクリックイベントではなく選択状態を入力にする。
+describe("resolveSelectedNodeId", () => {
+  it("選択中のノード id を返す", () => {
+    expect(resolveSelectedNodeId([{ id: "medium:b1:m1" }])).toBe(
+      "medium:b1:m1"
+    );
+  });
+
+  it("選択が無ければ null を返す", () => {
+    expect(resolveSelectedNodeId([])).toBeNull();
+  });
+
+  it("複数選択は先頭だけ採る", () => {
+    expect(
+      resolveSelectedNodeId([{ id: "medium:b1:m1" }, { id: "big:b2" }])
+    ).toBe("medium:b1:m1");
   });
 });
 
