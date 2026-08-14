@@ -15,3 +15,22 @@ export function jsonResponse(body: unknown, status: number): Response {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+/**
+ * キャッシュさせないJSONレスポンス。
+ * 同意撤回・非公開化が即座に反映される必要がある公開APIで使う。
+ */
+export function jsonNoStore(
+  body: unknown,
+  status = 200,
+  headers: HeadersInit = {}
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      ...headers,
+    },
+  });
+}

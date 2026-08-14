@@ -1,4 +1,3 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   createVersion,
   fetchTargetOpinions,
@@ -6,6 +5,7 @@ import {
   saveTopicsAndAssignments,
   updateVersionStatus,
 } from "@mirai-gikai/topic-analysis-core/repository";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   adminClient,
   cleanupTestBill,
@@ -192,8 +192,18 @@ describe("user-topic-analysis repository 統合テスト", () => {
     await saveTopicsAndAssignments(
       version.id,
       [
-        { title: "多い論点", description: "d0" },
-        { title: "少ない論点", description: "d1" },
+        {
+          title: "多い論点",
+          description: "d0",
+          sort_order: 0,
+          parent_sort_order: null,
+        },
+        {
+          title: "少ない論点",
+          description: "d1",
+          sort_order: 1,
+          parent_sort_order: null,
+        },
       ],
       [
         { opinion_id: opinionIds[0], topic_index: 0 },

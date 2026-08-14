@@ -7,15 +7,22 @@ export const EXTRACT_BATCH_SIZE = 40;
 export const ASSIGN_BATCH_SIZE = 20;
 /** バッチ並列実行数（§A.3: 5〜10並列） */
 export const MAX_CONCURRENCY = 10;
+/**
+ * グルーピング1回のプロンプトに載せる中トピック数の上限。
+ * 超えた分は「その他の論点」に落とす（コンテキスト超過で毎回リトライを
+ * 使い切るのを避ける）。
+ */
+export const GROUPING_MAX_MEDIUM_TOPICS = 120;
 /** 各 Phase で使用するモデル（§4.4: Haiku が安定） */
 export const TOPIC_MODEL = AI_MODELS.claude_haiku_4_5;
 /** プロンプト版（再現性のため version に記録）。プロンプト/出力スキーマ変更時に上げる。 */
-export const PROMPT_VERSION = "v3";
+export const PROMPT_VERSION = "v4";
 /** 実行ステップ（current_step） */
 export const ANALYSIS_STEPS = {
   EXTRACT: "extract",
   MERGE: "merge",
   ASSIGN: "assign",
+  GROUP: "group",
   DONE: "done",
 } as const;
 

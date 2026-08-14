@@ -840,6 +840,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          parent_topic_id: string | null
           sort_order: number
           title: string
           version_id: string
@@ -848,6 +849,7 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          parent_topic_id?: string | null
           sort_order?: number
           title: string
           version_id: string
@@ -856,11 +858,19 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          parent_topic_id?: string | null
           sort_order?: number
           title?: string
           version_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "topic_parent_same_version_fkey"
+            columns: ["version_id", "parent_topic_id"]
+            isOneToOne: false
+            referencedRelation: "topic"
+            referencedColumns: ["version_id", "id"]
+          },
           {
             foreignKeyName: "topic_version_id_fkey"
             columns: ["version_id"]

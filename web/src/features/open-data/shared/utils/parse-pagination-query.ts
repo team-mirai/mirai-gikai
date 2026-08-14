@@ -3,16 +3,16 @@ import { decodeCursor, type OpenDataCursor } from "./cursor";
 export const DEFAULT_LIMIT = 20;
 export const MAX_LIMIT = 100;
 
-export type ParsedInterviewsQuery =
+export type ParsedPaginationQuery =
   | { ok: true; limit: number; cursor: OpenDataCursor | null }
   | { ok: false; error: string };
 
 /**
- * 公開データAPIのクエリパラメータ（limit / cursor）を検証・解析する。
+ * 公開データAPI共通のページネーションパラメータ（limit / cursor）を検証・解析する。
  */
-export function parseInterviewsQuery(
+export function parsePaginationQuery(
   searchParams: URLSearchParams
-): ParsedInterviewsQuery {
+): ParsedPaginationQuery {
   const limitParam = searchParams.get("limit");
   const limit = limitParam === null ? DEFAULT_LIMIT : Number(limitParam);
   if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LIMIT) {

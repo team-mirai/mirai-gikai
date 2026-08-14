@@ -72,7 +72,8 @@ describe("getOpenDataInterviews", () => {
         });
       if (reportError) throw new Error(reportError.message);
 
-      // 新しい方の許諾済みセッションにだけ会話ログを付ける
+      // 新しい方の許諾済みセッションにだけ会話ログを付ける。
+      // 同一insertだと created_at が同値になり時系列順が不定になるため明示する
       if (i === 1) {
         const { error: messageError } = await adminClient
           .from("interview_messages")
@@ -81,11 +82,13 @@ describe("getOpenDataInterviews", () => {
               interview_session_id: session.id,
               role: "assistant",
               content: "質問です",
+              created_at: "2026-01-01T00:00:00+00:00",
             },
             {
               interview_session_id: session.id,
               role: "user",
               content: "回答です",
+              created_at: "2026-01-01T00:00:01+00:00",
             },
           ]);
         if (messageError) throw new Error(messageError.message);

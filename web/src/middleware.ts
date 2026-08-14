@@ -3,8 +3,8 @@ import {
   DIFFICULTY_COOKIE_NAME,
   DIFFICULTY_COOKIE_OPTIONS,
   type DifficultyLevelEnum,
-  VALID_DIFFICULTY_LEVELS,
 } from "./features/bill-difficulty/shared/types";
+import { isDifficultyLevel } from "./features/bill-difficulty/shared/utils/is-difficulty-level";
 import {
   createUnauthorizedResponse,
   getBasicAuthConfig,
@@ -60,8 +60,16 @@ export async function middleware(request: NextRequest) {
 export function isValidDifficultyLevel(
   value: string | null
 ): value is DifficultyLevelEnum {
-  if (!value) return false;
-  return VALID_DIFFICULTY_LEVELS.includes(value as DifficultyLevelEnum);
+  return isDifficultyLevel(value);
+}
+
+/**
+ * difficulty Cookie の付与対象パスか判定する。
+ * オープンデータAPI等も difficulty クエリを受け取るため、APIレスポンスに
+ * Set-Cookie が乗ってUIの表示設定を書き換えてしまわないよう除外する
+ */
+export function shouldApplyDifficultyCookie(pathname: string): boolean {
+  return !pathname.startsWith("/api/");
 }
 
 /**
@@ -71,6 +79,8 @@ function _applyDifficultyCookie(
   request: NextRequest,
   response: NextResponse
 ): void {
+  if (!shouldApplyDifficultyCookie(request.nextUrl.pathname)) return;
+
   const { searchParams } = new URL(request.url);
   const difficulty = searchParams.get("difficulty");
 
