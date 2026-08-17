@@ -15,6 +15,9 @@ export type ViewerOpinion = {
   role: string | null;
   /** 発言者の立場の短縮タイトル。 */
   roleTitle: string | null;
+  /** レポート詳細へのリンクを組み立てるための識別子。辿れなければ null。 */
+  sessionId: string | null;
+  configId: string | null;
 };
 
 /** 中トピック（葉）。意見が紐づくのはここだけ。 */

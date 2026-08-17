@@ -8,8 +8,8 @@ import { fetchBillContext } from "@mirai-gikai/topic-analysis-core/repository";
 import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
+import { SelectableOpinionList } from "../../client/components/selectable-opinion-list";
 import { TopicMindmap } from "../../client/components/topic-mindmap";
-import { OpinionCard } from "../../shared/components/opinion-card";
 import {
   buildViewerHierarchy,
   flattenOpinions,
@@ -18,7 +18,6 @@ import {
   collectConcerns,
   collectGroundedOpinions,
   collectProposals,
-  type FlatOpinion,
   searchOpinions,
 } from "../../shared/utils/collect-opinion-lists";
 import {
@@ -102,25 +101,37 @@ export async function AnalysisViewerPage({
         />
       )}
       {params.view === "concerns" && (
-        <OpinionList
+        <SelectableOpinionList
           opinions={collectConcerns(bigTopics)}
           emptyMessage="懸念として抽出された意見がありません。"
+          billName={bill.name}
+          billId={billId}
         />
       )}
       {params.view === "proposals" && (
-        <OpinionList
+        <SelectableOpinionList
           opinions={collectProposals(bigTopics)}
           emptyMessage="提案として抽出された意見がありません。"
+          billName={bill.name}
+          billId={billId}
         />
       )}
       {params.view === "grounded" && (
-        <OpinionList
+        <SelectableOpinionList
           opinions={collectGroundedOpinions(bigTopics)}
           emptyMessage="専門知識・研究引用・海外事例を根拠にした意見がありません。"
+          billName={bill.name}
+          billId={billId}
         />
       )}
       {params.view === "search" && (
-        <SearchView bigTopics={bigTopics} params={params} basePath={basePath} />
+        <SearchView
+          bigTopics={bigTopics}
+          params={params}
+          basePath={basePath}
+          billName={bill.name}
+          billId={billId}
+        />
       )}
     </div>
   );
@@ -163,45 +174,18 @@ function TabLink({
   );
 }
 
-function OpinionList({
-  opinions,
-  emptyMessage,
-}: {
-  opinions: FlatOpinion[];
-  emptyMessage: string;
-}) {
-  if (opinions.length === 0) {
-    return (
-      <p className="rounded border bg-white p-6 text-sm text-gray-500">
-        {emptyMessage}
-      </p>
-    );
-  }
-
-  return (
-    <>
-      <p className="mb-2 text-sm text-gray-500">{opinions.length}件</p>
-      <ul className="flex flex-col gap-2">
-        {opinions.map((opinion) => (
-          <OpinionCard
-            key={opinion.id}
-            opinion={opinion}
-            topicPath={`${opinion.bigTopicTitle} › ${opinion.mediumTopicTitle}`}
-          />
-        ))}
-      </ul>
-    </>
-  );
-}
-
 function SearchView({
   bigTopics,
   params,
   basePath,
+  billName,
+  billId,
 }: {
   bigTopics: ReturnType<typeof buildViewerHierarchy>;
   params: ViewerParams;
   basePath: string;
+  billName: string;
+  billId: string;
 }) {
   const results = searchOpinions(bigTopics, params.query);
 
@@ -213,9 +197,11 @@ function SearchView({
         defaultValue={params.query}
       />
       {params.query ? (
-        <OpinionList
+        <SelectableOpinionList
           opinions={results}
           emptyMessage={`「${params.query}」に一致する意見がありません。`}
+          billName={billName}
+          billId={billId}
         />
       ) : (
         <p className="rounded border bg-white p-6 text-sm text-gray-500">

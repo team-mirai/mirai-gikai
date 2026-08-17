@@ -26,6 +26,12 @@ export type RawAnalysisTopicRow = {
         is_public_by_admin: boolean;
         is_public_by_user: boolean;
         moderation_status: string | null;
+        // 意見からレポート詳細への導線に要る。詳細のルートは
+        // (billId, configId, sessionId) を取るため、両方をここで引く。
+        interview_sessions: {
+          id: string;
+          interview_config_id: string;
+        } | null;
       };
     } | null;
   }> | null;
@@ -57,7 +63,8 @@ export async function findAnalysisTopics(
            richness, concern, proposal, reasoning_types,
            interview_report!inner(
              role, role_title,
-             is_public_by_admin, is_public_by_user, moderation_status
+             is_public_by_admin, is_public_by_user, moderation_status,
+             interview_sessions!inner(id, interview_config_id)
            )
          )
        )`

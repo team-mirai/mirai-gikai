@@ -144,7 +144,9 @@ function MindmapCanvas({
             </p>
             <ul className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
               {selected.mediumTopic.opinions.map((opinion) => (
-                <OpinionCard key={opinion.id} opinion={opinion} />
+                <li key={opinion.id}>
+                  <OpinionCard opinion={opinion} />
+                </li>
               ))}
             </ul>
           </>

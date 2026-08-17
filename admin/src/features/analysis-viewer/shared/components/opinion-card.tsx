@@ -1,29 +1,16 @@
 import { REASONING_TYPE_LABELS } from "@mirai-gikai/shared/interview-report/opinion-tags";
-import { roleLabels } from "@/features/interview-reports/shared/constants";
 import type { ViewerOpinion } from "../types";
-
-/**
- * 立場の表示。レポート画面と同じ日本語ラベルに寄せる。
- * roleTitle だけだと「一般市民」のような無情報な文字列が並ぶので、
- * role の区分と組み合わせて引用の妥当性を判断できるようにする。
- */
-function formatRole(
-  role: string | null,
-  roleTitle: string | null
-): string | null {
-  const label =
-    role && role in roleLabels
-      ? roleLabels[role as keyof typeof roleLabels]
-      : undefined;
-  if (label && roleTitle) return `${roleTitle}（${label}）`;
-  return roleTitle ?? label ?? null;
-}
+import { formatOpinionRole } from "../utils/format-opinion-role";
 
 /**
  * 意見1件のカード。
  *
  * 質疑で引用に使う導線なので、引用文と立場・根拠を前に出す。
  * トピック名は一覧表示のときだけ出す（ツリー内では文脈から自明なため）。
+ *
+ * 根は div にして、リスト項目にするかどうかは呼び出し側に委ねる。
+ * 選択用のチェックボックスと横並びにする一覧があり、li を返すと
+ * li の入れ子になってマークアップが壊れる。
  */
 export function OpinionCard({
   opinion,
@@ -33,13 +20,13 @@ export function OpinionCard({
   topicPath?: string;
 }) {
   return (
-    <li className="rounded border border-gray-200 p-3">
+    <div className="rounded border border-gray-200 p-3">
       {topicPath && <p className="mb-1 text-xs text-gray-500">{topicPath}</p>}
 
       <div className="flex flex-wrap items-center gap-1.5">
-        {formatRole(opinion.role, opinion.roleTitle) && (
+        {formatOpinionRole(opinion.role, opinion.roleTitle) && (
           <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-700">
-            {formatRole(opinion.role, opinion.roleTitle)}
+            {formatOpinionRole(opinion.role, opinion.roleTitle)}
           </span>
         )}
         {opinion.billSentiment && (
@@ -90,6 +77,6 @@ export function OpinionCard({
           )}
         </dl>
       )}
-    </li>
+    </div>
   );
 }

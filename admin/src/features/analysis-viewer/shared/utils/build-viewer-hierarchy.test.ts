@@ -22,6 +22,8 @@ function opinion(
     reasoningTypes: [],
     role: "general_citizen",
     roleTitle: null,
+    sessionId: null,
+    configId: null,
     ...overrides,
   };
 }

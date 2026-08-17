@@ -23,6 +23,8 @@ function opinion(id: string): ViewerOpinion {
     reasoningTypes: [],
     role: "general_citizen",
     roleTitle: null,
+    sessionId: null,
+    configId: null,
   };
 }
 

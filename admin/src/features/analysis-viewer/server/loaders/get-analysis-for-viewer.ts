@@ -56,6 +56,8 @@ export async function getAnalysisForViewer(billId: string): Promise<{
           reasoningTypes: normalizeReasoningTypes(opinion.reasoning_types),
           role: report.role,
           roleTitle: report.role_title,
+          sessionId: report.interview_sessions?.id ?? null,
+          configId: report.interview_sessions?.interview_config_id ?? null,
         },
       ];
     }),
