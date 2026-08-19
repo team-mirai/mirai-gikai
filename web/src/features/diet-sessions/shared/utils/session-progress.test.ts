@@ -52,6 +52,21 @@ describe("calculateSessionProgress", () => {
     expect(morning).toEqual(night);
   });
 
+  // NaN が width や aria-valuenow に流れると DOM が壊れる。
+  it("日付の形が違えば0%・残り0日に倒す", () => {
+    const malformed = {
+      start_date: "2026-02-18T00:00:00+09:00",
+      end_date: "2026-07-17",
+    };
+
+    expect(calculateSessionProgress(malformed, at("2026-05-03 09:00"))).toEqual(
+      {
+        percentage: 0,
+        daysLeft: 0,
+      }
+    );
+  });
+
   it("召集日と閉会日が同じ会期でも0除算しない", () => {
     const sameDay = { start_date: "2026-05-01", end_date: "2026-05-01" };
 

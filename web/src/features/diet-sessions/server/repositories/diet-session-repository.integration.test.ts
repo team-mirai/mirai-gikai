@@ -1,12 +1,13 @@
-import { describe, it, expect, afterEach } from "vitest";
 import {
-  createTestDietSession,
   cleanupTestDietSession,
+  createTestDietSession,
 } from "@test-utils/utils";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   findActiveDietSession,
   findCurrentDietSession,
   findDietSessionBySlug,
+  findLatestClosedDietSession,
   findPreviousDietSession,
 } from "./diet-session-repository";
 
@@ -110,6 +111,41 @@ describe("diet-session-repository 統合テスト", () => {
       const result = await findDietSessionBySlug("non-existent-slug-999999999");
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("findLatestClosedDietSession", () => {
+    // findPreviousDietSession はアクティブ会期を起点にするため、閉会中は
+    // ひとつ古い会期を返してしまう。こちらは end_date で直近の閉会を引く。
+    it("指定日より前に閉会した直近の会期を返す", async () => {
+      const older = await createTestDietSession({
+        start_date: "2027-01-01",
+        end_date: "2027-03-31",
+        is_active: false,
+      });
+      const latest = await createTestDietSession({
+        start_date: "2027-04-01",
+        end_date: "2027-06-30",
+        is_active: false,
+      });
+      sessionIds.push(older.id, latest.id);
+
+      const result = await findLatestClosedDietSession("2027-08-01");
+
+      expect(result?.id).toBe(latest.id);
+    });
+
+    it("まだ閉会していない会期は返さない", async () => {
+      const ongoing = await createTestDietSession({
+        start_date: "2027-09-01",
+        end_date: "2027-12-31",
+        is_active: true,
+      });
+      sessionIds.push(ongoing.id);
+
+      const result = await findLatestClosedDietSession("2027-10-01");
+
+      expect(result?.id).not.toBe(ongoing.id);
     });
   });
 

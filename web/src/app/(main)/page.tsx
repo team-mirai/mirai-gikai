@@ -15,6 +15,7 @@ import type { BillWithContent } from "@/features/bills/shared/types";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
+import { getLatestClosedDietSession } from "@/features/diet-sessions/server/loaders/get-latest-closed-diet-session";
 import { routes } from "@/lib/routes";
 import { getJapanTime } from "@/lib/utils/date";
 
@@ -23,12 +24,16 @@ const BILLS_PER_TAG_ON_TOP = 2;
 
 export default async function Home() {
   const japanTime = getJapanTime();
-  const { billsByTag, featuredBills, comingSoonBills, previousSessionData } =
-    await loadHomeData();
-
   // ゆくゆくタグ機能がマージされたらBFFに統合する
-  const [currentSession, currentDifficulty] = await Promise.all([
+  const [
+    { billsByTag, featuredBills, comingSoonBills, previousSessionData },
+    currentSession,
+    latestClosedSession,
+    currentDifficulty,
+  ] = await Promise.all([
+    loadHomeData(),
     getCurrentDietSession(japanTime),
+    getLatestClosedDietSession(japanTime),
     getDifficultyLevel(),
   ]);
 
@@ -46,21 +51,15 @@ export default async function Home() {
       {/* 本日の国会セクション */}
       <CurrentDietSession
         session={currentSession}
-        previousSession={previousSessionData?.session ?? null}
+        closedSession={latestClosedSession}
         now={japanTime}
       />
 
       <Container>
         <div className="pt-4">
-          <CategoryTabs
-            billsByTag={billsByTag}
-            featuredCount={featuredBills.length}
-          />
+          <CategoryTabs billsByTag={billsByTag} />
         </div>
-      </Container>
-
-      {/* 全件を探す導線。トップはピックアップに留める */}
-      <Container>
+        {/* 全件を探す導線。トップはピックアップに留める */}
         <div className="flex justify-end pt-2">
           <Link
             href={routes.billsList()}
@@ -78,12 +77,12 @@ export default async function Home() {
         <div className="py-10">
           <main className="flex flex-col gap-16">
             {/*
-              注目の法案は閉会中は出さない。審議が動いていない時期に
-              「注目」を掲げても、更新されていない情報に見える。
+              注目の法案。閉会中は getFeaturedBills がアクティブ会期で絞れず
+              空になり、FeaturedBillSection 自身が何も描かない。ページ側で
+              別の判定（日付範囲）を重ねると、フラグと日付がずれたときに
+              データと表示が食い違うため、ここでは出し分けない。
             */}
-            {currentSession !== null && (
-              <FeaturedBillSection bills={featuredBills} />
-            )}
+            <FeaturedBillSection bills={featuredBills} />
 
             {/* タグ別議案一覧セクション（トップはピックアップなので各2件） */}
             <BillsByTagSection
