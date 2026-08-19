@@ -1,3 +1,5 @@
+import "server-only";
+
 import { countPublicReportsByBillIds } from "@mirai-gikai/shared/report-publication/count-public-reports";
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";

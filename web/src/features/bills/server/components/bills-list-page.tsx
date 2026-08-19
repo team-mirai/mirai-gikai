@@ -1,3 +1,5 @@
+import "server-only";
+
 import { Check, Search } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
