@@ -4,9 +4,9 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 
 /**
  * 議案の公開レポート件数を数える（公開 = is_public_by_admin × is_public_by_user）。
- * k-匿名性しきい値（[[shouldDisplayPublicReports]]）の判定や公開ページの表示制御に使う共通関数。
+ * 一覧の回答数バッジ、オープンデータAPIの配布下限判定などに使う共通関数。
  *
- * web の公開ページ・OG画像・リアクション、admin MCP の回答詳細ゲートが同一定義を共有する。
+ * 公開の定義（管理者公開×ユーザー同意）を1箇所に持つため、各所がこれを共有する。
  */
 export async function countPublicReportsByBillId(
   billId: string

@@ -3,7 +3,6 @@ import {
   getPublicBillRespondents,
 } from "@mirai-gikai/topic-analysis-core/public-server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { MIN_PUBLIC_REPORTS_FOR_DISPLAY } from "../../packages/shared/src/report-publication/auto-publish";
 import {
   adminClient,
   cleanupTestBill,
@@ -14,11 +13,13 @@ import {
 } from "./utils";
 
 /**
- * 回答一覧（getPublicBillRespondents）の k-匿名性ゲート統合テスト。
- * 公開レポートが MIN_PUBLIC_REPORTS_FOR_DISPLAY 件未満の議案では、
- * 回答者個人の属性（role_title・stance・summary）を返さないことを確認する。
+ * 回答一覧（getPublicBillRespondents）の公開条件 統合テスト。
+ *
+ * かつては公開レポート20件未満の議案を隠す k-匿名性ゲートがあったが、
+ * 少数回答の議案が悪目立ちする事象が起きなかったため撤去した。
+ * 件数によらず、公開条件（管理者公開×ユーザー同意）を満たす回答を返す。
  */
-describe("getPublicBillRespondents の k-匿名性ゲート 統合テスト", () => {
+describe("getPublicBillRespondents の公開条件 統合テスト", () => {
   let testUser: TestUser;
   const createdBillIds: string[] = [];
 
@@ -88,26 +89,22 @@ describe("getPublicBillRespondents の k-匿名性ゲート 統合テスト", ()
     await cleanupTestUser(testUser.id);
   });
 
-  it("公開レポートがしきい値未満なら回答者を返さない", async () => {
-    const billId = await createBillWithPublicReports(
-      MIN_PUBLIC_REPORTS_FOR_DISPLAY - 1
-    );
+  // 撤去前は 20 件未満の議案で空配列になっていた箇所。
+  it("公開レポートが少数でも回答者を返す", async () => {
+    const billId = await createBillWithPublicReports(3);
 
-    // 公開条件自体は満たしている（＝ゲートだけで隠されている）ことを確認する。
     const rows = await findPublicBillRespondentRows(billId);
-    expect(rows).toHaveLength(MIN_PUBLIC_REPORTS_FOR_DISPLAY - 1);
+    expect(rows).toHaveLength(3);
 
-    expect(await getPublicBillRespondents(billId)).toEqual([]);
+    expect(await getPublicBillRespondents(billId)).toHaveLength(3);
   });
 
-  it("公開レポートがしきい値以上なら回答者を返す", async () => {
-    const billId = await createBillWithPublicReports(
-      MIN_PUBLIC_REPORTS_FOR_DISPLAY
-    );
+  it("公開レポートの属性を返す", async () => {
+    const billId = await createBillWithPublicReports(2);
 
     const respondents = await getPublicBillRespondents(billId);
 
-    expect(respondents).toHaveLength(MIN_PUBLIC_REPORTS_FOR_DISPLAY);
+    expect(respondents).toHaveLength(2);
     expect(respondents[0].user_category).toBe("affected");
     expect(respondents[0].bill_sentiment).toBe("期待");
     expect(respondents[0].summary).toMatch(/^テスト要約/);

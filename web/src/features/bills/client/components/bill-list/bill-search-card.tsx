@@ -14,38 +14,29 @@ import { BillTag } from "./bill-tag";
  * 法案一覧（/bills）のカード。
  *
  * 既存の BillCard は画像が全幅上部、CompactBillCard は要約とタグを持たないため、
- * 一覧のデザイン（右上サムネ＋要約＋タグ）にどちらも合わない。既存のカードには
+ * 一覧のデザイン（右のサムネ＋要約＋タグ）にどちらも合わない。既存のカードには
  * 手を入れず、バッジ・タグ・レビュー済み表示のプリミティブだけを組み合わせる。
+ *
+ * サムネイルは絶対配置ではなく flex の行にする。絶対配置だと本文側に
+ * 「サムネ幅 + 右余白」を padding で空ける必要があり、狭い画面で本文が潰れる。
+ * ふりがな表示で行数が伸びたときに空白の柱が残る問題も避けられる。
  */
 export function BillSearchCard({ bill }: { bill: BillWithContent }) {
   const title = bill.bill_content?.title || bill.name;
   const summary = bill.bill_content?.summary;
   const reportCount = bill.publicReportCount ?? 0;
-  // サムネイルと文字が重ならないよう空ける幅。タイトルと要約で同じ値を使う。
-  const textInset = bill.thumbnail_url ? "pr-[136px]" : "";
   const hasBadges =
     bill.tags.length > 0 || bill.hasPublicInterview || reportCount > 0;
 
   return (
-    <Card className="relative overflow-hidden rounded-xl border border-black p-0 shadow-none transition-colors hover:bg-muted/50">
-      <Link href={routes.billDetail(bill.id)} className="block p-4">
-        {bill.thumbnail_url && (
-          <div className="absolute top-3 right-4 h-[90px] w-[120px] overflow-hidden rounded-lg">
-            <Image
-              src={bill.thumbnail_url}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="120px"
-            />
-          </div>
-        )}
-
-        <div className="flex flex-col gap-1.5">
-          {/* サムネイルと重ならないよう、テキスト側の幅を詰める */}
-          <h3
-            className={`line-clamp-2 text-base font-bold leading-relaxed ${textInset}`}
-          >
+    <Card className="overflow-hidden border border-black shadow-none transition-colors hover:bg-muted/50">
+      <Link href={routes.billDetail(bill.id)} className="flex gap-3 p-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          {/*
+            ふりがな表示時は ruby が入る。Safari は ruby を含むテキストを
+            clamp できないので、その場合だけ clamp を外す。
+          */}
+          <h3 className="line-clamp-2 text-base font-bold leading-relaxed has-[ruby]:line-clamp-none">
             {title}
             {bill.is_review_completed && (
               <>
@@ -68,7 +59,7 @@ export function BillSearchCard({ bill }: { bill: BillWithContent }) {
             <RubySafeLineClamp
               text={summary}
               lineClamp={2}
-              className={`text-xs leading-relaxed text-mirai-text-secondary ${textInset}`}
+              className="text-xs leading-relaxed text-mirai-text-secondary"
             />
           )}
 
@@ -82,11 +73,23 @@ export function BillSearchCard({ bill }: { bill: BillWithContent }) {
               )}
               {/* 回答が集まっている議案だけ数字を出す。0人と書くと参加をためらわせる。 */}
               {reportCount > 0 && (
-                <BillPill>💬 {reportCount}人がAIインタビューに回答</BillPill>
+                <BillPill>💬 {reportCount}人のAIインタビュー回答から</BillPill>
               )}
             </div>
           )}
         </div>
+
+        {bill.thumbnail_url && (
+          <div className="relative h-16 w-24 shrink-0 self-start overflow-hidden rounded-lg sm:h-[90px] sm:w-[120px]">
+            <Image
+              src={bill.thumbnail_url}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(min-width: 640px) 120px, 96px"
+            />
+          </div>
+        )}
       </Link>
     </Card>
   );

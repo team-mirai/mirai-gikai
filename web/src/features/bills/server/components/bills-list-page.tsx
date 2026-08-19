@@ -6,7 +6,6 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { routes } from "@/lib/routes";
 import { BillSearchCard } from "../../client/components/bill-list/bill-search-card";
 import { BillsSortSelect } from "../../client/components/bill-list/bills-sort-select";
-import type { BillTag, BillWithContent } from "../../shared/types";
 import {
   BILL_STATUS_GROUP_LABELS,
   BILL_STATUS_GROUPS,
@@ -53,7 +52,7 @@ export async function BillsListPage({
     billsListHref(params, patch);
 
   return (
-    <Container className="py-8">
+    <Container className="pt-24 pb-8 md:pt-8">
       <div className="mb-3">
         <Breadcrumb
           items={[
@@ -74,6 +73,7 @@ export async function BillsListPage({
           <input
             type="search"
             name="q"
+            aria-label="法案を検索"
             defaultValue={params.query}
             placeholder="法案名やキーワードで探す"
             className="w-full bg-transparent text-sm outline-none"
@@ -114,7 +114,7 @@ export async function BillsListPage({
           （列ごとに上→下へ詰まるので、左から順に読める並びになる）。
         */}
         <div className="scrollbar-hide overflow-x-auto">
-          <div className="grid w-max grid-flow-col grid-rows-2 gap-1.5">
+          <div className="grid w-max grid-flow-col grid-rows-2 justify-items-start gap-1.5">
             <Chip
               href={href({ tagId: null })}
               active={params.tagId === null}
@@ -132,8 +132,14 @@ export async function BillsListPage({
         </div>
       </section>
 
+      {/*
+        リンクで絞り込むのでフォーム部品ではないが、見た目はチェックボックスなので
+        状態が支援技術にも伝わるようにする。
+      */}
       <Link
         href={href({ interviewOnly: !params.interviewOnly })}
+        role="checkbox"
+        aria-checked={params.interviewOnly}
         className="mb-4 inline-flex items-center gap-2 text-[13px] font-bold"
       >
         <span
@@ -204,10 +210,10 @@ function Chip({
   return (
     <Link
       href={href}
-      aria-current={active ? "page" : undefined}
+      aria-current={active ? "true" : undefined}
       className={`rounded-full border px-3.5 py-1.5 text-[13px] font-bold whitespace-nowrap ${
         active
-          ? "border-mirai-brand-teal bg-mirai-surface-light text-mirai-brand-teal"
+          ? "border-transparent bg-mirai-gradient text-mirai-text"
           : "border-mirai-border bg-white text-mirai-text"
       }`}
     >

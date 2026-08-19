@@ -8,13 +8,15 @@
 -- の述語と一致するので、id を読まなければ index only scan に載る。
 -- interview_report.interview_session_id は UNIQUE で join が行を増やさないため、
 -- count(*) と count(id) は同義。
-create or replace function count_public_reports_by_bill_ids(p_bill_ids uuid[])
+create or replace function public.count_public_reports_by_bill_ids(p_bill_ids uuid[])
 returns table (
   bill_id uuid,
   report_count bigint
 )
 language sql
 stable
+security invoker
+set search_path = public
 as $$
   select
     c.bill_id,
@@ -27,3 +29,6 @@ as $$
     and r.is_public_by_user
   group by c.bill_id;
 $$;
+
+comment on function public.count_public_reports_by_bill_ids(uuid[]) is
+  '議案ごとの公開レポート件数（管理者公開 × ユーザー公開）をまとめて返す。法案一覧の回答数バッジ用。';

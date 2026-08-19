@@ -74,9 +74,12 @@ describe("count_public_reports_by_bill_ids", () => {
   });
 
   afterAll(async () => {
-    await cleanupTestBill(billPublic.id);
-    await cleanupTestBill(billMixed.id);
-    await cleanupTestBill(billEmpty.id);
+    // 1件の失敗で残りの片付けを落とさない。
+    await Promise.allSettled([
+      cleanupTestBill(billPublic.id),
+      cleanupTestBill(billMixed.id),
+      cleanupTestBill(billEmpty.id),
+    ]);
     await cleanupTestUser(user.id);
   });
 

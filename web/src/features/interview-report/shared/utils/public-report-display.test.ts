@@ -1,4 +1,3 @@
-import { MIN_PUBLIC_REPORTS_FOR_DISPLAY } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { describe, expect, it } from "vitest";
 import {
   buildPublicReportsPage,
@@ -108,7 +107,6 @@ describe("public report display utilities", () => {
         isOwner: true,
         isPublicByAdmin: false,
         isPublicByUser: false,
-        publicReportCount: 0,
       })
     ).toBe(true);
     expect(
@@ -116,16 +114,15 @@ describe("public report display utilities", () => {
         isOwner: false,
         isPublicByAdmin: true,
         isPublicByUser: true,
-        publicReportCount: MIN_PUBLIC_REPORTS_FOR_DISPLAY,
       })
     ).toBe(true);
+    // 件数による下限は撤去したので、公開フラグが揃っていれば見える。
     expect(
       canViewReportWithMessages({
         isOwner: false,
         isPublicByAdmin: true,
         isPublicByUser: true,
-        publicReportCount: MIN_PUBLIC_REPORTS_FOR_DISPLAY - 1,
       })
-    ).toBe(false);
+    ).toBe(true);
   });
 });

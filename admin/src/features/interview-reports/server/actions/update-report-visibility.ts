@@ -3,6 +3,10 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import {
+  invalidateWebCache,
+  WEB_CACHE_TAGS,
+} from "@/lib/utils/cache-invalidation";
+import {
   findInterviewReportBySessionId,
   updateReportVisibility,
 } from "../repositories/interview-report-repository";
@@ -50,6 +54,9 @@ export async function updateReportVisibilityAction(
     // Revalidate bill interview pages (reports are under interview config)
     revalidatePath(`/bills/${billId}`, "layout");
     revalidateTag("public-interview-reports");
+    // admin の revalidateTag は admin 内のキャッシュにしか効かない。
+    // web の一覧が持つ回答数キャッシュは HTTP 経由で無効化する。
+    await invalidateWebCache([WEB_CACHE_TAGS.PUBLIC_INTERVIEW_REPORTS]);
 
     return { success: true };
   } catch (error) {

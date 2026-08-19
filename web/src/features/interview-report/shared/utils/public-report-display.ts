@@ -104,17 +104,14 @@ export function canViewReportWithMessages({
   isOwner,
   isPublicByAdmin,
   isPublicByUser,
-  publicReportCount,
 }: {
   isOwner: boolean;
   isPublicByAdmin: boolean;
   isPublicByUser: boolean;
-  publicReportCount: number;
 }) {
   if (isOwner) return true;
   return isPublicReportVisible({
     isPublicByAdmin,
     isPublicByUser,
-    publicReportCount,
   });
 }

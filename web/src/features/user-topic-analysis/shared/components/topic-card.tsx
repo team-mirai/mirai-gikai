@@ -86,7 +86,6 @@ export function TopicCard({
     const visible = isPublicReportVisible({
       isPublicByAdmin: opinion.report_public,
       isPublicByUser: true,
-      publicReportCount,
     });
     if (!visible) return null;
     return getInterviewMessageLink(

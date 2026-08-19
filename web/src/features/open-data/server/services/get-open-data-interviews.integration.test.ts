@@ -1,4 +1,4 @@
-import { MIN_PUBLIC_REPORTS_FOR_DISPLAY } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { MIN_PUBLIC_REPORTS_FOR_OPEN_DATA } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
   adminClient,
   cleanupTestBill,
@@ -11,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getOpenDataInterviews } from "./get-open-data-interviews";
 
 /**
- * k-匿名性ゲート（議案あたり公開レポート >= MIN_PUBLIC_REPORTS_FOR_DISPLAY）を
+ * k-匿名性ゲート（議案あたり公開レポート >= MIN_PUBLIC_REPORTS_FOR_OPEN_DATA）を
  * 満たすデータを実DBに作り、サービス全体（RPC + メッセージ取得 + 整形）を検証する。
  * ローカルDBには他の条件合致データが存在し得るため、検証はこのテストの議案の
  * 行だけに絞って行う。
@@ -37,7 +37,7 @@ describe("getOpenDataInterviews", () => {
     if (configError) throw new Error(configError.message);
 
     // ゲートを満たす数の公開レポートを作成し、うち2件だけ二次利用許諾を付ける
-    for (let i = 0; i < MIN_PUBLIC_REPORTS_FOR_DISPLAY; i++) {
+    for (let i = 0; i < MIN_PUBLIC_REPORTS_FOR_OPEN_DATA; i++) {
       const { data: session, error: sessionError } = await adminClient
         .from("interview_sessions")
         .insert({

@@ -374,14 +374,6 @@ describe("MCP topic-analysis tools（内部向け・識別子フリー読み取�
       expect(result.topics[0].opinions[0].title).toBe("公開OK");
     });
 
-    it("requireDisplayThreshold 指定時、公開20件未満なら status=not_ready", async () => {
-      const result = await registry.callTool<{ status: string }>(
-        "get_topic_analysis",
-        { billId: billWithAnalysis, requireDisplayThreshold: true }
-      );
-      expect(result.status).toBe("not_ready");
-    });
-
     it("個人情報（user_id・email・session）を返さない", async () => {
       const result = await registry.callTool("get_topic_analysis", {
         billId: billWithAnalysis,
@@ -428,14 +420,6 @@ describe("MCP topic-analysis tools（内部向け・識別子フリー読み取�
       const pub = result.find((r) => r.id === publicReportId);
       expect(pub?.summary).toBe("公開OKの要約");
       expect(pub?.bill_sentiment).toBe("期待");
-    });
-
-    it("requireDisplayThreshold 指定時、公開20件未満なら status=below_threshold", async () => {
-      const result = await registry.callTool<{ status: string }>(
-        "list_respondents",
-        { billId: billWithAnalysis, requireDisplayThreshold: true }
-      );
-      expect(result.status).toBe("below_threshold");
     });
 
     it("個人情報（user_id・email・session）を返さない", async () => {
@@ -487,23 +471,6 @@ describe("MCP topic-analysis tools（内部向け・識別子フリー読み取�
         { reportId: privateReportId, isPublicByUser: true }
       );
       expect(result.status).toBe("not_found");
-    });
-
-    it("requireDisplayThreshold 指定時、公開20件未満は status=not_found", async () => {
-      const result = await registry.callTool<{ status: string }>(
-        "get_respondent_detail",
-        { reportId: publicReportId, requireDisplayThreshold: true }
-      );
-      expect(result.status).toBe("not_found");
-    });
-
-    it("requireDisplayThreshold 指定でも公開20件以上の議案は詳細を返す", async () => {
-      const result = await registry.callTool<{ id?: string; status?: string }>(
-        "get_respondent_detail",
-        { reportId: detailReportId, requireDisplayThreshold: true }
-      );
-      expect(result.id).toBe(detailReportId);
-      expect(result.status).toBeUndefined();
     });
 
     it("個人情報（user_id・email・session）を返さない", async () => {

@@ -1,6 +1,5 @@
 import "server-only";
 
-import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
   mapPublicInterviewReports,
   type PublicInterviewReportDisplay,
@@ -24,11 +23,6 @@ export async function getPublicReportsByBillId(
   billId: string
 ): Promise<PublicReportsResult> {
   const totalCount = await countPublicReportsByBillId(billId);
-
-  if (!shouldDisplayPublicReports(totalCount)) {
-    return { reports: [], totalCount: 0 };
-  }
-
   const rawReports = await findPublicReportsByBillId(billId, 3);
   const reports = mapPublicInterviewReports(rawReports);
 

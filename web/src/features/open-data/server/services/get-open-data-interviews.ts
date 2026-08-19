@@ -1,6 +1,6 @@
 import "server-only";
 
-import { MIN_PUBLIC_REPORTS_FOR_DISPLAY } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { MIN_PUBLIC_REPORTS_FOR_OPEN_DATA } from "@mirai-gikai/shared/report-publication/auto-publish";
 import type {
   OpenDataInterviewItem,
   OpenDataInterviewsResult,
@@ -24,7 +24,7 @@ export async function getOpenDataInterviews(params: {
   cursor: OpenDataCursor | null;
 }): Promise<OpenDataInterviewsResult> {
   const rows = await findOpenDataReports({
-    minPublicReports: MIN_PUBLIC_REPORTS_FOR_DISPLAY,
+    minPublicReports: MIN_PUBLIC_REPORTS_FOR_OPEN_DATA,
     limit: params.limit + 1,
     cursor: params.cursor,
   });

@@ -28,13 +28,17 @@ export const BILL_STATUS_GROUP_LABELS: Record<BillStatusGroup, string> = {
 /**
  * status をタブのグループに畳む。
  *
- * `preparing`（提出前）と `introduced`（提出済みで審議入り前）はどちらも
- * 「まだ審議が始まっていない」状態なので「審議待ち」に寄せる。
+ * 既存の `getCardStatusLabel` と同じ畳み方にする。あちらは `introduced` を
+ * 「国会審議中」に含めるので、ここで「審議待ち」に落とすと、カードに
+ * 「国会審議中」と出ている法案が「審議中」タブに現れない。
+ *
+ * 結果として「審議待ち」に残るのは `preparing`（提出前）だけになる。
  */
 export function toBillStatusGroup(
   status: BillStatusEnum
 ): Exclude<BillStatusGroup, "all"> {
   switch (status) {
+    case "introduced":
     case "in_originating_house":
     case "in_receiving_house":
       return "deliberating";
@@ -55,7 +59,7 @@ export function isBillStatusGroup(value: unknown): value is BillStatusGroup {
   );
 }
 
-/** グループごとの件数。タブに出す数字なので、絞り込み前の母集合から数える。 */
+/** グループごとの件数。呼び出し側が渡した母集合をそのまま数える。 */
 export function countByStatusGroup(
   bills: readonly { status: BillStatusEnum }[]
 ): Record<BillStatusGroup, number> {

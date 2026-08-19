@@ -1,6 +1,5 @@
 import "server-only";
 
-import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { countPublicReportsByBillId } from "@mirai-gikai/shared/report-publication/count-public-reports";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
@@ -219,15 +218,11 @@ export type RespondentDetailFilter = {
   isPublicByAdmin?: boolean;
   isPublicByUser?: boolean;
   moderationStatus?: ModerationStatus;
-  /** true のとき web と同じ k-匿名性ゲート（公開レポート >= 20 件）を適用。 */
-  requireDisplayThreshold?: boolean;
 };
 
 /**
  * レポート1件の詳細（立場説明＋会話ログ）を生データで取得する（内部用途）。
- * filter で公開フラグ・モデレーション状態を任意に絞り込み、`requireDisplayThreshold` を
- * 指定したときのみ web 個別レポート詳細（getPublicReportById）と同じ k-匿名性ゲート
- * （公開レポートが `shouldDisplayPublicReports` を満たす＝20件以上）を適用する。
+ * filter で公開フラグ・モデレーション状態を任意に絞り込む。
  * 条件に合致しない・存在しない場合は null（呼び出し側で not_found 扱い）。会話メッセージは作成日時昇順。
  */
 export async function findRespondentDetail(
@@ -256,17 +251,6 @@ export async function findRespondentDetail(
     throw new Error(`Failed to fetch respondent detail: ${error.message}`);
   }
   if (!report) return null;
-
-  // k-匿名性ゲート（任意）: 公開レポートが少数の議案では会話ログを返さない（web と統一）。
-  if (filter.requireDisplayThreshold) {
-    const session = report.interview_sessions as unknown as {
-      interview_configs: { bill_id: string } | null;
-    } | null;
-    const billId = session?.interview_configs?.bill_id ?? null;
-    if (!billId) return null;
-    const publicReportCount = await countPublicReportsByBillId(billId);
-    if (!shouldDisplayPublicReports(publicReportCount)) return null;
-  }
 
   const { data: messages, error: messagesError } = await supabase
     .from("interview_messages")
