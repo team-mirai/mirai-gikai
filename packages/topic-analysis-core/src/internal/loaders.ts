@@ -83,7 +83,7 @@ export async function getTopicAnalysis(
 export async function listRespondents(
   billId: string,
   filter: ReadFilter = {}
-): Promise<PublicRespondent[] | null> {
+): Promise<PublicRespondent[]> {
   const rowFilter: ReportRowFilter = {
     isPublicByAdmin: filter.isPublicByAdmin,
     isPublicByUser: filter.isPublicByUser,

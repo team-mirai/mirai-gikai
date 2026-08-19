@@ -15,7 +15,7 @@ import { untrustedJsonResult } from "../utils/untrusted-json-result";
  *
  * これは管理者トークン（ADMIN_MCP_TOKEN）で到達する内部ツールであり、**既定では
  * 公開・非公開・モデレーション状態を問わず全件取得**する。プロンプト等から取得条件
- * （公開フラグ・モデレーション状態・公開件数ゲート）を指定したときのみ、その条件で
+ * （公開フラグ・モデレーション状態）を指定したときのみ、その条件で
  * クエリを絞り込む。
  *
  * 取得対象には未公開・未モデレーションのレポートや会話ログ（自由記述）が含まれ得る。
@@ -50,7 +50,7 @@ export function registerTopicAnalysisTools(server: McpServer): void {
     {
       title: "トピック分析を取得（内部向け）",
       description:
-        "指定議案の最新トピック分析（公開・非公開を問わず最新版）を返す。トピックごとの意見件数・属性内訳（当事者/事業者/専門家/市民）・期待/懸念の集計と意見（タイトル・本文・引用）を含む。既定では全意見が対象。任意フィルタ（公開フラグ・モデレーション状態）で絞り込める。版が無い／件数ゲートで隠す場合は status=not_ready。user_id・email 等の直接識別子は含まない。",
+        "指定議案の最新トピック分析（公開・非公開を問わず最新版）を返す。トピックごとの意見件数・属性内訳（当事者/事業者/専門家/市民）・期待/懸念の集計と意見（タイトル・本文・引用）を含む。既定では全意見が対象。任意フィルタ（公開フラグ・モデレーション状態）で絞り込める。版が無い場合は status=not_ready。user_id・email 等の直接識別子は含まない。",
       inputSchema: {
         billId: z.string().uuid().describe("対象議案のID"),
         ...filterInput,
@@ -70,7 +70,7 @@ export function registerTopicAnalysisTools(server: McpServer): void {
     {
       title: "インタビュー回答一覧を取得（内部向け）",
       description:
-        "指定議案のAIインタビュー回答（回答者1人=1件）を新しい順で返す。各件は立場区分・肩書・賛否（期待/懸念）・要約を含む。既定では公開・非公開を問わず全件。任意フィルタ（公開フラグ・モデレーション状態）で絞り込める。件数ゲートで隠す場合は status=below_threshold。user_id・email 等の直接識別子は含まない。",
+        "指定議案のAIインタビュー回答（回答者1人=1件）を新しい順で返す。各件は立場区分・肩書・賛否（期待/懸念）・要約を含む。既定では公開・非公開を問わず全件。任意フィルタ（公開フラグ・モデレーション状態）で絞り込める。user_id・email 等の直接識別子は含まない。",
       inputSchema: {
         billId: z.string().uuid().describe("対象議案のID"),
         ...filterInput,
@@ -78,9 +78,6 @@ export function registerTopicAnalysisTools(server: McpServer): void {
     },
     async ({ billId, ...filter }) => {
       const respondents = await listRespondents(billId, filter);
-      if (respondents === null) {
-        return jsonResult({ status: "below_threshold", bill_id: billId });
-      }
       return untrustedJsonResult(respondents);
     }
   );

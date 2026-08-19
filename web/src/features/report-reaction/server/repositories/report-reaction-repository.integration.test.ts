@@ -138,7 +138,6 @@ describe("getReportPublicStatus 統合テスト", () => {
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
     const report = await createTestReport(config.id, testUser.id);
-    await createPublicReports(config.id, testUser.id, 1);
 
     await expect(getReportPublicStatus(report.id)).resolves.toBe(true);
   });

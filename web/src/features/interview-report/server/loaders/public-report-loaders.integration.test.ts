@@ -129,9 +129,9 @@ describe("公開レポート loader 統合テスト", () => {
   it("OGP loader は公開レポートのデータを返す", async () => {
     context = await createPublicReportLoaderContext("OGP 議案");
     const target = await createPublicReport(context, { summary: "OGP 要約" });
-    await createPublicReports(context, 1);
 
     await expect(getReportOgData(target.report.id)).resolves.toEqual({
+      // ヘルパーが summary に連番を付ける。
       summary: "OGP 要約-1",
       billName: "OGP 議案",
     });
@@ -142,7 +142,6 @@ describe("公開レポート loader 統合テスト", () => {
     const target = await createPublicReport(context, {
       messages: [{ role: "user", content: "hello" }],
     });
-    await createPublicReports(context, 1);
 
     const result = await getReportWithMessages(target.report.id);
 
