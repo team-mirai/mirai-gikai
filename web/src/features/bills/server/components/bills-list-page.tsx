@@ -1,7 +1,8 @@
-import { Search } from "lucide-react";
+import { Check, Search } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { Container } from "@/components/layouts/container";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { routes } from "@/lib/routes";
 import { BillSearchCard } from "../../client/components/bill-list/bill-search-card";
 import { BillsSortSelect } from "../../client/components/bill-list/bills-sort-select";
@@ -12,12 +13,13 @@ import {
   countByStatusGroup,
   filterByStatusGroup,
 } from "../../shared/utils/bill-status-group";
+import { collectBillTags, filterBills } from "../../shared/utils/filter-bills";
 import {
+  type BillsListParams,
   type BillsListSearchParams,
-  buildBillsListQuery,
+  billsListHref,
   parseBillsListParams,
 } from "../../shared/utils/parse-bills-list-params";
-import { searchBills } from "../../shared/utils/search-bills";
 import { sortBills } from "../../shared/utils/sort-bills";
 import { getBillsWithReportCounts } from "../loaders/get-bills-with-report-counts";
 
@@ -37,39 +39,29 @@ export async function BillsListPage({
 
   // キーワードとタグで母集合を絞ってから件数を数える。ステータスのタブに出す
   // 数字が、他の絞り込みを反映した実際の件数になるようにする。
-  const scoped = applyScope(
-    allBills,
-    params.query,
-    params.tagId,
-    params.interviewOnly
-  );
+  const scoped = filterBills(allBills, params);
   const statusCounts = countByStatusGroup(scoped);
   const bills = sortBills(
     filterByStatusGroup(scoped, params.status),
     params.sort
   );
 
-  const tags = collectTags(allBills);
+  const tags = collectBillTags(allBills);
   // typedRoutes はクエリ付きのテンプレート文字列を推論できないため、
   // リンク生成をここに集約してキャストも1箇所に閉じる。
-  const href = (patch: Parameters<typeof buildBillsListQuery>[1]) =>
-    `${routes.billsList()}${buildBillsListQuery(params, patch)}` as Route;
+  const href = (patch: Partial<BillsListParams>) =>
+    billsListHref(params, patch);
 
   return (
     <Container className="py-8">
-      <nav
-        aria-label="パンくず"
-        className="mb-3 flex items-center gap-2 text-[13px]"
-      >
-        <Link
-          href={routes.home()}
-          className="text-mirai-text-secondary hover:underline"
-        >
-          トップ
-        </Link>
-        <span className="text-mirai-text-placeholder">›</span>
-        <span className="font-medium">法案一覧</span>
-      </nav>
+      <div className="mb-3">
+        <Breadcrumb
+          items={[
+            { label: "トップ", href: routes.home() },
+            { label: "法案一覧" },
+          ]}
+        />
+      </div>
 
       <h1 className="mb-4 text-3xl font-bold">法案一覧</h1>
 
@@ -87,19 +79,18 @@ export async function BillsListPage({
             className="w-full bg-transparent text-sm outline-none"
           />
         </div>
-        {/* 検索しても他の絞り込みを落とさない */}
-        {params.status !== "all" && (
-          <input type="hidden" name="status" value={params.status} />
-        )}
-        {params.tagId && (
-          <input type="hidden" name="tag" value={params.tagId} />
-        )}
-        {params.sort !== "new" && (
-          <input type="hidden" name="sort" value={params.sort} />
-        )}
-        {params.interviewOnly && (
-          <input type="hidden" name="interview" value="1" />
-        )}
+        {/*
+          検索しても他の絞り込みを落とさない。既定値を出さない規則は
+          buildBillsListQuery が持っているので、そこから導出する。
+          q はテキスト入力が持つので取り除く。
+        */}
+        {[
+          ...new URLSearchParams(
+            billsListHref(params, { query: "" }).split("?")[1] ?? ""
+          ),
+        ].map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} />
+        ))}
       </form>
 
       <FilterGroup label="ステータス">
@@ -113,21 +104,33 @@ export async function BillsListPage({
         ))}
       </FilterGroup>
 
-      <FilterGroup label="カテゴリ">
-        <Chip
-          href={href({ tagId: null })}
-          active={params.tagId === null}
-          label="すべて"
-        />
-        {tags.map((tag) => (
-          <Chip
-            key={tag.id}
-            href={href({ tagId: tag.id })}
-            active={params.tagId === tag.id}
-            label={tag.label}
-          />
-        ))}
-      </FilterGroup>
+      <section className="mb-4">
+        <h2 className="mb-2 text-[13px] font-bold text-mirai-text-secondary">
+          カテゴリ
+        </h2>
+        {/*
+          タグは本番で18件あり、折り返すと縦に伸びて一覧が押し下がる。
+          2行に詰めて横スクロールさせる。行の割り当ては grid-flow-col に任せる
+          （列ごとに上→下へ詰まるので、左から順に読める並びになる）。
+        */}
+        <div className="scrollbar-hide overflow-x-auto">
+          <div className="grid w-max grid-flow-col grid-rows-2 gap-1.5">
+            <Chip
+              href={href({ tagId: null })}
+              active={params.tagId === null}
+              label="すべて"
+            />
+            {tags.map((tag) => (
+              <Chip
+                key={tag.id}
+                href={href({ tagId: tag.id })}
+                active={params.tagId === tag.id}
+                label={tag.label}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
       <Link
         href={href({ interviewOnly: !params.interviewOnly })}
@@ -142,7 +145,7 @@ export async function BillsListPage({
           aria-hidden
         >
           {params.interviewOnly && (
-            <span className="text-[11px] leading-none text-white">✓</span>
+            <Check className="h-3 w-3 text-white" strokeWidth={3} />
           )}
         </span>
         AIインタビュー受付中のみ表示
@@ -211,32 +214,4 @@ function Chip({
       {label}
     </Link>
   );
-}
-
-/** ステータス以外の絞り込み。タブの件数を出すために先に適用する。 */
-function applyScope(
-  bills: BillWithContent[],
-  query: string,
-  tagId: string | null,
-  interviewOnly: boolean
-): BillWithContent[] {
-  let scoped = searchBills(bills, query);
-  if (tagId) {
-    scoped = scoped.filter((bill) => bill.tags.some((tag) => tag.id === tagId));
-  }
-  if (interviewOnly) {
-    scoped = scoped.filter((bill) => bill.hasPublicInterview);
-  }
-  return scoped;
-}
-
-/** 実際に法案が紐づくタグだけをチップに出す。0件のカテゴリを並べない。 */
-function collectTags(bills: BillWithContent[]): BillTag[] {
-  const byId = new Map<string, BillTag>();
-  for (const bill of bills) {
-    for (const tag of bill.tags) {
-      if (!byId.has(tag.id)) byId.set(tag.id, tag);
-    }
-  }
-  return [...byId.values()];
 }

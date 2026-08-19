@@ -1,11 +1,9 @@
 "use client";
 
-import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { routes } from "@/lib/routes";
 import {
   type BillsListParams,
-  buildBillsListQuery,
+  billsListHref,
 } from "../../../shared/utils/parse-bills-list-params";
 import {
   BILL_SORT_KEYS,
@@ -31,10 +29,7 @@ export function BillsSortSelect({ params }: { params: BillsListParams }) {
         onChange={(event) => {
           const next = event.target.value;
           if (!isBillSortKey(next)) return;
-          // typedRoutes はクエリ付きのテンプレート文字列を推論できない。
-          router.push(
-            `${routes.billsList()}${buildBillsListQuery(params, { sort: next })}` as Route
-          );
+          router.push(billsListHref(params, { sort: next }));
         }}
         className="h-9 rounded-lg border border-mirai-border px-3 text-[13px] font-medium text-mirai-text"
       >

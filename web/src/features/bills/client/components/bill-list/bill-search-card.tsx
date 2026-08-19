@@ -1,10 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import { RubySafeLineClamp } from "@/components/ruby-safe-line-clamp";
 import { Card } from "@/components/ui/card";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
 import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
+import { BillPill } from "./bill-pill";
 import { BillStatusBadge } from "./bill-status-badge";
 import { BillTag } from "./bill-tag";
 
@@ -18,6 +20,11 @@ import { BillTag } from "./bill-tag";
 export function BillSearchCard({ bill }: { bill: BillWithContent }) {
   const title = bill.bill_content?.title || bill.name;
   const summary = bill.bill_content?.summary;
+  const reportCount = bill.publicReportCount ?? 0;
+  // サムネイルと文字が重ならないよう空ける幅。タイトルと要約で同じ値を使う。
+  const textInset = bill.thumbnail_url ? "pr-[136px]" : "";
+  const hasBadges =
+    bill.tags.length > 0 || bill.hasPublicInterview || reportCount > 0;
 
   return (
     <Card className="relative overflow-hidden rounded-xl border border-black p-0 shadow-none transition-colors hover:bg-muted/50">
@@ -37,9 +44,7 @@ export function BillSearchCard({ bill }: { bill: BillWithContent }) {
         <div className="flex flex-col gap-1.5">
           {/* サムネイルと重ならないよう、テキスト側の幅を詰める */}
           <h3
-            className={`line-clamp-2 text-base font-bold leading-relaxed ${
-              bill.thumbnail_url ? "pr-[136px]" : ""
-            }`}
+            className={`line-clamp-2 text-base font-bold leading-relaxed ${textInset}`}
           >
             {title}
             {bill.is_review_completed && (
@@ -60,30 +65,24 @@ export function BillSearchCard({ bill }: { bill: BillWithContent }) {
           </div>
 
           {summary && (
-            <p
-              className={`line-clamp-2 text-xs leading-relaxed text-mirai-text-secondary ${
-                bill.thumbnail_url ? "pr-[136px]" : ""
-              }`}
-            >
-              {summary}
-            </p>
+            <RubySafeLineClamp
+              text={summary}
+              lineClamp={2}
+              className={`text-xs leading-relaxed text-mirai-text-secondary ${textInset}`}
+            />
           )}
 
-          {(bill.tags.length > 0 || bill.hasPublicInterview) && (
+          {hasBadges && (
             <div className="mt-1 flex flex-wrap items-center gap-2">
               {bill.tags.map((tag) => (
                 <BillTag key={tag.id} tag={tag} />
               ))}
               {bill.hasPublicInterview && (
-                <span className="inline-flex items-center justify-center rounded-full bg-mirai-light-gradient px-3 py-1 text-xs font-medium text-black">
-                  AIインタビュー受付中
-                </span>
+                <BillPill>AIインタビュー受付中</BillPill>
               )}
               {/* 回答が集まっている議案だけ数字を出す。0人と書くと参加をためらわせる。 */}
-              {(bill.publicReportCount ?? 0) > 0 && (
-                <span className="inline-flex items-center justify-center rounded-full bg-mirai-light-gradient px-3 py-1 text-xs font-medium text-black">
-                  💬 {bill.publicReportCount}人がAIインタビューに回答
-                </span>
+              {reportCount > 0 && (
+                <BillPill>💬 {reportCount}人がAIインタビューに回答</BillPill>
               )}
             </div>
           )}

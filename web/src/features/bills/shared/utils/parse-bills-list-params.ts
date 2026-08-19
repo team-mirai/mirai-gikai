@@ -1,3 +1,5 @@
+import type { Route } from "next";
+import { routes } from "@/lib/routes";
 import { type BillStatusGroup, isBillStatusGroup } from "./bill-status-group";
 import {
   type BillSortKey,
@@ -43,7 +45,7 @@ export function parseBillsListParams(
   return {
     query: firstValue(searchParams.q)?.trim() ?? "",
     status: isBillStatusGroup(status) ? status : "all",
-    tagId: tag ? tag : null,
+    tagId: tag || null,
     sort: isBillSortKey(sort) ? sort : DEFAULT_BILL_SORT,
     interviewOnly: firstValue(searchParams.interview) === "1",
   };
@@ -55,7 +57,7 @@ export function parseBillsListParams(
  */
 export function buildBillsListQuery(
   current: BillsListParams,
-  patch: Partial<BillsListParams>
+  patch: Partial<BillsListParams> = {}
 ): string {
   const next = { ...current, ...patch };
   const params = new URLSearchParams();
@@ -68,4 +70,15 @@ export function buildBillsListQuery(
 
   const queryString = params.toString();
   return queryString ? `?${queryString}` : "";
+}
+
+/**
+ * 一覧ページへのリンク。typedRoutes はクエリ付きのテンプレート文字列を
+ * 推論できないため、キャストをこの関数だけに閉じる。
+ */
+export function billsListHref(
+  current: BillsListParams,
+  patch: Partial<BillsListParams> = {}
+): Route {
+  return `${routes.billsList()}${buildBillsListQuery(current, patch)}` as Route;
 }
