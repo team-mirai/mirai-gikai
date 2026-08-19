@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Info } from "lucide-react";
+import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,

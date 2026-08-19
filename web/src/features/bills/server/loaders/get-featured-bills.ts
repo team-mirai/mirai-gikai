@@ -5,9 +5,9 @@ import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/ge
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { BillWithContent } from "../../shared/types";
 import {
+  findBillIdsWithPublicInterview,
   findFeaturedBillsWithContents,
   findTagsByBillIds,
-  findBillIdsWithPublicInterview,
 } from "../repositories/bill-repository";
 
 /**

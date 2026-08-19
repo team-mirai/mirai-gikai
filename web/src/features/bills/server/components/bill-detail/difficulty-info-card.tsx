@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { DifficultySelector } from "@/features/bill-difficulty/client/components/difficulty-selector";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 
 export async function DifficultyInfoCard() {
   const level = await getDifficultyLevel();

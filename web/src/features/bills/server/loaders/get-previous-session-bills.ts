@@ -6,10 +6,10 @@ import type { DietSession } from "@/features/diet-sessions/shared/types";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { BillWithContent } from "../../shared/types";
 import {
+  countPublishedBillsByDietSession,
+  findBillIdsWithPublicInterview,
   findPreviousSessionBills,
   findTagsByBillIds,
-  findBillIdsWithPublicInterview,
-  countPublishedBillsByDietSession,
 } from "../repositories/bill-repository";
 
 const MAX_PREVIEW_BILLS = 5;

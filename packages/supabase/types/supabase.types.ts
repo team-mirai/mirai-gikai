@@ -1147,6 +1147,13 @@ export type Database = {
         }
         Returns: number
       }
+      count_public_reports_by_bill_ids: {
+        Args: { p_bill_ids: string[] }
+        Returns: {
+          bill_id: string
+          report_count: number
+        }[]
+      }
       count_public_reports_by_stance: {
         Args: { p_bill_id: string }
         Returns: {
@@ -1583,3 +1590,4 @@ export const Constants = {
     },
   },
 } as const
+

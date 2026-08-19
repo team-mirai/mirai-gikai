@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react";
-import Image from "next/image";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { DietSession } from "@/features/diet-sessions/shared/types";

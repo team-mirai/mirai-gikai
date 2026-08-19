@@ -28,3 +28,33 @@ export async function countPublicReportsByBillId(
 
   return count ?? 0;
 }
+
+/**
+ * 複数議案の公開レポート件数をまとめて数える。
+ *
+ * 一覧で議案ごとにバッジを出すため、countPublicReportsByBillId を議案数ぶん
+ * 呼ぶと数十回のクエリになる。集約はDB側（count_public_reports_by_bill_ids）で行う。
+ *
+ * 0件の議案は返り値に現れないので、呼び出し側で 0 として扱えるよう Map で返す。
+ */
+export async function countPublicReportsByBillIds(
+  billIds: readonly string[]
+): Promise<Map<string, number>> {
+  if (billIds.length === 0) return new Map();
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc(
+    "count_public_reports_by_bill_ids",
+    { p_bill_ids: [...billIds] }
+  );
+
+  if (error) {
+    throw new Error(
+      `Failed to count public interview reports by bill ids: ${error.message}`
+    );
+  }
+
+  return new Map(
+    (data ?? []).map((row) => [row.bill_id, Number(row.report_count)])
+  );
+}
