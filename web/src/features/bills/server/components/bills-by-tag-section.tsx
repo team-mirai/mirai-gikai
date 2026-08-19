@@ -1,8 +1,8 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
-import { BillCard } from "../../client/components/bill-list/bill-card";
 import type { BillsByTag } from "../../shared/types";
+import { BillCard } from "../../client/components/bill-list/bill-card";
 
 interface BillsByTagSectionProps {
   billsByTag: BillsByTag[];
