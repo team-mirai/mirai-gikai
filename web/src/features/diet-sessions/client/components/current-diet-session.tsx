@@ -1,53 +1,130 @@
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { DietSession } from "../../shared/types";
+import { calculateSessionProgress } from "../../shared/utils/session-progress";
 
 type CurrentDietSessionProps = {
   session: DietSession | null;
+  /** 直前に閉会した会期。閉会中の表示に使う。 */
+  previousSession?: DietSession | null;
+  /** 進行率の基準時刻。呼び出し側が日本時刻を渡す。 */
+  now: Date;
 };
 
-export function CurrentDietSession({ session }: CurrentDietSessionProps) {
-  // if (!session) {
-  //   return (
-  //     <div className="w-full bg-mirai-surface-warm px-6 py-6">
-  //       <div className="flex items-center gap-3">
-  //         <h2 className="text-xl font-bold text-gray-800 leading-[0.9]">
-  //           本日は
-  //         </h2>
-  //         <div className="inline-flex items-center justify-center px-5 py-1.5 rounded-[50px] bg-gray-200 shrink-0">
-  //           <span className="text-base font-bold leading-[1.48] text-gray-600">
-  //             国会閉会中
-  //           </span>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+/**
+ * 今国会の状況カード。
+ *
+ * 会期中は進行バーと残り日数を出す。パーセンテージだけだと寄付の目標額のように
+ * 読まれるため、召集日と閉会予定日を併記する。
+ * 閉会中はバーを出さず、どの会期が終わったのかをテキストで示す。
+ */
+export function CurrentDietSession({
+  session,
+  previousSession,
+  now,
+}: CurrentDietSessionProps) {
+  const inSession = session !== null;
 
+  // ヒーローを外したのでこのカードが最上部に来る。ヘッダーは fixed で
+  // main-layout の上余白は md 以上にしか効かないため、モバイルでは
+  // ここで余白を確保する（パンくずを持つページと同じ規約）。
   return (
-    <div className="w-full bg-mirai-surface-warm px-6 py-6">
-      <div className="flex items-center gap-5">
-        <div className="flex items-center gap-4 flex-1">
-          <h2 className="text-xl font-bold text-gray-800 leading-[0.9]">
-            本日は
-          </h2>
-          <div
-            className={`
-            inline-flex items-center justify-center px-5 py-1.5 rounded-[50px]  shrink-0
-            ${session == null ? "bg-mirai-border-muted" : "bg-mirai-gradient"}
-            `}
-          >
-            <span className="text-base font-bold leading-[1.48]">
-              {session == null ? "国会閉会中" : "国会会期中"}
+    <div className="mx-auto max-w-4xl px-4 pt-24 md:pt-5">
+      <div className="flex flex-col gap-6 rounded-2xl bg-mirai-gradient px-5 py-5">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${
+              inSession ? "bg-mirai-brand-teal-hover" : "bg-mirai-text-muted"
+            }`}
+            aria-hidden
+          />
+          <span className="whitespace-nowrap text-xl font-bold">本日は</span>
+          <span className="rounded-full bg-white/70 px-4 py-1 text-base font-bold">
+            {inSession ? "国会会期中" : "国会閉会中"}
+          </span>
+          {inSession && (
+            <span className="ml-auto whitespace-nowrap text-[15px] font-bold text-mirai-brand-teal-hover">
+              {session.name}
             </span>
-          </div>
+          )}
         </div>
-        {session != null && (
-          <div className="text-sm leading-[1.5] shrink-0">
-            <div>{session.name}</div>
-            <div>{formatDateWithDots(session.start_date)}〜</div>
-          </div>
+
+        {inSession ? (
+          <SessionProgressBar session={session} now={now} />
+        ) : (
+          <ClosedSessionSummary session={previousSession ?? null} />
         )}
       </div>
+    </div>
+  );
+}
+
+function SessionProgressBar({
+  session,
+  now,
+}: {
+  session: DietSession;
+  now: Date;
+}) {
+  const { percentage, daysLeft } = calculateSessionProgress(session, now);
+
+  return (
+    <div className="-mt-1.5 flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[13px] font-bold text-mirai-text-secondary">
+          会期の進行
+        </span>
+        <span className="flex items-baseline gap-1 whitespace-nowrap">
+          <span className="text-[13px] font-bold text-mirai-text-secondary">
+            閉会まで
+          </span>
+          <span className="font-lexend text-[28px] font-bold leading-none text-mirai-brand-teal-hover">
+            {daysLeft}
+          </span>
+          <span className="text-[13px] font-bold text-mirai-brand-teal-hover">
+            日
+          </span>
+        </span>
+      </div>
+
+      <div
+        className="h-2.5 overflow-hidden rounded-full bg-white/75"
+        role="progressbar"
+        aria-label="会期の進行"
+        aria-valuenow={percentage}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <div
+          className="h-full rounded-full bg-mirai-progress-fill"
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+
+      {/* パーセンテージ単独だと目標額のように読まれるので、日付を両端に置く。 */}
+      <div className="flex items-baseline justify-between gap-2 text-xs font-bold text-mirai-text-muted">
+        <span className="whitespace-nowrap">
+          {formatDateWithDots(session.start_date)} 召集
+        </span>
+        <span className="whitespace-nowrap">
+          {formatDateWithDots(session.end_date)} 閉会予定
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ClosedSessionSummary({ session }: { session: DietSession | null }) {
+  if (!session) return null;
+
+  return (
+    <div className="-mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
+      <span className="text-[15px] font-bold text-mirai-brand-teal-hover">
+        {session.name}は終了しました
+      </span>
+      <span className="whitespace-nowrap text-[13px] font-bold text-mirai-text-muted">
+        / {formatDateWithDots(session.start_date)} -{" "}
+        {formatDateWithDots(session.end_date)}
+      </span>
     </div>
   );
 }
