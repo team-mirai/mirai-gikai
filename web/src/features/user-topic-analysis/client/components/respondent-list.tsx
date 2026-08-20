@@ -44,10 +44,16 @@ export function RespondentList({ respondents, nowMs }: RespondentListProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-[13px] font-bold text-topic-label">
+      <p
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="text-[13px] font-bold text-topic-label"
+      >
         {filtered.length}人のインタビューの回答
       </p>
       <TopicFilterChips
+        ariaLabel="回答を絞り込む"
         activeFilter={filter}
         onSelect={selectFilter}
         counts={counts}
