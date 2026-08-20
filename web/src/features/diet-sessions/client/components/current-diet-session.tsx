@@ -1,4 +1,5 @@
 import { Container } from "@/components/layouts/container";
+import { Progress } from "@/components/ui/progress";
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { DietSession } from "../../shared/types";
 import { calculateSessionProgress } from "../../shared/utils/session-progress";
@@ -92,20 +93,14 @@ function SessionProgressBar({
         </span>
       </div>
 
-      <div
-        className="h-2.5 overflow-hidden rounded-full bg-white/75"
-        role="progressbar"
+      {/*
+        残り日数は上の行に文字で出しているので、バー自体は割合だけを伝える。
+      */}
+      <Progress
+        value={percentage}
         aria-label="会期の進行"
-        aria-valuetext={`${percentage}% 経過、閉会まで${daysLeft}日`}
-        aria-valuenow={percentage}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-primary-accent to-mirai-gradient-start"
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+        className="h-2.5 bg-white/75 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-primary-accent [&>[data-slot=progress-indicator]]:to-mirai-gradient-start"
+      />
 
       {/* パーセンテージ単独だと目標額のように読まれるので、日付を両端に置く。 */}
       <div className="flex items-baseline justify-between gap-2 text-xs font-bold text-mirai-text-secondary">

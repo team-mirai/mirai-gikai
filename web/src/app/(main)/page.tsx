@@ -46,12 +46,15 @@ export default async function Home() {
   const featuredIds = new Set(
     inSession ? featuredBills.map((bill) => bill.id) : []
   );
-  const pickedBillsByTag = billsByTag.map((group) => ({
-    ...group,
-    bills: group.bills
-      .filter((bill) => !featuredIds.has(bill.id))
-      .slice(0, BILLS_PER_TAG_ON_TOP),
-  }));
+  const pickedBillsByTag = billsByTag
+    .map((group) => ({
+      ...group,
+      bills: group.bills
+        .filter((bill) => !featuredIds.has(bill.id))
+        .slice(0, BILLS_PER_TAG_ON_TOP),
+    }))
+    // 注目に出た法案しか無かったタグは、見出しだけが残るので落とす。
+    .filter((group) => group.bills.length > 0);
 
   const toBillChatContext = (bill: BillWithContent) => {
     return {
