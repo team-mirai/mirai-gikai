@@ -32,6 +32,12 @@ describe("splitIntoRows", () => {
     expect(splitIntoRows(["a", "b"], -1)).toEqual([]);
   });
 
+  it("行数が整数でなければ空", () => {
+    expect(splitIntoRows(["a", "b"], 1.5)).toEqual([]);
+    expect(splitIntoRows(["a", "b"], Number.NaN)).toEqual([]);
+    expect(splitIntoRows(["a", "b"], Number.POSITIVE_INFINITY)).toEqual([]);
+  });
+
   it("元の配列を壊さない", () => {
     const input = ["a", "b", "c"];
     splitIntoRows(input, 2);

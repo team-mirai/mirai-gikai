@@ -8,7 +8,9 @@
  * 行ごとの独立した並びにするために、ここで配列を分けておく。
  */
 export function splitIntoRows<T>(items: readonly T[], rowCount: number): T[][] {
-  if (rowCount < 1) return [];
+  // 小数や NaN を通すと index % rowCount が行の添字にならず、Infinity は
+  // 配列長として弾かれる。行数として成り立たない値は空で返す。
+  if (!Number.isInteger(rowCount) || rowCount < 1) return [];
 
   const rows: T[][] = Array.from({ length: rowCount }, () => []);
   items.forEach((item, index) => {
