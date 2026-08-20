@@ -30,20 +30,27 @@ export function CurrentDietSession({
   // ここで余白を確保する（パンくずを持つページと同じ規約）。
   return (
     <Container className="pt-24 md:pt-5">
-      <div className="flex flex-col gap-6 rounded-2xl bg-mirai-gradient px-5 py-5">
+      <div className="flex flex-col gap-6 rounded-2xl bg-mirai-light-gradient px-5 py-5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
           <span
             className={`h-2 w-2 shrink-0 rounded-full ${
-              inSession ? "bg-mirai-brand-teal-hover" : "bg-mirai-text-muted"
+              inSession ? "bg-mirai-brand-teal" : "bg-mirai-border-light"
             }`}
             aria-hidden
           />
           <span className="whitespace-nowrap text-xl font-bold">本日は</span>
-          <span className="rounded-full bg-white/75 px-4 py-1 text-base font-bold">
+          {/* 会期中は状態そのものを目立たせ、閉会中は落ち着かせる。 */}
+          <span
+            className={`rounded-full px-3.5 py-1 text-[15px] font-bold ${
+              inSession
+                ? "bg-mirai-gradient text-mirai-text"
+                : "bg-mirai-surface-muted text-mirai-text-secondary"
+            }`}
+          >
             {inSession ? "国会会期中" : "国会閉会中"}
           </span>
           {inSession && (
-            <span className="text-[15px] font-bold text-mirai-text-secondary md:ml-auto">
+            <span className="text-[15px] font-bold text-mirai-brand-teal-deep md:ml-auto">
               {session.name}
             </span>
           )}
@@ -77,17 +84,16 @@ function SessionProgressBar({
           <span className="text-[13px] font-bold text-mirai-text-secondary">
             閉会まで
           </span>
-          <span className="font-lexend text-[28px] font-bold leading-none text-mirai-text-secondary">
+          {/* 残り日数だけ色を変える。会期の進行のうち一番見たい数字。 */}
+          <span className="font-lexend text-[28px] font-bold leading-none text-primary-accent">
             {daysLeft}
           </span>
-          <span className="text-[13px] font-bold text-mirai-text-secondary">
-            日
-          </span>
+          <span className="text-[13px] font-bold text-primary-accent">日</span>
         </span>
       </div>
 
       <div
-        className="h-2.5 overflow-hidden rounded-full bg-mirai-progress-track"
+        className="h-2.5 overflow-hidden rounded-full bg-white/75"
         role="progressbar"
         aria-label="会期の進行"
         aria-valuetext={`${percentage}% 経過、閉会まで${daysLeft}日`}
@@ -96,7 +102,7 @@ function SessionProgressBar({
         aria-valuemax={100}
       >
         <div
-          className="h-full rounded-full bg-primary"
+          className="h-full rounded-full bg-gradient-to-r from-primary-accent to-mirai-gradient-start"
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -117,7 +123,7 @@ function SessionProgressBar({
 function ClosedSessionSummary({ session }: { session: DietSession }) {
   return (
     <div className="-mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
-      <span className="text-[15px] font-bold text-mirai-text-secondary">
+      <span className="text-[15px] font-bold text-mirai-brand-teal-deep">
         {session.name}は終了しました
       </span>
       <span className="whitespace-nowrap text-[13px] font-bold text-mirai-text-secondary">

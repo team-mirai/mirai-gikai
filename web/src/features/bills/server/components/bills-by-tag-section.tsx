@@ -1,8 +1,9 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
-import type { BillsByTag } from "../../shared/types";
 import { BillCard } from "../../client/components/bill-list/bill-card";
+import { CompactBillCard } from "../../client/components/bill-list/compact-bill-card";
+import type { BillsByTag } from "../../shared/types";
 
 interface BillsByTagSectionProps {
   billsByTag: BillsByTag[];
@@ -29,11 +30,19 @@ export function BillsByTagSection({ billsByTag }: BillsByTagSectionProps) {
             )}
           </div>
 
-          {/* 議案カード一覧 */}
+          {/*
+            議案カード一覧。先頭だけフルカードで、2件目以降はコンパクトにする。
+            1カテゴリに同じ大きさのカードを並べると縦に伸びて、次のカテゴリまで
+            スクロールが遠くなる。
+          */}
           <div className="flex flex-col gap-4">
-            {bills.map((bill) => (
+            {bills.map((bill, index) => (
               <Link key={bill.id} href={routes.billDetail(bill.id) as Route}>
-                <BillCard bill={bill} />
+                {index === 0 ? (
+                  <BillCard bill={bill} />
+                ) : (
+                  <CompactBillCard bill={bill} />
+                )}
               </Link>
             ))}
           </div>
