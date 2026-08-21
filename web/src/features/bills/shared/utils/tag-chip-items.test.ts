@@ -88,4 +88,29 @@ describe("countTagChipItems", () => {
   it("タグを渡さなければ空", () => {
     expect(countTagChipItems([], [bill("税金")])).toEqual([]);
   });
+
+  // 消してしまうと、絞り込みが効いているのに何で絞られているのか
+  // 画面から分からなくなる。
+  it("選択中のタグは0件でも残す", () => {
+    const items = countTagChipItems(
+      [tag("税金"), tag("暮らし")],
+      [bill("暮らし")],
+      "税金"
+    );
+
+    expect(items).toEqual([
+      { id: "税金", label: "税金", count: 0 },
+      { id: "暮らし", label: "暮らし", count: 1 },
+    ]);
+  });
+
+  it("選択中でないタグは0件なら落とす", () => {
+    const items = countTagChipItems(
+      [tag("税金"), tag("暮らし")],
+      [bill("暮らし")],
+      "暮らし"
+    );
+
+    expect(items.map((i) => i.id)).toEqual(["暮らし"]);
+  });
 });

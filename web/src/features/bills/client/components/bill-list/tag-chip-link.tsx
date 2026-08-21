@@ -11,15 +11,19 @@ export function TagChipLink({
   label,
   count,
   className,
+  onNavigate,
 }: {
   href: Route;
   label: string;
   count: number;
   className?: string;
+  /** モーダルの中から使うとき、遷移前に閉じるために使う。 */
+  onNavigate?: () => void;
 }) {
   return (
     <Link
       href={href}
+      onClick={onNavigate}
       className={`flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-mirai-border bg-white px-3.5 text-[13px] font-bold text-mirai-text ${className ?? ""}`}
     >
       {label}

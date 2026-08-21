@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { resolveScrollAffordance } from "../../shared/utils/scroll-affordance";
+import { resolveScrollAffordance } from "../utils/scroll-affordance";
 
 /** 1回の送り幅。見えている範囲を基準にすると、幅が変わっても送りすぎない。 */
 const SCROLL_RATIO = 0.8;
@@ -79,10 +79,20 @@ export function CategoryTabScroller({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {canScrollLeft && <ScrollEdge side="left" onClick={() => scrollTo(-1)} />}
-      {canScrollRight && (
-        <ScrollEdge side="right" onClick={() => scrollTo(1)} />
-      )}
+      {/*
+        送れない向きでも要素は残して disabled にする。押し切った瞬間にボタンが
+        DOM から消えると、キーボード操作のフォーカスが body に落ちて位置を失う。
+      */}
+      <ScrollEdge
+        side="left"
+        disabled={!canScrollLeft}
+        onClick={() => scrollTo(-1)}
+      />
+      <ScrollEdge
+        side="right"
+        disabled={!canScrollRight}
+        onClick={() => scrollTo(1)}
+      />
     </div>
   );
 }
@@ -93,9 +103,11 @@ export function CategoryTabScroller({ children }: { children: ReactNode }) {
  */
 function ScrollEdge({
   side,
+  disabled,
   onClick,
 }: {
   side: "left" | "right";
+  disabled: boolean;
   onClick: () => void;
 }) {
   const isLeft = side === "left";
@@ -106,13 +118,14 @@ function ScrollEdge({
         isLeft
           ? "left-0 justify-start bg-gradient-to-l from-transparent to-mirai-surface"
           : "right-0 justify-end bg-gradient-to-r from-transparent to-mirai-surface"
-      }`}
+      } ${disabled ? "opacity-0" : ""}`}
     >
       <Button
         type="button"
         variant="outline"
         size="icon"
         onClick={onClick}
+        disabled={disabled}
         aria-label={isLeft ? "カテゴリを左に送る" : "カテゴリを右に送る"}
         className="pointer-events-auto"
       >

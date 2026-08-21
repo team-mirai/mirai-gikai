@@ -53,7 +53,7 @@ export default async function Home() {
     // 注目に出た法案しか無かったタグは、見出しだけが残るので落とす。
     .filter((group) => group.bills.length > 0);
 
-  // モーダルのテーマ一覧はカテゴリタブと同じ導出を使う。数字が食い違わない。
+  // カテゴリタブと同じ導出をモーダルにも渡す。同じ画面で数字が食い違わない。
   const tagChips = toTagChipItems(billsByTag);
 
   const toBillChatContext = (bill: BillWithContent) => {
@@ -81,7 +81,7 @@ export default async function Home() {
             featuredAnchor={inSession ? FEATURED_ANCHOR : undefined}
           />
         </div>
-        {/* 全件を探す導線。トップはピックアップに留める */}
+        {/* 検索の入口。キーワードとテーマの両方をモーダルに並べる */}
         <div className="flex justify-end pt-2">
           <BillSearchOverlay tags={tagChips} bills={suggestableBills} />
         </div>
@@ -103,7 +103,7 @@ export default async function Home() {
               </section>
             )}
 
-            {/* タグ別議案一覧セクション（トップはピックアップなので各2件） */}
+            {/* タグ別議案一覧セクション（タグに紐づく議案を全件出す） */}
             <BillsByTagSection billsByTag={pickedBillsByTag} />
 
             {/* Coming soonセクション */}

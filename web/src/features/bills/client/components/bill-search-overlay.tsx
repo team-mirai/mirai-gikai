@@ -12,7 +12,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { routes } from "@/lib/routes";
-import type { BillTag } from "../../shared/types";
 import {
   billsListHref,
   DEFAULT_BILLS_LIST_PARAMS,
@@ -21,8 +20,8 @@ import {
   type SuggestableBill,
   suggestBills,
 } from "../../shared/utils/suggest-bills";
-
-type TagWithCount = BillTag & { count: number };
+import type { TagChipItem } from "../../shared/utils/tag-chip-items";
+import { TagChipLink } from "./bill-list/tag-chip-link";
 
 /**
  * トップページの検索入口。
@@ -37,23 +36,26 @@ type TagWithCount = BillTag & { count: number };
  * 候補は手元の配列から出す。公開議案は数十件なので、打鍵ごとにサーバーへ
  * 行かなくても絞り込める。往復が無いぶん候補が即時に出るうえ、遅れて届いた
  * 古い結果が新しい入力を上書きする問題も起きない。
+ *
+ * 候補が当てるのは名称・タイトル・タグ名だけで、要約は対象外。一覧ページの
+ * 検索は要約も見るので、候補が空でも検索結果は出ることがある。空のときの
+ * 文言はそれを踏まえて「候補が無い」と言うに留める。
  */
 export function BillSearchOverlay({
   tags,
   bills,
 }: {
-  tags: TagWithCount[];
+  tags: TagChipItem[];
   bills: SuggestableBill[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  const matches = suggestBills(bills, query);
-  const hasQuery = query.trim().length > 0;
+  const trimmed = query.trim();
+  const matches = suggestBills(bills, trimmed);
 
   const submit = () => {
-    const trimmed = query.trim();
     setOpen(false);
     router.push(billsListHref(DEFAULT_BILLS_LIST_PARAMS, { query: trimmed }));
   };
@@ -66,7 +68,7 @@ export function BillSearchOverlay({
         <ChevronRight className="h-4 w-4" aria-hidden />
       </DialogTrigger>
 
-      <DialogContent className="gap-6 sm:max-w-3xl">
+      <DialogContent className="gap-6 sm:max-w-3xl" showCloseButton>
         <DialogTitle className="sr-only">法案を検索</DialogTitle>
 
         <form
@@ -100,13 +102,18 @@ export function BillSearchOverlay({
           </Button>
         </form>
 
-        {hasQuery && (
-          <div className="flex flex-col">
+        {trimmed && (
+          // 候補の増減を読み上げに伝える。入力に応じて中身だけが変わるため、
+          // 通知が無いとスクリーンリーダーでは変化に気づけない。
+          <div className="flex flex-col" aria-live="polite">
             {matches.map((bill) => (
               <Link
                 key={bill.id}
                 href={routes.billDetail(bill.id)}
                 onClick={() => setOpen(false)}
+                // 候補は「まだ選んでいない行」なので先読みしない。打鍵ごとに
+                // 入れ替わるため、押されない遷移先を大量に取りに行ってしまう。
+                prefetch={false}
                 className="flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm hover:bg-mirai-surface"
               >
                 <Search
@@ -120,7 +127,8 @@ export function BillSearchOverlay({
             ))}
             {matches.length === 0 && (
               <p className="px-2 py-2.5 text-sm text-mirai-text-muted">
-                「{query.trim()}」に一致する法案は見つかりませんでした
+                「{trimmed}」に一致する候補はありません。検索すると要約も
+                対象になります
               </p>
             )}
           </div>
@@ -132,19 +140,16 @@ export function BillSearchOverlay({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             {tags.map((tag) => (
-              <Link
+              <TagChipLink
                 key={tag.id}
                 href={billsListHref(DEFAULT_BILLS_LIST_PARAMS, {
                   tagId: tag.id,
                 })}
-                onClick={() => setOpen(false)}
-                className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-mirai-border bg-white px-3.5 text-[13px] font-bold text-mirai-text hover:bg-mirai-brand-mint"
-              >
-                {tag.label}
-                <span className="font-lexend text-xs font-bold text-mirai-text-muted">
-                  {tag.count}
-                </span>
-              </Link>
+                label={tag.label}
+                count={tag.count}
+                onNavigate={() => setOpen(false)}
+                className="hover:bg-mirai-brand-mint"
+              />
             ))}
           </div>
         </div>

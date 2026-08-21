@@ -30,7 +30,7 @@ const _getCachedSuggestableBills = unstable_cache(
       bill_content: { title: row.bill_contents[0]?.title },
       tags: row.bills_tags
         .map((link) => link.tags)
-        .filter((tag): tag is { label: string } => tag !== null),
+        .filter((tag): tag is NonNullable<typeof tag> => tag !== null),
     }));
   },
   ["suggestable-bills"],

@@ -63,10 +63,15 @@ export async function findPublishedBillsForSuggest(
     )
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
-    .order("submitted_date", { ascending: false, nullsFirst: false });
+    // 提出日は null と同日の重複があるので、id を第2キーにして順序を固定する。
+    // 候補は上位数件で打ち切るため、並びが揺れると出る候補そのものが変わる。
+    .order("submitted_date", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: true });
 
   if (error) {
-    throw new Error(`Failed to fetch bills for suggest: ${error.message}`);
+    // 候補は検索の補助なので、落とさずに空で返して検索自体は使える状態にする。
+    console.error("Failed to fetch bills for suggest:", error);
+    return [];
   }
 
   return data ?? [];

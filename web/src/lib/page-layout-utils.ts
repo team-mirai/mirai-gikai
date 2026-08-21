@@ -1,12 +1,12 @@
 /**
  * ページレイアウトに関するユーティリティ
  *
- * TOPページと法案詳細ページは「メインページ」として扱い、
+ * TOP・法案一覧・法案詳細を「メインページ」として扱い、
  * - DifficultySelectorを表示
  * - チャットサイドバー用のオフセットレイアウトを使用
  */
 
-/** メインページ（TOP、法案詳細）かどうかを判定 */
+/** メインページ（TOP、法案一覧、法案詳細）かどうかを判定 */
 export function isMainPage(pathname: string): boolean {
   // トップページ
   if (pathname === "/") return true;

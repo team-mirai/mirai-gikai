@@ -32,7 +32,7 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 }
 
 /** 絞り込みなしの一覧。ここから1つだけ差し替えてリンクを作る。 */
-export const DEFAULT_BILLS_LIST_PARAMS: BillsListParams = {
+export const DEFAULT_BILLS_LIST_PARAMS: Readonly<BillsListParams> = {
   query: "",
   status: "all",
   tagId: null,

@@ -31,10 +31,14 @@ export function toTagChipItems(
  * 件数は渡した議案から数える。呼び出し側が他の絞り込み（キーワード・
  * ステータス・受付中）を適用した結果を渡すことで、チップの数字が実際に
  * 表示される件数と一致する。
+ *
+ * `keepTagId` に選択中のタグを渡すと、そのタグは0件でも残す。消してしまうと
+ * 絞り込みが効いているのに何で絞られているのか画面から分からなくなる。
  */
 export function countTagChipItems(
   tags: readonly BillTag[],
-  bills: readonly Pick<BillWithContent, "tags">[]
+  bills: readonly Pick<BillWithContent, "tags">[],
+  keepTagId?: string | null
 ): TagChipItem[] {
   const counts = new Map<string, number>();
   for (const bill of bills) {
@@ -49,5 +53,5 @@ export function countTagChipItems(
       label: tag.label,
       count: counts.get(tag.id) ?? 0,
     }))
-    .filter((item) => item.count > 0);
+    .filter((item) => item.count > 0 || item.id === keepTagId);
 }

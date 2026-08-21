@@ -1,32 +1,33 @@
-import { describe, it, expect, afterEach } from "vitest";
 import {
-  createTestBill,
   cleanupTestBill,
-  createTestBillContent,
-  createTestTag,
+  cleanupTestDietSession,
   cleanupTestTag,
+  createTestBill,
+  createTestBillContent,
   createTestBillTag,
+  createTestDietSession,
   createTestMiraiStance,
   createTestPreviewToken,
-  createTestDietSession,
-  cleanupTestDietSession,
+  createTestTag,
 } from "@test-utils/utils";
+import { afterEach, describe, expect, it } from "vitest";
 import {
-  findPublishedBillsWithContents,
-  findPublishedBillById,
-  findBillById,
-  findMiraiStanceByBillId,
-  findTagsByBillId,
-  findBillContentByDifficulty,
-  findTagsByBillIds,
-  findPublishedBillsByDietSession,
-  findPreviousSessionBills,
   countPublishedBillsByDietSession,
-  findFeaturedTags,
-  findPublishedBillsByTag,
-  findFeaturedBillsWithContents,
+  findBillById,
+  findBillContentByDifficulty,
   findComingSoonBills,
+  findFeaturedBillsWithContents,
+  findFeaturedTags,
+  findMiraiStanceByBillId,
   findPreviewToken,
+  findPreviousSessionBills,
+  findPublishedBillById,
+  findPublishedBillsByDietSession,
+  findPublishedBillsByTag,
+  findPublishedBillsForSuggest,
+  findPublishedBillsWithContents,
+  findTagsByBillId,
+  findTagsByBillIds,
 } from "./bill-repository";
 
 describe("bill-repository 統合テスト", () => {
@@ -460,6 +461,75 @@ describe("bill-repository 統合テスト", () => {
 
       const found = result.find((t) => t.id === tag.id);
       expect(found).toBeUndefined();
+    });
+
+    // 同一優先度で順序が不定だと、カテゴリタブの並びがデプロイごとに変わる。
+    it("同じ優先度のタグはlabel昇順で返る", async () => {
+      const suffix = Date.now();
+      const second = await createTestTag({
+        label: `zz-same-priority-${suffix}`,
+        featured_priority: 9,
+      });
+      tagIds.push(second.id);
+      const first = await createTestTag({
+        label: `aa-same-priority-${suffix}`,
+        featured_priority: 9,
+      });
+      tagIds.push(first.id);
+
+      const result = await findFeaturedTags();
+      const ids = result.map((t) => t.id);
+
+      expect(ids.indexOf(first.id)).toBeLessThan(ids.indexOf(second.id));
+    });
+  });
+
+  // ============================================================
+  // findPublishedBillsForSuggest
+  // ============================================================
+
+  describe("findPublishedBillsForSuggest", () => {
+    it("公開済み議案の名称・タイトル・タグ名を取得できる", async () => {
+      const bill = await createTestBill({ publish_status: "published" });
+      billIds.push(bill.id);
+      await createTestBillContent(bill.id, {
+        difficulty_level: "normal",
+        title: "やさしいタイトル",
+      });
+      const tag = await createTestTag({ label: `suggest-tag-${Date.now()}` });
+      tagIds.push(tag.id);
+      await createTestBillTag(bill.id, tag.id);
+
+      const result = await findPublishedBillsForSuggest("normal");
+
+      const found = result.find((row) => row.id === bill.id);
+      expect(found).toBeDefined();
+      expect(found?.name).toBe(bill.name);
+      expect(found?.bill_contents[0]?.title).toBe("やさしいタイトル");
+      expect(found?.bills_tags.map((link) => link.tags?.label)).toContain(
+        tag.label
+      );
+    });
+
+    it("下書きの議案は含まれない", async () => {
+      const bill = await createTestBill({ publish_status: "draft" });
+      billIds.push(bill.id);
+      await createTestBillContent(bill.id, { difficulty_level: "normal" });
+
+      const result = await findPublishedBillsForSuggest("normal");
+
+      expect(result.find((row) => row.id === bill.id)).toBeUndefined();
+    });
+
+    // 候補は上位数件で打ち切るため、難易度違いが混ざると候補の中身が変わる。
+    it("指定した難易度のコンテンツが無い議案は含まれない", async () => {
+      const bill = await createTestBill({ publish_status: "published" });
+      billIds.push(bill.id);
+      await createTestBillContent(bill.id, { difficulty_level: "hard" });
+
+      const result = await findPublishedBillsForSuggest("normal");
+
+      expect(result.find((row) => row.id === bill.id)).toBeUndefined();
     });
   });
 

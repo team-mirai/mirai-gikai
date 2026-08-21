@@ -57,9 +57,14 @@ export async function BillsListPage({
     getDifficultyLevel(),
   ]);
 
-  // キーワードとタグで母集合を絞ってから件数を数える。ステータスのタブに出す
-  // 数字が、他の絞り込みを反映した実際の件数になるようにする。
-  const scoped = filterBills(allBills, params);
+  // タグ以外の絞り込みを先に適用し、そこからタグ絞り込みを派生させる。
+  // 同じキーワード検索を2度走らせずに、タブとチップの母集合を作れる。
+  const withoutTag = filterBills(allBills, { ...params, tagId: null });
+  const scoped = params.tagId
+    ? withoutTag.filter((bill) =>
+        bill.tags.some((tag) => tag.id === params.tagId)
+      )
+    : withoutTag;
   const statusCounts = countByStatusGroup(scoped);
   const bills = sortBills(
     filterByStatusGroup(scoped, params.status),
@@ -68,11 +73,8 @@ export async function BillsListPage({
 
   // タグの件数は、タグ以外の絞り込みを適用した母集合から数える。タグ自身を
   // 母集合に含めると、選択中のタグ以外がすべて0件になる。
-  const forTagCounts = filterByStatusGroup(
-    filterBills(allBills, { ...params, tagId: null }),
-    params.status
-  );
-  const tags = countTagChipItems(featuredTags, forTagCounts);
+  const forTagCounts = filterByStatusGroup(withoutTag, params.status);
+  const tags = countTagChipItems(featuredTags, forTagCounts, params.tagId);
   const tagChips = [
     { id: "all", label: "すべて", tagId: null, count: forTagCounts.length },
     ...tags.map((tag) => ({
