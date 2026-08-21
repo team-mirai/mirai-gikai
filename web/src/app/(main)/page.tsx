@@ -9,11 +9,12 @@ import { BillsByTagSection } from "@/features/bills/server/components/bills-by-t
 import { CategoryTabs } from "@/features/bills/server/components/category-tabs";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
 import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
+import { getFeaturedTags } from "@/features/bills/server/loaders/get-featured-tags";
 import { getSuggestableBills } from "@/features/bills/server/loaders/get-suggestable-bills";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { chatBillName } from "@/features/bills/shared/utils/chat-bill-name";
-import { toTagChipItems } from "@/features/bills/shared/utils/tag-chip-items";
+import { countTagChipItems } from "@/features/bills/shared/utils/tag-chip-items";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
@@ -32,12 +33,14 @@ export default async function Home() {
     latestClosedSession,
     currentDifficulty,
     suggestableBills,
+    featuredTags,
   ] = await Promise.all([
     loadHomeData(),
     getCurrentDietSession(japanTime),
     getLatestClosedDietSession(japanTime),
     getDifficultyLevel(),
     getSuggestableBills(),
+    getFeaturedTags(),
   ]);
 
   const inSession = currentSession !== null;
@@ -54,8 +57,10 @@ export default async function Home() {
     // 注目に出た法案しか無かったタグは、見出しだけが残るので落とす。
     .filter((group) => group.bills.length > 0);
 
-  // カテゴリタブと同じ導出をモーダルにも渡す。同じ画面で数字が食い違わない。
-  const tagChips = toTagChipItems(billsByTag);
+  // モーダルの件数は全会期の公開議案から数える。チップの飛び先が /bills で、
+  // あちらも全会期を数えるため、押す前と後で数字が変わらない。
+  // 候補用に取得済みの配列をそのまま使うので、集計のためのクエリは増えない。
+  const searchTagChips = countTagChipItems(featuredTags, suggestableBills);
 
   const toBillChatContext = (bill: BillWithContent) => {
     return {
@@ -84,7 +89,7 @@ export default async function Home() {
         </div>
         {/* 検索の入口。キーワードとテーマの両方をモーダルに並べる */}
         <div className="flex justify-end pt-2">
-          <BillSearchOverlay tags={tagChips} bills={suggestableBills} />
+          <BillSearchOverlay tags={searchTagChips} bills={suggestableBills} />
         </div>
       </Container>
 

@@ -6,7 +6,7 @@ function bill(id: string, title = "ガソリン税を安くする法案"): Sugge
     id,
     name: "揮発油税等の暫定税率の廃止等に関する法律案",
     bill_content: { title },
-    tags: [{ label: "税金" }],
+    tags: [{ id: "zeikin", label: "税金" }],
   };
 }
 

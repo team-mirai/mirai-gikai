@@ -20,10 +20,18 @@ export async function getBillsByFeaturedTags(): Promise<BillsByTag[]> {
   const difficultyLevel = await getDifficultyLevel();
   const activeSession = await getActiveDietSession();
 
-  return _getCachedBillsByFeaturedTags(
-    difficultyLevel,
-    activeSession?.id ?? null
-  );
+  try {
+    return await _getCachedBillsByFeaturedTags(
+      difficultyLevel,
+      activeSession?.id ?? null
+    );
+  } catch (error) {
+    // 取得失敗はキャッシュ関数の外で受ける。中で空配列に変換すると、失敗が
+    // 正常な結果として10分キャッシュされてしまう。トップは他のセクションが
+    // 出れば成立するので、ここで空に縮退させる。
+    console.error("Failed to fetch bills by featured tags:", error);
+    return [];
+  }
 }
 
 const _getCachedBillsByFeaturedTags = unstable_cache(
@@ -31,11 +39,15 @@ const _getCachedBillsByFeaturedTags = unstable_cache(
     difficultyLevel: DifficultyLevelEnum,
     dietSessionId: string | null
   ): Promise<BillsByTag[]> => {
-    // 取得失敗（null）も0件も、トップは他のセクションが出れば成立するので
-    // ここは空で縮退させる。
     const featuredTags = await findFeaturedTags();
 
-    if (featuredTags === null || featuredTags.length === 0) {
+    // 取得失敗はキャッシュに載せない。空配列を返すと0件と区別できず、一時的な
+    // DBエラー1回でタグ別セクションが10分消えたままになる。
+    if (featuredTags === null) {
+      throw new Error("Failed to fetch featured tags");
+    }
+
+    if (featuredTags.length === 0) {
       return [];
     }
 

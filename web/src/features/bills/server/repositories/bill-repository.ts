@@ -45,7 +45,7 @@ export async function findPublishedBillsWithContents(
 }
 
 /**
- * 検索候補用に、公開済み議案の名称・タイトル・タグ名だけを取得する。
+ * 検索候補用に、公開済み議案の名称・タイトル・タグだけを取得する。
  *
  * `findPublishedBillsWithContents` は解説本文（数KB／件）まで引くため、候補の
  * 絞り込みに使うには重すぎる。ここは候補行に出す最小限だけを選ぶ。
@@ -61,7 +61,7 @@ export async function findPublishedBillsForSuggest(
       id,
       name,
       bill_contents!inner (title),
-      bills_tags (tags (label))
+      bills_tags (tags (id, label))
     `
     )
     .eq("publish_status", "published")

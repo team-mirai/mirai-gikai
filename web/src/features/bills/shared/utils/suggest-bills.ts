@@ -1,3 +1,4 @@
+import type { BillTag } from "../types";
 import { type SearchableBill, searchBills } from "./search-bills";
 
 /**
@@ -7,9 +8,11 @@ import { type SearchableBill, searchBills } from "./search-bills";
  * 当たって出てきた行は「なぜこれが出たのか」が読み手に分からない。渡す側の
  * 実装に頼らず、型で要約を受け取れないようにしておく。
  */
-export type SuggestableBill = Omit<SearchableBill, "bill_content"> & {
+export type SuggestableBill = Omit<SearchableBill, "bill_content" | "tags"> & {
   id: string;
   bill_content?: { title?: string | null };
+  /** モーダルのテーマ別件数を数えるため id も持つ。 */
+  tags: BillTag[];
 };
 
 /** 候補として出す上限。多く出しても選ばれないうえ、モーダルが縦に伸びる。 */
