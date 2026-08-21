@@ -130,7 +130,7 @@ export function BillSearchOverlay({
           読み上げ用の領域は入力前から置いておく。挿入と同時に中身が入ると
           変化として扱われず、最初の候補が読み上げられないことがある。
         */}
-          <div className="flex min-w-0 flex-col gap-1.5" aria-live="polite">
+          <div className="flex min-w-0 flex-col gap-1.5">
             {trimmed && matches.length > 0 && (
               <>
                 <p className="text-xs font-bold text-mirai-text-secondary">
