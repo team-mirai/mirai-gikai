@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, FileText, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { routes } from "@/lib/routes";
+import { highlightMatch } from "../../shared/utils/highlight-match";
 import {
   billsListHref,
   DEFAULT_BILLS_LIST_PARAMS,
@@ -68,7 +69,17 @@ export function BillSearchOverlay({
         <ChevronRight className="h-4 w-4" aria-hidden />
       </DialogTrigger>
 
-      <DialogContent className="gap-6 sm:max-w-3xl" showCloseButton>
+      {/*
+        `min-w-0` を各段に通す。候補行の `truncate`（white-space: nowrap）は
+        祖先の min-content をテキスト全長まで押し広げるため、途中の要素で
+        縮めておかないと狭い画面で中身が右にはみ出す。
+      */}
+      <DialogContent
+        // 候補とテーマを合わせると画面の高さを超える。超えた分は中でスクロール
+        // させる。はみ出すと閉じるボタンが画面外に出て閉じられなくなる。
+        className="max-h-[calc(100dvh-2rem)] grid-cols-[minmax(0,1fr)] gap-6 overflow-y-auto sm:max-w-3xl"
+        showCloseButton
+      >
         <DialogTitle className="sr-only">法案を検索</DialogTitle>
 
         <form
@@ -76,7 +87,7 @@ export function BillSearchOverlay({
             event.preventDefault();
             submit();
           }}
-          className="flex items-center gap-2 rounded-full border border-mirai-border bg-mirai-surface px-4 py-1.5 focus-within:border-primary focus-within:bg-white"
+          className="flex min-w-0 items-center gap-2 rounded-full border border-mirai-border bg-mirai-surface px-4 py-1.5 focus-within:border-primary focus-within:bg-white"
         >
           <Search
             className="h-[18px] w-[18px] shrink-0 text-mirai-text-muted"
@@ -91,7 +102,7 @@ export function BillSearchOverlay({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="法案名やキーワードで探す"
-            className="w-full bg-transparent text-sm outline-none"
+            className="w-full min-w-0 bg-transparent text-sm outline-none"
           />
           <Button
             type="submit"
@@ -106,37 +117,33 @@ export function BillSearchOverlay({
           読み上げ用の領域は入力前から置いておく。挿入と同時に中身が入ると
           変化として扱われず、最初の候補が読み上げられないことがある。
         */}
-        <div className="flex flex-col" aria-live="polite">
-          {trimmed && (
+        <div className="flex min-w-0 flex-col gap-1.5" aria-live="polite">
+          {trimmed && matches.length > 0 && (
             <>
-              {matches.map((bill) => (
-                <Link
-                  key={bill.id}
-                  href={routes.billDetail(bill.id)}
-                  onClick={() => setOpen(false)}
-                  // 候補は「まだ選んでいない行」なので先読みしない。打鍵ごとに
-                  // 入れ替わるため、押されない遷移先を大量に取りに行ってしまう。
-                  prefetch={false}
-                  className="flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm hover:bg-mirai-surface"
-                >
-                  <Search
-                    className="h-[15px] w-[15px] shrink-0 text-mirai-text-muted"
-                    aria-hidden
-                  />
-                  <span className="min-w-0 truncate">
-                    {bill.bill_content?.title || bill.name}
-                  </span>
-                </Link>
-              ))}
-              {matches.length === 0 ? (
-                <p className="px-2 py-2.5 text-sm text-mirai-text-muted">
-                  「{trimmed}」に一致する候補はありません。検索すると要約も
-                  対象になります
-                </p>
-              ) : (
-                <p className="sr-only">{matches.length}件の候補</p>
-              )}
+              <p className="text-xs font-bold text-mirai-text-secondary">
+                法案 {matches.length}件
+              </p>
+              <ul className="flex min-w-0 flex-col">
+                {matches.map((bill) => (
+                  <li
+                    key={bill.id}
+                    className="min-w-0 border-mirai-border border-t first:border-t-0"
+                  >
+                    <SuggestRow
+                      bill={bill}
+                      query={trimmed}
+                      onNavigate={() => setOpen(false)}
+                    />
+                  </li>
+                ))}
+              </ul>
             </>
+          )}
+          {trimmed && matches.length === 0 && (
+            <p className="py-2 text-sm text-mirai-text-muted">
+              「{trimmed}」に一致する候補はありません。検索すると要約も対象に
+              なります
+            </p>
           )}
         </div>
 
@@ -161,5 +168,56 @@ export function BillSearchOverlay({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** 候補1行。押せることが分かるように、右端に矢印を置いて行を区切る。 */
+function SuggestRow({
+  bill,
+  query,
+  onNavigate,
+}: {
+  bill: SuggestableBill;
+  query: string;
+  onNavigate: () => void;
+}) {
+  const title = bill.bill_content?.title || bill.name;
+
+  return (
+    <Link
+      href={routes.billDetail(bill.id)}
+      onClick={onNavigate}
+      // 候補は「まだ選んでいない行」なので先読みしない。打鍵ごとに入れ替わる
+      // ため、押されない遷移先を大量に取りに行ってしまう。
+      prefetch={false}
+      className="flex min-w-0 items-center gap-2.5 py-3 text-sm hover:bg-mirai-surface"
+    >
+      <FileText
+        className="h-4 w-4 shrink-0 text-mirai-text-muted"
+        aria-hidden
+      />
+      {/* 候補は見比べるものなので2行で止める。全文は遷移先で読める。 */}
+      <span className="line-clamp-2 min-w-0 flex-1">
+        {highlightMatch(title, query).map((segment, index) =>
+          segment.matched ? (
+            <mark
+              // 同じ語が複数回出ることがあるので、位置で区別する。
+              // biome-ignore lint/suspicious/noArrayIndexKey: 断片は順番でしか識別できない
+              key={index}
+              className="bg-mirai-highlight text-mirai-text"
+            >
+              {segment.text}
+            </mark>
+          ) : (
+            // biome-ignore lint/suspicious/noArrayIndexKey: 断片は順番でしか識別できない
+            <span key={index}>{segment.text}</span>
+          )
+        )}
+      </span>
+      <ChevronRight
+        className="h-4 w-4 shrink-0 text-mirai-text-muted"
+        aria-hidden
+      />
+    </Link>
   );
 }

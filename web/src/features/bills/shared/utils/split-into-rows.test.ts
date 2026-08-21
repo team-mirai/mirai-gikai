@@ -23,6 +23,21 @@ describe("splitIntoRows", () => {
     expect(splitIntoRows(["a"], 2)).toEqual([["a"], []]);
   });
 
+  // 横に余白があるのに縦積みになるのを避ける。絞り込みでチップが2件だけ
+  // 残ったときに起きていた。
+  it("要素が行数以下なら1行に収める", () => {
+    expect(splitIntoRows(["a", "b"], 2)).toEqual([["a", "b"], []]);
+    expect(splitIntoRows(["a", "b", "c"], 3)).toEqual([
+      ["a", "b", "c"],
+      [],
+      [],
+    ]);
+  });
+
+  it("行数を超えたら振り分けを始める", () => {
+    expect(splitIntoRows(["a", "b", "c"], 2)).toEqual([["a", "c"], ["b"]]);
+  });
+
   it("空配列なら空の行を返す", () => {
     expect(splitIntoRows([], 2)).toEqual([[], []]);
   });

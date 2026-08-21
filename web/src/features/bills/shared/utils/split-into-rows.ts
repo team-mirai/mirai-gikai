@@ -12,6 +12,12 @@ export function splitIntoRows<T>(items: readonly T[], rowCount: number): T[][] {
   // 配列長として弾かれる。行数として成り立たない値は空で返す。
   if (!Number.isInteger(rowCount) || rowCount < 1) return [];
 
+  // 行数以下の要素を複数行に振ると、横に余白があるのに縦積みになる。
+  // 絞り込みでチップが2件だけ残ったときに起きる。
+  if (items.length <= rowCount) {
+    return [[...items], ...Array.from({ length: rowCount - 1 }, () => [])];
+  }
+
   const rows: T[][] = Array.from({ length: rowCount }, () => []);
   items.forEach((item, index) => {
     rows[index % rowCount].push(item);

@@ -121,8 +121,12 @@ function ClosedSessionSummary({ session }: { session: DietSession }) {
       <span className="text-[15px] font-bold text-mirai-brand-teal-deep">
         {session.name}は終了しました
       </span>
-      <span className="whitespace-nowrap text-[13px] font-bold text-mirai-text-secondary">
-        / {formatDateWithDots(session.start_date)} -{" "}
+      {/*
+        区切りの「/」は同じ行に続くときだけ出す。折り返すと行頭に残って
+        意味を持たない記号になる。
+      */}
+      <span className="whitespace-nowrap text-[13px] font-bold text-mirai-text-secondary sm:before:content-['/_']">
+        {formatDateWithDots(session.start_date)} -{" "}
         {formatDateWithDots(session.end_date)}
       </span>
     </div>
