@@ -5,9 +5,9 @@ import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/ge
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { BillsByTag } from "../../shared/types";
 import {
+  findBillIdsWithPublicInterview,
   findFeaturedTags,
   findPublishedBillsByTag,
-  findBillIdsWithPublicInterview,
 } from "../repositories/bill-repository";
 
 /**
@@ -31,9 +31,11 @@ const _getCachedBillsByFeaturedTags = unstable_cache(
     difficultyLevel: DifficultyLevelEnum,
     dietSessionId: string | null
   ): Promise<BillsByTag[]> => {
+    // 取得失敗（null）も0件も、トップは他のセクションが出れば成立するので
+    // ここは空で縮退させる。
     const featuredTags = await findFeaturedTags();
 
-    if (featuredTags.length === 0) {
+    if (featuredTags === null || featuredTags.length === 0) {
       return [];
     }
 

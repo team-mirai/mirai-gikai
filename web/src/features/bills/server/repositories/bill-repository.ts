@@ -9,6 +9,9 @@ import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/type
 /**
  * 公開済み議案を難易度コンテンツ付きで取得
  */
+
+/** Supabase が1リクエストで返す行数の上限（既定値）。 */
+const SUPABASE_MAX_ROWS = 1000;
 export async function findPublishedBillsWithContents(
   difficultyLevel: DifficultyLevelEnum
 ) {
@@ -74,7 +77,17 @@ export async function findPublishedBillsForSuggest(
     return [];
   }
 
-  return data ?? [];
+  const rows = data ?? [];
+  // Supabase は max_rows を超えた行を返さない。到達したら古い議案が候補から
+  // 静かに落ちるので、気づけるようにログを残す。
+  if (rows.length >= SUPABASE_MAX_ROWS) {
+    console.warn(
+      `findPublishedBillsForSuggest hit the row limit (${SUPABASE_MAX_ROWS}). ` +
+        "候補から漏れる議案が出ているため、サーバー側検索への移行を検討する。"
+    );
+  }
+
+  return rows;
 }
 
 /**
@@ -321,6 +334,13 @@ export async function countPublishedBillsByDietSession(
 /**
  * featured_priorityが設定されているタグを取得
  */
+/**
+ * featured なタグを優先度順に取得する。
+ *
+ * 取得に失敗したときは `null` を返す。0件と区別できないと、呼び出し側が
+ * 「タグが無い」としてキャッシュに載せてしまい、一時的なエラーで絞り込みが
+ * 消えたまま固定される。
+ */
 export async function findFeaturedTags() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -334,7 +354,7 @@ export async function findFeaturedTags() {
 
   if (error) {
     console.error("Failed to fetch featured tags:", error);
-    return [];
+    return null;
   }
 
   return data ?? [];

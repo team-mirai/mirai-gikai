@@ -102,37 +102,43 @@ export function BillSearchOverlay({
           </Button>
         </form>
 
-        {trimmed && (
-          // 候補の増減を読み上げに伝える。入力に応じて中身だけが変わるため、
-          // 通知が無いとスクリーンリーダーでは変化に気づけない。
-          <div className="flex flex-col" aria-live="polite">
-            {matches.map((bill) => (
-              <Link
-                key={bill.id}
-                href={routes.billDetail(bill.id)}
-                onClick={() => setOpen(false)}
-                // 候補は「まだ選んでいない行」なので先読みしない。打鍵ごとに
-                // 入れ替わるため、押されない遷移先を大量に取りに行ってしまう。
-                prefetch={false}
-                className="flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm hover:bg-mirai-surface"
-              >
-                <Search
-                  className="h-[15px] w-[15px] shrink-0 text-mirai-text-muted"
-                  aria-hidden
-                />
-                <span className="min-w-0 truncate">
-                  {bill.bill_content?.title || bill.name}
-                </span>
-              </Link>
-            ))}
-            {matches.length === 0 && (
-              <p className="px-2 py-2.5 text-sm text-mirai-text-muted">
-                「{trimmed}」に一致する候補はありません。検索すると要約も
-                対象になります
-              </p>
-            )}
-          </div>
-        )}
+        {/*
+          読み上げ用の領域は入力前から置いておく。挿入と同時に中身が入ると
+          変化として扱われず、最初の候補が読み上げられないことがある。
+        */}
+        <div className="flex flex-col" aria-live="polite">
+          {trimmed && (
+            <>
+              {matches.map((bill) => (
+                <Link
+                  key={bill.id}
+                  href={routes.billDetail(bill.id)}
+                  onClick={() => setOpen(false)}
+                  // 候補は「まだ選んでいない行」なので先読みしない。打鍵ごとに
+                  // 入れ替わるため、押されない遷移先を大量に取りに行ってしまう。
+                  prefetch={false}
+                  className="flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm hover:bg-mirai-surface"
+                >
+                  <Search
+                    className="h-[15px] w-[15px] shrink-0 text-mirai-text-muted"
+                    aria-hidden
+                  />
+                  <span className="min-w-0 truncate">
+                    {bill.bill_content?.title || bill.name}
+                  </span>
+                </Link>
+              ))}
+              {matches.length === 0 ? (
+                <p className="px-2 py-2.5 text-sm text-mirai-text-muted">
+                  「{trimmed}」に一致する候補はありません。検索すると要約も
+                  対象になります
+                </p>
+              ) : (
+                <p className="sr-only">{matches.length}件の候補</p>
+              )}
+            </>
+          )}
+        </div>
 
         <div className="flex flex-col gap-2.5">
           <p className="text-[13px] font-bold text-mirai-text-secondary">

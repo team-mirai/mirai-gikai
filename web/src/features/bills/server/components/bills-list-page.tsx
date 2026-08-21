@@ -26,6 +26,7 @@ import {
   countByStatusGroup,
   filterByStatusGroup,
 } from "../../shared/utils/bill-status-group";
+import { chatBillName } from "../../shared/utils/chat-bill-name";
 import { filterBills } from "../../shared/utils/filter-bills";
 import {
   type BillsListParams,
@@ -260,7 +261,7 @@ export async function BillsListPage({
       <HomeChatClient
         currentDifficulty={currentDifficulty}
         bills={bills.map((bill) => ({
-          name: `${bill.bill_content?.title}（${bill.name}）`,
+          name: chatBillName(bill),
           summary: bill.bill_content?.summary,
           tags: bill.tags?.map((tag) => tag.label) ?? [],
         }))}

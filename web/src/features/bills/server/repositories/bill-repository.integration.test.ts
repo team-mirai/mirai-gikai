@@ -446,7 +446,7 @@ describe("bill-repository 統合テスト", () => {
 
       const result = await findFeaturedTags();
 
-      const found = result.find((t) => t.id === tag.id);
+      const found = result?.find((t) => t.id === tag.id);
       expect(found).toBeDefined();
       expect(found?.featured_priority).toBe(1);
     });
@@ -459,7 +459,7 @@ describe("bill-repository 統合テスト", () => {
 
       const result = await findFeaturedTags();
 
-      const found = result.find((t) => t.id === tag.id);
+      const found = result?.find((t) => t.id === tag.id);
       expect(found).toBeUndefined();
     });
 
@@ -478,7 +478,7 @@ describe("bill-repository 統合テスト", () => {
       tagIds.push(first.id);
 
       const result = await findFeaturedTags();
-      const ids = result.map((t) => t.id);
+      const ids = (result ?? []).map((t) => t.id);
 
       expect(ids.indexOf(first.id)).toBeLessThan(ids.indexOf(second.id));
     });

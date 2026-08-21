@@ -12,6 +12,7 @@ import { PreviousSessionSection } from "@/features/bills/server/components/previ
 import { getSuggestableBills } from "@/features/bills/server/loaders/get-suggestable-bills";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import { chatBillName } from "@/features/bills/shared/utils/chat-bill-name";
 import { toTagChipItems } from "@/features/bills/shared/utils/tag-chip-items";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
@@ -58,7 +59,7 @@ export default async function Home() {
 
   const toBillChatContext = (bill: BillWithContent) => {
     return {
-      name: `${bill.bill_content?.title}（${bill.name}）`,
+      name: chatBillName(bill),
       summary: bill.bill_content?.summary,
       tags: bill.tags?.map((tag) => tag.label) || [],
       isFeatured: featuredBills.some((b) => b.id === bill.id),

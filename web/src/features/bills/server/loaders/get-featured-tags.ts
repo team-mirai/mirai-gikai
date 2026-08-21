@@ -19,6 +19,12 @@ const _getCachedFeaturedTags = unstable_cache(
   async (): Promise<BillTag[]> => {
     const tags = await findFeaturedTags();
 
+    // 取得失敗をキャッシュに載せない。空配列を通すと、一時的なDBエラー1回で
+    // 絞り込みの導線が最大10分消えたままになる。例外はキャッシュされない。
+    if (tags === null) {
+      throw new Error("Failed to fetch featured tags");
+    }
+
     return tags.map((tag) => ({ id: tag.id, label: tag.label }));
   },
   ["featured-tags"],

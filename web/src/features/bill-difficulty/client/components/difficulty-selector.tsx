@@ -90,7 +90,7 @@ export function DifficultySelector({
         checked={selectedLevel === "hard"}
         onCheckedChange={handleToggle}
         disabled={isChanging}
-        aria-label="難易度を切り替え"
+        aria-label={`${labelPrefix}${labelSuffix}`}
       />
     </div>
   );
