@@ -37,6 +37,7 @@ import {
 import { sortBills } from "../../shared/utils/sort-bills";
 import { splitIntoRows } from "../../shared/utils/split-into-rows";
 import { countTagChipItems } from "../../shared/utils/tag-chip-items";
+import { tagChipRowCount } from "../../shared/utils/tag-chip-row-count";
 import { getBillsWithReportCounts } from "../loaders/get-bills-with-report-counts";
 import { getFeaturedTags } from "../loaders/get-featured-tags";
 
@@ -140,7 +141,8 @@ export async function BillsListPage({
               href={href({ status: group })}
               active={params.status === group}
               icon={STATUS_GROUP_ICONS[group]}
-              label={`${BILL_STATUS_GROUP_LABELS[group]} ${statusCounts[group]}`}
+              label={BILL_STATUS_GROUP_LABELS[group]}
+              count={statusCounts[group]}
             />
           ))}
         </FilterGroup>
@@ -151,28 +153,34 @@ export async function BillsListPage({
           </h2>
           {/*
           タグは本番で18件あり、折り返すと縦に伸びて一覧が押し下がる。
-          2行に詰めて横スクロールさせる。grid で流すと列幅が最長のチップに
-          揃って短いチップの右に空白が残るので、行ごとに独立した flex にする。
+          多いときは2行に詰めて横スクロールさせる。grid で流すと列幅が最長の
+          チップに揃って短いチップの右に空白が残るので、行ごとに独立した
+          flex にする。
+
+          少ないときは1行にする。絞り込みでチップが数個に減ったときに2行へ
+          割ると、横に余白があるのに縦に並んでしまう。
         */}
           <div className="scrollbar-hide overflow-x-auto">
             <div className="flex w-max flex-col gap-1.5">
-              {splitIntoRows(tagChips, 2).map((row, rowIndex) => (
-                <div
-                  // biome-ignore lint/suspicious/noArrayIndexKey: 行は固定順で再並びしない
-                  key={rowIndex}
-                  className="flex items-center gap-1.5"
-                >
-                  {row.map((chip) => (
-                    <Chip
-                      key={chip.id}
-                      href={href({ tagId: chip.tagId })}
-                      active={params.tagId === chip.tagId}
-                      label={chip.label}
-                      count={chip.count}
-                    />
-                  ))}
-                </div>
-              ))}
+              {splitIntoRows(tagChips, tagChipRowCount(tagChips.length)).map(
+                (row, rowIndex) => (
+                  <div
+                    // biome-ignore lint/suspicious/noArrayIndexKey: 行は固定順で再並びしない
+                    key={rowIndex}
+                    className="flex items-center gap-1.5"
+                  >
+                    {row.map((chip) => (
+                      <Chip
+                        key={chip.id}
+                        href={href({ tagId: chip.tagId })}
+                        active={params.tagId === chip.tagId}
+                        label={chip.label}
+                        count={chip.count}
+                      />
+                    ))}
+                  </div>
+                )
+              )}
             </div>
           </div>
         </section>
@@ -296,6 +304,12 @@ const STATUS_GROUP_ICONS: Record<BillStatusGroup, LucideIcon> = {
   rejected: X,
 };
 
+/**
+ * 絞り込みのチップ。
+ *
+ * ステータスとカテゴリで同じ描画にする。片方だけラベルに数字を混ぜると、
+ * 数字のフォントや色が並びの中で食い違う。
+ */
 function Chip({
   href,
   active,
@@ -306,15 +320,14 @@ function Chip({
   href: Route;
   active: boolean;
   label: string;
-  /** 省略時は件数を出さない。ステータスタブはラベルに数字を含めている。 */
-  count?: number;
+  count: number;
   icon?: LucideIcon;
 }) {
   return (
     <Link
       href={href}
       aria-current={active ? "true" : undefined}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-bold whitespace-nowrap ${
+      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] font-bold whitespace-nowrap ${
         active
           ? "border-transparent bg-mirai-gradient text-mirai-text"
           : "border-mirai-border bg-white text-mirai-text"
@@ -322,11 +335,18 @@ function Chip({
     >
       {Icon && <Icon className="h-[15px] w-[15px] shrink-0" aria-hidden />}
       {label}
-      {count !== undefined && (
-        <span className="font-lexend text-xs font-bold text-mirai-text-muted">
-          {count}
-        </span>
-      )}
+      {/*
+        選択中だけ濃くする。全部同じ濃さだとラベルと数字の区別が付かず、
+        どれが選ばれているのかも読み取りにくい。色はトップのタグチップ
+        （TagChipLink）に揃えている。
+      */}
+      <span
+        className={`font-lexend text-xs font-bold ${
+          active ? "text-mirai-text" : "text-mirai-text-muted"
+        }`}
+      >
+        {count}
+      </span>
     </Link>
   );
 }

@@ -1,17 +1,19 @@
 "use client";
 
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, FileText, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { routes } from "@/lib/routes";
+import { highlightMatch } from "../../shared/utils/highlight-match";
 import {
   billsListHref,
   DEFAULT_BILLS_LIST_PARAMS,
@@ -68,98 +70,172 @@ export function BillSearchOverlay({
         <ChevronRight className="h-4 w-4" aria-hidden />
       </DialogTrigger>
 
-      <DialogContent className="gap-6 sm:max-w-3xl" showCloseButton>
+      {/*
+        `min-w-0` を各段に通す。テーマのチップは `whitespace-nowrap` を持つため、
+        途中の要素で縮めておかないと祖先の min-content が押し広げられ、狭い
+        画面で中身が右にはみ出す。
+
+        閉じるボタンはスクロールする領域の外に置く。中に入れると絶対配置の
+        基準がスクロールコンテナになり、下まで送ったときに一緒に流れて画面外へ
+        出てしまう。フォームと重ならないよう、独立した行にしている。
+      */}
+      <DialogContent
+        className="grid-cols-[minmax(0,1fr)] gap-0 p-0 sm:max-w-3xl"
+        showCloseButton={false}
+      >
         <DialogTitle className="sr-only">法案を検索</DialogTitle>
 
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            submit();
-          }}
-          className="flex items-center gap-2 rounded-full border border-mirai-border bg-mirai-surface px-4 py-1.5 focus-within:border-primary focus-within:bg-white"
-        >
-          <Search
-            className="h-[18px] w-[18px] shrink-0 text-mirai-text-muted"
-            aria-hidden
-          />
-          <input
-            // モーダルは検索のために開くので、開いた時点で入力できるようにする。
-            autoFocus
-            type="search"
-            name="q"
-            aria-label="法案を検索"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="法案名やキーワードで探す"
-            className="w-full bg-transparent text-sm outline-none"
-          />
-          <Button
-            type="submit"
-            size="sm"
-            className="border-transparent bg-mirai-text px-4 text-white"
+        <div className="flex justify-end px-2 pt-2">
+          <DialogClose
+            aria-label="閉じる"
+            className="flex size-11 cursor-pointer items-center justify-center rounded-full text-mirai-text-muted transition-colors hover:bg-mirai-surface"
           >
-            検索
-          </Button>
-        </form>
+            <X className="h-5 w-5" aria-hidden />
+          </DialogClose>
+        </div>
 
-        {/*
+        <div className="flex max-h-[calc(100dvh-8rem)] min-w-0 flex-col gap-6 overflow-y-auto px-6 pb-6">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              submit();
+            }}
+            className="flex min-w-0 items-center gap-2 rounded-full border border-mirai-border bg-mirai-surface px-4 py-1.5 focus-within:border-primary focus-within:bg-white"
+          >
+            <Search
+              className="h-[18px] w-[18px] shrink-0 text-mirai-text-muted"
+              aria-hidden
+            />
+            <input
+              // モーダルは検索のために開くので、開いた時点で入力できるようにする。
+              autoFocus
+              type="search"
+              name="q"
+              aria-label="法案を検索"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="法案名やキーワードで探す"
+              className="w-full min-w-0 bg-transparent text-sm outline-none"
+            />
+            <Button
+              type="submit"
+              size="sm"
+              className="border-transparent bg-mirai-text px-4 text-white"
+            >
+              検索
+            </Button>
+          </form>
+
+          {/*
           読み上げ用の領域は入力前から置いておく。挿入と同時に中身が入ると
           変化として扱われず、最初の候補が読み上げられないことがある。
         */}
-        <div className="flex flex-col" aria-live="polite">
-          {trimmed && (
-            <>
-              {matches.map((bill) => (
-                <Link
-                  key={bill.id}
-                  href={routes.billDetail(bill.id)}
-                  onClick={() => setOpen(false)}
-                  // 候補は「まだ選んでいない行」なので先読みしない。打鍵ごとに
-                  // 入れ替わるため、押されない遷移先を大量に取りに行ってしまう。
-                  prefetch={false}
-                  className="flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm hover:bg-mirai-surface"
-                >
-                  <Search
-                    className="h-[15px] w-[15px] shrink-0 text-mirai-text-muted"
-                    aria-hidden
-                  />
-                  <span className="min-w-0 truncate">
-                    {bill.bill_content?.title || bill.name}
-                  </span>
-                </Link>
-              ))}
-              {matches.length === 0 ? (
-                <p className="px-2 py-2.5 text-sm text-mirai-text-muted">
-                  「{trimmed}」に一致する候補はありません。検索すると要約も
-                  対象になります
+          <div className="flex min-w-0 flex-col gap-1.5">
+            {trimmed && matches.length > 0 && (
+              <>
+                <p className="text-xs font-bold text-mirai-text-secondary">
+                  法案 {matches.length}件
                 </p>
-              ) : (
-                <p className="sr-only">{matches.length}件の候補</p>
-              )}
-            </>
-          )}
-        </div>
+                <ul className="flex min-w-0 flex-col">
+                  {matches.map((bill) => (
+                    <li
+                      key={bill.id}
+                      className="min-w-0 border-mirai-border border-t first:border-t-0"
+                    >
+                      <SuggestRow
+                        bill={bill}
+                        query={trimmed}
+                        onNavigate={() => setOpen(false)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {trimmed && matches.length === 0 && (
+              // JSX は行をまたぐテキストを半角スペースで繋ぐので、日本語の
+              // 途中で改行すると空白が混ざる。テンプレート文字列で渡す。
+              <p
+                className="py-2 text-sm text-mirai-text-muted"
+                aria-live="polite"
+              >
+                {`「${trimmed}」に一致する候補はありません。検索すると要約も対象になります`}
+              </p>
+            )}
+          </div>
 
-        <div className="flex flex-col gap-2.5">
-          <p className="text-[13px] font-bold text-mirai-text-secondary">
-            テーマから探す
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            {tags.map((tag) => (
-              <TagChipLink
-                key={tag.id}
-                href={billsListHref(DEFAULT_BILLS_LIST_PARAMS, {
-                  tagId: tag.id,
-                })}
-                label={tag.label}
-                count={tag.count}
-                onNavigate={() => setOpen(false)}
-                className="hover:bg-mirai-brand-mint"
-              />
-            ))}
+          <div className="flex flex-col gap-2.5">
+            <p className="text-[13px] font-bold text-mirai-text-secondary">
+              テーマから探す
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {tags.map((tag) => (
+                <TagChipLink
+                  key={tag.id}
+                  href={billsListHref(DEFAULT_BILLS_LIST_PARAMS, {
+                    tagId: tag.id,
+                  })}
+                  label={tag.label}
+                  count={tag.count}
+                  onNavigate={() => setOpen(false)}
+                  className="hover:bg-mirai-brand-mint"
+                />
+              ))}
+            </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** 候補1行。押せることが分かるように、右端に矢印を置いて行を区切る。 */
+function SuggestRow({
+  bill,
+  query,
+  onNavigate,
+}: {
+  bill: SuggestableBill;
+  query: string;
+  onNavigate: () => void;
+}) {
+  const title = bill.bill_content?.title || bill.name;
+
+  return (
+    <Link
+      href={routes.billDetail(bill.id)}
+      onClick={onNavigate}
+      // 候補は「まだ選んでいない行」なので先読みしない。打鍵ごとに入れ替わる
+      // ため、押されない遷移先を大量に取りに行ってしまう。
+      prefetch={false}
+      className="flex min-w-0 items-center gap-2.5 py-3 text-sm hover:bg-mirai-surface"
+    >
+      <FileText
+        className="h-4 w-4 shrink-0 text-mirai-text-muted"
+        aria-hidden
+      />
+      {/* 候補は見比べるものなので2行で止める。全文は遷移先で読める。 */}
+      <span className="line-clamp-2 min-w-0 flex-1">
+        {highlightMatch(title, query).map((segment, index) =>
+          segment.matched ? (
+            <mark
+              // 同じ語が複数回出ることがあるので、位置で区別する。
+              // biome-ignore lint/suspicious/noArrayIndexKey: 断片は順番でしか識別できない
+              key={index}
+              className="bg-mirai-highlight text-mirai-text"
+            >
+              {segment.text}
+            </mark>
+          ) : (
+            // biome-ignore lint/suspicious/noArrayIndexKey: 断片は順番でしか識別できない
+            <span key={index}>{segment.text}</span>
+          )
+        )}
+      </span>
+      <ChevronRight
+        className="h-4 w-4 shrink-0 text-mirai-text-muted"
+        aria-hidden
+      />
+    </Link>
   );
 }

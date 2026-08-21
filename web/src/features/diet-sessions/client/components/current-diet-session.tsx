@@ -121,8 +121,13 @@ function ClosedSessionSummary({ session }: { session: DietSession }) {
       <span className="text-[15px] font-bold text-mirai-brand-teal-deep">
         {session.name}は終了しました
       </span>
+      {/*
+        区切りの記号は置かない。折り返すと行頭に残って意味を持たない記号に
+        なる。折り返すかは画面幅ではなく会期名の長さで決まるので、
+        ブレークポイントで出し分けても防げない。間隔で区切りを表す。
+      */}
       <span className="whitespace-nowrap text-[13px] font-bold text-mirai-text-secondary">
-        / {formatDateWithDots(session.start_date)} -{" "}
+        {formatDateWithDots(session.start_date)} -{" "}
         {formatDateWithDots(session.end_date)}
       </span>
     </div>
