@@ -12,7 +12,7 @@ export function highlightMatch(text: string, query: string): MatchSegment[] {
   const needle = query.trim();
   if (!needle) return [{ text, matched: false }];
 
-  const index = text.toLowerCase().indexOf(needle.toLowerCase());
+  const index = indexOfIgnoringCase(text, needle);
   if (index < 0) return [{ text, matched: false }];
 
   const segments: MatchSegment[] = [];
@@ -28,4 +28,22 @@ export function highlightMatch(text: string, query: string): MatchSegment[] {
   }
 
   return segments;
+}
+
+/**
+ * 大小文字を無視して位置を探す。
+ *
+ * 小文字化した文字列で位置を取ると元の文字列とずれる。「İ」のように
+ * 小文字化で長さが変わる文字があるため。元の文字列を切り出して比べる。
+ */
+function indexOfIgnoringCase(text: string, needle: string): number {
+  const lowered = needle.toLowerCase();
+
+  for (let i = 0; i <= text.length - needle.length; i++) {
+    if (text.slice(i, i + needle.length).toLowerCase() === lowered) {
+      return i;
+    }
+  }
+
+  return -1;
 }

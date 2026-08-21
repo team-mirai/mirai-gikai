@@ -36,6 +36,7 @@ import {
 } from "../../shared/utils/parse-bills-list-params";
 import { sortBills } from "../../shared/utils/sort-bills";
 import { splitIntoRows } from "../../shared/utils/split-into-rows";
+import { tagChipRowCount } from "../../shared/utils/tag-chip-row-count";
 import { countTagChipItems } from "../../shared/utils/tag-chip-items";
 import { getBillsWithReportCounts } from "../loaders/get-bills-with-report-counts";
 import { getFeaturedTags } from "../loaders/get-featured-tags";
@@ -304,18 +305,6 @@ const STATUS_GROUP_ICONS: Record<BillStatusGroup, LucideIcon> = {
 };
 
 /**
- * 1行に収める上限。これを超えたら2行に詰めて横スクロールさせる。
- *
- * 実測の幅ではなく件数で決めている。サーバー側では文字幅が分からないため。
- * 本番の18件は2行、絞り込みで数個に減ったときは1行になる。
- */
-const MAX_CHIPS_IN_SINGLE_ROW = 6;
-
-function tagChipRowCount(chipCount: number): number {
-  return chipCount > MAX_CHIPS_IN_SINGLE_ROW ? 2 : 1;
-}
-
-/**
  * 絞り込みのチップ。
  *
  * ステータスとカテゴリで同じ描画にする。片方だけラベルに数字を混ぜると、
@@ -347,12 +336,12 @@ function Chip({
       {Icon && <Icon className="h-[15px] w-[15px] shrink-0" aria-hidden />}
       {label}
       {/*
-        選択中は背景がグラデーションになるので、薄い数字だと沈んで読めない。
-        選択中だけ本文と同じ濃さにする。
+        12px なので薄い色にすると 4.5:1 を割る。ラベルより一段薄いことは
+        保ちつつ、選択中はグラデーションの上でも沈まない濃さにする。
       */}
       <span
         className={`font-lexend text-xs font-bold ${
-          active ? "text-mirai-text" : "text-mirai-text-muted"
+          active ? "text-mirai-text" : "text-mirai-text-secondary"
         }`}
       >
         {count}
