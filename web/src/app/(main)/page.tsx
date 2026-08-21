@@ -1,26 +1,23 @@
-import { ChevronRight, Search } from "lucide-react";
-import Link from "next/link";
 import { Container } from "@/components/layouts/container";
 import { About } from "@/components/top/about";
 import { ComingSoonSection } from "@/components/top/coming-soon-section";
 import { TeamMirai } from "@/components/top/team-mirai";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { BillDisclaimer } from "@/features/bills/client/components/bill-detail/bill-disclaimer";
+import { BillSearchOverlay } from "@/features/bills/client/components/bill-search-overlay";
 import { BillsByTagSection } from "@/features/bills/server/components/bills-by-tag-section";
 import { CategoryTabs } from "@/features/bills/server/components/category-tabs";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
 import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
+import { getSuggestableBills } from "@/features/bills/server/loaders/get-suggestable-bills";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import { toTagChipItems } from "@/features/bills/shared/utils/tag-chip-items";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { getLatestClosedDietSession } from "@/features/diet-sessions/server/loaders/get-latest-closed-diet-session";
-import { routes } from "@/lib/routes";
 import { getJapanTime } from "@/lib/utils/date";
-
-/** トップのタグ別一覧に出す1タグあたりの件数。全件は /bills で見せる。 */
-const BILLS_PER_TAG_ON_TOP = 2;
 
 /** カテゴリタブの「注目」から飛ばす先。 */
 const FEATURED_ANCHOR = "featured";
@@ -33,11 +30,13 @@ export default async function Home() {
     currentSession,
     latestClosedSession,
     currentDifficulty,
+    suggestableBills,
   ] = await Promise.all([
     loadHomeData(),
     getCurrentDietSession(japanTime),
     getLatestClosedDietSession(japanTime),
     getDifficultyLevel(),
+    getSuggestableBills(),
   ]);
 
   const inSession = currentSession !== null;
@@ -49,12 +48,13 @@ export default async function Home() {
   const pickedBillsByTag = billsByTag
     .map((group) => ({
       ...group,
-      bills: group.bills
-        .filter((bill) => !featuredIds.has(bill.id))
-        .slice(0, BILLS_PER_TAG_ON_TOP),
+      bills: group.bills.filter((bill) => !featuredIds.has(bill.id)),
     }))
     // 注目に出た法案しか無かったタグは、見出しだけが残るので落とす。
     .filter((group) => group.bills.length > 0);
+
+  // モーダルのテーマ一覧はカテゴリタブと同じ導出を使う。数字が食い違わない。
+  const tagChips = toTagChipItems(billsByTag);
 
   const toBillChatContext = (bill: BillWithContent) => {
     return {
@@ -83,14 +83,7 @@ export default async function Home() {
         </div>
         {/* 全件を探す導線。トップはピックアップに留める */}
         <div className="flex justify-end pt-2">
-          <Link
-            href={routes.billsList()}
-            className="inline-flex items-center gap-1 text-[13px] font-bold text-mirai-brand-teal-hover hover:underline"
-          >
-            <Search className="h-4 w-4" aria-hidden />
-            法案を検索する
-            <ChevronRight className="h-4 w-4" aria-hidden />
-          </Link>
+          <BillSearchOverlay tags={tagChips} bills={suggestableBills} />
         </div>
       </Container>
 

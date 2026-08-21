@@ -10,6 +10,8 @@
 export function isMainPage(pathname: string): boolean {
   // トップページ
   if (pathname === "/") return true;
+  // 法案一覧ページ
+  if (pathname === "/bills") return true;
   // 法案詳細ページ（/bills/[id]）- サブパスは除外
   if (/\/bills\/[^/]+$/.test(pathname)) return true;
   return false;

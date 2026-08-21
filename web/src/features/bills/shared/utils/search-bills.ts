@@ -1,6 +1,16 @@
-import type { BillTag, BillWithContent } from "../types";
+import type { BillTag } from "../types";
 
-type SearchableBill = Pick<BillWithContent, "name" | "bill_content" | "tags">;
+/**
+ * 検索に必要な最小の形。実際に読む4項目だけを要求する。
+ *
+ * `BillWithContent` に固定すると `bill_content` にDBの行がまるごと必要に
+ * なり、候補表示のように要約を持たない軽い形を渡せない。
+ */
+export type SearchableBill = {
+  name: string;
+  bill_content?: { title?: string | null; summary?: string | null };
+  tags: readonly Pick<BillTag, "label">[];
+};
 
 /**
  * 法案のキーワード検索（部分一致）。
@@ -25,7 +35,7 @@ export function searchBills<T extends SearchableBill>(
       bill.name,
       bill.bill_content?.title,
       bill.bill_content?.summary,
-      ...bill.tags.map((tag: BillTag) => tag.label),
+      ...bill.tags.map((tag) => tag.label),
     ].some((field) => field && normalize(field).includes(needle))
   );
 }

@@ -31,6 +31,15 @@ function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+/** 絞り込みなしの一覧。ここから1つだけ差し替えてリンクを作る。 */
+export const DEFAULT_BILLS_LIST_PARAMS: BillsListParams = {
+  query: "",
+  status: "all",
+  tagId: null,
+  sort: DEFAULT_BILL_SORT,
+  interviewOnly: false,
+};
+
 /**
  * URL パラメータを一覧の状態に正規化する純粋関数。
  * 不正値は既定に倒す。URL 直打ちでページを壊せないようにする。

@@ -1,4 +1,4 @@
-import type { BillTag, BillWithContent } from "../types";
+import type { BillWithContent } from "../types";
 import type { BillsListParams } from "./parse-bills-list-params";
 import { searchBills } from "./search-bills";
 
@@ -31,20 +31,4 @@ export function filterBills<T extends FilterableBill>(
     filtered = filtered.filter((bill) => bill.hasPublicInterview);
   }
   return filtered;
-}
-
-/**
- * カテゴリチップに出すタグ。実際に法案が紐づくものだけを、最初に現れた順で返す。
- * 0件のカテゴリを並べても選ぶ意味がない。
- */
-export function collectBillTags(
-  bills: readonly Pick<BillWithContent, "tags">[]
-): BillTag[] {
-  const byId = new Map<string, BillTag>();
-  for (const bill of bills) {
-    for (const tag of bill.tags) {
-      if (!byId.has(tag.id)) byId.set(tag.id, tag);
-    }
-  }
-  return [...byId.values()];
 }

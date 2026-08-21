@@ -39,11 +39,8 @@ export function BillSearchCard({ bill }: { bill: BillWithContent }) {
       >
         <div className="flex gap-3">
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            {/*
-            ふりがな表示時は ruby が入る。Safari は ruby を含むテキストを
-            clamp できないので、その場合だけ clamp を外す。
-          */}
-            <h3 className="line-clamp-2 text-base font-bold leading-relaxed has-[ruby]:line-clamp-none">
+            {/* タイトルは省略しない。何の法案かが読めないと選べない。 */}
+            <h3 className="text-base font-bold leading-relaxed">
               {title}
               {bill.is_review_completed && (
                 <>

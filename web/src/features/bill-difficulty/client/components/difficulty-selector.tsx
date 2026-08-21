@@ -72,9 +72,17 @@ export function DifficultySelector({
 
   return (
     <div className="flex items-center gap-2">
+      {/*
+        文言は今の状態を表す。詳しい版を読んでいるのに「もっと詳しく」と
+        出ていると、切り替え前なのか後なのか読み取れない。
+      */}
       <span className="text-sm font-bold" style={labelStyle}>
         {label != null ? (
           label
+        ) : selectedLevel === "hard" ? (
+          <span>
+            <span className="hidden md:inline-block">説明を</span>やさしく
+          </span>
         ) : (
           <span>
             <span className="hidden md:inline-block">説明をもっと</span>詳しく

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collectBillTags, filterBills } from "./filter-bills";
+import { filterBills } from "./filter-bills";
 
 function bill(
   id: string,
@@ -82,20 +82,5 @@ describe("filterBills", () => {
     const input = [bill("a")];
     filterBills(input, base).push(bill("b"));
     expect(input).toHaveLength(1);
-  });
-});
-
-describe("collectBillTags", () => {
-  it("重複を除いて最初に現れた順で返す", () => {
-    const tags = collectBillTags([
-      bill("a", { tags: ["税金", "暮らし"] }),
-      bill("b", { tags: ["暮らし", "教育"] }),
-    ]);
-
-    expect(tags.map((t) => t.id)).toEqual(["税金", "暮らし", "教育"]);
-  });
-
-  it("タグが無ければ空", () => {
-    expect(collectBillTags([bill("a")])).toEqual([]);
   });
 });

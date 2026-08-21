@@ -1,5 +1,5 @@
-import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { DifficultySelector } from "@/features/bill-difficulty/client/components/difficulty-selector";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 
 /**
  * デスクトップメニュー: 難易度切り替え (画面右上)
@@ -18,7 +18,6 @@ export async function DesktopMenuDifficultyToggle() {
       >
         <DifficultySelector
           currentLevel={currentLevel}
-          label="説明をもっと詳しく"
           labelStyle={{
             fontSize: "20px",
             marginRight: "44px",

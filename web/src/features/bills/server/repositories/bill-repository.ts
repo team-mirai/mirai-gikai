@@ -42,6 +42,37 @@ export async function findPublishedBillsWithContents(
 }
 
 /**
+ * 検索候補用に、公開済み議案の名称・タイトル・タグ名だけを取得する。
+ *
+ * `findPublishedBillsWithContents` は解説本文（数KB／件）まで引くため、候補の
+ * 絞り込みに使うには重すぎる。ここは候補行に出す最小限だけを選ぶ。
+ */
+export async function findPublishedBillsForSuggest(
+  difficultyLevel: DifficultyLevelEnum
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select(
+      `
+      id,
+      name,
+      bill_contents!inner (title),
+      bills_tags (tags (label))
+    `
+    )
+    .eq("publish_status", "published")
+    .eq("bill_contents.difficulty_level", difficultyLevel)
+    .order("submitted_date", { ascending: false, nullsFirst: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch bills for suggest: ${error.message}`);
+  }
+
+  return data ?? [];
+}
+
+/**
  * 公開済み議案を1件取得
  */
 export async function findPublishedBillById(id: string) {
@@ -291,7 +322,10 @@ export async function findFeaturedTags() {
     .from("tags")
     .select("id, label, description, featured_priority")
     .not("featured_priority", "is", null)
-    .order("featured_priority", { ascending: true });
+    // 同じ優先度のタグは label で並べる。指定しないと順序が不定で、
+    // カテゴリタブの並びがデプロイごとに入れ替わりうる。
+    .order("featured_priority", { ascending: true })
+    .order("label", { ascending: true });
 
   if (error) {
     console.error("Failed to fetch featured tags:", error);

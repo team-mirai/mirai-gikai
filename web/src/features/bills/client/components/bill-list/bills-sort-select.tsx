@@ -31,7 +31,7 @@ export function BillsSortSelect({ params }: { params: BillsListParams }) {
           if (!isBillSortKey(next)) return;
           router.push(billsListHref(params, { sort: next }));
         }}
-        className="h-9 rounded-lg border border-mirai-border px-3 text-[13px] font-medium text-mirai-text"
+        className="h-9 rounded-lg border border-mirai-border bg-white px-3 text-[13px] font-medium text-mirai-text"
       >
         {BILL_SORT_KEYS.map((key) => (
           <option key={key} value={key}>

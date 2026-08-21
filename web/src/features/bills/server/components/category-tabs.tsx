@@ -1,10 +1,13 @@
 import "server-only";
 
-import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { CategoryTabScroller } from "../../client/components/category-tab-scroller";
 import type { BillsByTag } from "../../shared/types";
-import { billsListHref } from "../../shared/utils/parse-bills-list-params";
+import {
+  billsListHref,
+  DEFAULT_BILLS_LIST_PARAMS,
+} from "../../shared/utils/parse-bills-list-params";
 import { splitIntoRows } from "../../shared/utils/split-into-rows";
 
 /**
@@ -20,6 +23,8 @@ import { splitIntoRows } from "../../shared/utils/split-into-rows";
  * 狭い画面では2行、広い画面では1行にする。同じ並びを2つの構造で出し分ける
  * のは、1行を折り返して2行にすると横スクロールが効かず、逆に2行を横に
  * つなげるとタブの並び順が入れ替わってしまうため。
+ *
+ * 横スクロールと送り矢印は CategoryTabScroller が持つ。
  */
 export function CategoryTabs({
   billsByTag,
@@ -39,46 +44,38 @@ export function CategoryTabs({
   const tagItems: TabItem[] = tabs.map(({ tag, bills }) => ({
     key: tag.id,
     label: tag.label,
-    href: billsListHref(DEFAULT_LIST_PARAMS, { tagId: tag.id }),
+    href: billsListHref(DEFAULT_BILLS_LIST_PARAMS, { tagId: tag.id }),
     count: bills.length,
   }));
   // 2行のときも「注目」は先頭に置き、タグだけを行に振り分ける。
   const [firstRow, secondRow] = splitIntoRows(tagItems, 2);
 
   return (
-    <nav aria-label="カテゴリ" className="scrollbar-hide overflow-x-auto">
-      <div className="hidden w-max items-center gap-2 sm:flex">
-        {featured && <TabChip item={featured} />}
-        {tagItems.map((item) => (
-          <TabChip key={item.key} item={item} />
-        ))}
-        {/* 右に続きがあることを示す。デザインどおりリンクではない。 */}
-        <span
-          aria-hidden
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black bg-white"
-        >
-          <ChevronRight
-            className="h-4 w-4 text-primary-accent"
-            strokeWidth={2.5}
-          />
-        </span>
-      </div>
-
-      <div className="flex w-max flex-col gap-1.5 sm:hidden">
-        <div className="flex items-center gap-1.5">
+    <nav aria-label="カテゴリ">
+      <CategoryTabScroller>
+        <div className="hidden items-center gap-2 sm:flex">
           {featured && <TabChip item={featured} />}
-          {firstRow.map((item) => (
+          {tagItems.map((item) => (
             <TabChip key={item.key} item={item} />
           ))}
         </div>
-        {secondRow.length > 0 && (
+
+        <div className="flex flex-col gap-1.5 sm:hidden">
           <div className="flex items-center gap-1.5">
-            {secondRow.map((item) => (
+            {featured && <TabChip item={featured} />}
+            {firstRow.map((item) => (
               <TabChip key={item.key} item={item} />
             ))}
           </div>
-        )}
-      </div>
+          {secondRow.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              {secondRow.map((item) => (
+                <TabChip key={item.key} item={item} />
+              ))}
+            </div>
+          )}
+        </div>
+      </CategoryTabScroller>
     </nav>
   );
 }
@@ -118,12 +115,3 @@ function TabChip({ item }: { item: TabItem }) {
     </Link>
   );
 }
-
-/** 一覧の既定状態。タグだけを差し替えてリンクを作る。 */
-const DEFAULT_LIST_PARAMS = {
-  query: "",
-  status: "all",
-  tagId: null,
-  sort: "new",
-  interviewOnly: false,
-} as const;
