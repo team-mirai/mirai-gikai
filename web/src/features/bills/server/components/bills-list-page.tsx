@@ -36,8 +36,8 @@ import {
 } from "../../shared/utils/parse-bills-list-params";
 import { sortBills } from "../../shared/utils/sort-bills";
 import { splitIntoRows } from "../../shared/utils/split-into-rows";
-import { tagChipRowCount } from "../../shared/utils/tag-chip-row-count";
 import { countTagChipItems } from "../../shared/utils/tag-chip-items";
+import { tagChipRowCount } from "../../shared/utils/tag-chip-row-count";
 import { getBillsWithReportCounts } from "../loaders/get-bills-with-report-counts";
 import { getFeaturedTags } from "../loaders/get-featured-tags";
 
@@ -336,12 +336,13 @@ function Chip({
       {Icon && <Icon className="h-[15px] w-[15px] shrink-0" aria-hidden />}
       {label}
       {/*
-        12px なので薄い色にすると 4.5:1 を割る。ラベルより一段薄いことは
-        保ちつつ、選択中はグラデーションの上でも沈まない濃さにする。
+        選択中だけ濃くする。全部同じ濃さだとラベルと数字の区別が付かず、
+        どれが選ばれているのかも読み取りにくい。色はトップのタグチップ
+        （TagChipLink）に揃えている。
       */}
       <span
         className={`font-lexend text-xs font-bold ${
-          active ? "text-mirai-text" : "text-mirai-text-secondary"
+          active ? "text-mirai-text" : "text-mirai-text-muted"
         }`}
       >
         {count}
