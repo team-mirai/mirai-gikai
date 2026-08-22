@@ -9,6 +9,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -84,6 +85,9 @@ export function BillSearchOverlay({
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">法案を検索</DialogTitle>
+        <DialogDescription className="sr-only">
+          キーワードやテーマから法案を探せます。
+        </DialogDescription>
 
         <div className="flex justify-end px-2 pt-2">
           <DialogClose
