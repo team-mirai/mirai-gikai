@@ -44,7 +44,9 @@ cd ../mirai-gikai-<branch-name> && pnpm install --frozen-lockfile
 1. **`/simplify` を実行**: 変更コードの重複・可読性・効率の観点から自己修正を行う。明らかな問題を先に潰しておくことで、後段の `/review` の指摘ノイズを減らす。
 2. **`/review` を実行**: Codexレビュー・`test-guidelines-checker` によるテストガイドラインチェック・`code-quality-checker` によるコード品質チェックを同時に実行する。指摘があれば修正する。
 
-両方を通過したら、ユーザーに確認せずそのままコミット → push → PR作成まで一気に進めること（`gh pr create`）。
+3. **`node scripts/check-orphan-exports.mjs` を実行**: 差分で追加・変更したファイルの export のうち、どこからも参照されていないものを検出する。共通化のために切り出したまま差し替えを忘れた、という抜けを拾う。
+
+すべて通過したら、ユーザーに確認せずそのままコミット → push → PR作成まで一気に進めること（`gh pr create`）。
 
 ### UI変更時のスクリーンショット必須
 PR作成後、変更差分にUI関連ファイル（`web/src/`, `admin/src/` 配下の `.tsx`, `.css` 等）が含まれる場合は、必ず `/pr-screenshot` スキルを実行すること。スキルが自動でdevサーバー起動→スクリーンショット撮影→R2アップロード→PR本文更新まで行う。
@@ -119,6 +121,11 @@ Repository レイヤーの詳細は [docs/repository-layer.md](docs/repository-l
 - **ボタン**: `<button>` タグの使用は禁止です。必ず `@/components/ui/button` の `Button` コンポーネントを使用してください。
 - **色**: インラインカラーコード（`text-[#xxx]`, `bg-[#xxx]`, `border-[#xxx]` 等の arbitrary value や style 属性での直接指定）は**禁止**です。必ず `globals.css` の `@theme inline` で定義済みのカラートークン（`text-mirai-text`, `bg-primary`, `border-primary-accent` 等）を使用してください。新しい色が必要な場合は、まず `globals.css` にトークンを追加してから使用すること。既存トークン一覧は `web/src/app/globals.css` の `@theme inline` ブロックを参照。
 - **Figma実装**: FigmaのURLからUIを実装する際、スクリーンショットだけで色やサイズを推測しないこと。必ず `get_variable_defs` や `get_design_context` でカラーコード・フォントサイズ・スペーシング等の正確な値を取得し、既存のデザイントークンとの対応を確認してから実装する。
+- **Claude Design 実装**: `.dc.html` からUIを実装する際、ソースを読んで仕様を推測しないこと。次の2点を守る。
+  - **正は `data-props` の `default`**。`hint-placeholder-val` / `hint-placeholder-count` はプレビュー用の仮値であり、作者の選択ではない。スクリプト側の `?? "既定値"` も props 未指定時のフォールバックなので、`data-props` と食い違うことがある。
+  - **実装前に必ずデザインを描画して見る**。`.dc.html` は React の UMD ビルドと `support.js` を読み込む形に書き換えればブラウザで開ける。節ごとに読むと、条件分岐で出し分けている要素やブロックごと見落とす。描画したものと実装を並べて比べる。
+- **既存コンポーネントとの統一**: 同種のコンポーネントを新規に作る・既存に手を入れるときは、**兄弟にあたる既存実装の枠線・角丸・影・余白・文字の扱いを先に読んで揃える**こと。カード系（`BillCard` / `CompactBillCard` / `BillSearchCard`）やチップ系のように複数ある系統は、1つだけ直すと画面間でずれる。
+- **共通化は差し替えまで完了させる**: 重複を減らすためにコンポーネントや関数を切り出したら、**元の重複箇所をすべて差し替えるまでを1つの作業とする**こと。切り出しただけで放置すると、使われない新ファイルと重複した実装が同時に残る。`node scripts/check-orphan-exports.mjs` で参照の無い export を検出できる。
 
 ### admin 内部ルート定義
 - admin アプリの内部リンク（Link href, router.push, redirect）には `@/lib/routes` の関数を使用すること。文字列リテラルでのルート直書きは禁止。

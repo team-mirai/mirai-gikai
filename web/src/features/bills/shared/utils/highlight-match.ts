@@ -6,7 +6,7 @@
  * 大小文字だけを無視した素の部分一致で位置を探す。見つからなければ
  * ハイライトなしで返す。
  */
-export type MatchSegment = { text: string; matched: boolean };
+type MatchSegment = { text: string; matched: boolean };
 
 export function highlightMatch(text: string, query: string): MatchSegment[] {
   const needle = query.trim();
