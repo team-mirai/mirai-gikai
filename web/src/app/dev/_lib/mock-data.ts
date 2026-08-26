@@ -1,4 +1,5 @@
 import type {
+  BillContent,
   BillStatusEnum,
   BillWithContent,
 } from "@/features/bills/shared/types";
@@ -11,6 +12,23 @@ export const allBillStatuses: BillStatusEnum[] = [
   "enacted",
   "rejected",
 ];
+
+export function createMockBillContent(
+  overrides: Partial<BillContent> = {}
+): BillContent {
+  return {
+    id: "mock-content-001",
+    bill_id: "mock-bill-001",
+    title: "サンプル法案のタイトル",
+    summary:
+      "この法案は開発プレビュー用のサンプルデータです。法案の要約文がここに表示されます。実際のデータではありません。",
+    content: "# サンプルコンテンツ\n\n本文がここに入ります。",
+    difficulty_level: "normal",
+    created_at: "2026-02-15T00:00:00Z",
+    updated_at: "2026-02-15T00:00:00Z",
+    ...overrides,
+  };
+}
 
 const baseBill: BillWithContent = {
   id: "mock-bill-001",
@@ -34,17 +52,7 @@ const baseBill: BillWithContent = {
   use_knowledge_source_in_chat: false,
   created_at: "2026-02-15T00:00:00Z",
   updated_at: "2026-02-15T00:00:00Z",
-  bill_content: {
-    id: "mock-content-001",
-    bill_id: "mock-bill-001",
-    title: "サンプル法案のタイトル",
-    summary:
-      "この法案は開発プレビュー用のサンプルデータです。法案の要約文がここに表示されます。実際のデータではありません。",
-    content: "# サンプルコンテンツ\n\n本文がここに入ります。",
-    difficulty_level: "normal",
-    created_at: "2026-02-15T00:00:00Z",
-    updated_at: "2026-02-15T00:00:00Z",
-  },
+  bill_content: createMockBillContent(),
   tags: [
     { id: "tag-1", label: "経済" },
     { id: "tag-2", label: "環境" },

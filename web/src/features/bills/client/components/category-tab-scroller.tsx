@@ -9,10 +9,10 @@ import {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { resolveScrollAffordance } from "../utils/scroll-affordance";
-
-/** 1回の送り幅。見えている範囲を基準にすると、幅が変わっても送りすぎない。 */
-const SCROLL_RATIO = 0.8;
+import {
+  resolveScrollAffordance,
+  resolveScrollStep,
+} from "../utils/scroll-affordance";
 
 /**
  * カテゴリタブの横スクロール。
@@ -62,7 +62,7 @@ export function CategoryTabScroller({ children }: { children: ReactNode }) {
     ).matches;
 
     el.scrollBy({
-      left: direction * el.clientWidth * SCROLL_RATIO,
+      left: resolveScrollStep(el.clientWidth, direction),
       behavior: reduceMotion ? "auto" : "smooth",
     });
   };

@@ -23,3 +23,14 @@ export function resolveScrollAffordance({
     canScrollRight: scrollLeft + clientWidth < scrollWidth - EDGE_SLACK_PX,
   };
 }
+
+/** 1回の送り幅の比率。見えている範囲を基準にすると、幅が変わっても送りすぎない。 */
+export const SCROLL_STEP_RATIO = 0.8;
+
+/** 送り1回ぶんの移動量。右送りが正、左送りが負。 */
+export function resolveScrollStep(
+  clientWidth: number,
+  direction: 1 | -1
+): number {
+  return direction * clientWidth * SCROLL_STEP_RATIO;
+}

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolveScrollAffordance } from "./scroll-affordance";
+import {
+  resolveScrollAffordance,
+  resolveScrollStep,
+} from "./scroll-affordance";
 
 describe("resolveScrollAffordance", () => {
   it("中身が収まっていればどちらも出さない", () => {
@@ -80,5 +83,19 @@ describe("resolveScrollAffordance", () => {
         scrollWidth: 0,
       })
     ).toEqual({ canScrollLeft: false, canScrollRight: false });
+  });
+});
+
+describe("resolveScrollStep", () => {
+  it("見えている範囲の8割を送る", () => {
+    expect(resolveScrollStep(300, 1)).toBe(240);
+  });
+
+  it("左送りは符号が反転する", () => {
+    expect(resolveScrollStep(300, -1)).toBe(-240);
+  });
+
+  it("測定前の0では動かさない", () => {
+    expect(resolveScrollStep(0, 1)).toBe(0);
   });
 });
