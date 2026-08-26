@@ -10,6 +10,10 @@ import {
   useRestoreScrollFromBottom,
 } from "../hooks/use-scroll-from-bottom";
 
+// トグルの状態によらず文言は固定する
+const LABEL_PREFIX = "説明をもっと";
+const LABEL_SUFFIX = "詳しく";
+
 interface DifficultySelectorProps {
   currentLevel: DifficultyLevelEnum;
   labelStyle?: CSSProperties;
@@ -68,21 +72,12 @@ export function DifficultySelector({
     }
   };
 
-  const [labelPrefix, labelSuffix] =
-    selectedLevel === "hard"
-      ? ["説明を", "やさしく"]
-      : ["説明をもっと", "詳しく"];
-
   return (
     <div className="flex items-center gap-2">
-      {/*
-        文言は押したときに起きることを表す。詳しい版を読んでいるのに
-        「もっと詳しく」と出ていると、押す先がどちらなのか読み取れない。
-      */}
       <span className="text-sm font-bold" style={labelStyle}>
         <span>
-          <span className="hidden md:inline-block">{labelPrefix}</span>
-          {labelSuffix}
+          <span className="hidden md:inline-block">{LABEL_PREFIX}</span>
+          {LABEL_SUFFIX}
         </span>
       </span>
       <Switch
@@ -90,7 +85,7 @@ export function DifficultySelector({
         checked={selectedLevel === "hard"}
         onCheckedChange={handleToggle}
         disabled={isChanging}
-        aria-label={`${labelPrefix}${labelSuffix}`}
+        aria-label={`${LABEL_PREFIX}${LABEL_SUFFIX}`}
       />
     </div>
   );
