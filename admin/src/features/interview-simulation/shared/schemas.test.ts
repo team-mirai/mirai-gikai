@@ -12,6 +12,7 @@ type ValidRequest = {
     mode: InterviewMode;
     themes: string[] | null;
     estimatedDurationMinutes: number | null;
+    promptOverrides: Record<string, string> | null;
     questions: Array<{
       id: string;
       question: string;
@@ -33,6 +34,7 @@ function baseValidRequest(): ValidRequest {
       mode: "loop",
       themes: ["テーマ A"],
       estimatedDurationMinutes: 30,
+      promptOverrides: null,
       questions: [
         {
           id: "q-1",

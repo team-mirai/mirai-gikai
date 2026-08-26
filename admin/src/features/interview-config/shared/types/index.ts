@@ -1,3 +1,4 @@
+import { PROMPT_SECTION_MAX_LENGTH } from "@mirai-gikai/shared/interview-prompts/sections";
 import { INTERVIEW_MODES } from "@mirai-gikai/shared/interview-prompts/types";
 import type { Database } from "@mirai-gikai/supabase";
 import { z } from "zod";
@@ -17,6 +18,34 @@ export type InterviewQuestionInsert =
   Database["public"]["Tables"]["interview_questions"]["Insert"];
 export type InterviewQuestionUpdate =
   Database["public"]["Tables"]["interview_questions"]["Update"];
+
+/**
+ * プロンプトの節ごとの上書き。
+ *
+ * 空欄はコード側の既定値を使うという意味なので、必須にはしない。
+ * キーは PROMPT_SECTION_KEYS と一致させる必要があり、ずれは
+ * prompt-overrides-schema.test.ts が検出する。
+ */
+const promptSectionSchema = z
+  .string()
+  .max(
+    PROMPT_SECTION_MAX_LENGTH,
+    `1つの節は${PROMPT_SECTION_MAX_LENGTH}文字以内で入力してください`
+  )
+  .optional();
+
+export const promptOverridesSchema = z.object({
+  responsibilities: promptSectionSchema,
+  cautions: promptSectionSchema,
+  expertiseDetection: promptSectionSchema,
+  deepDiveTechniques: promptSectionSchema,
+  stopCriteria: promptSectionSchema,
+  questionUsageRules: promptSectionSchema,
+});
+
+export { PROMPT_SECTION_MAX_LENGTH };
+
+export type PromptOverridesInput = z.infer<typeof promptOverridesSchema>;
 
 // バリデーションスキーマ
 export const interviewConfigSchema = z.object({
@@ -41,6 +70,7 @@ export const interviewConfigSchema = z.object({
     .max(180, "180分以内で設定してください")
     .nullable()
     .optional(),
+  prompt_overrides: promptOverridesSchema.optional(),
 });
 
 export const interviewQuestionSchema = z.object({

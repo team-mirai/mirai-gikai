@@ -77,6 +77,7 @@ async function buildPipelineParams(params: MultiSimulationRunRequest) {
         bill,
         interviewConfig: {
           themes: params.improvedConfig.themes,
+          prompt_overrides: params.improvedConfig.promptOverrides,
         },
         questions: improvedQuestions,
         mode: params.improvedConfig.mode,

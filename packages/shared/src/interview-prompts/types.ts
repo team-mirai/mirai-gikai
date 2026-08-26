@@ -34,6 +34,13 @@ export type PromptBillInput = {
  */
 export type InterviewConfig = {
   themes?: string[] | null;
+  /**
+   * 管理画面で編集したプロンプトの節。
+   *
+   * index signature があるため書かなくても通るが、渡し忘れを型で気づけるよう
+   * 明示しておく。中身の検証は resolvePromptSections が行う。
+   */
+  prompt_overrides?: unknown;
   [key: string]: unknown;
 } | null;
 

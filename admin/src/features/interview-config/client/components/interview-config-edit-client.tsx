@@ -1,5 +1,6 @@
 "use client";
 
+import type { PromptSectionOverrides } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
@@ -63,6 +64,7 @@ export function InterviewConfigEditClient({
         themes: string[];
         chat_model: string | null;
         estimated_duration: number | null;
+        prompt_overrides: PromptSectionOverrides;
       })
     | null
   >(null);
