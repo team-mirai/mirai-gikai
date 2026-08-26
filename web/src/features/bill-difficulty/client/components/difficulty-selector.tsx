@@ -10,10 +10,6 @@ import {
   useRestoreScrollFromBottom,
 } from "../hooks/use-scroll-from-bottom";
 
-// トグルの状態によらず文言は固定する
-const LABEL_PREFIX = "説明をもっと";
-const LABEL_SUFFIX = "詳しく";
-
 interface DifficultySelectorProps {
   currentLevel: DifficultyLevelEnum;
   labelStyle?: CSSProperties;
@@ -74,18 +70,17 @@ export function DifficultySelector({
 
   return (
     <div className="flex items-center gap-2">
+      {/* 幅の狭い画面では「説明をもっと」を隠して「詳しく」だけ出す */}
       <span className="text-sm font-bold" style={labelStyle}>
-        <span>
-          <span className="hidden md:inline-block">{LABEL_PREFIX}</span>
-          {LABEL_SUFFIX}
-        </span>
+        <span className="hidden md:inline-block">説明をもっと</span>
+        詳しく
       </span>
       <Switch
         id={`${uniqueId}-difficulty-toggle`}
         checked={selectedLevel === "hard"}
         onCheckedChange={handleToggle}
         disabled={isChanging}
-        aria-label={`${LABEL_PREFIX}${LABEL_SUFFIX}`}
+        aria-label="説明をもっと詳しく"
       />
     </div>
   );
