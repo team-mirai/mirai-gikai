@@ -20,11 +20,11 @@ export type InterviewQuestionUpdate =
   Database["public"]["Tables"]["interview_questions"]["Update"];
 
 /**
- * プロンプトの節ごとの上書き。
+ * プロンプトの節ごとの上書き。フォームは選択中のモードぶんだけを扱う。
  *
  * 空欄はコード側の既定値を使うという意味なので、必須にはしない。
- * キーは PROMPT_SECTION_KEYS と一致させる必要があり、ずれは
- * prompt-overrides-schema.test.ts が検出する。
+ * キーは EDITABLE_PROMPT_SECTION_KEYS と一致させる必要があり、
+ * ずれは prompt-overrides-schema.test.ts が検出する。
  */
 const promptSectionSchema = z
   .string()
@@ -35,12 +35,8 @@ const promptSectionSchema = z
   .optional();
 
 export const promptOverridesSchema = z.object({
-  responsibilities: promptSectionSchema,
   cautions: promptSectionSchema,
-  expertiseDetection: promptSectionSchema,
-  deepDiveTechniques: promptSectionSchema,
   stopCriteria: promptSectionSchema,
-  questionUsageRules: promptSectionSchema,
 });
 
 export { PROMPT_SECTION_MAX_LENGTH };

@@ -4,6 +4,7 @@ import {
   parsePromptSectionOverrides,
   type PromptSectionOverrides,
 } from "@mirai-gikai/shared/interview-prompts/sections";
+import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye } from "lucide-react";
 import type { Route } from "next";
@@ -97,7 +98,10 @@ export function InterviewConfigForm({
       themes: config?.themes || [],
       chat_model: config?.chat_model || null,
       estimated_duration: isNew ? 10 : (config?.estimated_duration ?? null),
-      prompt_overrides: parsePromptSectionOverrides(config?.prompt_overrides),
+      prompt_overrides: parsePromptSectionOverrides(
+        config?.prompt_overrides,
+        (config?.mode as InterviewMode) ?? "loop"
+      ),
     },
   });
 
@@ -113,7 +117,8 @@ export function InterviewConfigForm({
           chat_model: values.chat_model || null,
           estimated_duration: values.estimated_duration ?? null,
           prompt_overrides: parsePromptSectionOverrides(
-            values.prompt_overrides
+            { [values.mode]: values.prompt_overrides },
+            values.mode
           ),
         };
       };

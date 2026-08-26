@@ -2,7 +2,7 @@
 
 import { getDefaultPromptSections } from "@mirai-gikai/shared/interview-prompts/default-sections";
 import {
-  PROMPT_SECTION_KEYS,
+  EDITABLE_PROMPT_SECTION_KEYS,
   PROMPT_SECTION_LABELS,
 } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
@@ -39,7 +39,7 @@ export function PromptOverridesFields({
   const [isOpen, setIsOpen] = useState(false);
   const defaults = getDefaultPromptSections(mode);
 
-  const editedCount = PROMPT_SECTION_KEYS.filter((key) =>
+  const editedCount = EDITABLE_PROMPT_SECTION_KEYS.filter((key) =>
     form.watch(`prompt_overrides.${key}`)?.trim()
   ).length;
 
@@ -77,10 +77,10 @@ export function PromptOverridesFields({
             既定の文面と同じ内容は保存されないので、あとから既定が改善されればそのまま追随します。
             クイックリプライやトピックタイトルの指示、法案情報の差し込みは、変更すると
             インタビューが正しく動かなくなるため、ここでは編集できません。
-            なお、この文面はモードを切り替えても引き継がれます。モードごとに書き分けたい場合は設定を複製してください。
+            文面はモードごとに保存されます。モードを切り替えると、そのモード用に保存した文面が出ます。
           </p>
 
-          {PROMPT_SECTION_KEYS.map((key) => (
+          {EDITABLE_PROMPT_SECTION_KEYS.map((key) => (
             <FormField
               key={key}
               control={form.control}

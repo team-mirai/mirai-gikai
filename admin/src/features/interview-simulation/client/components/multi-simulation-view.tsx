@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  parsePromptSectionOverrides,
-  type PromptSectionOverrides,
-} from "@mirai-gikai/shared/interview-prompts/sections";
+import type { PromptSectionOverrides } from "@mirai-gikai/shared/interview-prompts/sections";
 import {
   type InterviewMode,
   INTERVIEW_MODES,
@@ -139,7 +136,7 @@ export function MultiSimulationView({
           ? formValues.themes.filter((t) => t.length > 0)
           : null,
       estimatedDurationMinutes: formValues.estimated_duration,
-      promptOverrides: parsePromptSectionOverrides(formValues.prompt_overrides),
+      promptOverrides: formValues.prompt_overrides,
       questions: currentQuestions.map((q, index) => ({
         id: `transient-${index}-${q.question.slice(0, 16)}`,
         question: q.question,

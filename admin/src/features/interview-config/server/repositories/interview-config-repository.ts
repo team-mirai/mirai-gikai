@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { PromptSectionOverrides } from "@mirai-gikai/shared/interview-prompts/sections";
+import type { PromptOverridesByMode } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { InterviewConfig, InterviewQuestion } from "../../shared/types";
@@ -127,7 +127,7 @@ export async function createInterviewConfigRecord(params: {
   themes: string[] | null;
   chat_model: string | null;
   estimated_duration: number | null;
-  prompt_overrides: PromptSectionOverrides | null;
+  prompt_overrides: PromptOverridesByMode | null;
 }): Promise<{ id: string }> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -153,7 +153,7 @@ export async function updateInterviewConfigRecord(
     chat_model: string | null;
     estimated_duration: number | null;
     /** 未指定なら既存の値を残す。 */
-    prompt_overrides?: PromptSectionOverrides | null;
+    prompt_overrides?: PromptOverridesByMode | null;
     updated_at: string;
   }
 ): Promise<{ id: string }> {

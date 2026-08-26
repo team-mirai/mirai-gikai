@@ -1,3 +1,8 @@
+import {
+  COMMON_EXPERTISE_DETECTION,
+  COMMON_RESPONSIBILITIES,
+  COMMON_STOP_CRITERIA,
+} from "./common-sections";
 import { BILL_CLARIFICATION_GUIDANCE } from "./bill-clarification-guidance";
 import {
   buildBulkModeStageGuidance,
@@ -8,10 +13,7 @@ import type { InterviewPromptInput } from "./types";
 
 /** このモードの既定の節。管理画面の上書きが無ければこれを使う。 */
 export const BULK_MODE_DEFAULT_SECTIONS: PromptSections = {
-  responsibilities: `## あなたの責任
-- インタビュイーが自由に話せるようにしながら会話をリードする
-- 興味深い点を深く掘り下げるためにフォローアップの質問をする
-- 会話から専門知識のレベルを推測し、それに応じてインタビュー内容を調整する`,
+  responsibilities: COMMON_RESPONSIBILITIES,
   cautions: `## 注意事項
 - 丁寧で親しみやすい口調で話してください
 - ユーザーの回答を尊重し、押し付けがましくならないようにしてください
@@ -21,12 +23,7 @@ export const BULK_MODE_DEFAULT_SECTIONS: PromptSections = {
 - **「なぜ」の多用を避ける**: 「なぜそう思うのですか？」ではなく「どのような背景で」「何がきっかけで」など柔らかい表現を使う
 - **「一つだけ」「一番」の多用を避ける**: 「一つだけ教えてください」「一番大きな理由は？」のような限定的な聞き方はパターン化しやすい。代わりに「どのあたりが」「どういった点で」「いくつか挙げるとすれば」など、回答の幅を狭めない表現を使う
 - 法案に関する質問のみに集中してください`,
-  expertiseDetection: `## 専門知識レベルの検出
-インタビュイーの専門知識レベルを継続的に評価します。
-
-- 初心者：簡単な言葉を使い、概念を説明し、サポートする
-- 中級：専門用語を少し使用し、中程度の深さ
-- 専門家: ドメイン固有の用語を使用し、深い技術的議論に参加する`,
+  expertiseDetection: COMMON_EXPERTISE_DETECTION,
   deepDiveTechniques: `## 深掘りフェーズのテクニック（事前定義質問完了後に活用）
 一括して深掘りを行う際は、以下のテクニックを活用してください：
 
@@ -36,18 +33,7 @@ export const BULK_MODE_DEFAULT_SECTIONS: PromptSections = {
 - **仮定質問**: 「もしこの法案が成立したら、あなたの○○はどう変わると思いますか？」と具体的なシナリオを想像させる
 - **逆側の視点**: 賛成の方には「一方で懸念される点はありますか？」、反対の方には「期待できる点があるとすれば？」と多角的な視点を引き出す
 - **矛盾の穏やかな確認**: 前の発言と異なる点があれば「先ほど○○とおっしゃっていましたが、今のお話との関係を教えていただけますか？」と丁寧に確認する`,
-  stopCriteria: `## 深掘りの打ち切り基準
-深掘りは**法案に対する意見形成に役立つレベル**で止めてください。以下のサインが出たら、それ以上同じ方向に掘り下げず、視点を変えるか次のテーマに移ってください：
-
-- **法案の政策論から離れた**: 回答が法案の賛否・影響・制度設計ではなく、個人の業務テクニックや日常の具体的手順（例：授業での教え方の工夫、特定の作業手順）の話になった
-- **一般化できない回答が来た**: 「それは場合による」「ケースバイケース」など、これ以上掘っても法案への示唆が得られないサインが出た
-- **具体例を1〜2つ得た**: 1つの論点について具体的なエピソードや事例を1〜2つ引き出せたら、その方向の深掘りは十分。同じ方向に3回以上連続で掘り下げない
-- **回答者が話題転換を求めた**: 回答者が別のテーマに戻りたい・移りたいサインを出した場合は即座に従う
-
-打ち切り後の展開例：
-- 「ありがとうございます。では視点を変えて…」と別の角度（例：他の教科、他の立場、制度面）へ広げる
-- 「なるほど、では法案の制度としては…」と政策レベルの議論に引き戻す
-- 次の事前定義質問に自然に移行する`,
+  stopCriteria: COMMON_STOP_CRITERIA,
   questionUsageRules: `## 事前定義質問の活用ルール
 1. **事前定義質問の活用**: 会話全体の中で、リストにある質問を網羅することを目指してください。
 
@@ -82,7 +68,8 @@ export function buildBulkModeSystemPrompt(
   const themes = interviewConfig?.themes || [];
   const sections = resolvePromptSections(
     BULK_MODE_DEFAULT_SECTIONS,
-    interviewConfig?.prompt_overrides
+    interviewConfig?.prompt_overrides,
+    "bulk"
   );
   const knowledgeSource = bill?.knowledge_source || "";
 
@@ -115,6 +102,8 @@ export function buildBulkModeSystemPrompt(
     const nextQuestion = questions.find((q) => q.id === nextQuestionId);
     if (nextQuestion) {
       return `あなたは熟練のインタビュアーです。現在は「一括回答優先モード」で進行しています。
+
+${sections.cautions}
 
 ## 法案情報
 - 法案名: ${billName}

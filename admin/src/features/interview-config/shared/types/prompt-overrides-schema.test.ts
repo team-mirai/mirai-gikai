@@ -1,4 +1,4 @@
-import { PROMPT_SECTION_KEYS } from "@mirai-gikai/shared/interview-prompts/sections";
+import { EDITABLE_PROMPT_SECTION_KEYS } from "@mirai-gikai/shared/interview-prompts/sections";
 import { describe, expect, it } from "vitest";
 import { PROMPT_SECTION_MAX_LENGTH, promptOverridesSchema } from "./index";
 
@@ -9,7 +9,7 @@ describe("promptOverridesSchema", () => {
   */
   it("検証するキーが編集可能な節と一致する", () => {
     expect(Object.keys(promptOverridesSchema.shape).sort()).toEqual(
-      [...PROMPT_SECTION_KEYS].sort()
+      [...EDITABLE_PROMPT_SECTION_KEYS].sort()
     );
   });
 
