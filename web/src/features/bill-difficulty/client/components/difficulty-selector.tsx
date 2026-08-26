@@ -70,7 +70,6 @@ export function DifficultySelector({
 
   return (
     <div className="flex items-center gap-2">
-      {/* 幅の狭い画面では「説明をもっと」を隠して「詳しく」だけ出す */}
       <span className="text-sm font-bold" style={labelStyle}>
         <span className="hidden md:inline-block">説明をもっと</span>
         詳しく
