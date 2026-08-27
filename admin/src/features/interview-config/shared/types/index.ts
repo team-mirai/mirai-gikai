@@ -34,9 +34,21 @@ const promptSectionSchema = z
   )
   .optional();
 
-export const promptOverridesSchema = z.object({
+const promptSectionsSchema = z.object({
   cautions: promptSectionSchema,
   stopCriteria: promptSectionSchema,
+});
+
+/**
+ * モードごとの上書き。フォームは全モードぶんを保持する。
+ *
+ * 1モードぶんだけ持つと、モードを切り替えたときに画面の文面が切り替わらず、
+ * そのまま保存すると切り替え先の文面を潰す。
+ */
+export const promptOverridesSchema = z.object({
+  loop: promptSectionsSchema.optional(),
+  bulk: promptSectionsSchema.optional(),
+  targeted: promptSectionsSchema.optional(),
 });
 
 export { PROMPT_SECTION_MAX_LENGTH };

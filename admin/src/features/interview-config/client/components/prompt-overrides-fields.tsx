@@ -39,8 +39,9 @@ export function PromptOverridesFields({
   const [isOpen, setIsOpen] = useState(false);
   const defaults = getDefaultPromptSections(mode);
 
+  // 選択中のモードぶんだけを出す。他モードの文面はフォームが持ったまま残る。
   const editedCount = EDITABLE_PROMPT_SECTION_KEYS.filter((key) =>
-    form.watch(`prompt_overrides.${key}`)?.trim()
+    form.watch(`prompt_overrides.${mode}.${key}`)?.trim()
   ).length;
 
   return (
@@ -84,7 +85,7 @@ export function PromptOverridesFields({
             <FormField
               key={key}
               control={form.control}
-              name={`prompt_overrides.${key}`}
+              name={`prompt_overrides.${mode}.${key}`}
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between gap-2">

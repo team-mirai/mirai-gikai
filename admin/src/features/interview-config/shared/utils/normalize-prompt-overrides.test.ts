@@ -2,22 +2,13 @@ import { getDefaultPromptSections } from "@mirai-gikai/shared/interview-prompts/
 import { describe, expect, it } from "vitest";
 import { normalizePromptOverrides } from "./normalize-prompt-overrides";
 
-const defaults = getDefaultPromptSections("loop");
-
-function normalize(input: unknown, stored?: unknown) {
-  return normalizePromptOverrides({
-    input,
-    mode: "loop",
-    defaults,
-    stored,
-  });
-}
+const loopDefaults = getDefaultPromptSections("loop");
 
 describe("normalizePromptOverrides", () => {
-  it("編集された節を、そのモードの下に入れる", () => {
-    expect(normalize({ stopCriteria: "1往復で切り上げる" })).toEqual({
-      loop: { stopCriteria: "1往復で切り上げる" },
-    });
+  it("編集された節を、そのモードの下に残す", () => {
+    expect(
+      normalizePromptOverrides({ loop: { stopCriteria: "1往復で切り上げる" } })
+    ).toEqual({ loop: { stopCriteria: "1往復で切り上げる" } });
   });
 
   /*
@@ -25,43 +16,57 @@ describe("normalizePromptOverrides", () => {
     既定値がDBに焼き付き、あとからコード側を改善してもその設定には届かない。
   */
   it("既定値と同じ文面は保存しない", () => {
-    expect(normalize({ stopCriteria: defaults.stopCriteria })).toBeNull();
+    expect(
+      normalizePromptOverrides({
+        loop: { stopCriteria: loopDefaults.stopCriteria },
+      })
+    ).toBeNull();
   });
 
   it("既定値と同じ節を落として、変更した節だけを残す", () => {
     expect(
-      normalize({ cautions: defaults.cautions, stopCriteria: "短く切り上げる" })
+      normalizePromptOverrides({
+        loop: {
+          cautions: loopDefaults.cautions,
+          stopCriteria: "短く切り上げる",
+        },
+      })
     ).toEqual({ loop: { stopCriteria: "短く切り上げる" } });
   });
 
+  // モードごとに既定値が違うので、比較もモードごとに行う。
+  it("別モードの既定値とは比較しない", () => {
+    expect(
+      normalizePromptOverrides({
+        bulk: { stopCriteria: loopDefaults.stopCriteria },
+      })
+    ).toBeNull();
+  });
+
+  it("複数モードぶんをまとめて保存する", () => {
+    expect(
+      normalizePromptOverrides({
+        loop: { stopCriteria: "ループ用" },
+        bulk: { cautions: "一括用" },
+      })
+    ).toEqual({
+      loop: { stopCriteria: "ループ用" },
+      bulk: { cautions: "一括用" },
+    });
+  });
+
   it("何も残らなければ null を返す", () => {
-    expect(normalize({})).toBeNull();
-    expect(normalize(null)).toBeNull();
-    expect(normalize({ cautions: "  " })).toBeNull();
+    expect(normalizePromptOverrides({})).toBeNull();
+    expect(normalizePromptOverrides(null)).toBeNull();
+    expect(normalizePromptOverrides({ loop: { cautions: "  " } })).toBeNull();
   });
 
-  it("編集できない節は落とす", () => {
-    expect(normalize({ responsibilities: "役割を変える" })).toBeNull();
-  });
-
-  // フォームは選択中のモードしか扱わないので、他モードの文面は触らずに残す。
-  it("他のモードに保存済みの文面を残す", () => {
-    const stored = { bulk: { cautions: "一括モード用の文面" } };
-
-    expect(normalize({ stopCriteria: "短く" }, stored)).toEqual({
-      bulk: { cautions: "一括モード用の文面" },
-      loop: { stopCriteria: "短く" },
-    });
-  });
-
-  it("編集を空にすると、そのモードの分だけ消える", () => {
-    const stored = {
-      bulk: { cautions: "一括モード用の文面" },
-      loop: { stopCriteria: "以前の文面" },
-    };
-
-    expect(normalize({}, stored)).toEqual({
-      bulk: { cautions: "一括モード用の文面" },
-    });
+  it("編集できない節と知らないモードは落とす", () => {
+    expect(
+      normalizePromptOverrides({
+        loop: { responsibilities: "役割を変える" },
+        unknownMode: { cautions: "無視される" },
+      })
+    ).toBeNull();
   });
 });

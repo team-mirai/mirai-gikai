@@ -1,6 +1,5 @@
 "use server";
 
-import { getDefaultPromptSections } from "@mirai-gikai/shared/interview-prompts/default-sections";
 import { parsePromptOverridesByMode } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
@@ -63,11 +62,9 @@ export async function createInterviewConfig(
       themes: validatedData.themes || null,
       chat_model: validatedData.chat_model || null,
       estimated_duration: validatedData.estimated_duration ?? null,
-      prompt_overrides: normalizePromptOverrides({
-        input: validatedData.prompt_overrides,
-        mode: validatedData.mode,
-        defaults: getDefaultPromptSections(validatedData.mode),
-      }),
+      prompt_overrides: normalizePromptOverrides(
+        validatedData.prompt_overrides
+      ),
     });
 
     // web側のキャッシュを無効化
@@ -107,12 +104,6 @@ export async function updateInterviewConfig(
     }
 
     // 更新
-    // 他モードに保存済みの文面を残すため、更新前の値を読む
-    const storedConfig =
-      validatedData.prompt_overrides === undefined
-        ? null
-        : await findInterviewConfigById(configId);
-
     /*
       prompt_overrides を渡さない呼び出し元があるため、未指定なら列に触らない。
       渡した場合だけ更新する。ここを常に上書きにすると、テーマ確定など
@@ -128,12 +119,9 @@ export async function updateInterviewConfig(
       ...(validatedData.prompt_overrides === undefined
         ? {}
         : {
-            prompt_overrides: normalizePromptOverrides({
-              input: validatedData.prompt_overrides,
-              mode: validatedData.mode,
-              defaults: getDefaultPromptSections(validatedData.mode),
-              stored: storedConfig?.prompt_overrides,
-            }),
+            prompt_overrides: normalizePromptOverrides(
+              validatedData.prompt_overrides
+            ),
           }),
       updated_at: new Date().toISOString(),
     });

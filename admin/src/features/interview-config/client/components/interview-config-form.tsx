@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  parsePromptSectionOverrides,
-  type PromptSectionOverrides,
+  parsePromptOverridesByMode,
+  type PromptOverridesByMode,
 } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -68,7 +68,7 @@ interface InterviewConfigFormProps {
         themes: string[];
         chat_model: string | null;
         estimated_duration: number | null;
-        prompt_overrides: PromptSectionOverrides;
+        prompt_overrides: PromptOverridesByMode;
       })
     | null
   >;
@@ -98,10 +98,7 @@ export function InterviewConfigForm({
       themes: config?.themes || [],
       chat_model: config?.chat_model || null,
       estimated_duration: isNew ? 10 : (config?.estimated_duration ?? null),
-      prompt_overrides: parsePromptSectionOverrides(
-        config?.prompt_overrides,
-        (config?.mode as InterviewMode) ?? "loop"
-      ),
+      prompt_overrides: parsePromptOverridesByMode(config?.prompt_overrides),
     },
   });
 
@@ -116,10 +113,7 @@ export function InterviewConfigForm({
           themes: values.themes || [],
           chat_model: values.chat_model || null,
           estimated_duration: values.estimated_duration ?? null,
-          prompt_overrides: parsePromptSectionOverrides(
-            { [values.mode]: values.prompt_overrides },
-            values.mode
-          ),
+          prompt_overrides: parsePromptOverridesByMode(values.prompt_overrides),
         };
       };
     }

@@ -43,7 +43,9 @@ describe("parsePromptOverridesByMode", () => {
   // 入力欄を空にした状態は「消したい」ではなく「既定のまま」と読む。
   it("空文字と空白だけの値は落とす", () => {
     expect(
-      parsePromptOverridesByMode({ loop: { cautions: "", stopCriteria: " \n" } })
+      parsePromptOverridesByMode({
+        loop: { cautions: "", stopCriteria: " \n" },
+      })
     ).toEqual({});
   });
 
