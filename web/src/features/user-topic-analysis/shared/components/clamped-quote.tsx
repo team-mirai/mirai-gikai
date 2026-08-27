@@ -51,27 +51,18 @@ interface ClampedQuoteProps {
 export function ClampedQuote({ quote, attribution }: ClampedQuoteProps) {
   const narrow = clampQuote(quote, attribution, NARROW_CAPACITY);
   const wide = clampQuote(quote, attribution, WIDE_CAPACITY);
-  // 切り詰めが起きない短い引用は両者が一致する。同じ文字列を2度描かない。
-  const sameForBothWidths =
-    narrow.text === wide.text && narrow.truncated === wide.truncated;
 
   return (
     <span className="block font-mirai-serif text-[14px] font-semibold leading-[22px] text-mirai-text">
       <span className="mr-1 align-[-0.1em] text-[18px] text-primary-accent">
         “
       </span>
-      {sameForBothWidths ? (
+      <span className="md:hidden">
         <QuoteBody result={narrow} />
-      ) : (
-        <>
-          <span className="md:hidden">
-            <QuoteBody result={narrow} />
-          </span>
-          <span className="hidden md:inline">
-            <QuoteBody result={wide} />
-          </span>
-        </>
-      )}
+      </span>
+      <span className="hidden md:inline">
+        <QuoteBody result={wide} />
+      </span>
       <span className="ml-1 whitespace-nowrap text-[11px] text-primary-accent">
         （<span className="underline">{attribution}</span>）
       </span>

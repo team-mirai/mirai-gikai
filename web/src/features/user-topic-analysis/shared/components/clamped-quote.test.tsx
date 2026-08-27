@@ -20,7 +20,7 @@ describe("ClampedQuote", () => {
   it("短い引用は全文と肩書を出す", () => {
     render(<ClampedQuote quote={SHORT_QUOTE} attribution="市民" />);
 
-    expect(screen.getByText(SHORT_QUOTE)).toBeInTheDocument();
+    expect(screen.getAllByText(SHORT_QUOTE)).toHaveLength(2);
     expect(screen.getByText("市民")).toBeInTheDocument();
   });
 
@@ -79,13 +79,13 @@ describe("ClampedQuote", () => {
     expect(wide?.length).toBeGreaterThan(narrow?.length ?? 0);
   });
 
-  it("画面幅で結果が変わらない引用は一度しか描かない", () => {
+  it("画面幅で結果が変わらない引用も一定のラッパー構造で描く", () => {
     const { container } = render(
       <ClampedQuote quote={SHORT_QUOTE} attribution="市民" />
     );
 
-    expect(narrowVariant(container)).not.toBeInTheDocument();
-    expect(wideVariant(container)).not.toBeInTheDocument();
+    expect(narrowVariant(container)).toBeInTheDocument();
+    expect(wideVariant(container)).toBeInTheDocument();
   });
 
   it("両方を描くときも肩書は重複させない", () => {
@@ -116,5 +116,21 @@ describe("ClampedQuote", () => {
     rerender(<ClampedQuote quote={LONG_QUOTE} attribution="市民" />);
 
     expect(container.innerHTML).toBe(before);
+  });
+
+  it("rubyful が DOM を置換した後に表示幅の結果が変わっても例外にならない", () => {
+    const { container, rerender } = render(
+      <ClampedQuote quote={SHORT_QUOTE} attribution="市民" />
+    );
+    const root = container.firstElementChild;
+    if (!root) throw new Error("ClampedQuote root was not rendered");
+
+    // Rubyful は対象要素の innerHTML を再代入し、React が保持するノードを外す。
+    const rubyfulHtml = root.innerHTML;
+    root.innerHTML = rubyfulHtml;
+
+    expect(() =>
+      rerender(<ClampedQuote quote={LONG_QUOTE} attribution="市民" />)
+    ).not.toThrow();
   });
 });
