@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { clampQuote } from "../utils/clamp-quote";
 import { ClampedQuote, QUOTE_CAPACITY } from "./clamped-quote";
 
 /** 狭い側の予算には収まらず、広い側の予算には収まる長さ。 */
@@ -132,5 +133,12 @@ describe("ClampedQuote", () => {
     expect(() =>
       rerender(<ClampedQuote quote={LONG_QUOTE} attribution="市民" />)
     ).not.toThrow();
+
+    const narrow = clampQuote(LONG_QUOTE, "市民", QUOTE_CAPACITY.narrow);
+    const wide = clampQuote(LONG_QUOTE, "市民", QUOTE_CAPACITY.wide);
+
+    expect(narrowVariant(container)?.textContent).toBe(`${narrow.text}…`);
+    expect(wideVariant(container)?.textContent).toBe(`${wide.text}…`);
+    expect(container).not.toHaveTextContent(SHORT_QUOTE);
   });
 });
