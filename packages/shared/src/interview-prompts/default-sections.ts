@@ -19,6 +19,7 @@ export const DEFAULT_PROMPT_SECTIONS_BY_MODE: Record<
   targeted: TARGETED_MODE_DEFAULT_SECTIONS,
 };
 
+/** 管理画面と保存時の比較で使う、そのモードの既定値。 */
 export function getDefaultPromptSections(mode: InterviewMode): PromptSections {
   return DEFAULT_PROMPT_SECTIONS_BY_MODE[mode];
 }

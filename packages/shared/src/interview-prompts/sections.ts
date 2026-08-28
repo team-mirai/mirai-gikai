@@ -1,4 +1,4 @@
-import type { InterviewMode } from "./types";
+import { type InterviewMode, INTERVIEW_MODES } from "./types";
 
 /**
  * プロンプトを構成する節。
@@ -141,5 +141,5 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function isInterviewMode(value: string): value is InterviewMode {
-  return value === "loop" || value === "bulk" || value === "targeted";
+  return (INTERVIEW_MODES as readonly string[]).includes(value);
 }
