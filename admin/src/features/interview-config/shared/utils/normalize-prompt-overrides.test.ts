@@ -34,13 +34,15 @@ describe("normalizePromptOverrides", () => {
     ).toEqual({ loop: { stopCriteria: "短く切り上げる" } });
   });
 
-  // モードごとに既定値が違うので、比較もモードごとに行う。
+  /*
+    比較はモードごとに行う。cautions は loop と bulk で文面が違うので、
+    loop の既定値を bulk に入れれば「既定と違う」として保存される。
+    stopCriteria は3モードで同一なので、この検証には使えない。
+  */
   it("別モードの既定値とは比較しない", () => {
     expect(
-      normalizePromptOverrides({
-        bulk: { stopCriteria: loopDefaults.stopCriteria },
-      })
-    ).toBeNull();
+      normalizePromptOverrides({ bulk: { cautions: loopDefaults.cautions } })
+    ).toEqual({ bulk: { cautions: loopDefaults.cautions } });
   });
 
   it("複数モードぶんをまとめて保存する", () => {
