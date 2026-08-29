@@ -365,6 +365,7 @@ export type Database = {
           id: string
           mode: Database["public"]["Enums"]["interview_mode_enum"]
           name: string
+          prompt_overrides: Json | null
           status: Database["public"]["Enums"]["interview_config_status_enum"]
           themes: string[] | null
           updated_at: string
@@ -378,6 +379,7 @@ export type Database = {
           id?: string
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
           name: string
+          prompt_overrides?: Json | null
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
@@ -391,6 +393,7 @@ export type Database = {
           id?: string
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
           name?: string
+          prompt_overrides?: Json | null
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string

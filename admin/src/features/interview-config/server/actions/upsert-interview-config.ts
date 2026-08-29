@@ -1,5 +1,6 @@
 "use server";
 
+import { parsePromptOverridesByMode } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import {
@@ -11,6 +12,7 @@ import {
   type InterviewConfigInput,
   interviewConfigSchema,
 } from "../../shared/types";
+import { normalizePromptOverrides } from "../../shared/utils/normalize-prompt-overrides";
 import { prepareQuestionsForDuplication } from "../../shared/utils/prepare-questions-for-duplication";
 import {
   closeOtherPublicConfigs,
@@ -60,6 +62,9 @@ export async function createInterviewConfig(
       themes: validatedData.themes || null,
       chat_model: validatedData.chat_model || null,
       estimated_duration: validatedData.estimated_duration ?? null,
+      prompt_overrides: normalizePromptOverrides(
+        validatedData.prompt_overrides
+      ),
     });
 
     // web側のキャッシュを無効化
@@ -99,6 +104,11 @@ export async function updateInterviewConfig(
     }
 
     // 更新
+    /*
+      prompt_overrides を渡さない呼び出し元があるため、未指定なら列に触らない。
+      渡した場合だけ更新する。ここを常に上書きにすると、テーマ確定など
+      プロンプトと無関係な更新で編集内容が黙って消える。
+    */
     const data = await updateInterviewConfigRecord(configId, {
       name: validatedData.name,
       status: validatedData.status,
@@ -106,6 +116,13 @@ export async function updateInterviewConfig(
       themes: validatedData.themes || null,
       chat_model: validatedData.chat_model || null,
       estimated_duration: validatedData.estimated_duration ?? null,
+      ...(validatedData.prompt_overrides === undefined
+        ? {}
+        : {
+            prompt_overrides: normalizePromptOverrides(
+              validatedData.prompt_overrides
+            ),
+          }),
       updated_at: new Date().toISOString(),
     });
 
@@ -165,6 +182,9 @@ export async function duplicateInterviewConfig(
         themes: originalConfig.themes,
         chat_model: originalConfig.chat_model,
         estimated_duration: originalConfig.estimated_duration,
+        prompt_overrides: parsePromptOverridesByMode(
+          originalConfig.prompt_overrides
+        ),
       });
     } catch (error) {
       return {

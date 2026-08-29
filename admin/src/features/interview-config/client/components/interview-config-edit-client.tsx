@@ -1,5 +1,6 @@
 "use client";
 
+import type { PromptOverridesByMode } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
@@ -63,6 +64,7 @@ export function InterviewConfigEditClient({
         themes: string[];
         chat_model: string | null;
         estimated_duration: number | null;
+        prompt_overrides: PromptOverridesByMode;
       })
     | null
   >(null);
@@ -93,6 +95,7 @@ export function InterviewConfigEditClient({
             themes,
             chat_model: formValues?.chat_model || null,
             estimated_duration: formValues?.estimated_duration ?? null,
+            prompt_overrides: formValues?.prompt_overrides,
           });
           if (!result.success) {
             toast.error(result.error || "設定の作成に失敗しました");
@@ -163,6 +166,8 @@ export function InterviewConfigEditClient({
           formValues?.estimated_duration ??
           initialConfig?.estimated_duration ??
           null,
+        // 取得できないときは undefined のまま送り、保存済みの文面を残す
+        prompt_overrides: formValues?.prompt_overrides,
       });
       if (result.success) {
         setAiGeneratedThemes(themes);

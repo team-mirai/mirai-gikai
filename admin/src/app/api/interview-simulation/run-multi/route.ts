@@ -77,6 +77,13 @@ async function buildPipelineParams(params: MultiSimulationRunRequest) {
         bill,
         interviewConfig: {
           themes: params.improvedConfig.themes,
+          // 上書きはモード別に持つため、選択中モードで包んでから渡す
+          prompt_overrides: params.improvedConfig.promptOverrides
+            ? {
+                [params.improvedConfig.mode]:
+                  params.improvedConfig.promptOverrides,
+              }
+            : null,
         },
         questions: improvedQuestions,
         mode: params.improvedConfig.mode,
