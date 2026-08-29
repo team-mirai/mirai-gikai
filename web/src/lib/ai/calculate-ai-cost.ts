@@ -70,6 +70,10 @@ export const modelPricing: Record<string, ModelPricing> = {
     inputTokensPerMillionUsd: 1.75,
     outputTokensPerMillionUsd: 14,
   },
+  [AI_MODELS.gpt5_4_mini_fast]: {
+    inputTokensPerMillionUsd: 1.5,
+    outputTokensPerMillionUsd: 9,
+  },
   [AI_MODELS.gpt5_6_sol]: {
     inputTokensPerMillionUsd: 5,
     outputTokensPerMillionUsd: 30,
