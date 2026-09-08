@@ -29,6 +29,10 @@ describe("InterviewOpenBillSection", () => {
     expect(
       screen.getByRole("heading", { name: "AIインタビュー受付中" })
     ).toBeInTheDocument();
+    // 扱うのは法案だけではないので、説明文に種別を並べている。
+    expect(
+      screen.getByText("AIインタビューで意見を募集している法案・検討会・報告書")
+    ).toBeInTheDocument();
     expect(screen.getByText("ガソリン税を安くする法案")).toBeInTheDocument();
   });
 

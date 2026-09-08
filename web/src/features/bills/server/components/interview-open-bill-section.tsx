@@ -8,9 +8,12 @@ interface InterviewOpenBillSectionProps {
 /**
  * トップの「AIインタビュー受付中」セクション。
  *
- * 受付中の法案はカード内のピルでしか分からず、他のセクションに散っていると
+ * 受付中の記事はカード内のピルでしか分からず、他のセクションに散っていると
  * 「今どれに意見を出せるのか」を拾うのにトップ全体を追う必要がある。
  * 見出し付きで先頭にまとめて、意見を出す導線を最初に見せる。
+ *
+ * 説明文はタグ別セクションの説明（「〜に関する法案」）と同じ体言止めで揃える。
+ * 扱うのは法案だけではないため、載せている種別を並べて示す。
  */
 export function InterviewOpenBillSection({
   bills,
@@ -27,7 +30,7 @@ export function InterviewOpenBillSection({
           AIインタビュー受付中
         </h2>
         <p className="text-xs font-medium text-mirai-text-secondary leading-[1.67]">
-          気になる法案にAIインタビューで意見を届けられます
+          AIインタビューで意見を募集している法案・検討会・報告書
         </p>
       </div>
 
