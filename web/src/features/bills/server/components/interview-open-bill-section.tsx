@@ -14,6 +14,9 @@ interface InterviewOpenBillSectionProps {
  *
  * 説明文はタグ別セクションの説明（「〜に関する法案」）と同じ体言止めで揃える。
  * 扱うのは法案だけではないため、載せている種別を並べて示す。
+ *
+ * 主名詞は「記事」。意見を募集しているのは解説記事であって法案や検討会自体では
+ * ないので、種別は「〜について」で受ける。
  */
 export function InterviewOpenBillSection({
   bills,
@@ -30,7 +33,7 @@ export function InterviewOpenBillSection({
           AIインタビュー受付中
         </h2>
         <p className="text-xs font-medium text-mirai-text-secondary leading-[1.67]">
-          AIインタビューで意見を募集している法案・検討会・報告書
+          法案・検討会・報告書について意見を募集中の記事
         </p>
       </div>
 
