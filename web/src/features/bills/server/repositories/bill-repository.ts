@@ -462,6 +462,76 @@ export async function findFeaturedBillsWithContents(
   return data ?? [];
 }
 
+/**
+ * AIインタビューを受付中の公開済み議案を取得
+ *
+ * 受付中の判定は「status = public の interview_configs があること」。
+ * 公開設定は1議案に1件しか作れない（idx_interview_configs_bill_public）ので、
+ * inner join でも議案の行が重複しない。
+ *
+ * 既に議案の配列を持っている場合は `findBillIdsWithPublicInterview` で受付中の
+ * 印を付けるだけで済む。こちらは「受付中の議案そのもの」を引くためのもの。
+ *
+ * 国会会期では絞らない。インタビューの受付は会期の開閉とは独立に運用され、
+ * 閉会中でも受付中のものは受付中として案内したいため。
+ *
+ * 解説本文（content）は引かない。数KB／件あるのに、カードが出すのは
+ * タイトルと要約だけで、キャッシュにその分が丸ごと残ってしまう。
+ */
+export async function findBillsWithPublicInterview(
+  difficultyLevel: DifficultyLevelEnum
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select(
+      `
+      *,
+      bill_contents!inner (
+        id,
+        bill_id,
+        title,
+        summary,
+        difficulty_level,
+        created_at,
+        updated_at
+      ),
+      bills_tags (
+        tags (
+          id,
+          label
+        )
+      ),
+      interview_configs!inner (
+        id
+      )
+    `
+    )
+    .eq("publish_status", "published")
+    .eq("bill_contents.difficulty_level", difficultyLevel)
+    .eq("interview_configs.status", "public")
+    .order("submitted_date", { ascending: false, nullsFirst: false });
+
+  // 空配列に潰さず投げる。呼び出し元は unstable_cache の外で受けるので、
+  // 一時的なDBエラーが「0件」としてキャッシュに載ることを避けられる。
+  if (error) {
+    throw new Error(
+      `Failed to fetch bills with public interview: ${error.message}`
+    );
+  }
+
+  const rows = data ?? [];
+  // Supabase は max_rows を超えた行を返さない。到達したら受付中の議案が
+  // セクションから静かに落ちるので、気づけるようにログを残す。
+  if (rows.length >= SUPABASE_MAX_ROWS) {
+    console.warn(
+      `findBillsWithPublicInterview hit the row limit (${SUPABASE_MAX_ROWS}).`
+    );
+  }
+
+  return rows;
+}
+
 // ============================================================
 // Coming Soon
 // ============================================================
