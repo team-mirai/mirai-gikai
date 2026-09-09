@@ -29,10 +29,7 @@ describe("InterviewOpenBillSection", () => {
     expect(
       screen.getByRole("heading", { name: "AIインタビュー受付中" })
     ).toBeInTheDocument();
-    // 募集主体は解説記事。法案以外（検討会・報告書）も載るので「法案等」で受ける。
-    expect(
-      screen.getByText("意見を募集している法案等の解説記事")
-    ).toBeInTheDocument();
+    expect(screen.getByText("意見を募集している法案")).toBeInTheDocument();
     expect(screen.getByText("ガソリン税を安くする法案")).toBeInTheDocument();
   });
 
