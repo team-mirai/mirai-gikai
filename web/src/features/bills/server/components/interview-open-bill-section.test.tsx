@@ -29,7 +29,7 @@ describe("InterviewOpenBillSection", () => {
     expect(
       screen.getByRole("heading", { name: "AIインタビュー受付中" })
     ).toBeInTheDocument();
-    expect(screen.getByText("意見を募集している法案")).toBeInTheDocument();
+    expect(screen.getByText("意見募集中のテーマ")).toBeInTheDocument();
     expect(screen.getByText("ガソリン税を安くする法案")).toBeInTheDocument();
   });
 
