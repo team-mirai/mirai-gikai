@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import { unified } from "unified";
@@ -37,7 +38,10 @@ const sanitizeSchema = {
  */
 export async function parseMarkdown(markdown: string): Promise<ReactElement> {
   // Markdown → mdast（remarkBreaksでソフト改行をbreak nodeに変換）
-  const remarkProcessor = unified().use(remarkParse).use(remarkBreaks);
+  const remarkProcessor = unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkBreaks);
   const parsed = remarkProcessor.parse(markdown);
   const mdast = (await remarkProcessor.run(parsed)) as typeof parsed;
 
