@@ -58,6 +58,10 @@ describe("calculateUsageCostUsd", () => {
     expect(
       calculateUsageCostUsd(AI_MODELS.gemini3_1_pro_preview, usage)
     ).toBeCloseTo(14);
+    // Gemini 3.8 Flash: $0.75 input + $3.75 output = $4.50
+    expect(calculateUsageCostUsd(AI_MODELS.gemini3_8_flash, usage)).toBeCloseTo(
+      4.5
+    );
   });
 
   it("throws for unknown model", () => {
