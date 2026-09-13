@@ -16,3 +16,5 @@ node_modules
 infra/cloud-run/config.env
 infra/cloud-run/config.env.*
 *-key.json
+# ループエンジニアリングの実行ログ
+.loop/

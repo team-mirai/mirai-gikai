@@ -18,6 +18,7 @@
     "typecheck": "pnpm -r run typecheck",
     "lint": "biome format . && biome lint .",
     "lint:fix": "biome format --write . && biome lint --write .",
+    "verify": "pnpm lint && pnpm typecheck && pnpm build && pnpm test",
     "postinstall": "npx simple-git-hooks"
   },
   "devDependencies": {
