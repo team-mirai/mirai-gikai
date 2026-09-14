@@ -52,12 +52,17 @@ export function BillActionsMenu({ billId, billName }: BillActionsMenuProps) {
               インタビュー設定
             </Button>
           </Link>
-          <Link href={routes.billUserTopicAnalysis(billId) as Route}>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+          >
+            <Link href={routes.billUserTopicAnalysis(billId) as Route}>
               <ChartNetwork className="h-4 w-4 mr-2" />
               トピック分析
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div className="my-1 border-t" />
           <DuplicateBillButton billId={billId} billName={billName} />
           <DeleteBillButton billId={billId} billName={billName} />
