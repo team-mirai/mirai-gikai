@@ -1,6 +1,12 @@
 "use client";
 
-import { Edit, FileText, MessageCircle, MoreVertical } from "lucide-react";
+import {
+  ChartNetwork,
+  Edit,
+  FileText,
+  MessageCircle,
+  MoreVertical,
+} from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -46,6 +52,17 @@ export function BillActionsMenu({ billId, billName }: BillActionsMenuProps) {
               インタビュー設定
             </Button>
           </Link>
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+          >
+            <Link href={routes.billUserTopicAnalysis(billId) as Route}>
+              <ChartNetwork className="h-4 w-4 mr-2" />
+              トピック分析
+            </Link>
+          </Button>
           <div className="my-1 border-t" />
           <DuplicateBillButton billId={billId} billName={billName} />
           <DeleteBillButton billId={billId} billName={billName} />
