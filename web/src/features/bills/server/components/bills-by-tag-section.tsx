@@ -4,6 +4,7 @@ import { routes } from "@/lib/routes";
 import { BillCard } from "../../client/components/bill-list/bill-card";
 import { CompactBillCard } from "../../client/components/bill-list/compact-bill-card";
 import type { BillsByTag } from "../../shared/types";
+import { shouldShowFullBillCard } from "../../shared/utils/should-show-full-bill-card";
 
 interface BillsByTagSectionProps {
   billsByTag: BillsByTag[];
@@ -33,12 +34,12 @@ export function BillsByTagSection({ billsByTag }: BillsByTagSectionProps) {
           {/*
             議案カード一覧。先頭だけフルカードで、2件目以降はコンパクトにする。
             1カテゴリに同じ大きさのカードを並べると縦に伸びて、次のカテゴリまで
-            スクロールが遠くなる。
+            スクロールが遠くなる。ただしAIインタビュー受付中の議案は常にフルカード。
           */}
           <div className="flex flex-col gap-4">
             {bills.map((bill, index) => (
               <Link key={bill.id} href={routes.billDetail(bill.id) as Route}>
-                {index === 0 ? (
+                {shouldShowFullBillCard(bill, index) ? (
                   <BillCard bill={bill} />
                 ) : (
                   <CompactBillCard bill={bill} />
