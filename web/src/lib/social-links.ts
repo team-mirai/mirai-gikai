@@ -14,7 +14,7 @@ export const SOCIAL_LINKS: Record<string, SocialLink> = {
   },
   youtube: {
     name: "YouTube",
-    url: "https://youtube.com/channel/UC72A_x2FKHkJ8Nc2eIzqj8Q?si=vfLWFp0hyzEqlzTu",
+    url: "https://www.youtube.com/@team_mirai_jp",
     iconPath: "/icons/sns/icon_youtube.png",
     hasBorder: false,
   },
@@ -44,14 +44,20 @@ export const SOCIAL_LINKS: Record<string, SocialLink> = {
   },
   tiktok: {
     name: "TikTok",
-    url: "https://www.tiktok.com/@annotakahiro2024",
+    url: "https://www.tiktok.com/@team_mirai_jp",
     iconPath: "/icons/sns/icon_tiktok.png",
     hasBorder: true,
   },
   note: {
     name: "note",
-    url: "https://note.com/annotakahiro24",
+    url: "https://note.com/team_mirai_jp",
     iconPath: "/icons/sns/icon_note.png",
+    hasBorder: true,
+  },
+  threads: {
+    name: "Threads",
+    url: "https://www.threads.com/@team_mirai_jp",
+    iconPath: "/icons/sns/icon_threads.png",
     hasBorder: false,
   },
 };

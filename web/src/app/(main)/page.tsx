@@ -8,12 +8,14 @@ import { BillSearchOverlay } from "@/features/bills/client/components/bill-searc
 import { BillsByTagSection } from "@/features/bills/server/components/bills-by-tag-section";
 import { CategoryTabs } from "@/features/bills/server/components/category-tabs";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
+import { InterviewOpenBillSection } from "@/features/bills/server/components/interview-open-bill-section";
 import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
 import { getFeaturedTags } from "@/features/bills/server/loaders/get-featured-tags";
 import { getSuggestableBills } from "@/features/bills/server/loaders/get-suggestable-bills";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { chatBillName } from "@/features/bills/shared/utils/chat-bill-name";
+import { pickHomeSections } from "@/features/bills/shared/utils/pick-home-sections";
 import { countTagChipItems } from "@/features/bills/shared/utils/tag-chip-items";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
@@ -28,7 +30,13 @@ export default async function Home() {
   const japanTime = getJapanTime();
   // ゆくゆくタグ機能がマージされたらBFFに統合する
   const [
-    { billsByTag, featuredBills, comingSoonBills, previousSessionData },
+    {
+      billsByTag,
+      featuredBills,
+      interviewOpenBills,
+      comingSoonBills,
+      previousSessionData,
+    },
     currentSession,
     latestClosedSession,
     currentDifficulty,
@@ -45,17 +53,12 @@ export default async function Home() {
 
   const inSession = currentSession !== null;
 
-  // 注目に出した法案はタグ別から外す。同じカードが2回並ぶのを避ける。
-  const featuredIds = new Set(
-    inSession ? featuredBills.map((bill) => bill.id) : []
-  );
-  const pickedBillsByTag = billsByTag
-    .map((group) => ({
-      ...group,
-      bills: group.bills.filter((bill) => !featuredIds.has(bill.id)),
-    }))
-    // 注目に出た法案しか無かったタグは、見出しだけが残るので落とす。
-    .filter((group) => group.bills.length > 0);
+  const { tagGroups, shownBills, featuredBillIds } = pickHomeSections({
+    billsByTag,
+    featuredBills,
+    interviewOpenBills,
+    inSession,
+  });
 
   // モーダルの件数は全会期の公開議案から数える。チップの飛び先が /bills で、
   // あちらも全会期を数えるため、押す前と後で数字が変わらない。
@@ -67,7 +70,7 @@ export default async function Home() {
       name: chatBillName(bill),
       summary: bill.bill_content?.summary,
       tags: bill.tags?.map((tag) => tag.label) || [],
-      isFeatured: featuredBills.some((b) => b.id === bill.id),
+      isFeatured: featuredBillIds.has(bill.id),
     };
   };
 
@@ -98,6 +101,13 @@ export default async function Home() {
         <div className="py-10">
           <main className="flex flex-col gap-16">
             {/*
+              AIインタビュー受付中セクション。意見を出せる法案を最初に見せる。
+              会期では絞らない（閉会中でも受付中なら案内する）ため、注目と違って
+              inSession で出し分けない。
+            */}
+            <InterviewOpenBillSection bills={interviewOpenBills} />
+
+            {/*
               注目の法案は会期中だけ出す。閉会中に「注目」を掲げても、審議が
               動いていない期間の情報を強調することになる。
               なお getFeaturedBills はアクティブ会期が無いと全件スコープに
@@ -110,7 +120,7 @@ export default async function Home() {
             )}
 
             {/* タグ別議案一覧セクション（タグに紐づく議案を全件出す） */}
-            <BillsByTagSection billsByTag={pickedBillsByTag} />
+            <BillsByTagSection billsByTag={tagGroups} />
 
             {/* Coming soonセクション */}
             <ComingSoonSection bills={comingSoonBills} />
@@ -145,10 +155,7 @@ export default async function Home() {
       {/* チャット機能 */}
       <HomeChatClient
         currentDifficulty={currentDifficulty}
-        bills={billsByTag
-          .flatMap((x) => x.bills)
-          .concat(featuredBills)
-          .map(toBillChatContext)}
+        bills={shownBills.map(toBillChatContext)}
       />
     </>
   );

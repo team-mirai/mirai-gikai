@@ -68,29 +68,18 @@ export function DifficultySelector({
     }
   };
 
-  const [labelPrefix, labelSuffix] =
-    selectedLevel === "hard"
-      ? ["説明を", "やさしく"]
-      : ["説明をもっと", "詳しく"];
-
   return (
     <div className="flex items-center gap-2">
-      {/*
-        文言は押したときに起きることを表す。詳しい版を読んでいるのに
-        「もっと詳しく」と出ていると、押す先がどちらなのか読み取れない。
-      */}
       <span className="text-sm font-bold" style={labelStyle}>
-        <span>
-          <span className="hidden md:inline-block">{labelPrefix}</span>
-          {labelSuffix}
-        </span>
+        <span className="hidden md:inline-block">説明をもっと</span>
+        詳しく
       </span>
       <Switch
         id={`${uniqueId}-difficulty-toggle`}
         checked={selectedLevel === "hard"}
         onCheckedChange={handleToggle}
         disabled={isChanging}
-        aria-label={`${labelPrefix}${labelSuffix}`}
+        aria-label="説明をもっと詳しく"
       />
     </div>
   );

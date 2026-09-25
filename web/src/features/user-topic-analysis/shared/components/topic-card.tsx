@@ -3,7 +3,6 @@ import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
-import { ClampedQuote } from "../../client/components/clamped-quote";
 import type { PublicOpinion, PublicTopic } from "../types";
 import {
   filterOpinions,
@@ -12,6 +11,7 @@ import {
   userCategoryOfFilter,
 } from "../utils/filter-topics";
 import { opinionAttributionLabel } from "../utils/topic-category";
+import { ClampedQuote } from "./clamped-quote";
 import { TopicCategoryChips, TopicSentiment } from "./topic-meta";
 
 /** 引用1件。messageHref があれば該当メッセージへのリンクにする。 */
@@ -22,16 +22,14 @@ function QuoteItem({
   opinion: PublicOpinion;
   messageHref: string | null;
 }) {
+  const quote = opinion.contextual_quote ?? "";
+  const attribution = opinionAttributionLabel(opinion);
+  const contentKey = JSON.stringify([quote, attribution, messageHref]);
   // 肩書を含めて最大4行に収め、省略時は末尾に「…（肩書）」を表示する。
-  const body = (
-    <ClampedQuote
-      quote={opinion.contextual_quote ?? ""}
-      attribution={opinionAttributionLabel(opinion)}
-    />
-  );
+  const body = <ClampedQuote quote={quote} attribution={attribution} />;
 
   return (
-    <div className="ml-2 border-l-2 border-mirai-border pl-4">
+    <div key={contentKey} className="ml-2 border-l-2 border-mirai-border pl-4">
       {messageHref ? (
         <Link
           href={messageHref as Route}

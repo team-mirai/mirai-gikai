@@ -17,14 +17,15 @@ export const AI_MODELS = {
   gpt5_1_instant: "openai/gpt-5.1-instant",
   gpt5_1_thinking: "openai/gpt-5.1-thinking",
   gpt5_2: "openai/gpt-5.2",
+  gpt5_4_mini_fast: "openai/gpt-5.4-mini-fast",
   gpt5_6_sol: "openai/gpt-5.6-sol",
   gpt5_6_terra: "openai/gpt-5.6-terra",
   gpt5_6_luna: "openai/gpt-5.6-luna",
   // --- Google ---
   gemini3_flash: "google/gemini-3-flash",
   gemini3_flash_preview: "google/gemini-3-flash-preview",
-  gemini3_1_flash_lite_preview: "google/gemini-3.1-flash-lite-preview",
   gemini3_1_pro_preview: "google/gemini-3.1-pro-preview",
+  gemini3_8_flash: "google/gemini-3.8-flash",
   gemma4_26b_a4b: "google/gemma-4-26b-a4b-it",
   // --- Anthropic ---
   claude_haiku_4_5: "anthropic/claude-haiku-4.5",

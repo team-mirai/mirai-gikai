@@ -29,6 +29,14 @@ describe("estimateInterviewCostUsd", () => {
     expect(cost).toBeCloseTo(0.0515, 4);
   });
 
+  it("Gemini 3.8 Flashの推定コストを正しく算出する", () => {
+    // input: 0.75 * 85000 / 1M = 0.06375
+    // output: 3.75 * 3000 / 1M = 0.01125
+    // total: 0.075
+    const cost = estimateInterviewCostUsd("google/gemini-3.8-flash");
+    expect(cost).toBeCloseTo(0.075, 4);
+  });
+
   it("GPT-5.6 Solの推定コストを正しく算出する", () => {
     // input: 5 * 85000 / 1M = 0.425
     // output: 30 * 3000 / 1M = 0.09

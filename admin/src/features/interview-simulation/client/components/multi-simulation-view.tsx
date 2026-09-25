@@ -1,5 +1,6 @@
 "use client";
 
+import type { PromptOverridesByMode } from "@mirai-gikai/shared/interview-prompts/sections";
 import {
   type InterviewMode,
   INTERVIEW_MODES,
@@ -45,6 +46,7 @@ interface MultiSimulationViewProps {
     themes: string[];
     chat_model: string | null;
     estimated_duration: number | null;
+    prompt_overrides: PromptOverridesByMode;
   } | null;
   getCurrentQuestions: () => InterviewQuestionInput[];
   completedReports: CompletedReportListItem[];
@@ -125,15 +127,20 @@ export function MultiSimulationView({
       return;
     }
 
+    const mode: InterviewMode = (INTERVIEW_MODES as readonly string[]).includes(
+      formValues.mode
+    )
+      ? (formValues.mode as InterviewMode)
+      : "loop";
+
     const snapshot: TransientConfigSnapshot = {
-      mode: (INTERVIEW_MODES as readonly string[]).includes(formValues.mode)
-        ? (formValues.mode as InterviewMode)
-        : "loop",
+      mode,
       themes:
         formValues.themes.length > 0
           ? formValues.themes.filter((t) => t.length > 0)
           : null,
       estimatedDurationMinutes: formValues.estimated_duration,
+      promptOverrides: formValues.prompt_overrides[mode] ?? null,
       questions: currentQuestions.map((q, index) => ({
         id: `transient-${index}-${q.question.slice(0, 16)}`,
         question: q.question,

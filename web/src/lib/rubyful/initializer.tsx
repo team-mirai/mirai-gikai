@@ -37,6 +37,18 @@ export function RubyfulInitializer() {
           const isEnabled = rubyfulClient.getIsEnabledFromStorage();
           if (!isEnabled) return;
           // Rubyful V2を初期化
+          //
+          // 【注意】このセレクタに一致した要素は、Rubyful に innerHTML を
+          // 丸ごと差し替えられる。React が持っていた子ノードはその時点で
+          // DOM から外れるため、下記のタグの直下にマウント後に出し入れされる
+          // 子要素（`{cond && <span/>}` や `{cond && "…"}`）を置いてはいけない。
+          // 置くと React が消えたノードに removeChild を試みて
+          // NotFoundError になり、ページごとエラーバウンダリに落ちる。
+          //
+          // 実際に ClampedQuote がこれを踏み、ふりがな表示ONのとき
+          // 引用を持つ議案詳細ページが表示されなくなっていた。
+          // 動的に変わるテキストは、条件付きの子要素ではなく
+          // ひとつの文字列にまとめて描くこと。
           window.RubyfulV2.init({
             selector:
               "main p, main h1, main h2, main h3, main h4, main h5, main h6, main li, main td, main th, main span, main a",
