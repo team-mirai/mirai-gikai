@@ -48,8 +48,8 @@ describe("InterviewOpenBillSection", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/bills/bill-1");
   });
 
-  // 先頭だけフルカードにするので、要約が出るのは1件目だけになる。
-  it("2件目以降はコンパクトカードにする", () => {
+  // 意見を出す入口なので、2件目以降もコンパクトにせず要約まで出す。
+  it("2件目以降もフルカードにする", () => {
     render(
       <InterviewOpenBillSection
         bills={[billNamed("a", "1件目の法案"), billNamed("b", "2件目の法案")]}
@@ -61,6 +61,6 @@ describe("InterviewOpenBillSection", () => {
     expect(screen.getByText("2件目の法案")).toBeInTheDocument();
 
     expect(screen.getByText("1件目の法案の要約")).toBeInTheDocument();
-    expect(screen.queryByText("2件目の法案の要約")).not.toBeInTheDocument();
+    expect(screen.getByText("2件目の法案の要約")).toBeInTheDocument();
   });
 });

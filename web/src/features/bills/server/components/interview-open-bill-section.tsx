@@ -1,4 +1,7 @@
-import { BillCardList } from "../../client/components/bill-list/bill-card-list";
+import type { Route } from "next";
+import Link from "next/link";
+import { routes } from "@/lib/routes";
+import { BillCard } from "../../client/components/bill-list/bill-card";
 import type { BillWithContent } from "../../shared/types";
 
 interface InterviewOpenBillSectionProps {
@@ -15,6 +18,9 @@ interface InterviewOpenBillSectionProps {
  * 説明文はタグ別セクションの説明（「〜に関する法案」）と同じ体言止めで揃える。
  * ただし載るのは法案だけではない（検討会や報告書の解説記事もある）ので、
  * 種別を限定しない「テーマ」で受ける。
+ *
+ * 他のセクションは2件目以降をコンパクトにするが、ここは意見を出す入口なので
+ * 全件フルカードで要約まで見せる。
  */
 export function InterviewOpenBillSection({
   bills,
@@ -35,7 +41,13 @@ export function InterviewOpenBillSection({
         </p>
       </div>
 
-      <BillCardList bills={bills} />
+      <div className="flex flex-col gap-4">
+        {bills.map((bill) => (
+          <Link key={bill.id} href={routes.billDetail(bill.id) as Route}>
+            <BillCard bill={bill} />
+          </Link>
+        ))}
+      </div>
     </section>
   );
 }
