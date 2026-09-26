@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import {
   invalidateWebCache,
   WEB_CACHE_TAGS,
@@ -9,9 +10,11 @@ import { deleteMiraiStance } from "../repositories/mirai-stance-repository";
 
 export async function deleteStance(stanceId: string) {
   try {
+    await requireAdmin();
+
     await deleteMiraiStance(stanceId);
 
-    invalidateWebCache([WEB_CACHE_TAGS.BILLS]);
+    await invalidateWebCache([WEB_CACHE_TAGS.BILLS]);
     return { success: true };
   } catch (error) {
     console.error("Error in deleteStance:", error);
