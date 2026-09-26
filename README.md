@@ -48,6 +48,9 @@ WHERE email = '<1で作成したユーザーのemail>';
 > このAdminユーザーは `SUPABASE_URL` が localhost を指している場合のみ作成され、ホスト環境（staging・preview ブランチ等）には作成されません。
 > メールアドレス・パスワードを変えたい場合は `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` を設定してください。
 
+> [!WARNING]
+> `pnpm seed` / `pnpm seed:csv` は対象テーブルの既存データをすべて削除してから投入します。誤って staging・production を向いた `.env` で実行しないよう、`SUPABASE_URL` がローカル（localhost / 127.0.0.1）以外の場合は実行前に中断します。リモート環境へ意図的に投入する場合のみ `SEED_ALLOW_REMOTE=1` を付けて実行してください。
+
 ## Fork して独自サービスを運営する場合
 
 本リポジトリを fork して独自にサービスを運営する場合は、[Fork ガイドライン](./FORK_GUIDELINES.md) を確認してください。本家サービスとの混同防止のため、ロゴ・カラー・サービス名称などの変更が必要です。
