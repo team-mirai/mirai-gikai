@@ -1,29 +1,8 @@
 import type { AdminClient } from "./helper";
+import { isLocalSupabaseUrl } from "./seed-target";
 
 const DEFAULT_ADMIN_EMAIL = "admin@example.com";
 const DEFAULT_ADMIN_PASSWORD = "admin123456";
-
-/**
- * SUPABASE_URL がローカルの Supabase を指しているかを判定する。
- * ローカル以外（ホスト環境）では固定パスワードの admin を作らないためのガード。
- */
-export function isLocalSupabaseUrl(rawUrl: string | undefined): boolean {
-  if (!rawUrl) return false;
-
-  let hostname: string;
-  try {
-    hostname = new URL(rawUrl).hostname;
-  } catch {
-    return false;
-  }
-
-  // IPv6 リテラルは `[::1]` の形で返るためブラケットを外す
-  const host = hostname.replace(/^\[|\]$/g, "").toLowerCase();
-  // 127.0.0.1.example.com のようなホスト名を誤って local と判定しないよう、
-  // IPv4 ループバックは完全一致で判定する
-  const isIpv4Loopback = /^127(\.\d{1,3}){3}$/.test(host);
-  return host === "localhost" || host === "::1" || isIpv4Loopback;
-}
 
 /**
  * ローカル開発用の admin ユーザーを作成する。
@@ -32,9 +11,7 @@ export function isLocalSupabaseUrl(rawUrl: string | undefined): boolean {
  * 作られないよう、接続先が localhost の場合のみ実行する。
  * メールアドレス・パスワードは SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD で上書きできる。
  */
-export async function seedLocalAdminUser(
-  supabase: AdminClient
-): Promise<void> {
+export async function seedLocalAdminUser(supabase: AdminClient): Promise<void> {
   const supabaseUrl = process.env.SUPABASE_URL;
   if (!isLocalSupabaseUrl(supabaseUrl)) {
     console.log(
