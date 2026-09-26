@@ -33,15 +33,14 @@ const TABLES_TO_CLEAR = [
 type TableToClear = (typeof TABLES_TO_CLEAR)[number];
 
 /**
- * PostgREST の delete は WHERE 句が必須のため、全行にマッチするダミー条件で削除する。
- * 多くのテーブルは uuid の `id` 列を持つが、`bills_tags` は複合主キー
- * (bill_id, tag_id) で `id` 列が無いため、フィルタ列を個別に指定する。
+ * PostgREST の delete は WHERE 句が必須のため、NOT NULL な列に対する
+ * `is not null` 条件で全行にマッチさせる。多くのテーブルは主キーの `id` 列を
+ * 使うが、`bills_tags` は複合主キー (bill_id, tag_id) で `id` 列が無いため、
+ * フィルタ列を個別に指定する。
  */
 const DELETE_FILTER_COLUMN: Partial<Record<TableToClear, string>> = {
   bills_tags: "bill_id",
 };
-
-const NIL_UUID = "00000000-0000-0000-0000-000000000000";
 
 /**
  * seed 対象テーブルの既存データをすべて削除する。
@@ -69,7 +68,7 @@ export async function clearAllData(supabase: AdminClient) {
     const { error } = await supabase
       .from(table)
       .delete()
-      .neq(filterColumn, NIL_UUID);
+      .not(filterColumn, "is", null);
 
     if (error) {
       throw new Error(`Failed to clear ${table}: ${error.message}`);
