@@ -5,11 +5,11 @@ import Link from "next/link";
 import { getInterviewMessageLink } from "@/features/interview-config/shared/utils/interview-links";
 import type { PublicOpinion, PublicTopic } from "../types";
 import {
-  filterOpinions,
   sentimentOfFilter,
   type TopicFilter,
   userCategoryOfFilter,
 } from "../utils/filter-topics";
+import { pickCardQuotes } from "../utils/pick-card-quotes";
 import { opinionAttributionLabel } from "../utils/topic-category";
 import { ClampedQuote } from "./clamped-quote";
 import { TopicCategoryChips, TopicSentiment } from "./topic-meta";
@@ -66,13 +66,7 @@ export function TopicCard({
   filter = "all",
   publicReportCount = 0,
 }: TopicCardProps) {
-  const withQuote = (opinions: PublicOpinion[]) =>
-    opinions.filter((o) => o.contextual_quote?.trim());
-  // フィルタ該当意見の引用を優先し、無ければ全体から拾う
-  const matched = withQuote(filterOpinions(topic.opinions, filter));
-  const quotes = (
-    matched.length > 0 ? matched : withQuote(topic.opinions)
-  ).slice(0, maxQuotes);
+  const quotes = pickCardQuotes(topic.opinions, filter, maxQuotes);
 
   // フィルタ選択中の次元をカード側でもハイライトする
   const highlightCategory = userCategoryOfFilter(filter);
