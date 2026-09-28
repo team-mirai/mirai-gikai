@@ -14,6 +14,9 @@ export const WEB_CACHE_TAGS = {
 
 export type WebCacheTag = (typeof WEB_CACHE_TAGS)[keyof typeof WEB_CACHE_TAGS];
 
+/** web 側キャッシュ無効化リクエストのタイムアウト（ミリ秒） */
+const REVALIDATE_TIMEOUT_MS = 10_000;
+
 /**
  * Invalidate specific cache tags in the web application.
  * If no tags are specified, all caches are invalidated.
@@ -34,6 +37,9 @@ export async function invalidateWebCache(tags?: WebCacheTag[]): Promise<void> {
         Authorization: `Bearer ${env.revalidateSecret}`,
       },
       body: tags ? JSON.stringify({ tags }) : undefined,
+      // 呼び出し元の Server Action はこの完了を await するため、web 側の応答が
+      // 遅い場合にホスティングの実行時間上限まで待ち続けないよう上限を設ける
+      signal: AbortSignal.timeout(REVALIDATE_TIMEOUT_MS),
     });
 
     if (!response.ok) {
