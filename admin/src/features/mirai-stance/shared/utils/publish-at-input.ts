@@ -19,3 +19,18 @@ export function jstDateTimeLocalToIso(value: string): string | null {
   if (!value) return null;
   return `${value}:00+09:00`;
 }
+
+/**
+ * フォームの公開日時入力を保存用の値に変換する。
+ * 入力が保存済みの値から変更されていなければ保存済みの値をそのまま返し、
+ * datetime-local で表現できない秒以下を切り捨てないようにする。
+ */
+export function resolvePublishAt(
+  publishAtLocal: string,
+  savedPublishAt: string | null
+): string | null {
+  if (publishAtLocal === toJstDateTimeLocalValue(savedPublishAt)) {
+    return savedPublishAt;
+  }
+  return jstDateTimeLocalToIso(publishAtLocal);
+}

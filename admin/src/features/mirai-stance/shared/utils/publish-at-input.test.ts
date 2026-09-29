@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   jstDateTimeLocalToIso,
+  resolvePublishAt,
   toJstDateTimeLocalValue,
 } from "./publish-at-input";
 
@@ -31,5 +32,27 @@ describe("jstDateTimeLocalToIso", () => {
     const iso = "2026-12-24T09:15:00.000Z";
     const roundTripped = jstDateTimeLocalToIso(toJstDateTimeLocalValue(iso));
     expect(new Date(roundTripped ?? "").toISOString()).toBe(iso);
+  });
+});
+
+describe("resolvePublishAt", () => {
+  const saved = "2026-10-01T12:00:59+09:00";
+
+  it("入力が保存済みの値から変わっていなければ保存済みの値（秒を含む）を返す", () => {
+    expect(resolvePublishAt("2026-10-01T12:00", saved)).toBe(saved);
+  });
+
+  it("入力が変更されていれば入力値から ISO 日時を生成する", () => {
+    expect(resolvePublishAt("2026-10-02T09:30", saved)).toBe(
+      "2026-10-02T09:30:00+09:00"
+    );
+  });
+
+  it("入力をクリアすると null（即時公開）を返す", () => {
+    expect(resolvePublishAt("", saved)).toBeNull();
+  });
+
+  it("未設定のまま空欄なら null を返す", () => {
+    expect(resolvePublishAt("", null)).toBeNull();
   });
 });

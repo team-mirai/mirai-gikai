@@ -41,7 +41,7 @@ import {
   stanceFormSchema,
 } from "../../shared/types";
 import {
-  jstDateTimeLocalToIso,
+  resolvePublishAt,
   toJstDateTimeLocalValue,
 } from "../../shared/utils/publish-at-input";
 
@@ -78,7 +78,7 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
   }: StanceFormValues) => {
     const stanceInput: StanceInput = {
       ...values,
-      publishAt: jstDateTimeLocalToIso(publishAtLocal),
+      publishAt: resolvePublishAt(publishAtLocal, stance?.publish_at ?? null),
     };
     setIsSubmitting(true);
     try {
