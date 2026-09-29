@@ -189,3 +189,48 @@ describe("getOpenDataBills / getOpenDataBillDetail", () => {
     ).toBeNull();
   });
 });
+
+describe("getOpenDataBillDetail（賛否の予約公開）", () => {
+  let billId: string;
+
+  beforeAll(async () => {
+    const bill = await createTestBill({ publish_status: "published" });
+    billId = bill.id;
+    await createTestBillContent(billId, { difficulty_level: "normal" });
+    await createTestMiraiStance(billId, {
+      type: "against",
+      comment: "予約公開のコメント",
+      publish_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    });
+  });
+
+  afterAll(async () => {
+    await cleanupTestBill(billId);
+  });
+
+  it("公開日時前の賛否は null として返す", async () => {
+    const detail = await getOpenDataBillDetail({
+      billId,
+      difficulty: "normal",
+    });
+    expect(detail?.miraiStance).toBeNull();
+  });
+
+  it("公開日時を過ぎると賛否・コメントを返す", async () => {
+    const { error } = await adminClient
+      .from("mirai_stances")
+      .update({ publish_at: new Date(Date.now() - 1000).toISOString() })
+      .eq("bill_id", billId);
+    if (error) throw new Error(error.message);
+
+    const detail = await getOpenDataBillDetail({
+      billId,
+      difficulty: "normal",
+    });
+    expect(detail?.miraiStance).toEqual({
+      type: "against",
+      label: "反対",
+      comment: "予約公開のコメント",
+    });
+  });
+});

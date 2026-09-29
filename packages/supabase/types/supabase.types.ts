@@ -715,6 +715,7 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          publish_at: string | null
           type: Database["public"]["Enums"]["stance_type_enum"]
           updated_at: string
         }
@@ -723,6 +724,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          publish_at?: string | null
           type: Database["public"]["Enums"]["stance_type_enum"]
           updated_at?: string
         }
@@ -731,6 +733,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          publish_at?: string | null
           type?: Database["public"]["Enums"]["stance_type_enum"]
           updated_at?: string
         }

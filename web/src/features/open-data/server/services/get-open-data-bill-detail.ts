@@ -16,5 +16,5 @@ export async function getOpenDataBillDetail(params: {
   const row = await findOpenDataPublishedBillById(params);
   if (!row) return null;
 
-  return toOpenDataBillDetail(row);
+  return toOpenDataBillDetail(row, new Date());
 }

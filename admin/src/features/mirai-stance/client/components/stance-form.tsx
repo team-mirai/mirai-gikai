@@ -1,21 +1,25 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -24,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { formatJstDateTime } from "@/features/interview-reports/shared/utils/format-jst-date-time";
 
 import { createStance } from "../../server/actions/create-stance";
 import { deleteStance } from "../../server/actions/delete-stance";
@@ -31,9 +36,14 @@ import { updateStance } from "../../server/actions/update-stance";
 import {
   type MiraiStance,
   STANCE_TYPE_LABELS,
+  type StanceFormValues,
   type StanceInput,
-  stanceInputSchema,
+  stanceFormSchema,
 } from "../../shared/types";
+import {
+  jstDateTimeLocalToIso,
+  toJstDateTimeLocalValue,
+} from "../../shared/utils/publish-at-input";
 
 interface StanceFormProps {
   billId: string;
@@ -47,21 +57,34 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isPreparing = billStatus === "preparing";
+  // 表示時点で公開前なら予約中バッジを出す（公開時刻をまたいだ場合は再読み込みで更新）
+  const scheduledAt =
+    stance?.publish_at && !isMiraiStancePublished(stance.publish_at, new Date())
+      ? stance.publish_at
+      : null;
 
-  const form = useForm<StanceInput>({
-    resolver: zodResolver(stanceInputSchema),
+  const form = useForm<StanceFormValues>({
+    resolver: zodResolver(stanceFormSchema),
     defaultValues: {
       type: stance?.type,
       comment: stance?.comment || "",
+      publishAtLocal: toJstDateTimeLocalValue(stance?.publish_at ?? null),
     },
   });
 
-  const handleSubmit = async (data: StanceInput) => {
+  const handleSubmit = async ({
+    publishAtLocal,
+    ...values
+  }: StanceFormValues) => {
+    const stanceInput: StanceInput = {
+      ...values,
+      publishAt: jstDateTimeLocalToIso(publishAtLocal),
+    };
     setIsSubmitting(true);
     try {
       const result = stance
-        ? await updateStance(stance.id, data)
-        : await createStance(billId, data);
+        ? await updateStance(stance.id, stanceInput)
+        : await createStance(billId, stanceInput);
 
       if (result.success) {
         toast.success(
@@ -105,7 +128,14 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>チームみらいのスタンス</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>チームみらいのスタンス</CardTitle>
+          {scheduledAt && (
+            <Badge variant="secondary">
+              公開予約中: {formatJstDateTime(scheduledAt)}
+            </Badge>
+          )}
+        </div>
         {isPreparing && (
           <p className="text-sm text-muted-foreground">
             法案提出前のため、スタンス設定は無効化されています。
@@ -163,6 +193,40 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="publishAtLocal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>公開日時（任意・日本時間）</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        className="w-auto"
+                        disabled={isPreparing}
+                        {...field}
+                      />
+                    </FormControl>
+                    {field.value && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isPreparing}
+                        onClick={() => field.onChange("")}
+                      >
+                        クリア
+                      </Button>
+                    )}
+                  </div>
+                  <FormDescription>
+                    指定した日時になるまで、スタンスとコメントは公開サイトに表示されません。空欄の場合は保存と同時に公開されます。
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

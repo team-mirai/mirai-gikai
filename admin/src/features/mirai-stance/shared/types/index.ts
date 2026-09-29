@@ -21,9 +21,19 @@ export const stanceInputSchema = z.object({
       message: "スタンスを選択してください",
     }),
   comment: z.string().optional(),
+  // 賛否・コメントの公開日時（ISO 8601、タイムゾーン付き）。
+  // null は即時公開、undefined は既存の公開日時を変更しない
+  publishAt: z.string().datetime({ offset: true }).nullable().optional(),
 });
 
 export type StanceInput = z.infer<typeof stanceInputSchema>;
+
+// 管理画面フォーム用。公開日時は datetime-local の日本時間（空文字は即時公開）で持つ
+export const stanceFormSchema = stanceInputSchema
+  .omit({ publishAt: true })
+  .extend({ publishAtLocal: z.string() });
+
+export type StanceFormValues = z.infer<typeof stanceFormSchema>;
 
 // ラベルの定義
 export const STANCE_TYPE_LABELS: Record<StanceTypeEnum, string> = {

@@ -129,6 +129,8 @@ export async function findBillById(id: string) {
 
 /**
  * 議案のmirai_stanceを取得
+ * 公開日時（publish_at）前のものも返すため、公開側で使う場合は
+ * hideUnpublishedStance / isMiraiStancePublished で除外すること。
  */
 export async function findMiraiStanceByBillId(billId: string) {
   const supabase = createAdminClient();
