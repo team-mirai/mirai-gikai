@@ -17,6 +17,7 @@ import {
  * - 論理削除済み設定の除外
  * - セッション0件の議案（実施0・完了率0）の扱い
  * - 総回答時間（total_duration_seconds）の合算と発言の無い未完了セッションの除外
+ * - 1時間以上のセッションを除外した総回答時間（total_duration_seconds_under_1h）
  * - p_bill_id によるフィルタ
  */
 describe("get_interview_metrics_by_bill", () => {
@@ -28,6 +29,8 @@ describe("get_interview_metrics_by_bill", () => {
   let billC: { id: string };
   // billD: 総回答時間の検証（60秒+120秒の完了2件 + 発言の無い未完了1件） => 総回答時間180秒
   let billD: { id: string };
+  // billE: 1時間除外の検証（600秒 + 3600秒 + 5400秒の完了3件） => 全体9600秒・1時間未満600秒
+  let billE: { id: string };
   let user: { id: string };
 
   async function insertSession(
@@ -74,6 +77,7 @@ describe("get_interview_metrics_by_bill", () => {
     billB = await createTestBill();
     billC = await createTestBill();
     billD = await createTestBill();
+    billE = await createTestBill();
 
     // billA: 2設定を合算
     const configA1 = await insertConfig(billA.id, "設定A1", "public", false);
@@ -96,6 +100,12 @@ describe("get_interview_metrics_by_bill", () => {
     await insertSession(configD, true, 60);
     await insertSession(configD, true, 120);
     await insertSession(configD, false);
+
+    // billE: 1時間以上のセッション（ちょうど1時間を含む）は under_1h から除外
+    const configE = await insertConfig(billE.id, "設定E", "public", false);
+    await insertSession(configE, true, 600);
+    await insertSession(configE, true, 3600);
+    await insertSession(configE, true, 5400);
   });
 
   afterAll(async () => {
@@ -103,6 +113,7 @@ describe("get_interview_metrics_by_bill", () => {
     await cleanupTestBill(billB.id);
     await cleanupTestBill(billC.id);
     await cleanupTestBill(billD.id);
+    await cleanupTestBill(billE.id);
     await cleanupTestUser(user.id);
   });
 
@@ -136,6 +147,7 @@ describe("get_interview_metrics_by_bill", () => {
     expect(Number(row.completed_count)).toBe(0);
     expect(Number(row.completion_rate)).toBe(0);
     expect(Number(row.total_duration_seconds)).toBe(0);
+    expect(Number(row.total_duration_seconds_under_1h)).toBe(0);
   });
 
   it("総回答時間（total_duration_seconds）を完了セッションの所要時間の合計として返す", async () => {
@@ -151,6 +163,22 @@ describe("get_interview_metrics_by_bill", () => {
     expect(Number(row.completed_count)).toBe(2);
     // 60秒 + 120秒。発言の無い未完了セッションは集計対象外
     expect(Number(row.total_duration_seconds)).toBe(180);
+    expect(Number(row.total_duration_seconds_under_1h)).toBe(180);
+  });
+
+  it("total_duration_seconds_under_1h は所要時間1時間以上のセッションを除外して合算する", async () => {
+    const { data, error } = await adminClient.rpc(
+      "get_interview_metrics_by_bill",
+      { p_bill_id: billE.id }
+    );
+
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+    const row = data![0];
+    // 600 + 3600 + 5400
+    expect(Number(row.total_duration_seconds)).toBe(9600);
+    // 1時間未満の600秒のみ
+    expect(Number(row.total_duration_seconds_under_1h)).toBe(600);
   });
 
   it("論理削除済み設定のみの議案は結果に含まれない", async () => {

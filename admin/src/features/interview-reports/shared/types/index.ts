@@ -152,6 +152,8 @@ export type InterviewStatistics = {
   avgMessageCount: number | null;
   medianDurationSeconds: number | null;
   totalDurationSeconds: number;
+  /** 所要時間1時間以上のセッションを除外した総所要時間（秒） */
+  totalDurationSecondsUnder1h: number;
   publicByUserCount: number;
   publicRate: number;
   feedbackIrrelevantQuestions: number;

@@ -1321,6 +1321,7 @@ export type Database = {
           completion_rate: number
           conducted_count: number
           total_duration_seconds: number
+          total_duration_seconds_under_1h: number
         }[]
       }
       get_interview_statistics: {
@@ -1347,6 +1348,7 @@ export type Database = {
           stance_neutral_count: number
           total_cost_usd: number
           total_duration_seconds: number
+          total_duration_seconds_under_1h: number
           total_sessions: number
         }[]
       }
