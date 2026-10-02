@@ -6,7 +6,9 @@
   "scripts": {
     "seed": "tsx main/run.ts",
     "seed:csv": "tsx csv/import-csv.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@mirai-gikai/supabase": "workspace:*",
@@ -16,6 +18,7 @@
   "devDependencies": {
     "@types/node": "^22.5.5",
     "tsx": "^4.19.1",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
   }
 }
