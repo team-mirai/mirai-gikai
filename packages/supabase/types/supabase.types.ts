@@ -716,6 +716,9 @@ export type Database = {
           created_at: string
           id: string
           publish_at: string | null
+          reason_points: string[]
+          reason_summary: string | null
+          supplements: Json
           type: Database["public"]["Enums"]["stance_type_enum"]
           updated_at: string
         }
@@ -725,6 +728,9 @@ export type Database = {
           created_at?: string
           id?: string
           publish_at?: string | null
+          reason_points?: string[]
+          reason_summary?: string | null
+          supplements?: Json
           type: Database["public"]["Enums"]["stance_type_enum"]
           updated_at?: string
         }
@@ -734,6 +740,9 @@ export type Database = {
           created_at?: string
           id?: string
           publish_at?: string | null
+          reason_points?: string[]
+          reason_summary?: string | null
+          supplements?: Json
           type?: Database["public"]["Enums"]["stance_type_enum"]
           updated_at?: string
         }

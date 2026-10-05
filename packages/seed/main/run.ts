@@ -178,7 +178,8 @@ async function seedDatabase() {
 
     const { data: insertedStances, error: stancesError } = await supabase
       .from("mirai_stances")
-      .insert(miraiStances)
+      // 一括insertで未指定のカラムを null ではなく DEFAULT にする
+      .insert(miraiStances, { defaultToNull: false })
       .select("id");
 
     if (stancesError) {

@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { formatJstDateTime } from "@/features/interview-reports/shared/utils/format-jst-date-time";
 
@@ -37,13 +38,14 @@ import {
   type MiraiStance,
   STANCE_TYPE_LABELS,
   type StanceFormValues,
-  type StanceInput,
   stanceFormSchema,
 } from "../../shared/types";
 import {
-  resolvePublishAt,
-  toJstDateTimeLocalValue,
-} from "../../shared/utils/publish-at-input";
+  getInitialReasonFormat,
+  toStanceFormValues,
+  toStanceInput,
+} from "../../shared/utils/stance-form-values";
+import { ReasonNewFormatFields } from "./reason-new-format-fields";
 
 interface StanceFormProps {
   billId: string;
@@ -65,21 +67,11 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
 
   const form = useForm<StanceFormValues>({
     resolver: zodResolver(stanceFormSchema),
-    defaultValues: {
-      type: stance?.type,
-      comment: stance?.comment || "",
-      publishAtLocal: toJstDateTimeLocalValue(stance?.publish_at ?? null),
-    },
+    defaultValues: toStanceFormValues(stance),
   });
 
-  const handleSubmit = async ({
-    publishAtLocal,
-    ...values
-  }: StanceFormValues) => {
-    const stanceInput: StanceInput = {
-      ...values,
-      publishAt: resolvePublishAt(publishAtLocal, stance?.publish_at ?? null),
-    };
+  const handleSubmit = async (values: StanceFormValues) => {
+    const stanceInput = toStanceInput(values, stance?.publish_at ?? null);
     setIsSubmitting(true);
     try {
       const result = stance
@@ -179,24 +171,53 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="comment"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>コメント（任意）</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="スタンスについての詳細説明を入力"
-                      className="min-h-[120px] resize-y"
-                      disabled={isPreparing}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <FormLabel>判断の理由</FormLabel>
+              <Tabs defaultValue={getInitialReasonFormat(stance)}>
+                <TabsList>
+                  <TabsTrigger value="new">新フォーマット</TabsTrigger>
+                  <TabsTrigger value="old">旧フォーマット</TabsTrigger>
+                </TabsList>
+                <p className="text-sm text-muted-foreground">
+                  新フォーマットの「判断の理由」または「箇条書き」が入力されている場合は新フォーマットで、それ以外は旧フォーマットのコメントで公開サイトに表示されます。タブを切り替えても入力内容は両方とも保存されます。
+                </p>
+                {/* 非表示のタブの入力値も保持して保存するため、両方を常にマウントしておく */}
+                <TabsContent
+                  value="new"
+                  forceMount
+                  className="pt-2 data-[state=inactive]:hidden"
+                >
+                  <ReasonNewFormatFields
+                    control={form.control}
+                    disabled={isPreparing}
+                  />
+                </TabsContent>
+                <TabsContent
+                  value="old"
+                  forceMount
+                  className="pt-2 data-[state=inactive]:hidden"
+                >
+                  <FormField
+                    control={form.control}
+                    name="comment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>コメント・理由（任意）</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="スタンスについての詳細説明を入力"
+                            className="min-h-[120px] resize-y"
+                            disabled={isPreparing}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
 
             <FormField
               control={form.control}
