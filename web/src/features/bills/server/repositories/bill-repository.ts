@@ -322,7 +322,7 @@ export async function countPublishedBillsByDietSession(
     .eq("bill_contents.difficulty_level", difficultyLevel);
 
   if (error) {
-    console.error("Failed to count previous session bills:", error);
+    console.error("Failed to count published bills by diet session:", error);
     return 0;
   }
 

@@ -1,6 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { DietSession } from "../../shared/types";
+import type { DietSession, SluggedDietSession } from "../../shared/types";
 
 /**
  * アクティブな国会会期を取得
@@ -120,4 +120,30 @@ export async function findLatestClosedDietSession(
     return null;
   }
   return data;
+}
+
+/**
+ * 指定日より前に始まった会期を新しい順にすべて取得する。
+ *
+ * トップページの「過去の会期一覧」用。一覧からリンクするため slug のない会期は除く。
+ */
+export async function findDietSessionsBefore(
+  beforeStartDate: string
+): Promise<SluggedDietSession[]> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("diet_sessions")
+    .select("*")
+    .lt("start_date", beforeStartDate)
+    .not("slug", "is", null)
+    .order("start_date", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch past diet sessions:", error);
+    return [];
+  }
+
+  // クエリで除外済みだが、slug を non-null に型で絞るために filter する
+  return data.filter((s): s is SluggedDietSession => s.slug !== null);
 }

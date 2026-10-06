@@ -9,3 +9,6 @@ export type DietSession = {
   created_at: string;
   updated_at: string;
 };
+
+/** slug が設定済みの会期。会期ページへリンクする一覧で使う。 */
+export type SluggedDietSession = DietSession & { slug: string };

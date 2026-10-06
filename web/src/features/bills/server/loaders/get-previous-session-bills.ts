@@ -6,11 +6,11 @@ import type { DietSession } from "@/features/diet-sessions/shared/types";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { BillWithContent } from "../../shared/types";
 import {
+  findBillIdsWithPublicInterview,
   findPreviousSessionBills,
   findTagsByBillIds,
-  findBillIdsWithPublicInterview,
-  countPublishedBillsByDietSession,
 } from "../repositories/bill-repository";
+import { getPublishedBillCount } from "./get-published-bill-count";
 
 const MAX_PREVIEW_BILLS = 5;
 
@@ -33,7 +33,7 @@ export async function getPreviousSessionBills(): Promise<PreviousSessionBillsRes
   const difficultyLevel = await getDifficultyLevel();
   const [bills, totalBillCount] = await Promise.all([
     _getCachedPreviousSessionBills(previousSession.id, difficultyLevel),
-    _getCachedPreviousSessionBillCount(previousSession.id, difficultyLevel),
+    getPublishedBillCount(previousSession.id, difficultyLevel),
   ]);
 
   return {
@@ -83,19 +83,5 @@ const _getCachedPreviousSessionBills = unstable_cache(
   {
     revalidate: 600, // 10分
     tags: [CACHE_TAGS.BILLS, CACHE_TAGS.INTERVIEW_CONFIGS],
-  }
-);
-
-const _getCachedPreviousSessionBillCount = unstable_cache(
-  async (
-    dietSessionId: string,
-    difficultyLevel: DifficultyLevelEnum
-  ): Promise<number> => {
-    return countPublishedBillsByDietSession(dietSessionId, difficultyLevel);
-  },
-  ["previous-session-bill-count"],
-  {
-    revalidate: 600,
-    tags: [CACHE_TAGS.BILLS],
   }
 );
