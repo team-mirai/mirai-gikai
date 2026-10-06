@@ -111,6 +111,14 @@
     "./interview-report/sync-opinions": {
       "types": "./src/interview-report/sync-opinions.ts",
       "default": "./src/interview-report/sync-opinions.ts"
+    },
+    "./mirai-stance/publish-schedule": {
+      "types": "./src/mirai-stance/publish-schedule.ts",
+      "default": "./src/mirai-stance/publish-schedule.ts"
+    },
+    "./mirai-stance/reason-format": {
+      "types": "./src/mirai-stance/reason-format.ts",
+      "default": "./src/mirai-stance/reason-format.ts"
     }
   },
   "dependencies": {

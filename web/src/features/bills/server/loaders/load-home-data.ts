@@ -2,6 +2,7 @@ import { getBillsByFeaturedTags } from "@/features/bills/server/loaders/get-bill
 import { getComingSoonBills } from "./get-coming-soon-bills";
 import { getFeaturedBills } from "./get-featured-bills";
 import { getInterviewOpenBills } from "./get-interview-open-bills";
+import { getPastSessionsWithBillCount } from "./get-past-sessions-with-bill-count";
 import { getPreviousSessionBills } from "./get-previous-session-bills";
 
 /**
@@ -15,12 +16,14 @@ export async function loadHomeData() {
     interviewOpenBills,
     comingSoonBills,
     previousSessionData,
+    pastSessions,
   ] = await Promise.all([
     getFeaturedBills(),
     getBillsByFeaturedTags(),
     getInterviewOpenBills(),
     getComingSoonBills(),
     getPreviousSessionBills(),
+    getPastSessionsWithBillCount(),
   ]);
 
   return {
@@ -29,5 +32,6 @@ export async function loadHomeData() {
     interviewOpenBills,
     comingSoonBills,
     previousSessionData,
+    pastSessions,
   };
 }

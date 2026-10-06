@@ -89,7 +89,7 @@ const openDataBillSelect = <C extends string>(contentColumns: C) =>
   published_at,
   created_at,
   bill_contents!inner (${contentColumns}),
-  mirai_stances (type, comment),
+  mirai_stances (type, comment, publish_at),
   bills_tags (tags (id, label))
 ` as const;
 

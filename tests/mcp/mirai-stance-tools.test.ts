@@ -101,6 +101,92 @@ describe("MCP mirai-stance tools", () => {
         .single();
       expect(data?.comment).toBeNull();
     });
+
+    it("publishAt を指定すると公開日時を保存し、null で即時公開に戻す", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        publishAt: "2026-10-01T12:00:00+09:00",
+      });
+      const { data: scheduled } = await adminClient
+        .from("mirai_stances")
+        .select("publish_at")
+        .eq("bill_id", bill.id)
+        .single();
+      expect(new Date(scheduled?.publish_at ?? "").toISOString()).toBe(
+        "2026-10-01T03:00:00.000Z"
+      );
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        publishAt: null,
+      });
+      const { data: immediate } = await adminClient
+        .from("mirai_stances")
+        .select("publish_at")
+        .eq("bill_id", bill.id)
+        .single();
+      expect(immediate?.publish_at).toBeNull();
+    });
+
+    it("新フォーマットの項目を省略した更新では既存の値を保持する", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        reasonSummary: "賛成します。",
+        reasonPoints: ["根拠"],
+        supplements: [{ title: "見出し", body: "本文" }],
+      });
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "against",
+      });
+
+      const { data } = await adminClient
+        .from("mirai_stances")
+        .select("type, reason_summary, reason_points, supplements")
+        .eq("bill_id", bill.id)
+        .single();
+      expect(data).toEqual({
+        type: "against",
+        reason_summary: "賛成します。",
+        reason_points: ["根拠"],
+        supplements: [{ title: "見出し", body: "本文" }],
+      });
+    });
+
+    it("publishAt を省略した更新では既存の公開日時を保持する", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        publishAt: "2026-10-01T12:00:00+09:00",
+      });
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "against",
+        comment: "更新後",
+      });
+
+      const { data } = await adminClient
+        .from("mirai_stances")
+        .select("type, publish_at")
+        .eq("bill_id", bill.id)
+        .single();
+      expect(data?.type).toBe("against");
+      expect(new Date(data?.publish_at ?? "").toISOString()).toBe(
+        "2026-10-01T03:00:00.000Z"
+      );
+    });
   });
 
   describe("get_mirai_stance", () => {
@@ -128,7 +214,35 @@ describe("MCP mirai-stance tools", () => {
       const result = await registry.callTool<{
         stance: { type: string; comment: string | null } | null;
       }>("get_mirai_stance", { billId: bill.id });
-      expect(result.stance).toEqual({ type: "against", comment: "反対の理由" });
+      expect(result.stance).toEqual({
+        type: "against",
+        comment: "反対の理由",
+        reasonSummary: null,
+        reasonPoints: [],
+        supplements: [],
+        publishAt: null,
+      });
+    });
+
+    it("新フォーマットの判断の理由・補足情報を返す", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        reasonSummary: "賛成します。",
+        reasonPoints: ["必要性", "懸念", "結論"],
+        supplements: [{ title: "今後の働きかけ", body: "- 報告を求めます" }],
+      });
+
+      const result = await registry.callTool<{
+        stance: Record<string, unknown> | null;
+      }>("get_mirai_stance", { billId: bill.id });
+      expect(result.stance).toMatchObject({
+        reasonSummary: "賛成します。",
+        reasonPoints: ["必要性", "懸念", "結論"],
+        supplements: [{ title: "今後の働きかけ", body: "- 報告を求めます" }],
+      });
     });
   });
 

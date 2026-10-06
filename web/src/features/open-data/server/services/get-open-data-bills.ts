@@ -27,5 +27,9 @@ export async function getOpenDataBills(params: {
     id: row.id,
   }));
 
-  return { items: pageRows.map(toOpenDataBillItem), nextCursor };
+  const now = new Date();
+  return {
+    items: pageRows.map((row) => toOpenDataBillItem(row, now)),
+    nextCursor,
+  };
 }

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { BillStatusEnum, MiraiStance } from "../../../shared/types";
 import { getStanceStyles } from "../../../shared/utils/stance-styles";
+import { StanceComment, StanceReason } from "./stance-reason";
 
 interface MiraiStanceCardProps {
   stance?: MiraiStance;
@@ -16,9 +17,6 @@ export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
   }
 
   const styles = getStanceStyles(stance, isPreparing);
-  const comment = isPreparing
-    ? "法案提出後、党内で検討のうえ賛否を表明します。"
-    : stance?.comment;
 
   return (
     <>
@@ -48,14 +46,11 @@ export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
               </div>
             </div>
 
-            {/* コメント部分 */}
-            {comment != null && (
-              <div className="flex flex-col gap-2">
-                <h3 className="text-lg font-bold">コメント・理由</h3>
-                <p className="text-base font-medium leading-relaxed whitespace-pre-wrap">
-                  {comment}
-                </p>
-              </div>
+            {/* 判断の理由 */}
+            {isPreparing ? (
+              <StanceComment comment="法案提出後、党内で検討のうえ賛否を表明します。" />
+            ) : (
+              stance && <StanceReason stance={stance} />
             )}
           </div>
         </div>

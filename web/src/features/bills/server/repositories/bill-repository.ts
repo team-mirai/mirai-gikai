@@ -129,6 +129,8 @@ export async function findBillById(id: string) {
 
 /**
  * 議案のmirai_stanceを取得
+ * 公開日時（publish_at）前のものも返すため、公開側で使う場合は
+ * hideUnpublishedStance / isMiraiStancePublished で除外すること。
  */
 export async function findMiraiStanceByBillId(billId: string) {
   const supabase = createAdminClient();
@@ -319,9 +321,11 @@ export async function countPublishedBillsByDietSession(
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel);
 
+  // 0件で返すとキャッシュに載って固定されるため、呼び出し側（キャッシュの外）で扱う
   if (error) {
-    console.error("Failed to count previous session bills:", error);
-    return 0;
+    throw new Error(
+      `Failed to count published bills by diet session: ${error.message}`
+    );
   }
 
   return count ?? 0;

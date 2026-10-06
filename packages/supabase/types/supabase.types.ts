@@ -715,6 +715,10 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          publish_at: string | null
+          reason_points: string[]
+          reason_summary: string | null
+          supplements: Json
           type: Database["public"]["Enums"]["stance_type_enum"]
           updated_at: string
         }
@@ -723,6 +727,10 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          publish_at?: string | null
+          reason_points?: string[]
+          reason_summary?: string | null
+          supplements?: Json
           type: Database["public"]["Enums"]["stance_type_enum"]
           updated_at?: string
         }
@@ -731,6 +739,10 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          publish_at?: string | null
+          reason_points?: string[]
+          reason_summary?: string | null
+          supplements?: Json
           type?: Database["public"]["Enums"]["stance_type_enum"]
           updated_at?: string
         }
@@ -1318,6 +1330,7 @@ export type Database = {
           completion_rate: number
           conducted_count: number
           total_duration_seconds: number
+          total_duration_seconds_under_1h: number
         }[]
       }
       get_interview_statistics: {
@@ -1344,6 +1357,7 @@ export type Database = {
           stance_neutral_count: number
           total_cost_usd: number
           total_duration_seconds: number
+          total_duration_seconds_under_1h: number
           total_sessions: number
         }[]
       }

@@ -87,7 +87,7 @@ export async function createTestDietSession(
     name: string;
     start_date: string;
     end_date: string;
-    slug: string;
+    slug: string | null;
     is_active: boolean;
   }> = {}
 ) {
@@ -257,6 +257,7 @@ export async function createTestMiraiStance(
   overrides: Partial<{
     type: "for" | "against" | "neutral";
     comment: string;
+    publish_at: string | null;
   }> = {}
 ) {
   const defaults = {

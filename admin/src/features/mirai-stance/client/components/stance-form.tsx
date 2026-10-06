@@ -1,21 +1,25 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -23,7 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { formatJstDateTime } from "@/features/interview-reports/shared/utils/format-jst-date-time";
 
 import { createStance } from "../../server/actions/create-stance";
 import { deleteStance } from "../../server/actions/delete-stance";
@@ -31,9 +37,15 @@ import { updateStance } from "../../server/actions/update-stance";
 import {
   type MiraiStance,
   STANCE_TYPE_LABELS,
-  type StanceInput,
-  stanceInputSchema,
+  type StanceFormValues,
+  stanceFormSchema,
 } from "../../shared/types";
+import {
+  getInitialReasonFormat,
+  toStanceFormValues,
+  toStanceInput,
+} from "../../shared/utils/stance-form-values";
+import { ReasonNewFormatFields } from "./reason-new-format-fields";
 
 interface StanceFormProps {
   billId: string;
@@ -47,21 +59,24 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isPreparing = billStatus === "preparing";
+  // 表示時点で公開前なら予約中バッジを出す（公開時刻をまたいだ場合は再読み込みで更新）
+  const scheduledAt =
+    stance?.publish_at && !isMiraiStancePublished(stance.publish_at, new Date())
+      ? stance.publish_at
+      : null;
 
-  const form = useForm<StanceInput>({
-    resolver: zodResolver(stanceInputSchema),
-    defaultValues: {
-      type: stance?.type,
-      comment: stance?.comment || "",
-    },
+  const form = useForm<StanceFormValues>({
+    resolver: zodResolver(stanceFormSchema),
+    defaultValues: toStanceFormValues(stance),
   });
 
-  const handleSubmit = async (data: StanceInput) => {
+  const handleSubmit = async (values: StanceFormValues) => {
+    const stanceInput = toStanceInput(values, stance?.publish_at ?? null);
     setIsSubmitting(true);
     try {
       const result = stance
-        ? await updateStance(stance.id, data)
-        : await createStance(billId, data);
+        ? await updateStance(stance.id, stanceInput)
+        : await createStance(billId, stanceInput);
 
       if (result.success) {
         toast.success(
@@ -105,7 +120,14 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>チームみらいのスタンス</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>チームみらいのスタンス</CardTitle>
+          {scheduledAt && (
+            <Badge variant="secondary">
+              公開予約中: {formatJstDateTime(scheduledAt)}
+            </Badge>
+          )}
+        </div>
         {isPreparing && (
           <p className="text-sm text-muted-foreground">
             法案提出前のため、スタンス設定は無効化されています。
@@ -149,20 +171,83 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
               )}
             />
 
+            <div className="space-y-2">
+              <FormLabel>判断の理由</FormLabel>
+              <Tabs defaultValue={getInitialReasonFormat(stance)}>
+                <TabsList>
+                  <TabsTrigger value="new">新フォーマット</TabsTrigger>
+                  <TabsTrigger value="old">旧フォーマット</TabsTrigger>
+                </TabsList>
+                <p className="text-sm text-muted-foreground">
+                  新フォーマットの「判断の理由」または「箇条書き」が入力されている場合は新フォーマットで、それ以外は旧フォーマットのコメントで公開サイトに表示されます。タブを切り替えても入力内容は両方とも保存されます。
+                </p>
+                {/* 非表示のタブの入力値も保持して保存するため、両方を常にマウントしておく */}
+                <TabsContent
+                  value="new"
+                  forceMount
+                  className="pt-2 data-[state=inactive]:hidden"
+                >
+                  <ReasonNewFormatFields
+                    control={form.control}
+                    disabled={isPreparing}
+                  />
+                </TabsContent>
+                <TabsContent
+                  value="old"
+                  forceMount
+                  className="pt-2 data-[state=inactive]:hidden"
+                >
+                  <FormField
+                    control={form.control}
+                    name="comment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>コメント・理由（任意）</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="スタンスについての詳細説明を入力"
+                            className="min-h-[120px] resize-y"
+                            disabled={isPreparing}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+
             <FormField
               control={form.control}
-              name="comment"
+              name="publishAtLocal"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>コメント（任意）</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="スタンスについての詳細説明を入力"
-                      className="min-h-[120px] resize-y"
-                      disabled={isPreparing}
-                      {...field}
-                    />
-                  </FormControl>
+                  <FormLabel>公開日時（任意・日本時間）</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        className="w-auto"
+                        disabled={isPreparing}
+                        {...field}
+                      />
+                    </FormControl>
+                    {field.value && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isPreparing}
+                        onClick={() => field.onChange("")}
+                      >
+                        クリア
+                      </Button>
+                    )}
+                  </div>
+                  <FormDescription>
+                    指定した日時になるまで、スタンスとコメントは公開サイトに表示されません。空欄の場合は保存と同時に公開されます。
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

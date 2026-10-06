@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { StanceInput } from "../../shared/types";
+import { toStanceColumns } from "../../shared/utils/to-stance-columns";
 
 export async function findStanceByBillId(billId: string) {
   const supabase = createAdminClient();
@@ -25,8 +26,7 @@ export async function createMiraiStance(billId: string, input: StanceInput) {
   const supabase = createAdminClient();
   const { error } = await supabase.from("mirai_stances").insert({
     bill_id: billId,
-    type: input.type,
-    comment: input.comment || null,
+    ...toStanceColumns(input),
   });
 
   if (error) {
@@ -39,8 +39,7 @@ export async function updateMiraiStance(stanceId: string, input: StanceInput) {
   const { error } = await supabase
     .from("mirai_stances")
     .update({
-      type: input.type,
-      comment: input.comment || null,
+      ...toStanceColumns(input),
       updated_at: new Date().toISOString(),
     })
     .eq("id", stanceId);
@@ -60,8 +59,7 @@ export async function upsertMiraiStance(billId: string, input: StanceInput) {
   const { error } = await supabase.from("mirai_stances").upsert(
     {
       bill_id: billId,
-      type: input.type,
-      comment: input.comment || null,
+      ...toStanceColumns(input),
       updated_at: new Date().toISOString(),
     },
     { onConflict: "bill_id" }
