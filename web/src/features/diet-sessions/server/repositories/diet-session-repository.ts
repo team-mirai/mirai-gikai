@@ -139,9 +139,9 @@ export async function findDietSessionsBefore(
     .not("slug", "is", null)
     .order("start_date", { ascending: false });
 
+  // 空配列で返すとキャッシュに載って固定されるため、呼び出し側（キャッシュの外）で扱う
   if (error) {
-    console.error("Failed to fetch past diet sessions:", error);
-    return [];
+    throw new Error(`Failed to fetch past diet sessions: ${error.message}`);
   }
 
   // クエリで除外済みだが、slug を non-null に型で絞るために filter する

@@ -321,9 +321,11 @@ export async function countPublishedBillsByDietSession(
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel);
 
+  // 0件で返すとキャッシュに載って固定されるため、呼び出し側（キャッシュの外）で扱う
   if (error) {
-    console.error("Failed to count published bills by diet session:", error);
-    return 0;
+    throw new Error(
+      `Failed to count published bills by diet session: ${error.message}`
+    );
   }
 
   return count ?? 0;

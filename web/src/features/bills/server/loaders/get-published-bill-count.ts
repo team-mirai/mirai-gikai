@@ -8,8 +8,21 @@ import { countPublishedBillsByDietSession } from "../repositories/bill-repositor
 /**
  * 会期ごとの公開議案数（キャッシュ付き）。
  * 前回の国会セクションと過去の会期一覧で同じキャッシュを共有する。
+ * 取得に失敗したときは 0 を返す（失敗結果はキャッシュしない）。
  */
-export const getPublishedBillCount = unstable_cache(
+export async function getPublishedBillCount(
+  dietSessionId: string,
+  difficultyLevel: DifficultyLevelEnum
+): Promise<number> {
+  try {
+    return await _getCachedPublishedBillCount(dietSessionId, difficultyLevel);
+  } catch (error) {
+    console.error(error);
+    return 0;
+  }
+}
+
+const _getCachedPublishedBillCount = unstable_cache(
   async (
     dietSessionId: string,
     difficultyLevel: DifficultyLevelEnum

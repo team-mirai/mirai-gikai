@@ -16,7 +16,13 @@ export async function getPastDietSessions(): Promise<SluggedDietSession[]> {
     return [];
   }
 
-  return _getCachedPastDietSessions(activeSession.start_date);
+  // 失敗結果はキャッシュせず、一覧を出さないだけに留める
+  try {
+    return await _getCachedPastDietSessions(activeSession.start_date);
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 }
 
 const _getCachedPastDietSessions = unstable_cache(
