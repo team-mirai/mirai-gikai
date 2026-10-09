@@ -56,11 +56,17 @@ export function TopicList({
     <div className="flex flex-col gap-6">
       {/* 件数ラベル + フィルタchip */}
       <div className="flex flex-col gap-4">
-        <p className="text-[13px] font-bold text-topic-label">
+        <p
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="text-[13px] font-bold text-topic-label"
+        >
           {filtered.length}件のトピック（{opinionCount}件の意見まとめ）
           {sortLabel && `｜${sortLabel}`}
         </p>
         <TopicFilterChips
+          ariaLabel="トピックを絞り込む"
           activeFilter={filter}
           onSelect={selectFilter}
           counts={filterCounts}
