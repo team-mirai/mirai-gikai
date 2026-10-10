@@ -8,9 +8,8 @@ import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
 import {
-  AiGeneratedBanner,
   ReviewCompleteBadge,
-  ReviewInProgressBanner,
+  ReviewStateBanner,
 } from "../../../client/components/bill-detail/review-status-banner";
 import { BillStatusBadge } from "../../../client/components/bill-list/bill-status-badge";
 import { BillTag } from "../../../client/components/bill-list/bill-tag";
@@ -95,14 +94,9 @@ export async function BillDetailHeader({
         <p className="text-sm text-muted-foreground font-medium mb-4">
           {bill.name}
         </p>
-        {reviewState === "in_review" && (
+        {reviewState !== "reviewed" && (
           <div className="mb-4">
-            <ReviewInProgressBanner />
-          </div>
-        )}
-        {reviewState === "ai_generated" && (
-          <div className="mb-4">
-            <AiGeneratedBanner />
+            <ReviewStateBanner state={reviewState} />
           </div>
         )}
 
