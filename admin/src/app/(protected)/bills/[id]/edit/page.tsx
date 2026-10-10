@@ -5,6 +5,7 @@ import { routes } from "@/lib/routes";
 import { BillEditForm } from "@/features/bills-edit/client/components/bill-edit-form";
 import { BillTagsForm } from "@/features/bills-edit/client/components/bill-tags-form";
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
+import { getBillContents } from "@/features/bills-edit/server/loaders/get-bill-contents";
 import { getBillTagIds } from "@/features/bills-edit/server/loaders/get-bill-tag-ids";
 import { loadDietSessions } from "@/features/diet-sessions/server/loaders/load-diet-sessions";
 import { StanceForm } from "@/features/mirai-stance/client/components/stance-form";
@@ -19,18 +20,23 @@ interface BillEditPageProps {
 
 export default async function BillEditPage({ params }: BillEditPageProps) {
   const { id } = await params;
-  const [bill, stance, allTags, selectedTagIds, dietSessions] =
+  const [bill, stance, allTags, selectedTagIds, dietSessions, contents] =
     await Promise.all([
       getBillById(id),
       getStanceByBillId(id),
       loadTags(),
       getBillTagIds(id),
       loadDietSessions(),
+      getBillContents(id),
     ]);
 
   if (!bill) {
     notFound();
   }
+
+  const normalTitle = contents.find(
+    (content) => content.difficulty_level === "normal"
+  )?.title;
 
   return (
     <div>
@@ -50,7 +56,11 @@ export default async function BillEditPage({ params }: BillEditPageProps) {
       </div>
 
       <div className="space-y-6">
-        <BillEditForm bill={bill} dietSessions={dietSessions} />
+        <BillEditForm
+          bill={bill}
+          dietSessions={dietSessions}
+          shareImageDefaultTitle={normalTitle || bill.name}
+        />
         <StanceForm billId={bill.id} stance={stance} billStatus={bill.status} />
         <BillTagsForm
           billId={bill.id}

@@ -29,6 +29,7 @@ import {
 import type { DietSession } from "@/features/diet-sessions/shared/types";
 import type { BillCreateInput } from "../../shared/types";
 import { shouldAutoCloseInterviewOnBillStatus } from "../../shared/utils/should-auto-close-interview";
+import { ShareImageGenerator } from "./share-image-generator";
 import { ThumbnailUpload } from "./thumbnail-upload";
 
 const BILL_STATUS_OPTIONS: Array<{ value: BillStatus; label: string }> = [
@@ -51,12 +52,14 @@ interface BillFormFieldsProps {
   control: Control<BillCreateInput>;
   billId?: string;
   dietSessions: DietSession[];
+  shareImageDefaultTitle?: string;
 }
 
 export function BillFormFields({
   control,
   billId,
   dietSessions,
+  shareImageDefaultTitle,
 }: BillFormFieldsProps) {
   return (
     <>
@@ -218,6 +221,13 @@ export function BillFormFields({
               Twitter等のSNSでシェアされた際に表示される画像を設定してください（任意）。設定しない場合はサムネイル画像が使用されます。
             </FormDescription>
             <FormMessage />
+            {billId && shareImageDefaultTitle !== undefined && (
+              <ShareImageGenerator
+                billId={billId}
+                defaultTitle={shareImageDefaultTitle}
+                onGenerated={field.onChange}
+              />
+            )}
           </FormItem>
         )}
       />

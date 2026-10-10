@@ -162,3 +162,24 @@ export async function createBillsTags(billId: string, tagIds: string[]) {
     throw new Error(`Failed to create bill tags: ${error.message}`);
   }
 }
+
+export async function uploadBillThumbnailFile(params: {
+  fileName: string;
+  body: ArrayBuffer;
+  contentType: string;
+}) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage
+    .from("bill-thumbnails")
+    .upload(params.fileName, params.body, {
+      contentType: params.contentType,
+      cacheControl: "3600",
+    });
+
+  if (error) {
+    throw new Error(`Failed to upload bill thumbnail: ${error.message}`);
+  }
+
+  return supabase.storage.from("bill-thumbnails").getPublicUrl(data.path).data
+    .publicUrl;
+}
