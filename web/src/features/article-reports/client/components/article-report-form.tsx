@@ -8,6 +8,7 @@ import {
 import { Check, Flag } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { cn } from "@/lib/utils";
 import { submitArticleReport } from "../../server/actions/submit-article-report";
@@ -107,6 +108,7 @@ export function ArticleReportForm({
                 type="button"
                 variant="outline"
                 aria-pressed={selected}
+                disabled={isPending}
                 onClick={() => setCategory(selected ? null : value)}
                 className={cn(
                   "h-auto min-h-9 px-3 py-0 bg-white text-[13px] font-bold shadow-none hover:bg-white",
@@ -120,7 +122,7 @@ export function ArticleReportForm({
             );
           })}
         </fieldset>
-        <textarea
+        <Textarea
           required
           aria-required="true"
           aria-label="誤りの内容"
@@ -129,12 +131,13 @@ export function ArticleReportForm({
           placeholder="どの部分が、どう違っていたか"
           rows={3}
           maxLength={ARTICLE_REPORT_BODY_MAX_LENGTH}
-          className="w-full resize-y rounded-md border border-mirai-border px-3 py-2.5 text-[13px] leading-[1.6] text-mirai-text placeholder:text-mirai-text-placeholder focus:outline-2 focus:outline-offset-0 focus:outline-primary"
+          className="block field-sizing-fixed resize-y border-mirai-border bg-white px-3 py-2.5 text-[13px] leading-[1.6] text-mirai-text shadow-none placeholder:text-mirai-text-placeholder md:text-[13px] focus:outline-solid focus:outline-2 focus:outline-offset-0 focus:outline-primary focus-visible:border-mirai-border focus-visible:ring-0"
         />
         <div className="flex items-center justify-end gap-2">
           <Button
             type="button"
             variant="ghost"
+            disabled={isPending}
             onClick={close}
             className="h-auto min-h-10 px-3.5 py-0 bg-transparent text-[13px] font-bold text-mirai-text-muted hover:bg-transparent hover:text-mirai-text-muted hover:opacity-70"
           >
