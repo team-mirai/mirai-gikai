@@ -95,6 +95,7 @@ export type Database = {
       }
       bills: {
         Row: {
+          article_kind: Database["public"]["Enums"]["bill_article_kind"]
           created_at: string
           diet_session_id: string | null
           id: string
@@ -118,6 +119,7 @@ export type Database = {
           use_knowledge_source_in_chat: boolean
         }
         Insert: {
+          article_kind?: Database["public"]["Enums"]["bill_article_kind"]
           created_at?: string
           diet_session_id?: string | null
           id?: string
@@ -141,6 +143,7 @@ export type Database = {
           use_knowledge_source_in_chat?: boolean
         }
         Update: {
+          article_kind?: Database["public"]["Enums"]["bill_article_kind"]
           created_at?: string
           diet_session_id?: string | null
           id?: string
@@ -1398,6 +1401,7 @@ export type Database = {
       }
     }
     Enums: {
+      bill_article_kind: "standard" | "ai_generated"
       bill_publish_status: "draft" | "published" | "coming_soon"
       bill_status_enum:
         | "introduced"
@@ -1564,6 +1568,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      bill_article_kind: ["standard", "ai_generated"],
       bill_publish_status: ["draft", "published", "coming_soon"],
       bill_status_enum: [
         "introduced",
