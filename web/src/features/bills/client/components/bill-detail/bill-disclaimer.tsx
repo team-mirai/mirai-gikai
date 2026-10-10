@@ -13,6 +13,9 @@ export function BillDisclaimer() {
           <ManualRuby ruby="かくほう">閣法</ManualRuby>
           ）を対象としております。
         </p>
+        <p className="text-xs leading-relaxed text-mirai-text-note">
+          「AI自動生成版」の記事は、AIが作成した解説を人によるレビューを経ずに掲載しています。「チームみらいの賛否」は党が作成しており、AI生成の対象ではありません。
+        </p>
       </div>
 
       {/* 掲載コンテンツについての免責事項 */}
