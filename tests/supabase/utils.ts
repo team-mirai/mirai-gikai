@@ -130,6 +130,7 @@ export async function createTestBill(
     is_featured: boolean;
     submitted_date: string;
     shugiin_url: string;
+    article_kind: "standard" | "ai_generated";
   }> = {}
 ) {
   const defaults = {

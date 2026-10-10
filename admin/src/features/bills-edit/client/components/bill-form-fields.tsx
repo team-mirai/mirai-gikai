@@ -22,6 +22,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  ARTICLE_KIND_LABELS,
+  type BillArticleKind,
   type BillStatus,
   HOUSE_LABELS,
   type OriginatingHouse,
@@ -43,6 +45,13 @@ const BILL_STATUS_OPTIONS: Array<{ value: BillStatus; label: string }> = [
 const ORIGINATING_HOUSE_OPTIONS = Object.entries(HOUSE_LABELS).map(
   ([value, label]) => ({
     value: value as OriginatingHouse,
+    label,
+  })
+);
+
+const ARTICLE_KIND_OPTIONS = Object.entries(ARTICLE_KIND_LABELS).map(
+  ([value, label]) => ({
+    value: value as BillArticleKind,
     label,
   })
 );
@@ -333,6 +342,34 @@ export function BillFormFields({
                 未完了の場合、記事にレビュー中バナーが表示されます
               </FormDescription>
             </div>
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="article_kind"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>記事の種別</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="記事の種別を選択" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {ARTICLE_KIND_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              AI自動生成版は、人のレビューを経ていない記事として表示されます。レビュー後に通常版へ戻す場合は「記事レビュー完了」もオンにしてください
+            </FormDescription>
+            <FormMessage />
           </FormItem>
         )}
       />

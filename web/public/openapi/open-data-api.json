@@ -350,7 +350,8 @@
           "publishedAt",
           "tags",
           "miraiStance",
-          "createdAt"
+          "createdAt",
+          "articleKind"
         ],
         "properties": {
           "billId": {
@@ -436,6 +437,11 @@
             "type": "string",
             "format": "date-time",
             "description": "作成日時（ISO 8601）。一覧の並び順のキー。"
+          },
+          "articleKind": {
+            "type": "string",
+            "enum": ["standard", "ai_generated"],
+            "description": "記事の種別（standard: 通常版 / ai_generated: 人のレビューを経ていないAI自動生成版）"
           }
         }
       },

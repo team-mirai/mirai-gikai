@@ -1,4 +1,5 @@
 import type {
+  BillArticleKind,
   BillStatusEnum,
   HouseEnum,
   StanceTypeEnum,
@@ -39,6 +40,8 @@ export type OpenDataBillItem = {
   /** チームみらいの賛否。未表明の場合は null */
   miraiStance: OpenDataMiraiStance | null;
   createdAt: string;
+  /** 記事の種別（standard: 通常版 / ai_generated: 人のレビューを経ていないAI自動生成版） */
+  articleKind: BillArticleKind;
 };
 
 export type OpenDataBillsResult = {
