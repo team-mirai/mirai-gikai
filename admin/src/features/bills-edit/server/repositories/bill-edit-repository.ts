@@ -3,6 +3,7 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { BillInsert } from "../../shared/types";
 import type { DifficultyLevel } from "../../shared/types/bill-contents";
+import { BILL_THUMBNAILS_BUCKET } from "../../shared/utils/share-image";
 
 export async function findBillById(id: string) {
   const supabase = createAdminClient();
@@ -170,7 +171,7 @@ export async function uploadBillThumbnailFile(params: {
 }) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.storage
-    .from("bill-thumbnails")
+    .from(BILL_THUMBNAILS_BUCKET)
     .upload(params.fileName, params.body, {
       contentType: params.contentType,
       cacheControl: "3600",
@@ -180,6 +181,6 @@ export async function uploadBillThumbnailFile(params: {
     throw new Error(`Failed to upload bill thumbnail: ${error.message}`);
   }
 
-  return supabase.storage.from("bill-thumbnails").getPublicUrl(data.path).data
-    .publicUrl;
+  return supabase.storage.from(BILL_THUMBNAILS_BUCKET).getPublicUrl(data.path)
+    .data.publicUrl;
 }

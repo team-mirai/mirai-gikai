@@ -37,15 +37,16 @@ export function ShareImageGenerator({
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [previewFailed, setPreviewFailed] = useState(false);
 
   const validation = validateShareImageTitle(title);
 
   useEffect(() => {
     if (!validateShareImageTitle(title).ok) return;
-    const timer = setTimeout(
-      () => setPreviewPath(buildShareImagePreviewPath({ title, photoUrl })),
-      PREVIEW_DEBOUNCE_MS
-    );
+    const timer = setTimeout(() => {
+      setPreviewFailed(false);
+      setPreviewPath(buildShareImagePreviewPath({ title, photoUrl }));
+    }, PREVIEW_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [title, photoUrl]);
 
@@ -54,29 +55,37 @@ export function ShareImageGenerator({
     if (!file) return;
     setIsUploading(true);
     setMessage(null);
-    const result = await uploadThumbnail(file, billId, "share-src");
-    setIsUploading(false);
-    if (result.error || !result.url) {
-      setMessage(result.error ?? "アップロードに失敗しました");
-      return;
+    try {
+      const result = await uploadThumbnail(file, billId, "share-src");
+      if (result.error || !result.url) {
+        setMessage(result.error ?? "アップロードに失敗しました");
+        return;
+      }
+      setPhotoUrl(result.url);
+    } finally {
+      setIsUploading(false);
     }
-    setPhotoUrl(result.url);
   };
 
   const handleGenerate = async () => {
     if (!photoUrl) return;
     setIsGenerating(true);
     setMessage(null);
-    const result = await generateShareImage({ billId, title, photoUrl });
-    setIsGenerating(false);
-    if ("error" in result) {
-      setMessage(result.error);
-      return;
+    try {
+      const result = await generateShareImage({ billId, title, photoUrl });
+      if ("error" in result) {
+        setMessage(result.error);
+        return;
+      }
+      onGenerated(result.url);
+      setMessage(
+        "シェア画像に設定しました。保存ボタンを押すと議案に反映されます。"
+      );
+    } catch {
+      setMessage("シェア画像の生成に失敗しました");
+    } finally {
+      setIsGenerating(false);
     }
-    onGenerated(result.url);
-    setMessage(
-      "シェア画像に設定しました。保存ボタンを押すと議案に反映されます。"
-    );
   };
 
   return (
@@ -123,8 +132,14 @@ export function ShareImageGenerator({
             width={SHARE_IMAGE_WIDTH}
             height={SHARE_IMAGE_HEIGHT}
             unoptimized
+            onError={() => setPreviewFailed(true)}
             className="w-full max-w-xl rounded-lg border"
           />
+          {previewFailed && (
+            <p className="text-sm text-destructive">
+              プレビューの生成に失敗しました
+            </p>
+          )}
         </div>
       )}
 

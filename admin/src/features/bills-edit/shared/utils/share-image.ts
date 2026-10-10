@@ -5,14 +5,14 @@ export const SHARE_IMAGE_TITLE_MAX_LENGTH = 60;
 export const SHARE_IMAGE_TITLE_MAX_LINES = 3;
 export const SHARE_IMAGE_TITLE_FONT_SIZE = 105;
 export const SHARE_IMAGE_TITLE_LINE_HEIGHT = 150;
-export const SHARE_IMAGE_TITLE_LETTER_SPACING = "0.03em";
+export const SHARE_IMAGE_TITLE_LETTER_SPACING_EM = 0.03;
 export const SHARE_IMAGE_TITLE_LEFT = 136;
 export const SHARE_IMAGE_TITLE_OFFSET_Y = -7;
 export const SHARE_IMAGE_TITLE_MAX_WIDTH = 1560;
 
-export const SHARE_IMAGE_BUCKET = "bill-thumbnails";
+export const BILL_THUMBNAILS_BUCKET = "bill-thumbnails";
 
-const HALF_WIDTH_RATIO = 0.6;
+const HALF_WIDTH_RATIO = 0.65;
 
 export function splitShareImageTitle(title: string): string[] {
   return title
@@ -22,11 +22,14 @@ export function splitShareImageTitle(title: string): string[] {
     .filter((line) => line.length > 0);
 }
 
-/** 全角1・半角0.6として、フォントサイズ何文字分の幅になるかを見積もる */
+/** 全角1・半角0.65に字間を足して、フォントサイズ何文字分の幅になるかを安全側に見積もる */
 export function estimateLineWidthInEm(line: string): number {
   let width = 0;
   for (const char of line) {
-    width += /[ -~｡-ﾟ]/.test(char) ? HALF_WIDTH_RATIO : 1;
+    const glyph = /[\u0020-\u007e\uff61-\uff9f]/.test(char)
+      ? HALF_WIDTH_RATIO
+      : 1;
+    width += glyph + SHARE_IMAGE_TITLE_LETTER_SPACING_EM;
   }
   return width;
 }
@@ -83,7 +86,7 @@ export function isAllowedSharePhotoUrl(
   }
   if (photo.origin !== supabase.origin) return false;
   if (photo.username || photo.password) return false;
-  const prefix = `/storage/v1/object/public/${SHARE_IMAGE_BUCKET}/`;
+  const prefix = `/storage/v1/object/public/${BILL_THUMBNAILS_BUCKET}/`;
   if (!photo.pathname.startsWith(prefix)) return false;
   const fileName = photo.pathname.slice(prefix.length);
   return /^[A-Za-z0-9._-]+$/.test(fileName) && !fileName.includes("..");

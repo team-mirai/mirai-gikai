@@ -119,6 +119,10 @@
     "./mirai-stance/reason-format": {
       "types": "./src/mirai-stance/reason-format.ts",
       "default": "./src/mirai-stance/reason-format.ts"
+    },
+    "./og/assets": {
+      "types": "./src/og/og-assets.ts",
+      "default": "./src/og/og-assets.ts"
     }
   },
   "dependencies": {

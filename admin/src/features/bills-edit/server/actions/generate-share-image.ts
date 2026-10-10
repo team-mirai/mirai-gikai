@@ -1,10 +1,14 @@
 "use server";
 
+import { z } from "zod";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
 import { env } from "@/lib/env";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { parseShareImageInput } from "../../shared/utils/share-image";
-import { uploadBillThumbnailFile } from "../repositories/bill-edit-repository";
+import {
+  findBillById,
+  uploadBillThumbnailFile,
+} from "../repositories/bill-edit-repository";
 import { renderShareImage } from "../utils/render-share-image";
 
 export async function generateShareImage(params: {
@@ -14,6 +18,11 @@ export async function generateShareImage(params: {
 }): Promise<{ url: string } | { error: string }> {
   try {
     await requireAdmin();
+    if (!z.string().uuid().safeParse(params.billId).success) {
+      return { error: "議案IDが不正です" };
+    }
+    const bill = await findBillById(params.billId).catch(() => null);
+    if (!bill) return { error: "議案が見つかりません" };
     const input = parseShareImageInput({
       title: params.title,
       photoUrl: params.photoUrl,

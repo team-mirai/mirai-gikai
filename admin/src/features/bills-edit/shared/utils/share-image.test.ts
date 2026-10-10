@@ -22,9 +22,9 @@ describe("splitShareImageTitle", () => {
 });
 
 describe("estimateLineWidthInEm", () => {
-  it("全角を1、半角を0.6として数える", () => {
-    expect(estimateLineWidthInEm("法案")).toBe(2);
-    expect(estimateLineWidthInEm("AI画像")).toBeCloseTo(3.2);
+  it("全角を1、半角を0.65とし、1文字ごとに字間0.03を足す", () => {
+    expect(estimateLineWidthInEm("法案")).toBeCloseTo(2.06);
+    expect(estimateLineWidthInEm("AI画像")).toBeCloseTo(3.42);
   });
 });
 
@@ -62,6 +62,10 @@ describe("validateShareImageTitle", () => {
       ok: false,
       error: "タイトルは改行を除いて60文字以内にしてください",
     });
+  });
+
+  it("全角14文字の行は収まる", () => {
+    expect(validateShareImageTitle("あ".repeat(14)).ok).toBe(true);
   });
 
   it("1行が画像幅に収まらない場合は行番号つきでエラー", () => {

@@ -1,13 +1,18 @@
 import "server-only";
 
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import {
+  buildOgFontOptions,
+  fetchWithTimeout,
+  loadNotoSansJp,
+  loadOgpLogoDataUrl,
+  OG_FONT_FAMILY,
+} from "@mirai-gikai/shared/og/assets";
 import { ImageResponse } from "next/og";
 import {
   SHARE_IMAGE_HEIGHT,
   SHARE_IMAGE_TITLE_FONT_SIZE,
   SHARE_IMAGE_TITLE_LEFT,
-  SHARE_IMAGE_TITLE_LETTER_SPACING,
+  SHARE_IMAGE_TITLE_LETTER_SPACING_EM,
   SHARE_IMAGE_TITLE_LINE_HEIGHT,
   SHARE_IMAGE_TITLE_MAX_WIDTH,
   SHARE_IMAGE_TITLE_OFFSET_Y,
@@ -20,54 +25,13 @@ import {
   SHARE_IMAGE_TAB,
 } from "../../shared/utils/share-image-frame";
 
-const FETCH_TIMEOUT_MS = 5000;
+const PHOTO_FETCH_TIMEOUT_MS = 5000;
 const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 const PHOTO_CONTENT_TYPES = ["image/jpeg", "image/png"];
 const OVERLAY_OPACITY = 0.4;
 const FALLBACK_BACKGROUND = "#C8C8C8";
 const TEXT_COLOR = "#1F2937";
-const TITLE_FONT_WEIGHT = 700;
-const TAB_FONT_WEIGHT = 700;
-
-async function fetchWithTimeout(url: string) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  try {
-    return await fetch(url, { signal: controller.signal });
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-const fontCache = new Map<number, ArrayBuffer>();
-
-/** Satori は woff2 を読めないので、User-Agent を送らずに TTF を取得する */
-async function loadFont(weight: number): Promise<ArrayBuffer> {
-  const cached = fontCache.get(weight);
-  if (cached) return cached;
-  const cssRes = await fetchWithTimeout(
-    `https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@${weight}&display=swap`
-  );
-  if (!cssRes.ok) throw new Error("フォントの取得に失敗しました");
-  const fontUrl = (await cssRes.text())
-    .match(/src:\s*url\(([^)]+)\)\s*format\('(opentype|truetype)'\)/)?.[1]
-    ?.replace(/^["']|["']$/g, "");
-  if (!fontUrl) throw new Error("フォントの取得に失敗しました");
-  const fontRes = await fetchWithTimeout(fontUrl);
-  if (!fontRes.ok) throw new Error("フォントの取得に失敗しました");
-  const data = await fontRes.arrayBuffer();
-  fontCache.set(weight, data);
-  return data;
-}
-
-let cachedLogoDataUrl: string | null = null;
-
-async function loadLogo(): Promise<string> {
-  if (cachedLogoDataUrl) return cachedLogoDataUrl;
-  const buf = await readFile(join(process.cwd(), "public/img/ogp-logo.png"));
-  cachedLogoDataUrl = `data:image/png;base64,${buf.toString("base64")}`;
-  return cachedLogoDataUrl;
-}
+const FONT_WEIGHT = 700;
 
 const frameDataUrl = `data:image/svg+xml;base64,${Buffer.from(
   buildShareImageFrameSvg()
@@ -75,11 +39,18 @@ const frameDataUrl = `data:image/svg+xml;base64,${Buffer.from(
 
 /** photoUrl は呼び出し側で isAllowedSharePhotoUrl を通したものに限る */
 async function loadPhoto(photoUrl: string): Promise<string> {
-  const res = await fetchWithTimeout(photoUrl);
+  const res = await fetchWithTimeout(
+    photoUrl,
+    { redirect: "error" },
+    PHOTO_FETCH_TIMEOUT_MS
+  );
   if (!res.ok) throw new Error("背景写真の取得に失敗しました");
   const contentType = res.headers.get("content-type")?.split(";")[0] ?? "";
   if (!PHOTO_CONTENT_TYPES.includes(contentType)) {
     throw new Error("背景写真は JPEG か PNG にしてください");
+  }
+  if (Number(res.headers.get("content-length")) > PHOTO_MAX_BYTES) {
+    throw new Error("背景写真は5MB以下にしてください");
   }
   const buf = Buffer.from(await res.arrayBuffer());
   if (buf.byteLength > PHOTO_MAX_BYTES) {
@@ -92,10 +63,9 @@ export async function renderShareImage(params: {
   lines: string[];
   photoUrl?: string | null;
 }): Promise<ImageResponse> {
-  const [titleFont, tabFont, logo, photo] = await Promise.all([
-    loadFont(TITLE_FONT_WEIGHT),
-    loadFont(TAB_FONT_WEIGHT),
-    loadLogo(),
+  const [font, logo, photo] = await Promise.all([
+    loadNotoSansJp(FONT_WEIGHT),
+    loadOgpLogoDataUrl(),
     params.photoUrl ? loadPhoto(params.photoUrl) : Promise.resolve(null),
   ]);
 
@@ -111,7 +81,7 @@ export async function renderShareImage(params: {
         display: "flex",
         position: "relative",
         backgroundColor: FALLBACK_BACKGROUND,
-        fontFamily: "Noto Sans JP",
+        fontFamily: OG_FONT_FAMILY,
       }}
     >
       {photo && (
@@ -157,7 +127,7 @@ export async function renderShareImage(params: {
           paddingLeft: 6,
           paddingBottom: 4,
           fontSize: 46,
-          fontWeight: TAB_FONT_WEIGHT,
+          fontWeight: FONT_WEIGHT,
           color: TEXT_COLOR,
           letterSpacing: "0.08em",
         }}
@@ -176,9 +146,9 @@ export async function renderShareImage(params: {
           justifyContent: "center",
           color: "white",
           fontSize: SHARE_IMAGE_TITLE_FONT_SIZE,
-          fontWeight: TITLE_FONT_WEIGHT,
+          fontWeight: FONT_WEIGHT,
           lineHeight: `${SHARE_IMAGE_TITLE_LINE_HEIGHT}px`,
-          letterSpacing: SHARE_IMAGE_TITLE_LETTER_SPACING,
+          letterSpacing: `${SHARE_IMAGE_TITLE_LETTER_SPACING_EM}em`,
         }}
       >
         {params.lines.map((line, index) => (
@@ -188,32 +158,25 @@ export async function renderShareImage(params: {
           </div>
         ))}
       </div>
-      {/* biome-ignore lint/performance/noImgElement: Satori は img のみ対応 */}
-      <img
-        alt="チームみらいロゴ"
-        src={logo}
-        width={logoBox.width}
-        height={logoBox.height}
-        style={{ position: "absolute", top: logoBox.top, left: logoBox.left }}
-      />
+      {logo && (
+        // biome-ignore lint/performance/noImgElement: Satori は img のみ対応
+        <img
+          alt="チームみらいロゴ"
+          src={logo}
+          width={logoBox.width}
+          height={logoBox.height}
+          style={{
+            position: "absolute",
+            top: logoBox.top,
+            left: logoBox.left,
+          }}
+        />
+      )}
     </div>,
     {
       width: SHARE_IMAGE_WIDTH,
       height: SHARE_IMAGE_HEIGHT,
-      fonts: [
-        {
-          name: "Noto Sans JP",
-          data: titleFont,
-          style: "normal",
-          weight: TITLE_FONT_WEIGHT,
-        },
-        {
-          name: "Noto Sans JP",
-          data: tabFont,
-          style: "normal",
-          weight: TAB_FONT_WEIGHT,
-        },
-      ],
+      ...buildOgFontOptions(font, FONT_WEIGHT),
     }
   );
 }
