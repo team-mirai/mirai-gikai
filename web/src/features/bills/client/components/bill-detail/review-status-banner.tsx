@@ -7,7 +7,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ArticleReviewState } from "../../../shared/utils/article-review-state";
 
 /** Figmaデザイン準拠のレビュー完了チェックアイコン */
 function ReviewCheckIcon({
@@ -42,7 +41,7 @@ function ReviewCheckIcon({
 /**
  * 通常版でレビュー未完了の記事上部に表示するバナー
  */
-function ReviewInProgressBanner() {
+export function ReviewInProgressBanner() {
   return (
     <div className="flex gap-2 items-center rounded-2xl bg-mirai-surface-gray px-4 py-2">
       <Info className="size-5 shrink-0 text-mirai-text" />
@@ -51,29 +50,6 @@ function ReviewInProgressBanner() {
       </p>
     </div>
   );
-}
-
-/**
- * AI自動生成版の記事上部に表示するバナー
- */
-function AiGeneratedBanner() {
-  return (
-    <div className="flex gap-1.5 items-start rounded-2xl bg-mirai-surface-grouped px-4 py-2.5">
-      <Info className="size-[15px] shrink-0 mt-[3px] text-mirai-text-muted" />
-      <p className="text-[13px] font-medium leading-[1.6] text-mirai-text-note">
-        この記事はAIが作成しており誤りを含む可能性があります。お気づきの点はご報告ください。
-      </p>
-    </div>
-  );
-}
-
-/**
- * 記事のレビュー状態に応じたバナー。レビュー済みの記事には何も出さない
- */
-export function ReviewStateBanner({ state }: { state: ArticleReviewState }) {
-  if (state === "in_review") return <ReviewInProgressBanner />;
-  if (state === "ai_generated") return <AiGeneratedBanner />;
-  return null;
 }
 
 interface ReviewCompleteBadgeProps {
