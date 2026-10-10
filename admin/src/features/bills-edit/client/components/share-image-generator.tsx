@@ -42,7 +42,10 @@ export function ShareImageGenerator({
   const validation = validateShareImageTitle(title);
 
   useEffect(() => {
-    if (!validateShareImageTitle(title).ok) return;
+    if (!validateShareImageTitle(title).ok) {
+      setPreviewPath(null);
+      return;
+    }
     const timer = setTimeout(() => {
       setPreviewFailed(false);
       setPreviewPath(buildShareImagePreviewPath({ title, photoUrl }));
