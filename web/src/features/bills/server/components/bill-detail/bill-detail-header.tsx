@@ -3,14 +3,13 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_DIFFICULTY } from "@/features/bill-difficulty/shared/types";
 import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
-import {
-  ReviewCompleteBadge,
-  ReviewStateBanner,
-} from "../../../client/components/bill-detail/review-status-banner";
+import { ReviewStateBanner } from "../../../client/components/bill-detail/review-state-banner";
+import { ReviewCompleteBadge } from "../../../client/components/bill-detail/review-status-banner";
 import { BillStatusBadge } from "../../../client/components/bill-list/bill-status-badge";
 import { BillTag } from "../../../client/components/bill-list/bill-tag";
 import { getBillShareData } from "../../../client/utils/share";
@@ -96,7 +95,13 @@ export async function BillDetailHeader({
         </p>
         {reviewState !== "reviewed" && (
           <div className="mb-4">
-            <ReviewStateBanner state={reviewState} />
+            <ReviewStateBanner
+              state={reviewState}
+              billId={bill.id}
+              difficultyLevel={
+                bill.bill_content?.difficulty_level ?? DEFAULT_DIFFICULTY
+              }
+            />
           </div>
         )}
 

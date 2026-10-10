@@ -52,6 +52,47 @@ export type Database = {
         }
         Relationships: []
       }
+      bill_article_reports: {
+        Row: {
+          bill_id: string
+          body: string
+          category:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at: string
+          difficulty_level: Database["public"]["Enums"]["difficulty_level_enum"]
+          id: string
+        }
+        Insert: {
+          bill_id: string
+          body: string
+          category?:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at?: string
+          difficulty_level: Database["public"]["Enums"]["difficulty_level_enum"]
+          id?: string
+        }
+        Update: {
+          bill_id?: string
+          body?: string
+          category?:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at?: string
+          difficulty_level?: Database["public"]["Enums"]["difficulty_level_enum"]
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_article_reports_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bill_contents: {
         Row: {
           bill_id: string
@@ -1401,6 +1442,11 @@ export type Database = {
       }
     }
     Enums: {
+      article_report_category:
+        | "factual_error"
+        | "outdated"
+        | "unclear"
+        | "other"
       bill_article_kind: "standard" | "ai_generated"
       bill_publish_status: "draft" | "published" | "coming_soon"
       bill_status_enum:
@@ -1568,6 +1614,12 @@ export const Constants = {
   },
   public: {
     Enums: {
+      article_report_category: [
+        "factual_error",
+        "outdated",
+        "unclear",
+        "other",
+      ],
       bill_article_kind: ["standard", "ai_generated"],
       bill_publish_status: ["draft", "published", "coming_soon"],
       bill_status_enum: [
