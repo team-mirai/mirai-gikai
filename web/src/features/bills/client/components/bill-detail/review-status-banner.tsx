@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Info } from "lucide-react";
+import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -47,6 +47,20 @@ export function ReviewInProgressBanner() {
       <Info className="size-5 shrink-0 text-mirai-text" />
       <p className="text-[13px] font-medium leading-[1.5] text-mirai-text">
         この記事は現在、複数有識者によるレビュー中です。今後内容が変更されることがあります。
+      </p>
+    </div>
+  );
+}
+
+/**
+ * AI自動生成版の記事上部に表示するバナー
+ */
+export function AiGeneratedBanner() {
+  return (
+    <div className="flex gap-1.5 items-start rounded-2xl bg-mirai-surface-grouped px-4 py-2.5">
+      <Info className="size-[15px] shrink-0 mt-[3px] text-mirai-text-muted" />
+      <p className="text-[13px] font-medium leading-[1.6] text-mirai-text-note">
+        この記事はAIが作成しており誤りを含む可能性があります。お気づきの点はご報告ください。
       </p>
     </div>
   );
