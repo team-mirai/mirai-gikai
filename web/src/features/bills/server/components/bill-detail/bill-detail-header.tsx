@@ -8,6 +8,7 @@ import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
 import {
+  AiGeneratedBanner,
   ReviewCompleteBadge,
   ReviewInProgressBanner,
 } from "../../../client/components/bill-detail/review-status-banner";
@@ -15,6 +16,7 @@ import { BillStatusBadge } from "../../../client/components/bill-list/bill-statu
 import { BillTag } from "../../../client/components/bill-list/bill-tag";
 import { getBillShareData } from "../../../client/utils/share";
 import type { BillWithContent } from "../../../shared/types";
+import { getArticleReviewState } from "../../../shared/utils/article-review-state";
 
 interface BillDetailHeaderProps {
   bill: BillWithContent;
@@ -32,6 +34,7 @@ export async function BillDetailHeader({
   topicCount,
 }: BillDetailHeaderProps) {
   const displayTitle = bill.bill_content?.title;
+  const reviewState = getArticleReviewState(bill);
   const displaySummary = bill.bill_content?.summary;
 
   const { shareUrl, shareMessage, thumbnailUrl } = await getBillShareData(bill);
@@ -57,7 +60,7 @@ export async function BillDetailHeader({
         {displayTitle && (
           <h1 className="text-2xl font-bold mb-3">
             {displayTitle}
-            {bill.is_review_completed && (
+            {reviewState === "reviewed" && (
               <>
                 {" "}
                 <ReviewCompleteBadge showTooltip />
@@ -92,9 +95,14 @@ export async function BillDetailHeader({
         <p className="text-sm text-muted-foreground font-medium mb-4">
           {bill.name}
         </p>
-        {!bill.is_review_completed && (
+        {reviewState === "in_review" && (
           <div className="mb-4">
             <ReviewInProgressBanner />
+          </div>
+        )}
+        {reviewState === "ai_generated" && (
+          <div className="mb-4">
+            <AiGeneratedBanner />
           </div>
         )}
 
