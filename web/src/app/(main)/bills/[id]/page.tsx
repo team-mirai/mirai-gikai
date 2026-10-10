@@ -4,6 +4,7 @@ import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/ge
 import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { buildBillOgText } from "@/features/bills/shared/utils/bill-og-text";
+import { resolveBillShareImageUrl } from "@/features/bills/shared/utils/bill-share-image";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
@@ -29,12 +30,7 @@ export async function generateMetadata({
     bill,
     bill.bill_content?.summary
   );
-  const defaultOgpUrl = new URL("/ogp.jpg", env.webUrl).toString();
-
-  // シェア用OGP画像（share_thumbnail_url > thumbnail_url > デフォルト）
-  // ページ表示用のthumbnail_urlとは別に、SNSシェア用の画像を優先
-  const shareImageUrl =
-    bill.share_thumbnail_url || bill.thumbnail_url || defaultOgpUrl;
+  const shareImageUrl = resolveBillShareImageUrl(bill, env.webUrl);
 
   return {
     title: bill.name,

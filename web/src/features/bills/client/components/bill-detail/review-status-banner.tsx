@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { ArticleReviewState } from "../../../shared/utils/article-review-state";
 
 /** Figmaデザイン準拠のレビュー完了チェックアイコン */
 function ReviewCheckIcon({
@@ -64,6 +65,15 @@ export function AiGeneratedBanner() {
       </p>
     </div>
   );
+}
+
+/**
+ * 記事のレビュー状態に応じたバナー。レビュー済みの記事には何も出さない
+ */
+export function ReviewStateBanner({ state }: { state: ArticleReviewState }) {
+  if (state === "in_review") return <ReviewInProgressBanner />;
+  if (state === "ai_generated") return <AiGeneratedBanner />;
+  return null;
 }
 
 interface ReviewCompleteBadgeProps {

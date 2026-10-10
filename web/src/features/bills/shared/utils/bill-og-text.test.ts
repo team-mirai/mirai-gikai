@@ -25,4 +25,13 @@ describe("buildBillOgText", () => {
       description: "AIが作成した解説記事です（人のレビュー前）。要約",
     });
   });
+
+  it("AI自動生成版で要約がなければ定型文だけにする", () => {
+    expect(
+      buildBillOgText({ name: "テスト法案", article_kind: "ai_generated" }, "")
+    ).toEqual({
+      title: "【AI自動生成版】テスト法案｜みらい議会",
+      description: "AIが作成した解説記事です（人のレビュー前）。",
+    });
+  });
 });
