@@ -60,6 +60,7 @@ export const env = {
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
   supabasePublishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   revalidateSecret: process.env.REVALIDATE_SECRET,
+  articleReportSlackWebhookUrl: process.env.ARTICLE_REPORT_SLACK_WEBHOOK_URL,
   analytics: {
     gaTrackingId: process.env.NEXT_PUBLIC_GA_TRACKING_ID,
   },

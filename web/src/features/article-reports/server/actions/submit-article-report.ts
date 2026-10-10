@@ -13,7 +13,7 @@ export async function submitArticleReport(input: {
   category?: string;
   body: string;
 }): Promise<SubmitArticleReportResult> {
-  const webhookUrl = process.env.ARTICLE_REPORT_SLACK_WEBHOOK_URL;
+  const webhookUrl = env.articleReportSlackWebhookUrl;
 
   return submitArticleReportCore(input, {
     clientIp: getClientIp(await headers()) ?? "unknown",

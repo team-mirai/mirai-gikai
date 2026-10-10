@@ -1,6 +1,7 @@
 import "server-only";
 
 import { unstable_noStore as noStore } from "next/cache";
+import { z } from "zod";
 import {
   findArticleReportsByBillId,
   findBillNameById,
@@ -8,6 +9,7 @@ import {
 
 export async function getArticleReports(billId: string) {
   noStore();
+  if (!z.uuid().safeParse(billId).success) return null;
 
   const [bill, reports] = await Promise.all([
     findBillNameById(billId),
