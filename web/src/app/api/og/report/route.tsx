@@ -1,5 +1,8 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import {
+  buildOgFontOptions,
+  loadNotoSansJp,
+  loadOgpLogoDataUrl,
+} from "@mirai-gikai/shared/og/assets";
 import { ImageResponse } from "next/og";
 import { getReportOgData } from "@/features/interview-report/server/loaders/get-report-og-data";
 import { truncateText } from "@/features/interview-report/shared/utils/truncate-text";
@@ -11,67 +14,6 @@ const OG_SUMMARY_MAX_LENGTH = 100;
 const OG_BILL_NAME_MAX_LENGTH = 40;
 const OG_BILL_NAME_WIDTH = 820;
 const OG_BILL_NAME_MAX_HEIGHT = 96;
-
-const FONT_FETCH_TIMEOUT_MS = 3000;
-
-/** タイムアウト付きfetch */
-async function fetchWithTimeout(
-  url: string,
-  init?: RequestInit,
-  timeoutMs = FONT_FETCH_TIMEOUT_MS
-) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-/** フォントデータをモジュールレベルでキャッシュ */
-let cachedFontData: ArrayBuffer | null = null;
-
-/** ロゴ画像のBase64データをモジュールレベルでキャッシュ */
-let cachedLogoDataUrl: string | null = null;
-
-async function loadLogo(): Promise<string | null> {
-  if (cachedLogoDataUrl) return cachedLogoDataUrl;
-  try {
-    const logoPath = join(process.cwd(), "public/img/ogp-logo.png");
-    const buf = await readFile(logoPath);
-    cachedLogoDataUrl = `data:image/png;base64,${buf.toString("base64")}`;
-    return cachedLogoDataUrl;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Google Fontsからフォントデータを取得する。
- * User-Agentを送らないことでTTF形式を取得する（Satoriはwoff2非対応）。
- */
-async function loadFont(): Promise<ArrayBuffer | null> {
-  if (cachedFontData) return cachedFontData;
-
-  try {
-    const url =
-      "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@800&display=swap";
-    const cssRes = await fetchWithTimeout(url);
-    if (!cssRes.ok) return null;
-    const css = await cssRes.text();
-    const fontUrl = css
-      .match(/src:\s*url\(([^)]+)\)\s*format\('(opentype|truetype)'\)/)?.[1]
-      ?.replace(/^["']|["']$/g, "");
-    if (!fontUrl) return null;
-    const fontRes = await fetchWithTimeout(fontUrl);
-    if (!fontRes.ok) return null;
-    cachedFontData = await fontRes.arrayBuffer();
-    return cachedFontData;
-  } catch {
-    return null;
-  }
-}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -97,20 +39,11 @@ export async function GET(request: Request) {
     OG_BILL_NAME_MAX_LENGTH
   );
 
-  const [fontData, logoDataUrl] = await Promise.all([loadFont(), loadLogo()]);
-  // フォント取得失敗時はプロパティ自体を省略し、デフォルトフォントにフォールバック
-  const fontOptions = fontData
-    ? {
-        fonts: [
-          {
-            name: "Noto Sans JP",
-            data: fontData,
-            style: "normal" as const,
-            weight: 800 as const,
-          },
-        ],
-      }
-    : {};
+  const [fontData, logoDataUrl] = await Promise.all([
+    loadNotoSansJp(800),
+    loadOgpLogoDataUrl(),
+  ]);
+  const fontOptions = buildOgFontOptions(fontData, 800);
 
   return new ImageResponse(
     <div

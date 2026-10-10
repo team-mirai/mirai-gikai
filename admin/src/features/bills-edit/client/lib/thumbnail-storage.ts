@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@mirai-gikai/supabase";
+import { getImageExtension } from "../../shared/utils/image-extension";
 
 export interface UploadResult {
   url?: string;
@@ -32,7 +33,7 @@ export async function uploadThumbnail(
 
   try {
     // 新しいファイル名を生成
-    const fileExt = file.name.split(".").pop();
+    const fileExt = getImageExtension(file.type, file.name);
     const prefix = storagePrefix ? `${storagePrefix}_` : "";
     const fileName = `${prefix}${billId || "new"}_${Date.now()}.${fileExt}`;
 
