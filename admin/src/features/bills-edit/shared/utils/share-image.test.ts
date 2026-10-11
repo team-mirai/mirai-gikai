@@ -3,6 +3,7 @@ import {
   buildShareImagePreviewPath,
   estimateLineWidthInEm,
   isAllowedSharePhotoUrl,
+  listMissingShareImageAssets,
   parseShareImageInput,
   splitShareImageTitle,
   validateShareImageTitle,
@@ -177,5 +178,23 @@ describe("buildShareImagePreviewPath", () => {
     expect(new URL(path, "http://localhost").searchParams.has("photoUrl")).toBe(
       false
     );
+  });
+});
+
+describe("listMissingShareImageAssets", () => {
+  it("フォントとロゴが揃っていれば空", () => {
+    expect(
+      listMissingShareImageAssets({
+        font: new ArrayBuffer(1),
+        logo: "data:image/png;base64,",
+      })
+    ).toEqual([]);
+  });
+
+  it("取れなかったものを列挙する", () => {
+    expect(listMissingShareImageAssets({ font: null, logo: null })).toEqual([
+      "font",
+      "logo",
+    ]);
   });
 });

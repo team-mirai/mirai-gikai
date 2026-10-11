@@ -1,5 +1,8 @@
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
-import { renderShareImage } from "@/features/bills-edit/server/utils/render-share-image";
+import {
+  loadShareImageAssets,
+  renderShareImage,
+} from "@/features/bills-edit/server/utils/render-share-image";
 import { parseShareImageInput } from "@/features/bills-edit/shared/utils/share-image";
 import { env } from "@/lib/env";
 
@@ -22,7 +25,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const image = await renderShareImage(input);
+    const image = await renderShareImage({
+      ...input,
+      assets: await loadShareImageAssets(),
+    });
     return new Response(await image.arrayBuffer(), {
       headers: {
         "Content-Type": "image/png",

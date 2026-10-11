@@ -1,5 +1,10 @@
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { buildOgFontOptions, extractFontUrlFromCss } from "./og-assets";
+import {
+  buildOgFontOptions,
+  extractFontUrlFromCss,
+  loadOgpLogoDataUrl,
+} from "./og-assets";
 
 describe("extractFontUrlFromCss", () => {
   it("TTF の URL を取り出す", () => {
@@ -29,5 +34,18 @@ describe("buildOgFontOptions", () => {
 
   it("フォントがなければ fonts を省略する", () => {
     expect(buildOgFontOptions(null, 700)).toEqual({});
+  });
+});
+
+describe("loadOgpLogoDataUrl", () => {
+  it("同梱の PNG を data URL で返す", async () => {
+    const dataUrl = await loadOgpLogoDataUrl(
+      fileURLToPath(new URL("./ogp-logo.png", import.meta.url))
+    );
+    expect(dataUrl).toMatch(/^data:image\/png;base64,iVBORw0KGgo/);
+  });
+
+  it("読めなければ null", async () => {
+    expect(await loadOgpLogoDataUrl("/nonexistent/ogp-logo.png")).toBeNull();
   });
 });

@@ -1,12 +1,13 @@
 "use client";
 
-import { ImageIcon, Loader2 } from "lucide-react";
+import { CircleAlert, CircleCheck, ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dropzone } from "@/components/ui/dropzone";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { generateShareImage } from "../../server/actions/generate-share-image";
 import {
   buildShareImagePreviewPath,
@@ -19,6 +20,8 @@ import {
 import { uploadThumbnail } from "../lib/thumbnail-storage";
 
 const PREVIEW_DEBOUNCE_MS = 600;
+
+type Notice = { kind: "error" | "success"; text: string };
 
 interface ShareImageGeneratorProps {
   billId: string;
@@ -36,7 +39,7 @@ export function ShareImageGenerator({
   const [previewPath, setPreviewPath] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const [previewFailed, setPreviewFailed] = useState(false);
 
   const validation = validateShareImageTitle(title);
@@ -57,11 +60,14 @@ export function ShareImageGenerator({
     const file = files[0];
     if (!file) return;
     setIsUploading(true);
-    setMessage(null);
+    setNotice(null);
     try {
       const result = await uploadThumbnail(file, billId, "share-src");
       if (result.error || !result.url) {
-        setMessage(result.error ?? "アップロードに失敗しました");
+        setNotice({
+          kind: "error",
+          text: result.error ?? "アップロードに失敗しました",
+        });
         return;
       }
       setPhotoUrl(result.url);
@@ -73,19 +79,20 @@ export function ShareImageGenerator({
   const handleGenerate = async () => {
     if (!photoUrl) return;
     setIsGenerating(true);
-    setMessage(null);
+    setNotice(null);
     try {
       const result = await generateShareImage({ billId, title, photoUrl });
       if ("error" in result) {
-        setMessage(result.error);
+        setNotice({ kind: "error", text: result.error });
         return;
       }
       onGenerated(result.url);
-      setMessage(
-        "シェア画像に設定しました。保存ボタンを押すと議案に反映されます。"
-      );
+      setNotice({
+        kind: "success",
+        text: "シェア画像に設定しました。保存ボタンを押すと議案に反映されます。",
+      });
     } catch {
-      setMessage("シェア画像の生成に失敗しました");
+      setNotice({ kind: "error", text: "シェア画像の生成に失敗しました" });
     } finally {
       setIsGenerating(false);
     }
@@ -160,7 +167,25 @@ export function ShareImageGenerator({
         この画像をシェア画像に設定
       </Button>
 
-      {message && <p className="text-sm text-muted-foreground">{message}</p>}
+      <div role="status" aria-live="polite">
+        {notice && (
+          <p
+            className={cn(
+              "flex items-start gap-2 rounded-md p-3 text-sm",
+              notice.kind === "error"
+                ? "bg-destructive/10 text-destructive"
+                : "bg-muted text-foreground"
+            )}
+          >
+            {notice.kind === "error" ? (
+              <CircleAlert className="h-4 w-4 mt-0.5 shrink-0" />
+            ) : (
+              <CircleCheck className="h-4 w-4 mt-0.5 shrink-0" />
+            )}
+            {notice.text}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

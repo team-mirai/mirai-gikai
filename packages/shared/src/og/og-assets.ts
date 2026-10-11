@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 
 const FONT_FETCH_TIMEOUT_MS = 3000;
 export const OG_FONT_FAMILY = "Noto Sans JP";
@@ -32,13 +31,14 @@ async function fetchNotoSansJp(weight: number): Promise<ArrayBuffer | null> {
     const cssRes = await fetchWithTimeout(
       `https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@${weight}&display=swap`
     );
-    if (!cssRes.ok) return null;
+    if (!cssRes.ok) throw new Error(`CSS responded ${cssRes.status}`);
     const fontUrl = extractFontUrlFromCss(await cssRes.text());
-    if (!fontUrl) return null;
+    if (!fontUrl) throw new Error("TTF URL not found in CSS");
     const fontRes = await fetchWithTimeout(fontUrl);
-    if (!fontRes.ok) return null;
+    if (!fontRes.ok) throw new Error(`font responded ${fontRes.status}`);
     return await fontRes.arrayBuffer();
-  } catch {
+  } catch (error) {
+    console.warn(`[OgAssets] Failed to load Noto Sans JP ${weight}:`, error);
     return null;
   }
 }
@@ -75,19 +75,18 @@ export function buildOgFontOptions(data: ArrayBuffer | null, weight: FontWeight)
     : {};
 }
 
-let logoPromise: Promise<string | null> | null = null;
+const logoPromises = new Map<string, Promise<string | null>>();
 
-/** フォーク先で差し替えられるよう、web/public のロゴを唯一の置き場所として読む */
-export function loadOgpLogoDataUrl(): Promise<string | null> {
-  if (!logoPromise) {
-    logoPromise = readFile(
-      join(process.cwd(), "..", "web", "public", "img", "ogp-logo.png")
-    )
-      .then((buf) => `data:image/png;base64,${buf.toString("base64")}`)
-      .catch(() => {
-        logoPromise = null;
-        return null;
-      });
-  }
-  return logoPromise;
+export function loadOgpLogoDataUrl(logoPath: string): Promise<string | null> {
+  const cached = logoPromises.get(logoPath);
+  if (cached) return cached;
+  const promise = readFile(logoPath)
+    .then((buf) => `data:image/png;base64,${buf.toString("base64")}`)
+    .catch((error) => {
+      console.warn("[OgAssets] Failed to load OGP logo:", error);
+      logoPromises.delete(logoPath);
+      return null;
+    });
+  logoPromises.set(logoPath, promise);
+  return promise;
 }

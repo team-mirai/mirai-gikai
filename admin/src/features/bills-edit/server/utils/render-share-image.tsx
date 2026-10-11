@@ -1,5 +1,6 @@
 import "server-only";
 
+import { join } from "node:path";
 import {
   buildOgFontOptions,
   fetchWithTimeout,
@@ -24,6 +25,12 @@ import {
   SHARE_IMAGE_LOGO,
   SHARE_IMAGE_TAB,
 } from "../../shared/utils/share-image-frame";
+
+// next.config の outputFileTracingIncludes と同じパスを指す
+const OGP_LOGO_PATH = join(
+  process.cwd(),
+  "../packages/shared/src/og/ogp-logo.png"
+);
 
 const PHOTO_FETCH_TIMEOUT_MS = 5000;
 const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
@@ -59,15 +66,23 @@ async function loadPhoto(photoUrl: string): Promise<string> {
   return `data:${contentType};base64,${buf.toString("base64")}`;
 }
 
+export async function loadShareImageAssets() {
+  const [font, logo] = await Promise.all([
+    loadNotoSansJp(FONT_WEIGHT),
+    loadOgpLogoDataUrl(OGP_LOGO_PATH),
+  ]);
+  return { font, logo };
+}
+
+export type ShareImageAssets = Awaited<ReturnType<typeof loadShareImageAssets>>;
+
 export async function renderShareImage(params: {
   lines: string[];
   photoUrl?: string | null;
+  assets: ShareImageAssets;
 }): Promise<ImageResponse> {
-  const [font, logo, photo] = await Promise.all([
-    loadNotoSansJp(FONT_WEIGHT),
-    loadOgpLogoDataUrl(),
-    params.photoUrl ? loadPhoto(params.photoUrl) : Promise.resolve(null),
-  ]);
+  const { font, logo } = params.assets;
+  const photo = params.photoUrl ? await loadPhoto(params.photoUrl) : null;
 
   const frame = SHARE_IMAGE_FRAME;
   const tab = SHARE_IMAGE_TAB;

@@ -7,10 +7,9 @@ const nextConfig: NextConfig = {
     serverSourceMaps: true,
   },
   typedRoutes: true,
-  // シェア画像の描画で web/public の OGP ロゴを読むため、関数バンドルに含める
   outputFileTracingIncludes: {
-    "/api/bill-share-image": ["../web/public/img/ogp-logo.png"],
-    "/bills/[id]/edit": ["../web/public/img/ogp-logo.png"],
+    "/api/bill-share-image": ["../packages/shared/src/og/ogp-logo.png"],
+    "/bills/[id]/edit": ["../packages/shared/src/og/ogp-logo.png"],
   },
   turbopack: {
     root: "../",

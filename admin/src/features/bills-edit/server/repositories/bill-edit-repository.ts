@@ -1,9 +1,9 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { BILL_THUMBNAILS_BUCKET } from "../../shared/constants";
 import type { BillInsert } from "../../shared/types";
 import type { DifficultyLevel } from "../../shared/types/bill-contents";
-import { BILL_THUMBNAILS_BUCKET } from "../../shared/utils/share-image";
 
 export async function findBillById(id: string) {
   const supabase = createAdminClient();
@@ -18,6 +18,21 @@ export async function findBillById(id: string) {
   }
 
   return data;
+}
+
+export async function findBillIdById(id: string): Promise<string | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch bill: ${error.message}`);
+  }
+
+  return data?.id ?? null;
 }
 
 export async function findBillContentsByBillId(billId: string) {

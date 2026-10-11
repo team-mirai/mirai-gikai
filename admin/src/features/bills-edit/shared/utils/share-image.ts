@@ -1,3 +1,5 @@
+import { BILL_THUMBNAILS_BUCKET } from "../constants";
+
 export const SHARE_IMAGE_WIDTH = 1800;
 export const SHARE_IMAGE_HEIGHT = 945;
 
@@ -9,8 +11,6 @@ export const SHARE_IMAGE_TITLE_LETTER_SPACING_EM = 0.03;
 export const SHARE_IMAGE_TITLE_LEFT = 136;
 export const SHARE_IMAGE_TITLE_OFFSET_Y = -7;
 export const SHARE_IMAGE_TITLE_MAX_WIDTH = 1560;
-
-export const BILL_THUMBNAILS_BUCKET = "bill-thumbnails";
 
 const HALF_WIDTH_RATIO = 0.65;
 
@@ -122,4 +122,14 @@ export function parseShareImageInput(params: {
     return { ok: false, error: "背景写真の URL が不正です" };
   }
   return { ok: true, lines: titleResult.lines, photoUrl: params.photoUrl };
+}
+
+export function listMissingShareImageAssets(assets: {
+  font: ArrayBuffer | null;
+  logo: string | null;
+}): string[] {
+  const missing: string[] = [];
+  if (!assets.font) missing.push("font");
+  if (!assets.logo) missing.push("logo");
+  return missing;
 }
