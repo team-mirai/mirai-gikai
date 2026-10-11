@@ -1,6 +1,5 @@
 import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
 import {
-  type BillArticleKind,
   type BillStatusEnum,
   getBillStatusLabel,
   HOUSE_LABELS,
@@ -28,7 +27,6 @@ export type OpenDataBillRow = {
   submitted_date: string | null;
   published_at: string | null;
   created_at: string;
-  article_kind: BillArticleKind;
   /** 難易度で絞り込み済みのため実質1件 */
   bill_contents: { title: string; summary: string }[];
   mirai_stances: OpenDataMiraiStanceRow | null;
@@ -60,7 +58,6 @@ export function toOpenDataBillItem(
     ),
     miraiStance: toOpenDataMiraiStance(row.mirai_stances, now),
     createdAt: row.created_at,
-    articleKind: row.article_kind,
   };
 }
 

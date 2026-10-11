@@ -17,7 +17,6 @@ const baseRow: OpenDataBillRow = {
   submitted_date: "2026-01-10",
   published_at: "2026-01-15T00:00:00+00:00",
   created_at: "2026-01-01T00:00:00+00:00",
-  article_kind: "standard",
   bill_contents: [{ title: "わかりやすいタイトル", summary: "概要" }],
   mirai_stances: {
     type: "conditional_for",
@@ -48,7 +47,6 @@ describe("toOpenDataBillItem", () => {
         comment: "条件付きで賛成",
       },
       createdAt: "2026-01-01T00:00:00+00:00",
-      articleKind: "standard",
     });
   });
 

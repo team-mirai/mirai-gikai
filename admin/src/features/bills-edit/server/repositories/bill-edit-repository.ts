@@ -3,6 +3,7 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { BillInsert } from "../../shared/types";
 import type { DifficultyLevel } from "../../shared/types/bill-contents";
+import { mapBillDbError } from "../../shared/utils/map-bill-db-error";
 
 export async function findBillById(id: string) {
   const supabase = createAdminClient();
@@ -72,7 +73,7 @@ export async function createBillRecord(insertData: BillInsert) {
     .single();
 
   if (error) {
-    throw new Error(`Failed to create bill: ${error.message}`);
+    throw new Error(mapBillDbError(error, "create"));
   }
 
   return data;
@@ -89,7 +90,7 @@ export async function updateBillRecord(
     .eq("id", id);
 
   if (error) {
-    throw new Error(`Failed to update bill: ${error.message}`);
+    throw new Error(mapBillDbError(error, "update"));
   }
 }
 
