@@ -25,12 +25,17 @@ export async function ArticleReportsPage({ billId }: { billId: string }) {
   if (!data) {
     notFound();
   }
-  const { billName, reports } = data;
+  const { billName, reports, limit, reachedLimit } = data;
 
   return (
     <div className="container mx-auto py-8">
       <h1 className="mb-1 text-2xl font-bold">誤り報告</h1>
       <p className="mb-4 text-sm text-gray-600">議案: {billName}</p>
+      {reachedLimit && (
+        <p className="mb-4 text-sm text-gray-600">
+          直近{limit}件を表示しています
+        </p>
+      )}
 
       {reports.length === 0 ? (
         <p className="rounded border bg-white p-6 text-sm text-gray-500">

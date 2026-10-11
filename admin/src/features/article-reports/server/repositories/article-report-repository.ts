@@ -16,13 +16,18 @@ export async function findBillNameById(billId: string) {
   return data;
 }
 
-export async function findArticleReportsByBillId(billId: string) {
+export async function findArticleReportsByBillId(
+  billId: string,
+  limit: number
+) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bill_article_reports")
     .select("id, difficulty_level, category, body, created_at")
     .eq("bill_id", billId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
 
   if (error) {
     throw new Error(`Failed to fetch article reports: ${error.message}`);

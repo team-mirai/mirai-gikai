@@ -11,7 +11,11 @@ export function createSlackWebhookNotifier(
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({
+        text,
+        unfurl_links: false,
+        unfurl_media: false,
+      }),
       signal: AbortSignal.timeout(SLACK_WEBHOOK_TIMEOUT_MS),
     });
     if (!response.ok) {

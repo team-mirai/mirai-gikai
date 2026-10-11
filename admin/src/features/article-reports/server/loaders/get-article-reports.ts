@@ -7,15 +7,22 @@ import {
   findBillNameById,
 } from "../repositories/article-report-repository";
 
+const ARTICLE_REPORTS_LIMIT = 200;
+
 export async function getArticleReports(billId: string) {
   noStore();
   if (!z.uuid().safeParse(billId).success) return null;
 
   const [bill, reports] = await Promise.all([
     findBillNameById(billId),
-    findArticleReportsByBillId(billId),
+    findArticleReportsByBillId(billId, ARTICLE_REPORTS_LIMIT),
   ]);
   if (!bill) return null;
 
-  return { billName: bill.name, reports };
+  return {
+    billName: bill.name,
+    reports,
+    limit: ARTICLE_REPORTS_LIMIT,
+    reachedLimit: reports.length >= ARTICLE_REPORTS_LIMIT,
+  };
 }

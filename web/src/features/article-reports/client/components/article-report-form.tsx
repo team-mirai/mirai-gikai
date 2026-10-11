@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { cn } from "@/lib/utils";
 import { submitArticleReport } from "../../server/actions/submit-article-report";
+import { ARTICLE_REPORT_FAILED_MESSAGE } from "../../shared/types/submit-article-report-result";
 import {
   ARTICLE_REPORT_BODY_MAX_LENGTH,
   hasArticleReportBody,
@@ -45,16 +46,20 @@ export function ArticleReportForm({
     if (!canSubmit) return;
     setError(null);
     startTransition(async () => {
-      const result = await submitArticleReport({
-        billId,
-        difficultyLevel,
-        category: category ?? undefined,
-        body,
-      });
-      if (result.ok) {
-        setStep("sent");
-      } else {
-        setError(result.error);
+      try {
+        const result = await submitArticleReport({
+          billId,
+          difficultyLevel,
+          category: category ?? undefined,
+          body,
+        });
+        if (result.ok) {
+          setStep("sent");
+        } else {
+          setError(result.error);
+        }
+      } catch {
+        setError(ARTICLE_REPORT_FAILED_MESSAGE);
       }
     });
   };

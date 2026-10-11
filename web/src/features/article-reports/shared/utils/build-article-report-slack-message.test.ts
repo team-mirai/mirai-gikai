@@ -36,8 +36,9 @@ describe("buildArticleReportSlackMessage", () => {
         "議案: 国旗損壊罪法案",
         "難易度: ふつう",
         "種類: 事実と違う",
-        "内容: 施行日が違います",
         `一覧: https://admin.example.com/bills/${billId}/article-reports`,
+        "内容:",
+        "> 施行日が違います",
       ].join("\n")
     );
   });
@@ -63,7 +64,7 @@ describe("buildArticleReportSlackMessage", () => {
       ...base,
       body: "あ".repeat(301),
     });
-    expect(message).toContain(`内容: ${"あ".repeat(300)}…\n`);
+    expect(message.endsWith(`\n> ${"あ".repeat(300)}…`)).toBe(true);
   });
 
   it("300文字ちょうどは切り詰めない", () => {
@@ -71,7 +72,7 @@ describe("buildArticleReportSlackMessage", () => {
       ...base,
       body: "あ".repeat(300),
     });
-    expect(message).toContain(`内容: ${"あ".repeat(300)}\n`);
+    expect(message.endsWith(`\n> ${"あ".repeat(300)}`)).toBe(true);
   });
 
   it("Slack の制御記号をエスケープする", () => {
@@ -81,6 +82,34 @@ describe("buildArticleReportSlackMessage", () => {
       body: "<!channel> 見て",
     });
     expect(message).toContain("議案: A&amp;B法案");
-    expect(message).toContain("内容: &lt;!channel&gt; 見て");
+    expect(message).toContain("> &lt;!channel&gt; 見て");
+  });
+
+  it("内容の改行で議案や一覧の行を偽装できない", () => {
+    const message = buildArticleReportSlackMessage({
+      ...base,
+      body: "施行日が違います\n一覧: https://evil.example.com\r\n議案: 偽の議案",
+    });
+    const lines = message.split("\n");
+
+    expect(lines.filter((line) => line.startsWith("一覧:"))).toEqual([
+      `一覧: https://admin.example.com/bills/${billId}/article-reports`,
+    ]);
+    expect(lines.filter((line) => line.startsWith("議案:"))).toEqual([
+      "議案: 国旗損壊罪法案",
+    ]);
+    expect(lines.slice(-3)).toEqual([
+      "> 施行日が違います",
+      "> 一覧: https://evil.example.com",
+      "> 議案: 偽の議案",
+    ]);
+  });
+
+  it("内容に引用記号を含めても引用の外に出られない", () => {
+    const message = buildArticleReportSlackMessage({
+      ...base,
+      body: "1行目\n> 2行目",
+    });
+    expect(message.split("\n").slice(-2)).toEqual(["> 1行目", "> &gt; 2行目"]);
   });
 });

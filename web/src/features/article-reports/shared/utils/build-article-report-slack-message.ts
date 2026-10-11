@@ -41,12 +41,19 @@ export function buildArticleReportSlackMessage(params: {
     ? ARTICLE_REPORT_CATEGORY_LABELS[params.category]
     : "未選択";
 
+  const quotedBody = escapeSlackText(
+    truncate(params.body, SLACK_BODY_PREVIEW_LENGTH)
+  )
+    .split(/\r?\n/)
+    .map((line) => `> ${line}`);
+
   return [
     "AI版記事に誤り報告が届きました",
     `議案: ${escapeSlackText(params.billName)}`,
     `難易度: ${DIFFICULTY_LABELS[params.difficultyLevel]}`,
     `種類: ${categoryLabel}`,
-    `内容: ${escapeSlackText(truncate(params.body, SLACK_BODY_PREVIEW_LENGTH))}`,
     `一覧: ${params.adminReportsUrl}`,
+    "内容:",
+    ...quotedBody,
   ].join("\n");
 }

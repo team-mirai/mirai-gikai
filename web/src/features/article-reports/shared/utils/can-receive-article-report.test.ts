@@ -7,6 +7,7 @@ describe("canReceiveArticleReport", () => {
       canReceiveArticleReport({
         publish_status: "published",
         article_kind: "ai_generated",
+        is_review_completed: false,
       })
     ).toBe(true);
   });
@@ -16,6 +17,7 @@ describe("canReceiveArticleReport", () => {
       canReceiveArticleReport({
         publish_status: "published",
         article_kind: "standard",
+        is_review_completed: false,
       })
     ).toBe(false);
   });
@@ -25,12 +27,14 @@ describe("canReceiveArticleReport", () => {
       canReceiveArticleReport({
         publish_status: "draft",
         article_kind: "ai_generated",
+        is_review_completed: false,
       })
     ).toBe(false);
     expect(
       canReceiveArticleReport({
         publish_status: "coming_soon",
         article_kind: "ai_generated",
+        is_review_completed: false,
       })
     ).toBe(false);
   });

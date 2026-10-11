@@ -7,7 +7,7 @@ import { ReviewInProgressBanner } from "./review-status-banner";
 /**
  * AI自動生成版の記事上部に表示するバナー
  */
-export function AiGeneratedBanner({
+function AiGeneratedBanner({
   billId,
   difficultyLevel,
 }: {

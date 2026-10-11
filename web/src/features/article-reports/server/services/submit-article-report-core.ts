@@ -2,7 +2,10 @@ import "server-only";
 
 import { consumeRateLimit } from "@/features/open-data/server/repositories/open-data-repository";
 import { getWindowStart } from "@/features/open-data/shared/utils/rate-limit-window";
-import type { SubmitArticleReportResult } from "../../shared/types/submit-article-report-result";
+import {
+  ARTICLE_REPORT_FAILED_MESSAGE,
+  type SubmitArticleReportResult,
+} from "../../shared/types/submit-article-report-result";
 import { parseArticleReportInput } from "../../shared/utils/article-report-input";
 import {
   buildAdminArticleReportsUrl,
@@ -22,8 +25,8 @@ const RATE_LIMIT_GLOBAL = 100;
 const RATE_LIMITED_MESSAGE =
   "送信が多すぎます。しばらく待ってから再度お試しください";
 const NOT_REPORTABLE_MESSAGE = "この記事は誤り報告を受け付けていません";
-const FAILED_MESSAGE =
-  "送信に失敗しました。しばらく待ってから再度お試しください";
+
+const DEFAULT_RATE_LIMIT_KEY_PREFIX = "article-report";
 
 export type SubmitArticleReportDeps = {
   clientIp: string;
@@ -31,11 +34,13 @@ export type SubmitArticleReportDeps = {
   adminUrl: string;
   /** 未設定なら通知しない */
   notify?: ArticleReportNotifier;
+  rateLimitKeyPrefix?: string;
 };
 
 async function consumeArticleReportRateLimit(
   clientIp: string,
-  now: Date
+  now: Date,
+  keyPrefix: string
 ): Promise<boolean> {
   const windowStart = getWindowStart(
     now,
@@ -44,14 +49,14 @@ async function consumeArticleReportRateLimit(
 
   // IP 制限を通過したリクエストだけが全体枠を消費する
   const ipAllowed = await consumeRateLimit({
-    key: `article-report:ip:${clientIp}`,
+    key: `${keyPrefix}:ip:${clientIp}`,
     windowStart,
     limit: RATE_LIMIT_PER_IP,
   });
   if (!ipAllowed) return false;
 
   return consumeRateLimit({
-    key: "article-report:global",
+    key: `${keyPrefix}:global`,
     windowStart,
     limit: RATE_LIMIT_GLOBAL,
   });
@@ -71,7 +76,8 @@ export async function submitArticleReportCore(
   try {
     const allowed = await consumeArticleReportRateLimit(
       deps.clientIp,
-      deps.now
+      deps.now,
+      deps.rateLimitKeyPrefix ?? DEFAULT_RATE_LIMIT_KEY_PREFIX
     );
     if (!allowed) {
       return { ok: false, error: RATE_LIMITED_MESSAGE };
@@ -91,7 +97,7 @@ export async function submitArticleReportCore(
     });
   } catch (error) {
     console.error("Failed to submit article report:", error);
-    return { ok: false, error: FAILED_MESSAGE };
+    return { ok: false, error: ARTICLE_REPORT_FAILED_MESSAGE };
   }
 
   if (deps.notify) {

@@ -8,7 +8,7 @@ export async function findBillForArticleReport(billId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills")
-    .select("id, name, publish_status, article_kind")
+    .select("id, name, publish_status, article_kind, is_review_completed")
     .eq("id", billId)
     .maybeSingle();
 

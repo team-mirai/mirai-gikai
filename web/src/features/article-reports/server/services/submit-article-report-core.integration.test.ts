@@ -4,19 +4,23 @@ import {
   createTestBill,
 } from "@test-utils/utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { submitArticleReportCore } from "./submit-article-report-core";
+import {
+  type SubmitArticleReportDeps,
+  submitArticleReportCore,
+} from "./submit-article-report-core";
 
 describe("submitArticleReportCore 統合テスト", () => {
   const billIds: string[] = [];
-  let clientIp: string;
-  let now: Date;
+  let baseDeps: SubmitArticleReportDeps;
 
-  // 全体枠（100件/10分）を他のテスト実行と共有しないよう、毎回別のウィンドウを使う
+  // 全体枠を他のテストや実運用のキーと共有しないよう、毎回別のキーを使う
   beforeEach(() => {
-    clientIp = `test-${crypto.randomUUID()}`;
-    now = new Date(
-      Date.UTC(2100, 0, 1) + Math.floor(Math.random() * 1_000_000) * 600_000
-    );
+    baseDeps = {
+      clientIp: "203.0.113.1",
+      now: new Date(),
+      adminUrl: "https://admin.example.com",
+      rateLimitKeyPrefix: `test-article-report-${crypto.randomUUID()}`,
+    };
   });
 
   afterEach(async () => {
@@ -59,9 +63,7 @@ describe("submitArticleReportCore 統合テスト", () => {
         body: "  数字が古いです  ",
       },
       {
-        clientIp,
-        now,
-        adminUrl: "https://admin.example.com",
+        ...baseDeps,
         notify: async (text) => {
           notified.push(text);
         },
@@ -88,7 +90,7 @@ describe("submitArticleReportCore 統合テスト", () => {
 
     const result = await submitArticleReportCore(
       { billId: bill.id, difficultyLevel: "normal", body: "わかりにくい" },
-      { clientIp, now, adminUrl: "https://admin.example.com" }
+      baseDeps
     );
 
     expect(result).toEqual({ ok: true });
@@ -102,9 +104,7 @@ describe("submitArticleReportCore 統合テスト", () => {
     const result = await submitArticleReportCore(
       { billId: bill.id, difficultyLevel: "normal", body: "誤りです" },
       {
-        clientIp,
-        now,
-        adminUrl: "https://admin.example.com",
+        ...baseDeps,
         notify: async () => {
           throw new Error("webhook down");
         },
@@ -120,7 +120,7 @@ describe("submitArticleReportCore 統合テスト", () => {
 
     const result = await submitArticleReportCore(
       { billId: bill.id, difficultyLevel: "normal", body: "誤りです" },
-      { clientIp, now, adminUrl: "https://admin.example.com" }
+      baseDeps
     );
 
     expect(result.ok).toBe(false);
@@ -132,7 +132,7 @@ describe("submitArticleReportCore 統合テスト", () => {
 
     const result = await submitArticleReportCore(
       { billId: bill.id, difficultyLevel: "normal", body: "誤りです" },
-      { clientIp, now, adminUrl: "https://admin.example.com" }
+      baseDeps
     );
 
     expect(result.ok).toBe(false);
@@ -141,11 +141,6 @@ describe("submitArticleReportCore 統合テスト", () => {
 
   it("同一IPから6件目は送信が多すぎる旨を返す", async () => {
     const bill = await createBill();
-    const deps = {
-      clientIp,
-      now,
-      adminUrl: "https://admin.example.com",
-    };
     const input = {
       billId: bill.id,
       difficultyLevel: "normal",
@@ -153,10 +148,12 @@ describe("submitArticleReportCore 統合テスト", () => {
     };
 
     for (let i = 0; i < 5; i++) {
-      expect(await submitArticleReportCore(input, deps)).toEqual({ ok: true });
+      expect(await submitArticleReportCore(input, baseDeps)).toEqual({
+        ok: true,
+      });
     }
 
-    expect(await submitArticleReportCore(input, deps)).toEqual({
+    expect(await submitArticleReportCore(input, baseDeps)).toEqual({
       ok: false,
       error: "送信が多すぎます。しばらく待ってから再度お試しください",
     });
