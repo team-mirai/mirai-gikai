@@ -173,3 +173,43 @@ export async function consumeRateLimit(params: {
   }
   return data === true;
 }
+
+/**
+ * 受付中のインタビュー設定を、議案と難易度別コンテンツ付きで新しい順に取得する。
+ * 受付中とは、インタビュー設定が公開（status = public）かつ未削除で、
+ * 議案が公開中（publish_status = published）であること（インタビューページの表示条件と同じ）。
+ * 議案ごとに公開中の設定は高々1件のため、件数は公開中の議案数を超えない。
+ * 指定難易度のコンテンツが存在しない議案は含めない。
+ */
+export async function findOpenDataOpenInterviewConfigs(params: {
+  difficulty: DifficultyLevelEnum;
+}) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_configs")
+    .select(
+      `
+      estimated_duration,
+      created_at,
+      bills!inner (
+        id,
+        name,
+        thumbnail_url,
+        bill_contents!inner (title, summary)
+      )
+    `
+    )
+    .eq("status", "public")
+    .is("deleted_at", null)
+    .eq("bills.publish_status", "published")
+    .eq("bills.bill_contents.difficulty_level", params.difficulty)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch open data open interviews: ${error.message}`
+    );
+  }
+  return data;
+}
