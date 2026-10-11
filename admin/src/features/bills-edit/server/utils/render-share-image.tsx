@@ -3,7 +3,6 @@ import "server-only";
 import { join } from "node:path";
 import {
   buildOgFontOptions,
-  fetchWithTimeout,
   loadNotoSansJp,
   loadOgpLogoDataUrl,
   OG_FONT_FAMILY,
@@ -47,11 +46,10 @@ const frameDataUrl = `data:image/svg+xml;base64,${Buffer.from(
 
 /** photoUrl は呼び出し側で isAllowedSharePhotoUrl を通したものに限る */
 async function loadPhoto(photoUrl: string): Promise<string> {
-  const res = await fetchWithTimeout(
-    photoUrl,
-    { redirect: "error" },
-    PHOTO_FETCH_TIMEOUT_MS
-  );
+  const res = await fetch(photoUrl, {
+    redirect: "error",
+    signal: AbortSignal.timeout(PHOTO_FETCH_TIMEOUT_MS),
+  });
   if (!res.ok) throw new Error("背景写真の取得に失敗しました");
   const contentType = res.headers.get("content-type")?.split(";")[0] ?? "";
   if (!PHOTO_CONTENT_TYPES.includes(contentType)) {
