@@ -9,6 +9,7 @@ import {
   OG_FONT_FAMILY,
 } from "@mirai-gikai/shared/og/assets";
 import { ImageResponse } from "next/og";
+import { readStreamWithLimit } from "../../shared/utils/read-stream-with-limit";
 import {
   SHARE_IMAGE_HEIGHT,
   SHARE_IMAGE_TITLE_FONT_SIZE,
@@ -59,11 +60,10 @@ async function loadPhoto(photoUrl: string): Promise<string> {
   if (Number(res.headers.get("content-length")) > PHOTO_MAX_BYTES) {
     throw new Error("背景写真は5MB以下にしてください");
   }
-  const buf = Buffer.from(await res.arrayBuffer());
-  if (buf.byteLength > PHOTO_MAX_BYTES) {
-    throw new Error("背景写真は5MB以下にしてください");
-  }
-  return `data:${contentType};base64,${buf.toString("base64")}`;
+  if (!res.body) throw new Error("背景写真の取得に失敗しました");
+  const bytes = await readStreamWithLimit(res.body, PHOTO_MAX_BYTES);
+  if (!bytes) throw new Error("背景写真は5MB以下にしてください");
+  return `data:${contentType};base64,${Buffer.from(bytes).toString("base64")}`;
 }
 
 export async function loadShareImageAssets() {
