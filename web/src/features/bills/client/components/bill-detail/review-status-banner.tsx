@@ -40,9 +40,9 @@ function ReviewCheckIcon({
 }
 
 /**
- * レビュー未完了時に記事上部に表示するバナー
+ * 通常版でレビュー未完了の記事上部に表示するバナー
  */
-export function ReviewInProgressBanner() {
+function ReviewInProgressBanner() {
   return (
     <div className="flex gap-2 items-center rounded-2xl bg-mirai-surface-gray px-4 py-2">
       <Info className="size-5 shrink-0 text-mirai-text" />
@@ -56,7 +56,7 @@ export function ReviewInProgressBanner() {
 /**
  * AI自動生成版の記事上部に表示するバナー
  */
-export function AiGeneratedBanner() {
+function AiGeneratedBanner() {
   return (
     <div className="flex gap-1.5 items-start rounded-2xl bg-mirai-surface-grouped px-4 py-2.5">
       <Info className="size-[15px] shrink-0 mt-[3px] text-mirai-text-muted" />
