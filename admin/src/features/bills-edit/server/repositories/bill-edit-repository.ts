@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { BILL_THUMBNAILS_BUCKET } from "../../shared/constants";
 import type { BillInsert } from "../../shared/types";
 import type { DifficultyLevel } from "../../shared/types/bill-contents";
 import { mapBillDbError } from "../../shared/utils/map-bill-db-error";
@@ -18,6 +19,21 @@ export async function findBillById(id: string) {
   }
 
   return data;
+}
+
+export async function findBillIdById(id: string): Promise<string | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch bill: ${error.message}`);
+  }
+
+  return data?.id ?? null;
 }
 
 export async function findBillContentsByBillId(billId: string) {
@@ -162,4 +178,25 @@ export async function createBillsTags(billId: string, tagIds: string[]) {
   if (error) {
     throw new Error(`Failed to create bill tags: ${error.message}`);
   }
+}
+
+export async function uploadBillThumbnailFile(params: {
+  fileName: string;
+  body: ArrayBuffer;
+  contentType: string;
+}) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage
+    .from(BILL_THUMBNAILS_BUCKET)
+    .upload(params.fileName, params.body, {
+      contentType: params.contentType,
+      cacheControl: "3600",
+    });
+
+  if (error) {
+    throw new Error(`Failed to upload bill thumbnail: ${error.message}`);
+  }
+
+  return supabase.storage.from(BILL_THUMBNAILS_BUCKET).getPublicUrl(data.path)
+    .data.publicUrl;
 }
