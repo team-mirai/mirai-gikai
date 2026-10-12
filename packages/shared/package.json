@@ -123,6 +123,10 @@
     "./article-report/categories": {
       "types": "./src/article-report/categories.ts",
       "default": "./src/article-report/categories.ts"
+    },
+    "./og/assets": {
+      "types": "./src/og/og-assets.ts",
+      "default": "./src/og/og-assets.ts"
     }
   },
   "dependencies": {
