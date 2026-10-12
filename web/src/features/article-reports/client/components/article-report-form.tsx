@@ -5,7 +5,7 @@ import {
   ARTICLE_REPORT_CATEGORY_LABELS,
   type ArticleReportCategory,
 } from "@mirai-gikai/shared/article-report/categories";
-import { Check, Flag } from "lucide-react";
+import { Check, Info } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,38 +64,54 @@ export function ArticleReportForm({
     });
   };
 
-  if (step === "idle") {
-    return (
-      <Button
-        variant="outline"
-        onClick={() => setStep("form")}
-        className="self-end h-7 gap-[5px] px-[11px] has-[>svg]:px-[11px] border-mirai-border bg-white text-xs font-bold text-mirai-text shadow-none hover:bg-white hover:opacity-70 [&_svg:not([class*='size-'])]:size-3"
-      >
-        <Flag />
-        誤りを報告する
-      </Button>
-    );
-  }
+  const lead = (
+    <div className="flex gap-1.5 items-start">
+      <Info className="size-[15px] shrink-0 mt-[3px] text-mirai-text-slate" />
+      <p className="text-[13px] font-medium leading-[1.6] text-mirai-text-slate">
+        この記事はAIが作成しており誤りを含む可能性があります。お気づきの点は
+        {step === "idle" ? (
+          <>
+            <Button
+              variant="link"
+              onClick={() => setStep("form")}
+              className="inline text-[13px] font-medium leading-[1.6] text-mirai-text-slate underline-offset-[3px] hover:opacity-70"
+            >
+              こちらから
+            </Button>
+            。
+          </>
+        ) : (
+          "ご報告ください。"
+        )}
+      </p>
+    </div>
+  );
+
+  if (step === "idle") return lead;
 
   if (step === "sent") {
     return (
-      <div
-        role="status"
-        className="flex items-start gap-2 rounded-[12px] bg-white px-3.5 py-3"
-      >
-        <Check
-          className="size-4 shrink-0 mt-0.5 text-primary"
-          strokeWidth={2.5}
-        />
-        <p className="text-[13px] font-medium leading-[1.6] text-mirai-text">
-          報告ありがとうございます。いただいた内容は確認のうえ、記事の改善に使わせていただきます。
-        </p>
-      </div>
+      <>
+        {lead}
+        <div
+          role="status"
+          className="flex items-start gap-2 rounded-[12px] bg-white px-3.5 py-3"
+        >
+          <Check
+            className="size-4 shrink-0 mt-0.5 text-mirai-text"
+            strokeWidth={2.5}
+          />
+          <p className="text-[13px] font-medium leading-[1.6] text-mirai-text">
+            報告ありがとうございます。いただいた内容は確認のうえ、記事の改善に使わせていただきます。
+          </p>
+        </div>
+      </>
     );
   }
 
   return (
     <>
+      {lead}
       <form
         className="flex flex-col gap-3 rounded-[12px] bg-white p-3.5"
         onSubmit={(e) => {
@@ -118,7 +134,7 @@ export function ArticleReportForm({
                 className={cn(
                   "h-auto min-h-9 px-3 py-0 bg-white text-[13px] font-bold shadow-none hover:bg-white",
                   selected
-                    ? "border-primary text-primary-accent"
+                    ? "border-mirai-text bg-mirai-text text-white hover:bg-mirai-text"
                     : "border-mirai-border text-mirai-text"
                 )}
               >
@@ -136,7 +152,7 @@ export function ArticleReportForm({
           placeholder="どの部分が、どう違っていたか"
           rows={3}
           maxLength={ARTICLE_REPORT_BODY_MAX_LENGTH}
-          className="block field-sizing-fixed resize-y border-mirai-border bg-white px-3 py-2.5 text-[13px] leading-[1.6] text-mirai-text shadow-none placeholder:text-mirai-text-placeholder md:text-[13px] focus:outline-solid focus:outline-2 focus:outline-offset-0 focus:outline-primary focus-visible:border-mirai-border focus-visible:ring-0"
+          className="block field-sizing-fixed resize-y border-mirai-border bg-white px-3 py-2.5 text-[13px] leading-[1.6] text-mirai-text shadow-none placeholder:text-mirai-text-placeholder md:text-[13px] focus:outline-solid focus:outline-2 focus:outline-offset-0 focus:outline-mirai-text-slate focus-visible:border-mirai-border focus-visible:ring-0"
         />
         <div className="flex items-center justify-end gap-2">
           <Button
@@ -154,7 +170,7 @@ export function ArticleReportForm({
             className={cn(
               "h-auto min-h-10 px-5 py-0 border-0 text-[13px] font-bold shadow-none disabled:opacity-100",
               hasArticleReportBody(body)
-                ? "bg-mirai-gradient text-black"
+                ? "bg-mirai-text text-white hover:bg-mirai-text"
                 : "bg-mirai-surface-muted text-mirai-text-muted"
             )}
           >

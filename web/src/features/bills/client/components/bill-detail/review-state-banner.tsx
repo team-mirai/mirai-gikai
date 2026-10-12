@@ -1,4 +1,3 @@
-import { Info } from "lucide-react";
 import { ArticleReportForm } from "@/features/article-reports/client/components/article-report-form";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type { ArticleReviewState } from "../../../shared/utils/article-review-state";
@@ -15,13 +14,7 @@ function AiGeneratedBanner({
   difficultyLevel: DifficultyLevelEnum;
 }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-2xl bg-mirai-surface-grouped px-4 py-2.5">
-      <div className="flex gap-1.5 items-start">
-        <Info className="size-[15px] shrink-0 mt-[3px] text-mirai-text-muted" />
-        <p className="text-[13px] font-medium leading-[1.6] text-mirai-text-note">
-          この記事はAIが作成しており誤りを含む可能性があります。お気づきの点はご報告ください。
-        </p>
-      </div>
+    <div className="flex flex-col gap-1.5 rounded-2xl bg-mirai-surface-gray px-4 py-2.5">
       <ArticleReportForm billId={billId} difficultyLevel={difficultyLevel} />
     </div>
   );
