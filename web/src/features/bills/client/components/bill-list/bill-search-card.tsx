@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
+import { getArticleReviewState } from "../../../shared/utils/article-review-state";
 import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
 import { BillPill } from "./bill-pill";
 import { BillStatusBadge } from "./bill-status-badge";
@@ -42,7 +43,7 @@ export function BillSearchCard({ bill }: { bill: BillWithContent }) {
             {/* タイトルは省略しない。何の法案かが読めないと選べない。 */}
             <h3 className="text-base font-bold leading-relaxed">
               {title}
-              {bill.is_review_completed && (
+              {getArticleReviewState(bill) === "reviewed" && (
                 <>
                   {" "}
                   <ReviewCompleteBadge size={14} top="1px" />

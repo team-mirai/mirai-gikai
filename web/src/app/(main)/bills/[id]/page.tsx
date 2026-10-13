@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
-import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
+import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { buildBillOgText } from "@/features/bills/shared/utils/bill-og-text";
+import { resolveBillShareImageUrl } from "@/features/bills/shared/utils/bill-share-image";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
@@ -24,14 +26,11 @@ export async function generateMetadata({
     };
   }
 
-  // bill_contentのsummaryがあればそれを使用、なければデフォルト値を使用
-  const description = bill.bill_content?.summary || "議案の詳細情報";
-  const defaultOgpUrl = new URL("/ogp.jpg", env.webUrl).toString();
-
-  // シェア用OGP画像（share_thumbnail_url > thumbnail_url > デフォルト）
-  // ページ表示用のthumbnail_urlとは別に、SNSシェア用の画像を優先
-  const shareImageUrl =
-    bill.share_thumbnail_url || bill.thumbnail_url || defaultOgpUrl;
+  const { title: ogTitle, description } = buildBillOgText(
+    bill,
+    bill.bill_content?.summary
+  );
+  const shareImageUrl = resolveBillShareImageUrl(bill, env.webUrl);
 
   return {
     title: bill.name,
@@ -40,7 +39,7 @@ export async function generateMetadata({
       canonical: routes.billDetail(bill.id),
     },
     openGraph: {
-      title: bill.name,
+      title: ogTitle,
       description: description,
       type: "article",
       publishedTime: bill.submitted_date ?? undefined,
@@ -54,7 +53,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: bill.name,
+      title: ogTitle,
       description: description,
       images: [shareImageUrl],
     },

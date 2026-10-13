@@ -16,7 +16,7 @@
 ### 2. ロゴの変更
 
 - **チームみらいのロゴは使用しないでください**
-- `web/public/img/logo.svg` および `web/public/img/ogp-logo.png` を独自のロゴに差し替えてください
+- `web/public/img/logo.svg` および `packages/shared/src/og/ogp-logo.png` を独自のロゴに差し替えてください
 - favicon やPWAアイコン（`web/public/icons/`）も独自のものに変更してください
 
 ### 3. トップ画像の変更
@@ -71,7 +71,7 @@ AGPL-3.0 第13条により、fork 版をネットワーク経由でユーザー�
 | テーマカラー | `web/src/app/globals.css` | `--primary`, `--primary-accent` 等 |
 | テーマカラー | `web/src/app/layout.tsx` | `themeColor` |
 | ロゴ | `web/public/img/logo.svg` | 独自ロゴに差し替え |
-| ロゴ（OGP） | `web/public/img/ogp-logo.png` | 独自ロゴに差し替え |
+| ロゴ（OGP） | `packages/shared/src/og/ogp-logo.png` | 独自ロゴに差し替え |
 | ヒーロー画像 | `web/public/img/hero_background.png` | 独自画像に差し替え |
 | OGP 画像 | `web/public/ogp.jpg` | 独自画像に差し替え |
 | favicon / PWA | `web/public/icons/` | 独自アイコンに差し替え |

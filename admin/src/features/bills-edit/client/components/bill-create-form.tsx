@@ -40,6 +40,7 @@ export function BillCreateForm({ dietSessions }: BillCreateFormProps) {
       slug: null,
       is_featured: false,
       is_review_completed: false,
+      article_kind: "standard",
       diet_session_id: defaultDietSessionId,
       knowledge_source: "",
       use_knowledge_source_in_chat: false,
