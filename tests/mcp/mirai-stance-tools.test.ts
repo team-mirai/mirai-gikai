@@ -187,6 +187,51 @@ describe("MCP mirai-stance tools", () => {
         "2026-10-01T03:00:00.000Z"
       );
     });
+
+    it("isPublished: false で非公開にして公開日時をリセットし、省略時は保持する", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        publishAt: "2026-10-01T12:00:00+09:00",
+      });
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        isPublished: false,
+      });
+      const { data: hidden } = await adminClient
+        .from("mirai_stances")
+        .select("is_published, publish_at")
+        .eq("bill_id", bill.id)
+        .single();
+      expect(hidden).toEqual({ is_published: false, publish_at: null });
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "against",
+      });
+      const { data: kept } = await adminClient
+        .from("mirai_stances")
+        .select("is_published")
+        .eq("bill_id", bill.id)
+        .single();
+      expect(kept?.is_published).toBe(false);
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "against",
+        isPublished: true,
+      });
+      const { data: shown } = await adminClient
+        .from("mirai_stances")
+        .select("is_published")
+        .eq("bill_id", bill.id)
+        .single();
+      expect(shown?.is_published).toBe(true);
+    });
   });
 
   describe("get_mirai_stance", () => {
@@ -221,6 +266,7 @@ describe("MCP mirai-stance tools", () => {
         reasonPoints: [],
         supplements: [],
         publishAt: null,
+        isPublished: true,
       });
     });
 

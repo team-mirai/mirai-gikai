@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -27,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { formatJstDateTime } from "@/features/interview-reports/shared/utils/format-jst-date-time";
@@ -40,6 +40,7 @@ import {
   type StanceFormValues,
   stanceFormSchema,
 } from "../../shared/types";
+import { getScheduledPublishAt } from "../../shared/utils/get-scheduled-publish-at";
 import {
   getInitialReasonFormat,
   toStanceFormValues,
@@ -60,15 +61,13 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
 
   const isPreparing = billStatus === "preparing";
   // 表示時点で公開前なら予約中バッジを出す（公開時刻をまたいだ場合は再読み込みで更新）
-  const scheduledAt =
-    stance?.publish_at && !isMiraiStancePublished(stance.publish_at, new Date())
-      ? stance.publish_at
-      : null;
+  const scheduledAt = getScheduledPublishAt(stance, new Date());
 
   const form = useForm<StanceFormValues>({
     resolver: zodResolver(stanceFormSchema),
     defaultValues: toStanceFormValues(stance),
   });
+  const isPublished = form.watch("isPublished");
 
   const handleSubmit = async (values: StanceFormValues) => {
     const stanceInput = toStanceInput(values, stance?.publish_at ?? null);
@@ -122,6 +121,9 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>チームみらいのスタンス</CardTitle>
+          {stance && !stance.is_published && (
+            <Badge variant="outline">非公開</Badge>
+          )}
           {scheduledAt && (
             <Badge variant="secondary">
               公開予約中: {formatJstDateTime(scheduledAt)}
@@ -221,6 +223,29 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
 
             <FormField
               control={form.control}
+              name="isPublished"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center gap-2">
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isPreparing}
+                      />
+                    </FormControl>
+                    <FormLabel>公開する</FormLabel>
+                  </div>
+                  <FormDescription>
+                    オフにすると、スタンスと判断の理由は公開サイトに表示されません（公開日時もリセットされます）。
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="publishAtLocal"
               render={({ field }) => (
                 <FormItem>
@@ -230,11 +255,14 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
                       <Input
                         type="datetime-local"
                         className="w-auto"
-                        disabled={isPreparing}
+                        disabled={isPreparing || !isPublished}
                         {...field}
+                        // 非公開中は公開日時を空表示にする（保存時にリセットされる）。
+                        // 保存前に公開へ戻した場合に予約日時を復元できるよう、値自体は保持する
+                        value={isPublished ? field.value : ""}
                       />
                     </FormControl>
-                    {field.value && (
+                    {isPublished && field.value && (
                       <Button
                         type="button"
                         variant="outline"

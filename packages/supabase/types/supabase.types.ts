@@ -759,6 +759,7 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          is_published: boolean
           publish_at: string | null
           reason_points: string[]
           reason_summary: string | null
@@ -771,6 +772,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          is_published?: boolean
           publish_at?: string | null
           reason_points?: string[]
           reason_summary?: string | null
@@ -783,6 +785,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          is_published?: boolean
           publish_at?: string | null
           reason_points?: string[]
           reason_summary?: string | null

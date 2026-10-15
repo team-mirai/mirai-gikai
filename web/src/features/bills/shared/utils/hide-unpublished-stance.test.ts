@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { BillWithContent, MiraiStance } from "../types";
 import { hideUnpublishedStance } from "./hide-unpublished-stance";
 
-function makeStance(publishAt: string | null): MiraiStance {
+function makeStance(publishAt: string | null, isPublished = true): MiraiStance {
   return {
     id: "stance-1",
     bill_id: "bill-1",
@@ -11,6 +11,7 @@ function makeStance(publishAt: string | null): MiraiStance {
     reason_summary: null,
     reason_points: [],
     supplements: [],
+    is_published: isPublished,
     publish_at: publishAt,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
@@ -46,6 +47,11 @@ describe("hideUnpublishedStance", () => {
     const result = hideUnpublishedStance(bill, now);
     expect(result.mirai_stance).toBeUndefined();
     expect(result.name).toBe("テスト法案");
+  });
+
+  it("非公開の賛否は賛否・コメントごと取り除く", () => {
+    const bill = makeBill(makeStance(null, false));
+    expect(hideUnpublishedStance(bill, now).mirai_stance).toBeUndefined();
   });
 
   it("賛否がない議案はそのまま返す", () => {

@@ -36,6 +36,9 @@ export const stanceInputSchema = z.object({
   // 賛否・コメントの公開日時（ISO 8601、タイムゾーン付き）。
   // null は即時公開、undefined は既存の公開日時を変更しない
   publishAt: z.string().datetime({ offset: true }).nullable().optional(),
+  // 賛否・判断の理由の公開/非公開。false にすると公開日時もリセット（null）する。
+  // undefined は既存の値を変更しない
+  isPublished: z.boolean().optional(),
 });
 
 export type StanceInput = z.infer<typeof stanceInputSchema>;
@@ -43,8 +46,14 @@ export type StanceInput = z.infer<typeof stanceInputSchema>;
 // 管理画面フォーム用。公開日時は datetime-local の日本時間（空文字は即時公開）で持つ。
 // 箇条書きは useFieldArray で扱うためオブジェクトの配列にする
 export const stanceFormSchema = stanceInputSchema
-  .omit({ publishAt: true, reasonPoints: true, supplements: true })
+  .omit({
+    publishAt: true,
+    isPublished: true,
+    reasonPoints: true,
+    supplements: true,
+  })
   .extend({
+    isPublished: z.boolean(),
     publishAtLocal: z.string(),
     reasonPoints: z.array(z.object({ value: z.string() })),
     supplements: z.array(stanceSupplementSchema),

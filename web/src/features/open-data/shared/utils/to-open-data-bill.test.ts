@@ -21,6 +21,7 @@ const baseRow: OpenDataBillRow = {
   mirai_stances: {
     type: "conditional_for",
     comment: "条件付きで賛成",
+    is_published: true,
     publish_at: null,
   },
   bills_tags: [{ tags: { id: "tag-1", label: "経済" } }],
@@ -95,7 +96,7 @@ describe("toOpenDataMiraiStance", () => {
   it("賛否種別に日本語ラベルを付与する", () => {
     expect(
       toOpenDataMiraiStance(
-        { type: "for", comment: null, publish_at: null },
+        { type: "for", comment: null, is_published: true, publish_at: null },
         now
       )
     ).toEqual({
@@ -114,6 +115,7 @@ describe("toOpenDataMiraiStance", () => {
       {
         type: "against",
         comment: "反対の理由",
+        is_published: true,
         publish_at: "2026-10-01T11:00:00+09:00",
       },
       now
@@ -127,7 +129,22 @@ describe("toOpenDataMiraiStance", () => {
         {
           type: "against",
           comment: "反対の理由",
+          is_published: true,
           publish_at: "2026-10-01T13:00:00+09:00",
+        },
+        now
+      )
+    ).toBeNull();
+  });
+
+  it("非公開の賛否は null を返す", () => {
+    expect(
+      toOpenDataMiraiStance(
+        {
+          type: "against",
+          comment: "反対の理由",
+          is_published: false,
+          publish_at: null,
         },
         now
       )

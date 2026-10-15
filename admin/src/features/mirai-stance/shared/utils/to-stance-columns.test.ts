@@ -29,6 +29,43 @@ describe("toStanceColumns", () => {
   });
 });
 
+describe("toStanceColumns（公開/非公開）", () => {
+  it("isPublished が false なら非公開にして公開日時をリセットする", () => {
+    expect(
+      toStanceColumns({
+        type: "for",
+        isPublished: false,
+        publishAt: "2026-10-01T12:00:00+09:00",
+      })
+    ).toEqual({
+      type: "for",
+      comment: null,
+      is_published: false,
+      publish_at: null,
+    });
+  });
+
+  it("isPublished が true なら公開にして公開日時はそのまま反映する", () => {
+    expect(
+      toStanceColumns({
+        type: "for",
+        isPublished: true,
+        publishAt: "2026-10-01T12:00:00+09:00",
+      })
+    ).toEqual({
+      type: "for",
+      comment: null,
+      is_published: true,
+      publish_at: "2026-10-01T12:00:00+09:00",
+    });
+  });
+
+  it("isPublished が未指定なら is_published を含めず既存値を保持する", () => {
+    const columns = toStanceColumns({ type: "for" });
+    expect("is_published" in columns).toBe(false);
+  });
+});
+
 describe("toStanceColumns（新フォーマット）", () => {
   it("判断の理由・箇条書き・補足情報を整形してカラムに変換する", () => {
     expect(
