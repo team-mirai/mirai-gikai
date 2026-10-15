@@ -35,6 +35,7 @@ export function toStanceFormValues(
       : Array.from({ length: DEFAULT_REASON_POINT_COUNT }, () => "")
     ).map((value) => ({ value })),
     supplements: parseStanceSupplements(stance?.supplements),
+    isPublished: stance?.is_published ?? true,
     publishAtLocal: toJstDateTimeLocalValue(stance?.publish_at ?? null),
   };
 }

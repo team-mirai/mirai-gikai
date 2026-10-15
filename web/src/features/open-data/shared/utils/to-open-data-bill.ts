@@ -15,7 +15,7 @@ import type {
 
 type OpenDataMiraiStanceRow = Pick<
   MiraiStance,
-  "type" | "comment" | "publish_at"
+  "type" | "comment" | "is_published" | "publish_at"
 >;
 
 export type OpenDataBillRow = {
@@ -80,13 +80,13 @@ export function toOpenDataBillDetail(
 
 /**
  * チームみらいの賛否行をレスポンス形式（日本語ラベル付き）に変換する。
- * 公開日時前の賛否は未設定（null）として扱う。
+ * 非公開・公開日時前の賛否は未設定（null）として扱う。
  */
 export function toOpenDataMiraiStance(
   stance: OpenDataMiraiStanceRow | null,
   now: Date
 ): OpenDataMiraiStance | null {
-  if (!stance || !isMiraiStancePublished(stance.publish_at, now)) return null;
+  if (!stance || !isMiraiStancePublished(stance, now)) return null;
   return {
     type: stance.type,
     label: STANCE_LABELS[stance.type],

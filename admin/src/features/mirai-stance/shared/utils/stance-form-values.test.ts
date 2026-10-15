@@ -14,6 +14,7 @@ const baseStance: MiraiStance = {
   reason_summary: null,
   reason_points: [],
   supplements: [],
+  is_published: true,
   publish_at: null,
   created_at: "2026-10-01T00:00:00+00:00",
   updated_at: "2026-10-01T00:00:00+00:00",
@@ -62,6 +63,7 @@ describe("toStanceFormValues", () => {
       reasonSummary: "一言",
       reasonPoints: [{ value: "根拠1" }, { value: "根拠2" }],
       supplements: [{ title: "見出し", body: "本文" }],
+      isPublished: true,
       publishAtLocal: "2026-10-01T00:30",
     });
   });
@@ -85,6 +87,7 @@ describe("toStanceInput", () => {
           reasonSummary: "一言",
           reasonPoints: [{ value: "根拠1" }, { value: "" }],
           supplements: [{ title: "見出し", body: "本文" }],
+          isPublished: true,
           publishAtLocal: "2026-10-02T09:30",
         },
         null
@@ -95,6 +98,7 @@ describe("toStanceInput", () => {
       reasonSummary: "一言",
       reasonPoints: ["根拠1", ""],
       supplements: [{ title: "見出し", body: "本文" }],
+      isPublished: true,
       publishAt: "2026-10-02T09:30:00+09:00",
     });
   });

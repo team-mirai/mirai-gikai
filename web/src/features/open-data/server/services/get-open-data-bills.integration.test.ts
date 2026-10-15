@@ -233,4 +233,18 @@ describe("getOpenDataBillDetail（賛否の予約公開）", () => {
       comment: "予約公開のコメント",
     });
   });
+
+  it("非公開に切り替えると賛否は null として返す", async () => {
+    const { error } = await adminClient
+      .from("mirai_stances")
+      .update({ is_published: false, publish_at: null })
+      .eq("bill_id", billId);
+    if (error) throw new Error(error.message);
+
+    const detail = await getOpenDataBillDetail({
+      billId,
+      difficulty: "normal",
+    });
+    expect(detail?.miraiStance).toBeNull();
+  });
 });

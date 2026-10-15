@@ -14,6 +14,7 @@ function makeStance(
     reason_summary: null,
     reason_points: [],
     supplements: [],
+    is_published: true,
     publish_at: null,
     created_at: "2025-01-01T00:00:00Z",
     updated_at: "2025-01-01T00:00:00Z",
