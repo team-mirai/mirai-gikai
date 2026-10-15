@@ -124,6 +124,11 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
           {stance && !stance.is_published && (
             <Badge variant="outline">非公開</Badge>
           )}
+          {stance && !stance.is_published && stance.publish_review_date && (
+            <Badge variant="secondary">
+              公開確認日: {stance.publish_review_date}
+            </Badge>
+          )}
           {scheduledAt && (
             <Badge variant="secondary">
               公開予約中: {formatJstDateTime(scheduledAt)}
@@ -280,6 +285,43 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
                 </FormItem>
               )}
             />
+
+            {!isPublished && (
+              <FormField
+                control={form.control}
+                name="publishReviewDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>公開確認日（任意・日本時間）</FormLabel>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input
+                          type="date"
+                          className="w-auto"
+                          disabled={isPreparing}
+                          {...field}
+                        />
+                      </FormControl>
+                      {field.value && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={isPreparing}
+                          onClick={() => field.onChange("")}
+                        >
+                          クリア
+                        </Button>
+                      )}
+                    </div>
+                    <FormDescription>
+                      この日以降、Slack
+                      で政調会長に公開してよいかを確認します。承認されるまでは非公開のままです。委員会採決の予定日を目安に設定してください。
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="flex gap-2">
               <Button type="submit" disabled={isSubmitting || isPreparing}>

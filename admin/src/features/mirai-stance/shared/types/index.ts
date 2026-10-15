@@ -10,6 +10,11 @@ const stanceSupplementSchema = z.object({
   body: z.string().describe("Markdown"),
 });
 
+// 公開確認日（JST の YYYY-MM-DD）
+export const publishReviewDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD 形式で指定してください");
+
 // フォーム入力用の型とスキーマ
 export const stanceInputSchema = z.object({
   type: z
@@ -39,6 +44,9 @@ export const stanceInputSchema = z.object({
   // 賛否・判断の理由の公開/非公開。false にすると公開日時もリセット（null）する。
   // undefined は既存の値を変更しない
   isPublished: z.boolean().optional(),
+  // 公開確認日（JST の YYYY-MM-DD）。非公開の賛否について、この日以降に
+  // Slack で政調会長へ公開確認を出す。null で解除、undefined は既存の値を変更しない
+  publishReviewDate: publishReviewDateSchema.nullable().optional(),
 });
 
 export type StanceInput = z.infer<typeof stanceInputSchema>;
@@ -49,12 +57,15 @@ export const stanceFormSchema = stanceInputSchema
   .omit({
     publishAt: true,
     isPublished: true,
+    publishReviewDate: true,
     reasonPoints: true,
     supplements: true,
   })
   .extend({
     isPublished: z.boolean(),
     publishAtLocal: z.string(),
+    // 公開確認日（date 入力の YYYY-MM-DD。空文字は未設定）
+    publishReviewDate: z.string(),
     reasonPoints: z.array(z.object({ value: z.string() })),
     supplements: z.array(stanceSupplementSchema),
   });

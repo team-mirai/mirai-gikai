@@ -16,6 +16,7 @@ const baseStance: MiraiStance = {
   supplements: [],
   is_published: true,
   publish_at: null,
+  publish_review_date: null,
   created_at: "2026-10-01T00:00:00+00:00",
   updated_at: "2026-10-01T00:00:00+00:00",
 };
@@ -65,6 +66,7 @@ describe("toStanceFormValues", () => {
       supplements: [{ title: "見出し", body: "本文" }],
       isPublished: true,
       publishAtLocal: "2026-10-01T00:30",
+      publishReviewDate: "",
     });
   });
 
@@ -89,6 +91,7 @@ describe("toStanceInput", () => {
           supplements: [{ title: "見出し", body: "本文" }],
           isPublished: true,
           publishAtLocal: "2026-10-02T09:30",
+          publishReviewDate: "",
         },
         null
       )
@@ -100,6 +103,37 @@ describe("toStanceInput", () => {
       supplements: [{ title: "見出し", body: "本文" }],
       isPublished: true,
       publishAt: "2026-10-02T09:30:00+09:00",
+      publishReviewDate: null,
     });
+  });
+
+  it("非公開で公開確認日を入力した場合は公開確認日を保存する", () => {
+    expect(
+      toStanceInput(
+        {
+          type: "for",
+          comment: "",
+          reasonSummary: "",
+          reasonPoints: [],
+          supplements: [],
+          isPublished: false,
+          publishAtLocal: "",
+          publishReviewDate: "2026-10-20",
+        },
+        null
+      )
+    ).toMatchObject({ isPublished: false, publishReviewDate: "2026-10-20" });
+  });
+});
+
+describe("toStanceFormValues（公開確認日）", () => {
+  it("保存済みの公開確認日をフォームの初期値にする", () => {
+    expect(
+      toStanceFormValues({
+        ...baseStance,
+        is_published: false,
+        publish_review_date: "2026-10-20",
+      }).publishReviewDate
+    ).toBe("2026-10-20");
   });
 });

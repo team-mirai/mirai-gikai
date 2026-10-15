@@ -57,6 +57,7 @@ describe("toStanceColumns（公開/非公開）", () => {
       comment: null,
       is_published: true,
       publish_at: "2026-10-01T12:00:00+09:00",
+      publish_review_date: null,
     });
   });
 
@@ -98,5 +99,44 @@ describe("toStanceColumns（新フォーマット）", () => {
     expect("reason_summary" in columns).toBe(false);
     expect("reason_points" in columns).toBe(false);
     expect("supplements" in columns).toBe(false);
+  });
+});
+
+describe("toStanceColumns（公開確認日）", () => {
+  it("非公開なら公開確認日をそのまま反映する", () => {
+    expect(
+      toStanceColumns({
+        type: "for",
+        isPublished: false,
+        publishReviewDate: "2026-10-20",
+      })
+    ).toEqual({
+      type: "for",
+      comment: null,
+      is_published: false,
+      publish_at: null,
+      publish_review_date: "2026-10-20",
+    });
+  });
+
+  it("公開確認日が null なら解除する", () => {
+    expect(
+      toStanceColumns({ type: "for", publishReviewDate: null })
+    ).toMatchObject({ publish_review_date: null });
+  });
+
+  it("公開にする場合は公開確認日を指定してもリセットする", () => {
+    expect(
+      toStanceColumns({
+        type: "for",
+        isPublished: true,
+        publishReviewDate: "2026-10-20",
+      })
+    ).toMatchObject({ is_published: true, publish_review_date: null });
+  });
+
+  it("公開確認日・公開/非公開が未指定なら publish_review_date を含めない", () => {
+    const columns = toStanceColumns({ type: "for" });
+    expect("publish_review_date" in columns).toBe(false);
   });
 });

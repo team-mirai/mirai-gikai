@@ -37,6 +37,7 @@ export function toStanceFormValues(
     supplements: parseStanceSupplements(stance?.supplements),
     isPublished: stance?.is_published ?? true,
     publishAtLocal: toJstDateTimeLocalValue(stance?.publish_at ?? null),
+    publishReviewDate: stance?.publish_review_date ?? "",
   };
 }
 
@@ -45,12 +46,19 @@ export function toStanceFormValues(
  * 新旧どちらのフォーマットの入力も保持したまま保存する（表示時に新フォーマットを優先）。
  */
 export function toStanceInput(
-  { publishAtLocal, reasonPoints, ...values }: StanceFormValues,
+  {
+    publishAtLocal,
+    publishReviewDate,
+    reasonPoints,
+    ...values
+  }: StanceFormValues,
   savedPublishAt: string | null
 ): StanceInput {
   return {
     ...values,
     reasonPoints: reasonPoints.map(({ value }) => value),
     publishAt: resolvePublishAt(publishAtLocal, savedPublishAt),
+    // 空欄は公開確認日の解除（公開にする場合は保存時にリセットされる）
+    publishReviewDate: publishReviewDate || null,
   };
 }
