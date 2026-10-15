@@ -230,11 +230,7 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
                     <FormControl>
                       <Switch
                         checked={field.value}
-                        onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          // 非公開にしたら公開日時もリセットする
-                          if (!checked) form.setValue("publishAtLocal", "");
-                        }}
+                        onCheckedChange={field.onChange}
                         disabled={isPreparing}
                       />
                     </FormControl>
@@ -261,13 +257,16 @@ export function StanceForm({ billId, stance, billStatus }: StanceFormProps) {
                         className="w-auto"
                         disabled={isPreparing || !isPublished}
                         {...field}
+                        // 非公開中は公開日時を空表示にする（保存時にリセットされる）。
+                        // 保存前に公開へ戻した場合に予約日時を復元できるよう、値自体は保持する
+                        value={isPublished ? field.value : ""}
                       />
                     </FormControl>
-                    {field.value && (
+                    {isPublished && field.value && (
                       <Button
                         type="button"
                         variant="outline"
-                        disabled={isPreparing || !isPublished}
+                        disabled={isPreparing}
                         onClick={() => field.onChange("")}
                       >
                         クリア
