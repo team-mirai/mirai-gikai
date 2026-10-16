@@ -77,6 +77,28 @@ describe("pickHomeSections", () => {
       ]);
     });
 
+    // 同じカードが別々のタグのセクションに何度も並ぶのを避ける。
+    it("複数のタグに付いた議案は先に並ぶタグにだけ出す", () => {
+      const result = pickHomeSections({
+        ...base,
+        billsByTag: [group("司法", "x", "a"), group("組織", "x", "b", "a")],
+      });
+
+      expect(shape(result.tagGroups)).toEqual([
+        ["司法", ["x", "a"]],
+        ["組織", ["b"]],
+      ]);
+    });
+
+    it("先に並ぶタグに出た議案しか無いタグはグループごと落とす", () => {
+      const result = pickHomeSections({
+        ...base,
+        billsByTag: [group("司法", "x", "a"), group("組織", "a", "x")],
+      });
+
+      expect(shape(result.tagGroups)).toEqual([["司法", ["x", "a"]]]);
+    });
+
     // 見出しだけが残ると、中身が無いカテゴリが並んでしまう。
     it("全件外れたタグはグループごと落とす", () => {
       const result = pickHomeSections({
