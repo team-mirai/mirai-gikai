@@ -761,6 +761,7 @@ export type Database = {
           id: string
           is_published: boolean
           publish_at: string | null
+          publish_review_date: string | null
           reason_points: string[]
           reason_summary: string | null
           supplements: Json
@@ -774,6 +775,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           publish_at?: string | null
+          publish_review_date?: string | null
           reason_points?: string[]
           reason_summary?: string | null
           supplements?: Json
@@ -787,6 +789,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           publish_at?: string | null
+          publish_review_date?: string | null
           reason_points?: string[]
           reason_summary?: string | null
           supplements?: Json

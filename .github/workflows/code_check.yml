@@ -45,4 +45,5 @@ jobs:
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
         with:
           files: ./web/coverage/coverage-final.json
+          disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}

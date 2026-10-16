@@ -267,6 +267,8 @@ describe("MCP mirai-stance tools", () => {
         supplements: [],
         publishAt: null,
         isPublished: true,
+        publishReviewDate: null,
+        updatedAt: expect.any(String),
       });
     });
 
@@ -292,9 +294,182 @@ describe("MCP mirai-stance tools", () => {
     });
   });
 
+  describe("公開確認フロー", () => {
+    // 非公開・公開確認日つきの賛否を登録し、get_mirai_stance の値を返す
+    async function createPendingStance(publishReviewDate: string) {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        reasonSummary: "賛成します。",
+        isPublished: false,
+        publishReviewDate,
+      });
+      const { stance } = await registry.callTool<{
+        stance: { updatedAt: string; publishReviewDate: string | null };
+      }>("get_mirai_stance", { billId: bill.id });
+      return { bill, stance };
+    }
+
+    async function fetchRow(billId: string) {
+      const { data } = await adminClient
+        .from("mirai_stances")
+        .select("is_published, publish_at, publish_review_date, updated_at")
+        .eq("bill_id", billId)
+        .single();
+      return data;
+    }
+
+    type PendingList = {
+      stances: {
+        billId: string;
+        billName: string;
+        publishReviewDate: string;
+      }[];
+    };
+
+    it("upsert で非公開のまま公開確認日を保存できる", async () => {
+      const { stance } = await createPendingStance("2026-10-20");
+      expect(stance.publishReviewDate).toBe("2026-10-20");
+    });
+
+    it("list_mirai_stances_pending_review は確認日を迎えた非公開の賛否だけを古い順に返す", async () => {
+      const later = await createPendingStance("2099-01-02");
+      const earlier = await createPendingStance("2099-01-01");
+      const future = await createPendingStance("2099-01-03");
+      const published = await createTestBill();
+      billIds.push(published.id);
+      await registry.callTool("upsert_mirai_stance", {
+        billId: published.id,
+        type: "for",
+      });
+
+      const result = await registry.callTool<PendingList>(
+        "list_mirai_stances_pending_review",
+        { onOrBefore: "2099-01-02" }
+      );
+      const ids = result.stances.map((s) => s.billId);
+      // 他テストのデータが混ざっても、対象の並び順と除外を検証できるよう絞り込む
+      const own = ids.filter((id) =>
+        [later.bill.id, earlier.bill.id, future.bill.id, published.id].includes(
+          id
+        )
+      );
+      expect(own).toEqual([earlier.bill.id, later.bill.id]);
+      expect(
+        result.stances.find((s) => s.billId === earlier.bill.id)
+      ).toMatchObject({
+        billName: earlier.bill.name,
+        publishReviewDate: "2099-01-01",
+        type: "for",
+        reasonSummary: "賛成します。",
+      });
+    });
+
+    it("publish_mirai_stance は updatedAt が一致すれば公開し、公開確認日をリセットする", async () => {
+      const { bill, stance } = await createPendingStance("2026-10-20");
+
+      const result = await registry.callTool<{ ok: boolean }>(
+        "publish_mirai_stance",
+        { billId: bill.id, expectedUpdatedAt: stance.updatedAt }
+      );
+      expect(result).toEqual({ ok: true, billId: bill.id });
+      expect(await fetchRow(bill.id)).toMatchObject({
+        is_published: true,
+        publish_at: null,
+        publish_review_date: null,
+      });
+
+      const again = await registry.callTool<{ ok: boolean; reason: string }>(
+        "publish_mirai_stance",
+        { billId: bill.id, expectedUpdatedAt: stance.updatedAt }
+      );
+      expect(again).toEqual({ ok: false, reason: "already_published" });
+    });
+
+    it("publish_mirai_stance は確認後に内容が編集されていれば公開しない（stale）", async () => {
+      const { bill, stance } = await createPendingStance("2026-10-20");
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "against",
+      });
+
+      const result = await registry.callTool<{ ok: boolean; reason: string }>(
+        "publish_mirai_stance",
+        { billId: bill.id, expectedUpdatedAt: stance.updatedAt }
+      );
+      expect(result).toEqual({ ok: false, reason: "stale" });
+      expect((await fetchRow(bill.id))?.is_published).toBe(false);
+    });
+
+    it("publish_mirai_stance は賛否未設定なら not_found", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+      const result = await registry.callTool<{ ok: boolean; reason: string }>(
+        "publish_mirai_stance",
+        { billId: bill.id, expectedUpdatedAt: "2026-10-01T00:00:00+00:00" }
+      );
+      expect(result).toEqual({ ok: false, reason: "not_found" });
+    });
+
+    it("update_mirai_stance_review_date は公開確認日だけを更新し updatedAt は変えない", async () => {
+      const { bill, stance } = await createPendingStance("2026-10-20");
+
+      const result = await registry.callTool(
+        "update_mirai_stance_review_date",
+        { billId: bill.id, publishReviewDate: "2026-10-27" }
+      );
+      expect(result).toEqual({
+        ok: true,
+        billId: bill.id,
+        publishReviewDate: "2026-10-27",
+      });
+      const row = await fetchRow(bill.id);
+      expect(row?.publish_review_date).toBe("2026-10-27");
+      expect(new Date(row?.updated_at ?? "").getTime()).toBe(
+        new Date(stance.updatedAt).getTime()
+      );
+
+      // 日付変更後も確認時点の updatedAt で公開できる
+      const published = await registry.callTool<{ ok: boolean }>(
+        "publish_mirai_stance",
+        { billId: bill.id, expectedUpdatedAt: stance.updatedAt }
+      );
+      expect(published.ok).toBe(true);
+    });
+
+    it("update_mirai_stance_review_date は公開済みなら already_published、未設定なら not_found", async () => {
+      const published = await createTestBill();
+      billIds.push(published.id);
+      await registry.callTool("upsert_mirai_stance", {
+        billId: published.id,
+        type: "for",
+      });
+      const missing = await createTestBill();
+      billIds.push(missing.id);
+
+      expect(
+        await registry.callTool("update_mirai_stance_review_date", {
+          billId: published.id,
+          publishReviewDate: "2026-10-27",
+        })
+      ).toEqual({ ok: false, reason: "already_published" });
+      expect(
+        await registry.callTool("update_mirai_stance_review_date", {
+          billId: missing.id,
+          publishReviewDate: "2026-10-27",
+        })
+      ).toEqual({ ok: false, reason: "not_found" });
+    });
+  });
+
   it("登録されているツール名が想定通り", () => {
     expect(registry.toolNames().sort()).toEqual([
       "get_mirai_stance",
+      "list_mirai_stances_pending_review",
+      "publish_mirai_stance",
+      "update_mirai_stance_review_date",
       "upsert_mirai_stance",
     ]);
   });
