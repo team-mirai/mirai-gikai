@@ -23,7 +23,6 @@ export async function BillDetailLayout({
   bill,
   currentDifficulty,
 }: BillDetailLayoutProps) {
-  const showMiraiStance = bill.status === "preparing" || bill.mirai_stance;
   const [interviewConfig, publicReportsResult, topicAnalysis] =
     await Promise.all([
       getInterviewConfig(bill.id),
@@ -79,7 +78,11 @@ export async function BillDetailLayout({
             <InterviewLandingSection billId={bill.id} />
           </div>
         )}
-        {showMiraiStance && (
+        {/*
+          賛否が未設定・非公開（公開日時前を含む）なら出さない。法案提出前でも、
+          賛否を登録していない段階で「法案提出前」のカードだけを出すことはしない。
+        */}
+        {bill.mirai_stance && (
           <div className="my-8">
             <MiraiStanceCard
               stance={bill.mirai_stance}

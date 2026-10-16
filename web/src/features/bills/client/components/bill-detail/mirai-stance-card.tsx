@@ -4,17 +4,13 @@ import { getStanceStyles } from "../../../shared/utils/stance-styles";
 import { StanceComment, StanceReason } from "./stance-reason";
 
 interface MiraiStanceCardProps {
-  stance?: MiraiStance;
+  stance: MiraiStance;
   billStatus?: BillStatusEnum;
 }
 
 export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
   // 法案提出前の場合は専用のスタイルを使用
   const isPreparing = billStatus === "preparing";
-
-  if (!stance && !isPreparing) {
-    return null; // スタンスがなく、法案提出前でもない場合は何も表示しない
-  }
 
   const styles = getStanceStyles(stance, isPreparing);
 
@@ -50,7 +46,7 @@ export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
             {isPreparing ? (
               <StanceComment comment="法案提出後、党内で検討のうえ賛否を表明します。" />
             ) : (
-              stance && <StanceReason stance={stance} />
+              <StanceReason stance={stance} />
             )}
           </div>
         </div>

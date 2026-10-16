@@ -24,19 +24,14 @@ function makeStance(
 }
 
 describe("getStanceStyles", () => {
-  it("isPreparing=true のとき法案提出前スタイルを返す", () => {
-    const result = getStanceStyles(undefined, true);
+  it("isPreparing=true のときスタンスに関わらず法案提出前スタイルを返す", () => {
+    const result = getStanceStyles(makeStance("for"), true);
     expect(result).toEqual({
       bg: "bg-white",
       border: "border-mirai-text-muted",
       textColor: "text-mirai-text-muted",
       label: "法案提出前",
     });
-  });
-
-  it("isPreparing=true のときスタンスがあっても法案提出前スタイルを返す", () => {
-    const result = getStanceStyles(makeStance("for"), true);
-    expect(result.label).toBe("法案提出前");
   });
 
   it("for スタンスで賛成スタイルを返す", () => {
@@ -108,15 +103,6 @@ describe("getStanceStyles", () => {
       bg: "bg-mirai-surface-muted",
       textColor: "text-black",
       label: "自由投票",
-    });
-  });
-
-  it("stance=undefined, isPreparing=false のとき中立ラベルを返す", () => {
-    const result = getStanceStyles(undefined, false);
-    expect(result).toEqual({
-      bg: "bg-mirai-surface-muted",
-      textColor: "text-black",
-      label: "中立",
     });
   });
 });
