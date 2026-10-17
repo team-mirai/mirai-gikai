@@ -5,3 +5,6 @@ packages:
   - "worker"
 
 minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  # Renovate security update: @opentelemetry/sdk-node@0.217.0
+  - "@opentelemetry/sdk-node@0.217.0"
