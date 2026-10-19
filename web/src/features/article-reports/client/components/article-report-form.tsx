@@ -5,7 +5,7 @@ import {
   ARTICLE_REPORT_CATEGORY_LABELS,
   type ArticleReportCategory,
 } from "@mirai-gikai/shared/article-report/categories";
-import { Check, Info } from "lucide-react";
+import { Check } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,7 @@ import {
   ARTICLE_REPORT_BODY_MAX_LENGTH,
   hasArticleReportBody,
 } from "../../shared/utils/article-report-input";
+import { ArticleReportLead } from "./article-report-lead";
 
 type Step = "idle" | "form" | "sent";
 
@@ -65,26 +66,9 @@ export function ArticleReportForm({
   };
 
   const lead = (
-    <div className="flex gap-1.5 items-start">
-      <Info className="size-[15px] shrink-0 mt-[3px] text-mirai-text-slate" />
-      <p className="text-[13px] font-medium leading-[1.6] text-mirai-text-slate">
-        この記事はAIが作成しており誤りを含む可能性があります。お気づきの点は
-        {step === "idle" ? (
-          <>
-            <Button
-              variant="link"
-              onClick={() => setStep("form")}
-              className="inline text-[13px] font-medium leading-[1.6] text-mirai-text-slate underline-offset-[3px] hover:opacity-70"
-            >
-              こちらから
-            </Button>
-            。
-          </>
-        ) : (
-          "ご報告ください。"
-        )}
-      </p>
-    </div>
+    <ArticleReportLead
+      onOpen={step === "idle" ? () => setStep("form") : undefined}
+    />
   );
 
   if (step === "idle") return lead;

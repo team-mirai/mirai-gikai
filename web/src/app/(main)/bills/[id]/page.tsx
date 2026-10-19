@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
-import { buildBillOgText } from "@/features/bills/shared/utils/bill-og-text";
 import { resolveBillShareImageUrl } from "@/features/bills/shared/utils/bill-share-image";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
@@ -26,10 +25,8 @@ export async function generateMetadata({
     };
   }
 
-  const { title: ogTitle, description } = buildBillOgText(
-    bill,
-    bill.bill_content?.summary
-  );
+  // bill_contentのsummaryがあればそれを使用、なければデフォルト値を使用
+  const description = bill.bill_content?.summary || "議案の詳細情報";
   const shareImageUrl = resolveBillShareImageUrl(bill, env.webUrl);
 
   return {
@@ -39,7 +36,7 @@ export async function generateMetadata({
       canonical: routes.billDetail(bill.id),
     },
     openGraph: {
-      title: ogTitle,
+      title: bill.name,
       description: description,
       type: "article",
       publishedTime: bill.submitted_date ?? undefined,
@@ -53,7 +50,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: ogTitle,
+      title: bill.name,
       description: description,
       images: [shareImageUrl],
     },
