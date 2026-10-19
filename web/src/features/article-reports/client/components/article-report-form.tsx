@@ -68,7 +68,7 @@ export function ArticleReportForm({
     <div className="flex gap-1.5 items-start">
       <Info className="size-[15px] shrink-0 mt-[3px] text-mirai-text-slate" />
       <p className="text-[13px] font-medium leading-[1.6] text-mirai-text-slate">
-        この記事はAIが作成しており誤りを含む可能性があります。お気づきの点は
+        この記事はAIが作成しています。誤りやお気づきの点がありましたら、
         {step === "idle" ? (
           <>
             <Button
@@ -78,10 +78,10 @@ export function ArticleReportForm({
             >
               こちらから
             </Button>
-            。
+            お知らせください。
           </>
         ) : (
-          "ご報告ください。"
+          "お知らせください。"
         )}
       </p>
     </div>
