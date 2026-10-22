@@ -21,6 +21,19 @@ describe("BillVideoPlayer", () => {
     expect(container.querySelector("iframe")).toBeNull();
   });
 
+  it("YouTube の視聴ページを別タブで開くアイコンリンクを出す", () => {
+    render(<BillVideoPlayer video={video} />);
+
+    const link = screen.getByRole("link", {
+      name: "YouTubeで開く: 解説動画 第1回",
+    });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://www.youtube.com/watch?v=bvAnJyl9IDI"
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
   it("再生ボタンを押すと youtube-nocookie のプレイヤーに切り替わる", () => {
     const { container } = render(<BillVideoPlayer video={video} />);
 

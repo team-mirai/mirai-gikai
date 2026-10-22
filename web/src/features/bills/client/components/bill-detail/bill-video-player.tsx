@@ -3,8 +3,9 @@
 import {
   buildYouTubeEmbedUrl,
   buildYouTubeThumbnailUrl,
+  buildYouTubeWatchUrl,
 } from "@mirai-gikai/shared/youtube";
-import { Play } from "lucide-react";
+import { ExternalLink, Play } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -50,10 +51,20 @@ export function BillVideoPlayer({ video }: { video: BillVideo }) {
           </Button>
         )}
       </div>
-      <div className="px-4 pt-4 pb-5">
+      <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-5">
         <p className="font-bold leading-relaxed text-mirai-text">
           {video.title}
         </p>
+        {/* アプリ内ブラウザなどから YouTube アプリで開きたい人向け */}
+        <a
+          href={buildYouTubeWatchUrl(video.youtube_video_id)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`YouTubeで開く: ${video.title}`}
+          className="mt-0.5 shrink-0 text-mirai-text-subtle hover:opacity-80"
+        >
+          <ExternalLink className="size-5" />
+        </a>
       </div>
     </div>
   );
