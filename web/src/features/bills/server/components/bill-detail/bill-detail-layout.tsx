@@ -93,7 +93,7 @@ export async function BillDetailLayout({
             />
           </div>
         )}
-        {/* 党内の議論などの動画（賛否の直後に置く） */}
+        {/* 議案に関連する動画（賛否の直後に置く） */}
         {videos.length > 0 && (
           <div className="my-8">
             <BillVideosSection videos={videos} />

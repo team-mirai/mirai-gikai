@@ -3,9 +3,8 @@
 import {
   buildYouTubeEmbedUrl,
   buildYouTubeThumbnailUrl,
-  buildYouTubeWatchUrl,
 } from "@mirai-gikai/shared/youtube";
-import { ExternalLink, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,8 +18,9 @@ export function BillVideoPlayer({ video }: { video: BillVideo }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+    <div className="flex flex-col">
+      {/* 角丸はカード側に持たせ、動画はカード上部いっぱいに表示する */}
+      <div className="relative aspect-video w-full bg-black">
         {isPlaying ? (
           <iframe
             src={buildYouTubeEmbedUrl(video.youtube_video_id)}
@@ -44,25 +44,16 @@ export function BillVideoPlayer({ video }: { video: BillVideo }) {
               unoptimized
               className="object-cover"
             />
-            <span className="relative flex size-18 items-center justify-center rounded-full border-2 border-white bg-black/70 text-white shadow-lg transition-transform group-hover:scale-110">
-              <Play className="size-8 translate-x-0.5 fill-current" />
+            <span className="relative flex size-16 items-center justify-center rounded-full border border-black bg-mirai-gradient text-black shadow-md transition-transform group-hover:scale-110">
+              <Play className="size-7 translate-x-0.5 fill-current" />
             </span>
           </Button>
         )}
       </div>
-      <div className="flex flex-col gap-1">
-        <p className="font-medium leading-relaxed text-mirai-text">
+      <div className="px-4 pt-4 pb-5">
+        <p className="font-bold leading-relaxed text-mirai-text">
           {video.title}
         </p>
-        <a
-          href={buildYouTubeWatchUrl(video.youtube_video_id)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex w-fit items-center gap-1 text-sm text-mirai-text-subtle underline underline-offset-2 hover:opacity-80"
-        >
-          YouTubeで見る
-          <ExternalLink className="size-3.5" />
-        </a>
       </div>
     </div>
   );

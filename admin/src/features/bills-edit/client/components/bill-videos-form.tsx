@@ -83,7 +83,7 @@ export function BillVideosForm({ billId, videos }: BillVideosFormProps) {
       <CardContent>
         <div className="space-y-4">
           <p className="text-sm text-gray-500">
-            党内の議論などの動画を議案ページの賛否の下に表示します。上から順に表示されます。
+            議案に関連する動画を議案ページの賛否の下に表示します。上から順に表示されます。
           </p>
 
           {rows.map((row, index) => {

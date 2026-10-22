@@ -16,7 +16,7 @@ describe("BillVideosSection", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "📺チームみらいの党内議論" })
+      screen.getByRole("heading", { name: "📺関連動画" })
     ).toBeInTheDocument();
     const titles = screen
       .getAllByText(/^第\d回$/)
