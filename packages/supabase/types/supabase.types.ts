@@ -134,6 +134,41 @@ export type Database = {
           },
         ]
       }
+      bill_videos: {
+        Row: {
+          bill_id: string
+          created_at: string
+          display_order: number
+          id: string
+          title: string
+          youtube_video_id: string
+        }
+        Insert: {
+          bill_id: string
+          created_at?: string
+          display_order: number
+          id?: string
+          title: string
+          youtube_video_id: string
+        }
+        Update: {
+          bill_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          title?: string
+          youtube_video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_videos_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bills: {
         Row: {
           article_kind: Database["public"]["Enums"]["bill_article_kind"]
@@ -1432,6 +1467,10 @@ export type Database = {
       }
       publish_topic_analysis_version: {
         Args: { p_version_id: string }
+        Returns: undefined
+      }
+      replace_bill_videos: {
+        Args: { p_bill_id: string; p_videos: Json }
         Returns: undefined
       }
       set_active_diet_session: {

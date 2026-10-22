@@ -10,9 +10,11 @@ import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disc
 import { BillStatusProgress } from "../../../client/components/bill-detail/bill-status-progress";
 import { MiraiStanceCard } from "../../../client/components/bill-detail/mirai-stance-card";
 import type { BillWithContent } from "../../../shared/types";
+import { getBillVideos } from "../../loaders/get-bill-videos";
 import { BillShareButtons } from "../share/bill-share-buttons";
 import { BillContent } from "./bill-content";
 import { BillDetailHeader } from "./bill-detail-header";
+import { BillVideosSection } from "./bill-videos-section";
 
 interface BillDetailLayoutProps {
   bill: BillWithContent;
@@ -23,11 +25,12 @@ export async function BillDetailLayout({
   bill,
   currentDifficulty,
 }: BillDetailLayoutProps) {
-  const [interviewConfig, publicReportsResult, topicAnalysis] =
+  const [interviewConfig, publicReportsResult, topicAnalysis, videos] =
     await Promise.all([
       getInterviewConfig(bill.id),
       getPublicReportsByBillId(bill.id),
       getPublicTopicAnalysis(bill.id),
+      getBillVideos(bill.id),
     ]);
 
   return (
@@ -88,6 +91,12 @@ export async function BillDetailLayout({
               stance={bill.mirai_stance}
               billStatus={bill.status}
             />
+          </div>
+        )}
+        {/* 党内の議論などの動画（賛否の直後に置く） */}
+        {videos.length > 0 && (
+          <div className="my-8">
+            <BillVideosSection videos={videos} />
           </div>
         )}
         {/* シェアボタン */}

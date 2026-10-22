@@ -8,6 +8,10 @@
     "test:watch": "vitest"
   },
   "exports": {
+    "./youtube": {
+      "types": "./src/youtube/youtube.ts",
+      "default": "./src/youtube/youtube.ts"
+    },
     "./ai/models": {
       "types": "./src/ai/models.ts",
       "default": "./src/ai/models.ts"

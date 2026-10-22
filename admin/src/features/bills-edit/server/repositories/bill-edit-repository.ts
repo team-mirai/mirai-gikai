@@ -4,6 +4,7 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import { BILL_THUMBNAILS_BUCKET } from "../../shared/constants";
 import type { BillInsert } from "../../shared/types";
 import type { DifficultyLevel } from "../../shared/types/bill-contents";
+import type { BillVideoInput } from "../../shared/types/bill-videos";
 import { mapBillDbError } from "../../shared/utils/map-bill-db-error";
 
 export async function findBillById(id: string) {
@@ -177,6 +178,36 @@ export async function createBillsTags(billId: string, tagIds: string[]) {
 
   if (error) {
     throw new Error(`Failed to create bill tags: ${error.message}`);
+  }
+}
+
+export async function findBillVideosByBillId(billId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bill_videos")
+    .select("*")
+    .eq("bill_id", billId)
+    .order("display_order", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to fetch bill videos: ${error.message}`);
+  }
+
+  return data ?? [];
+}
+
+export async function replaceBillVideos(
+  billId: string,
+  videos: BillVideoInput[]
+) {
+  const supabase = createAdminClient();
+  const { error } = await supabase.rpc("replace_bill_videos", {
+    p_bill_id: billId,
+    p_videos: videos,
+  });
+
+  if (error) {
+    throw new Error(`Failed to replace bill videos: ${error.message}`);
   }
 }
 
