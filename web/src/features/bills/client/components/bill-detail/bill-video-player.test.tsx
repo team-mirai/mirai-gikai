@@ -21,6 +21,17 @@ describe("BillVideoPlayer", () => {
     expect(container.querySelector("iframe")).toBeNull();
   });
 
+  it("YouTube の視聴ページへのリンクを別タブで開く形で出す", () => {
+    render(<BillVideoPlayer video={video} />);
+
+    const link = screen.getByRole("link", { name: "YouTubeで見る" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://www.youtube.com/watch?v=bvAnJyl9IDI"
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
   it("再生ボタンを押すと youtube-nocookie のプレイヤーに切り替わる", () => {
     const { container } = render(<BillVideoPlayer video={video} />);
 
@@ -34,6 +45,6 @@ describe("BillVideoPlayer", () => {
       "https://www.youtube-nocookie.com/embed/bvAnJyl9IDI?autoplay=1&rel=0"
     );
     expect(iframe).toHaveAttribute("title", "党内議論 第1回");
-    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.queryByRole("button", { name: /動画を再生/ })).toBeNull();
   });
 });

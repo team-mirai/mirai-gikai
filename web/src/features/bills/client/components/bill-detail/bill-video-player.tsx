@@ -3,8 +3,9 @@
 import {
   buildYouTubeEmbedUrl,
   buildYouTubeThumbnailUrl,
+  buildYouTubeWatchUrl,
 } from "@mirai-gikai/shared/youtube";
-import { Play } from "lucide-react";
+import { ExternalLink, Play } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ export function BillVideoPlayer({ video }: { video: BillVideo }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
         {isPlaying ? (
           <iframe
@@ -43,13 +44,26 @@ export function BillVideoPlayer({ video }: { video: BillVideo }) {
               unoptimized
               className="object-cover"
             />
-            <span className="relative flex size-16 items-center justify-center rounded-full bg-black/70 text-white transition-transform group-hover:scale-110">
-              <Play className="size-7 fill-current" />
+            <span className="relative flex size-18 items-center justify-center rounded-full border-2 border-white bg-black/70 text-white shadow-lg transition-transform group-hover:scale-110">
+              <Play className="size-8 translate-x-0.5 fill-current" />
             </span>
           </Button>
         )}
       </div>
-      <p className="font-bold text-mirai-text">{video.title}</p>
+      <div className="flex flex-col gap-1">
+        <p className="font-medium leading-relaxed text-mirai-text">
+          {video.title}
+        </p>
+        <a
+          href={buildYouTubeWatchUrl(video.youtube_video_id)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex w-fit items-center gap-1 text-sm text-mirai-text-subtle underline underline-offset-2 hover:opacity-80"
+        >
+          YouTubeで見る
+          <ExternalLink className="size-3.5" />
+        </a>
+      </div>
     </div>
   );
 }
