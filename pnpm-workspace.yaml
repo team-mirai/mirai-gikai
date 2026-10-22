@@ -12,3 +12,5 @@ minimumReleaseAgeExclude:
   - "@opentelemetry/sdk-node@0.217.0"
   # Renovate security update: nanoid@5.1.16
   - nanoid@5.1.16
+  # Renovate security update: @modelcontextprotocol/sdk@1.32.0
+  - "@modelcontextprotocol/sdk@1.32.0"
