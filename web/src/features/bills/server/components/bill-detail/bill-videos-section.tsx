@@ -1,5 +1,3 @@
-import "server-only";
-
 import { BillVideoPlayer } from "../../../client/components/bill-detail/bill-video-player";
 import type { BillVideo } from "../../../shared/types";
 
