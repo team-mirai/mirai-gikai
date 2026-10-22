@@ -8,3 +8,5 @@ minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   # Renovate security update: csv-parse@7.0.2
   - csv-parse@7.0.2
+  # Renovate security update: @opentelemetry/sdk-node@0.217.0
+  - "@opentelemetry/sdk-node@0.217.0"
