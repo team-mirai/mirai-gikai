@@ -13,6 +13,11 @@ export type BillContentUpdate =
 
 export type MiraiStance = Database["public"]["Tables"]["mirai_stances"]["Row"];
 
+export type BillVideo = Pick<
+  Database["public"]["Tables"]["bill_videos"]["Row"],
+  "id" | "youtube_video_id" | "title"
+>;
+
 // Enums
 export type HouseEnum = Database["public"]["Enums"]["house_enum"];
 export type BillStatusEnum = Database["public"]["Enums"]["bill_status_enum"];

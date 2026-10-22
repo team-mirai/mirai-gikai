@@ -30,6 +30,7 @@ import {
   findPublishedBillsWithContents,
   findTagsByBillId,
   findTagsByBillIds,
+  findVideosByBillId,
 } from "./bill-repository";
 
 describe("bill-repository 統合テスト", () => {
@@ -197,6 +198,43 @@ describe("bill-repository 統合テスト", () => {
   // ============================================================
   // findTagsByBillId
   // ============================================================
+
+  describe("findVideosByBillId", () => {
+    it("議案の動画を display_order 順に取得できる", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+      await adminClient.from("bill_videos").insert([
+        {
+          bill_id: bill.id,
+          youtube_video_id: "BBBBBBBBBBB",
+          title: "第2回",
+          display_order: 1,
+        },
+        {
+          bill_id: bill.id,
+          youtube_video_id: "AAAAAAAAAAA",
+          title: "第1回",
+          display_order: 0,
+        },
+      ]);
+
+      const result = await findVideosByBillId(bill.id);
+
+      expect(result.map((video) => video.title)).toEqual(["第1回", "第2回"]);
+      expect(result[0]).toEqual({
+        id: expect.any(String),
+        youtube_video_id: "AAAAAAAAAAA",
+        title: "第1回",
+      });
+    });
+
+    it("動画が無い議案では空配列を返す", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+
+      expect(await findVideosByBillId(bill.id)).toEqual([]);
+    });
+  });
 
   describe("findTagsByBillId", () => {
     it("議案のタグを取得できる", async () => {
