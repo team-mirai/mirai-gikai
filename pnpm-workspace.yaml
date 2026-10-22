@@ -10,3 +10,5 @@ minimumReleaseAgeExclude:
   - csv-parse@7.0.2
   # Renovate security update: @opentelemetry/sdk-node@0.217.0
   - "@opentelemetry/sdk-node@0.217.0"
+  # Renovate security update: nanoid@5.1.16
+  - nanoid@5.1.16
