@@ -19,8 +19,8 @@ export function BillVideoPlayer({ video }: { video: BillVideo }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div className="flex flex-col">
-      {/* 角丸はカード側に持たせ、動画はカード上部いっぱいに表示する */}
+    // 記事本文の各セクションと同じ白カード。動画はカード上部いっぱいに表示する
+    <div className="flex flex-col overflow-hidden rounded-md bg-white">
       <div className="relative aspect-video w-full bg-black">
         {isPlaying ? (
           <iframe
