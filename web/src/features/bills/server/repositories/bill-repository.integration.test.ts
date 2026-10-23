@@ -200,32 +200,26 @@ describe("bill-repository 統合テスト", () => {
   // ============================================================
 
   describe("findVideosByBillId", () => {
-    it("議案の動画を display_order 順に取得できる", async () => {
+    it("議案の動画を種類付きで取得できる", async () => {
       const bill = await createTestBill();
       billIds.push(bill.id);
-      await adminClient.from("bill_videos").insert([
-        {
-          bill_id: bill.id,
-          youtube_video_id: "BBBBBBBBBBB",
-          title: "第2回",
-          display_order: 1,
-        },
-        {
-          bill_id: bill.id,
-          youtube_video_id: "AAAAAAAAAAA",
-          title: "第1回",
-          display_order: 0,
-        },
-      ]);
+      await adminClient.from("bill_videos").insert({
+        bill_id: bill.id,
+        kind: "caucus",
+        youtube_video_id: "AAAAAAAAAAA",
+        title: "議員団MTG",
+      });
 
       const result = await findVideosByBillId(bill.id);
 
-      expect(result.map((video) => video.title)).toEqual(["第1回", "第2回"]);
-      expect(result[0]).toEqual({
-        id: expect.any(String),
-        youtube_video_id: "AAAAAAAAAAA",
-        title: "第1回",
-      });
+      expect(result).toEqual([
+        {
+          id: expect.any(String),
+          kind: "caucus",
+          youtube_video_id: "AAAAAAAAAAA",
+          title: "議員団MTG",
+        },
+      ]);
     });
 
     it("動画が無い議案では空配列を返す", async () => {

@@ -7,17 +7,17 @@ import {
 } from "@/lib/utils/cache-invalidation";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
-  type BillVideoFormItem,
+  type BillVideosFormInput,
   billVideosInputSchema,
 } from "../../shared/types/bill-videos";
-import { replaceBillVideos } from "../repositories/bill-edit-repository";
+import { saveBillVideos } from "../repositories/bill-edit-repository";
 
 /**
- * 議案の動画一覧を入力内容で置き換える（配列順が表示順になる）
+ * 議案の動画を議論の種類ごとに保存する（空にした種類は削除する）
  */
 export async function updateBillVideos(
   billId: string,
-  videos: BillVideoFormItem[]
+  videos: BillVideosFormInput
 ) {
   await requireAdmin();
 
@@ -30,7 +30,7 @@ export async function updateBillVideos(
   }
 
   try {
-    await replaceBillVideos(billId, parsed.data);
+    await saveBillVideos(billId, parsed.data);
     await invalidateWebCache([WEB_CACHE_TAGS.BILLS]);
 
     return { success: true };

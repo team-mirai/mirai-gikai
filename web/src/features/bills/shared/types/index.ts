@@ -15,7 +15,7 @@ export type MiraiStance = Database["public"]["Tables"]["mirai_stances"]["Row"];
 
 export type BillVideo = Pick<
   Database["public"]["Tables"]["bill_videos"]["Row"],
-  "id" | "youtube_video_id" | "title"
+  "id" | "kind" | "youtube_video_id" | "title"
 >;
 
 // Enums

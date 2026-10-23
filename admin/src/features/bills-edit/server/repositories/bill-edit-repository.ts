@@ -4,8 +4,9 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import { BILL_THUMBNAILS_BUCKET } from "../../shared/constants";
 import type { BillInsert } from "../../shared/types";
 import type { DifficultyLevel } from "../../shared/types/bill-contents";
-import type { BillVideoInput } from "../../shared/types/bill-videos";
+import type { BillVideosInput } from "../../shared/types/bill-videos";
 import { mapBillDbError } from "../../shared/utils/map-bill-db-error";
+import { toBillVideoChanges } from "../../shared/utils/to-bill-video-changes";
 
 export async function findBillById(id: string) {
   const supabase = createAdminClient();
@@ -186,8 +187,7 @@ export async function findBillVideosByBillId(billId: string) {
   const { data, error } = await supabase
     .from("bill_videos")
     .select("*")
-    .eq("bill_id", billId)
-    .order("display_order", { ascending: true });
+    .eq("bill_id", billId);
 
   if (error) {
     throw new Error(`Failed to fetch bill videos: ${error.message}`);
@@ -196,18 +196,32 @@ export async function findBillVideosByBillId(billId: string) {
   return data ?? [];
 }
 
-export async function replaceBillVideos(
-  billId: string,
-  videos: BillVideoInput[]
-) {
+/**
+ * 議論の種類ごとに動画を登録・更新し、空にされた種類の動画は削除する。
+ * 種類ごとに独立した行のため、途中で失敗しても再保存で揃えられるとして RPC にはしない
+ */
+export async function saveBillVideos(billId: string, videos: BillVideosInput) {
   const supabase = createAdminClient();
-  const { error } = await supabase.rpc("replace_bill_videos", {
-    p_bill_id: billId,
-    p_videos: videos,
-  });
+  const { upserts, deleteKinds } = toBillVideoChanges(billId, videos);
 
-  if (error) {
-    throw new Error(`Failed to replace bill videos: ${error.message}`);
+  if (upserts.length > 0) {
+    const { error } = await supabase
+      .from("bill_videos")
+      .upsert(upserts, { onConflict: "bill_id,kind" });
+    if (error) {
+      throw new Error(`Failed to save bill videos: ${error.message}`);
+    }
+  }
+
+  if (deleteKinds.length > 0) {
+    const { error } = await supabase
+      .from("bill_videos")
+      .delete()
+      .eq("bill_id", billId)
+      .in("kind", deleteKinds);
+    if (error) {
+      throw new Error(`Failed to delete bill videos: ${error.message}`);
+    }
   }
 }
 

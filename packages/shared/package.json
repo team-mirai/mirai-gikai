@@ -12,6 +12,10 @@
       "types": "./src/youtube/youtube.ts",
       "default": "./src/youtube/youtube.ts"
     },
+    "./bill-videos/kinds": {
+      "types": "./src/bill-videos/kinds.ts",
+      "default": "./src/bill-videos/kinds.ts"
+    },
     "./ai/models": {
       "types": "./src/ai/models.ts",
       "default": "./src/ai/models.ts"

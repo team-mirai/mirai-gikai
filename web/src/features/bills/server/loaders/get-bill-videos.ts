@@ -6,7 +6,7 @@ import type { BillVideo } from "../../shared/types";
 import { findVideosByBillId } from "../repositories/bill-repository";
 
 /**
- * 議案に紐づく動画を表示順で取得する（議案詳細ページ用）
+ * 議案に紐づく動画を取得する（議案詳細ページ用）
  */
 export const getBillVideos = unstable_cache(
   async (billId: string): Promise<BillVideo[]> => findVideosByBillId(billId),
