@@ -17,8 +17,6 @@ import { prepareQuestionsForDuplication } from "../../shared/utils/prepare-quest
 import {
   closeOtherPublicConfigs,
   createInterviewConfigRecord,
-  createInterviewQuestions,
-  deleteInterviewConfigRecord,
   findInterviewConfigBillId,
   findInterviewConfigById,
   findInterviewQuestionsByConfigId,
@@ -26,6 +24,7 @@ import {
   unpublishReportsByConfigId,
   updateInterviewConfigRecord,
 } from "../repositories/interview-config-repository";
+import { createInterviewConfigWithQuestions } from "../services/create-interview-config-with-questions";
 
 export type InterviewConfigResult =
   | { success: true; data: { id: string } }
@@ -171,45 +170,30 @@ export async function duplicateInterviewConfig(
 
     const targetBillId = options?.targetBillId ?? originalConfig.bill_id;
 
-    // 新しい設定を作成（ステータスは非公開で複製）
+    // 新しい設定を質問ごと作成（ステータスは非公開で複製）
     let newConfig: { id: string };
     try {
-      newConfig = await createInterviewConfigRecord({
-        bill_id: targetBillId,
-        name: `${originalConfig.name}（コピー）`,
-        status: "closed" as const,
-        mode: originalConfig.mode as InterviewMode,
-        themes: originalConfig.themes,
-        chat_model: originalConfig.chat_model,
-        estimated_duration: originalConfig.estimated_duration,
-        prompt_overrides: parsePromptOverridesByMode(
-          originalConfig.prompt_overrides
-        ),
-      });
+      newConfig = await createInterviewConfigWithQuestions(
+        {
+          bill_id: targetBillId,
+          name: `${originalConfig.name}（コピー）`,
+          status: "closed" as const,
+          mode: originalConfig.mode as InterviewMode,
+          themes: originalConfig.themes,
+          chat_model: originalConfig.chat_model,
+          estimated_duration: originalConfig.estimated_duration,
+          prompt_overrides: parsePromptOverridesByMode(
+            originalConfig.prompt_overrides
+          ),
+        },
+        (newConfigId) =>
+          prepareQuestionsForDuplication(originalQuestions, newConfigId)
+      );
     } catch (error) {
       return {
         success: false,
         error: `インタビュー設定の複製に失敗しました: ${getErrorMessage(error, "unknown error")}`,
       };
-    }
-
-    // 質問を複製
-    if (originalQuestions.length > 0) {
-      const newQuestions = prepareQuestionsForDuplication(
-        originalQuestions,
-        newConfig.id
-      );
-
-      try {
-        await createInterviewQuestions(newQuestions);
-      } catch (error) {
-        // 質問の複製に失敗した場合、作成した設定も削除
-        await deleteInterviewConfigRecord(newConfig.id);
-        return {
-          success: false,
-          error: `質問の複製に失敗しました: ${getErrorMessage(error, "unknown error")}`,
-        };
-      }
     }
 
     // web側のキャッシュを無効化
