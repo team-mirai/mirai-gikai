@@ -22,24 +22,33 @@ describe("getBillVideos 統合テスト", () => {
     billIds.length = 0;
   });
 
-  it("議案の動画を表示順で返す", async () => {
+  it("議案の動画を種類付きで返す", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
-    await adminClient.rpc("replace_bill_videos", {
-      p_bill_id: bill.id,
-      p_videos: [
-        { youtube_video_id: "AAAAAAAAAAA", title: "第1回" },
-        { youtube_video_id: "BBBBBBBBBBB", title: "第2回" },
-      ],
-    });
+    await adminClient.from("bill_videos").insert([
+      {
+        bill_id: bill.id,
+        kind: "stance_decision",
+        youtube_video_id: "AAAAAAAAAAA",
+        title: "賛否MTG",
+      },
+      {
+        bill_id: bill.id,
+        kind: "caucus",
+        youtube_video_id: "BBBBBBBBBBB",
+        title: "議員団MTG",
+      },
+    ]);
 
     const result = await getBillVideos(bill.id);
 
     expect(
-      result.map(({ youtube_video_id, title }) => ({ youtube_video_id, title }))
+      result
+        .map(({ kind, youtube_video_id }) => ({ kind, youtube_video_id }))
+        .sort((a, b) => a.youtube_video_id.localeCompare(b.youtube_video_id))
     ).toEqual([
-      { youtube_video_id: "AAAAAAAAAAA", title: "第1回" },
-      { youtube_video_id: "BBBBBBBBBBB", title: "第2回" },
+      { kind: "stance_decision", youtube_video_id: "AAAAAAAAAAA" },
+      { kind: "caucus", youtube_video_id: "BBBBBBBBBBB" },
     ]);
   });
 

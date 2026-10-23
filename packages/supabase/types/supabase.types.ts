@@ -138,24 +138,24 @@ export type Database = {
         Row: {
           bill_id: string
           created_at: string
-          display_order: number
           id: string
+          kind: Database["public"]["Enums"]["bill_video_kind"]
           title: string
           youtube_video_id: string
         }
         Insert: {
           bill_id: string
           created_at?: string
-          display_order: number
           id?: string
+          kind: Database["public"]["Enums"]["bill_video_kind"]
           title: string
           youtube_video_id: string
         }
         Update: {
           bill_id?: string
           created_at?: string
-          display_order?: number
           id?: string
+          kind?: Database["public"]["Enums"]["bill_video_kind"]
           title?: string
           youtube_video_id?: string
         }
@@ -1469,10 +1469,6 @@ export type Database = {
         Args: { p_version_id: string }
         Returns: undefined
       }
-      replace_bill_videos: {
-        Args: { p_bill_id: string; p_videos: Json }
-        Returns: undefined
-      }
       set_active_diet_session: {
         Args: { target_session_id: string }
         Returns: undefined
@@ -1501,6 +1497,7 @@ export type Database = {
         | "enacted"
         | "rejected"
         | "preparing"
+      bill_video_kind: "stance_decision" | "caucus"
       chat_role_enum: "user" | "system" | "assistant"
       difficulty_level_enum: "normal" | "hard"
       house_enum: "HR" | "HC"
@@ -1675,6 +1672,7 @@ export const Constants = {
         "rejected",
         "preparing",
       ],
+      bill_video_kind: ["stance_decision", "caucus"],
       chat_role_enum: ["user", "system", "assistant"],
       difficulty_level_enum: ["normal", "hard"],
       house_enum: ["HR", "HC"],

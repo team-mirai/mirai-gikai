@@ -6,6 +6,7 @@ import { BillVideoPlayer } from "./bill-video-player";
 
 const video = {
   id: "video-1",
+  kind: "stance_decision" as const,
   youtube_video_id: "bvAnJyl9IDI",
   title: "解説動画 第1回",
 };

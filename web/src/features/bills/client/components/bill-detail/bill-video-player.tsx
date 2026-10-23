@@ -45,8 +45,8 @@ export function BillVideoPlayer({ video }: { video: BillVideo }) {
               unoptimized
               className="object-cover"
             />
-            <span className="relative flex size-16 items-center justify-center rounded-full border border-black bg-mirai-gradient text-black shadow-md transition-transform group-hover:scale-110">
-              <Play className="size-7 translate-x-0.5 fill-current" />
+            <span className="relative flex size-16 items-center justify-center rounded-full bg-white text-mirai-brand-teal-ink shadow-lg transition-transform group-hover:scale-110">
+              <Play className="size-8 translate-x-0.5 fill-current" />
             </span>
           </Button>
         )}
