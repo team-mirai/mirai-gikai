@@ -212,8 +212,21 @@ jobs:
         run: |
           # POSTGRES_URL_NON_POOLING（直接接続）は IPv6 必須で GitHub Actions の
           # ランナーから到達できないため、IPv4 対応の pooler 経由（POSTGRES_URL）を使う。
-          # seed（supabase/seed.sql）はローカル専用のため --include-seed は付けない
-          supabase db push --db-url "$BRANCH_POSTGRES_URL" --include-all --yes
+          # seed（supabase/seed.sql）はローカル専用のため --include-seed は付けない。
+          # ブランチ新規作成直後は Supabase 側（--git-branch 連携）のマイグレーション適用と
+          # 競合して schema_migrations の重複キーで失敗することがある（PR #998 で発生）。
+          # db push は未適用分のみを流す冪等な操作のため、間隔を空けてリトライする
+          for i in 1 2 3; do
+            if supabase db push --db-url "$BRANCH_POSTGRES_URL" --include-all --yes; then
+              exit 0
+            fi
+            if [ "$i" -lt 3 ]; then
+              echo "::warning::db push failed (attempt $i). Retrying in 30s..."
+              sleep 30
+            fi
+          done
+          echo "db push failed after 3 attempts" >&2
+          exit 1
 
       # ---------- Vercel 環境変数の設定と再デプロイ ----------
       # Vercel API のバージョン（v9/v10/v13）はエンドポイントごとに独立しており、

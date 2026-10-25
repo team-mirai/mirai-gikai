@@ -1,4 +1,6 @@
 import { createBrowserClient } from "@mirai-gikai/supabase";
+import { BILL_THUMBNAILS_BUCKET } from "../../shared/constants";
+import { getImageExtension } from "../../shared/utils/image-extension";
 
 export interface UploadResult {
   url?: string;
@@ -32,13 +34,13 @@ export async function uploadThumbnail(
 
   try {
     // 新しいファイル名を生成
-    const fileExt = file.name.split(".").pop();
+    const fileExt = getImageExtension(file.type, file.name);
     const prefix = storagePrefix ? `${storagePrefix}_` : "";
     const fileName = `${prefix}${billId || "new"}_${Date.now()}.${fileExt}`;
 
     // ファイルをアップロード
     const { data, error } = await supabase.storage
-      .from("bill-thumbnails")
+      .from(BILL_THUMBNAILS_BUCKET)
       .upload(fileName, file, {
         cacheControl: "3600",
         upsert: true,
@@ -51,7 +53,7 @@ export async function uploadThumbnail(
 
     // 公開URLを取得
     const { data: urlData } = supabase.storage
-      .from("bill-thumbnails")
+      .from(BILL_THUMBNAILS_BUCKET)
       .getPublicUrl(data.path);
 
     return { url: urlData.publicUrl };
@@ -74,7 +76,7 @@ export async function deleteThumbnail(url: string): Promise<DeleteResult> {
     }
 
     const { error } = await supabase.storage
-      .from("bill-thumbnails")
+      .from(BILL_THUMBNAILS_BUCKET)
       .remove([fileName]);
 
     if (error) {

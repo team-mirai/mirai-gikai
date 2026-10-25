@@ -6,7 +6,9 @@ import type { StanceInput } from "../types";
 
 /**
  * StanceInput を mirai_stances の書き込みカラムに変換する。
- * publishAt・新フォーマットの各項目が undefined の場合はカラムを含めず、既存の値を保持する。
+ * publishAt・isPublished・新フォーマットの各項目が undefined の場合はカラムを含めず、既存の値を保持する。
+ * isPublished が false（非公開）の場合は publishAt に関わらず公開日時をリセットする。
+ * isPublished が true（公開）の場合は公開確認が不要になるため公開確認日をリセットする。
  */
 export function toStanceColumns(input: StanceInput) {
   return {
@@ -21,6 +23,14 @@ export function toStanceColumns(input: StanceInput) {
     ...(input.supplements !== undefined && {
       supplements: normalizeStanceSupplements(input.supplements),
     }),
-    ...(input.publishAt !== undefined && { publish_at: input.publishAt }),
+    ...(input.isPublished !== undefined && { is_published: input.isPublished }),
+    ...(input.isPublished === false
+      ? { publish_at: null }
+      : input.publishAt !== undefined && { publish_at: input.publishAt }),
+    ...(input.isPublished === true
+      ? { publish_review_date: null }
+      : input.publishReviewDate !== undefined && {
+          publish_review_date: input.publishReviewDate,
+        }),
   };
 }

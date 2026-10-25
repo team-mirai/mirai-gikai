@@ -10,9 +10,11 @@ import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disc
 import { BillStatusProgress } from "../../../client/components/bill-detail/bill-status-progress";
 import { MiraiStanceCard } from "../../../client/components/bill-detail/mirai-stance-card";
 import type { BillWithContent } from "../../../shared/types";
+import { getBillVideos } from "../../loaders/get-bill-videos";
 import { BillShareButtons } from "../share/bill-share-buttons";
 import { BillContent } from "./bill-content";
 import { BillDetailHeader } from "./bill-detail-header";
+import { BillVideosSection } from "./bill-videos-section";
 
 interface BillDetailLayoutProps {
   bill: BillWithContent;
@@ -23,12 +25,12 @@ export async function BillDetailLayout({
   bill,
   currentDifficulty,
 }: BillDetailLayoutProps) {
-  const showMiraiStance = bill.status === "preparing" || bill.mirai_stance;
-  const [interviewConfig, publicReportsResult, topicAnalysis] =
+  const [interviewConfig, publicReportsResult, topicAnalysis, videos] =
     await Promise.all([
       getInterviewConfig(bill.id),
       getPublicReportsByBillId(bill.id),
       getPublicTopicAnalysis(bill.id),
+      getBillVideos(bill.id),
     ]);
 
   return (
@@ -79,12 +81,22 @@ export async function BillDetailLayout({
             <InterviewLandingSection billId={bill.id} />
           </div>
         )}
-        {showMiraiStance && (
+        {/*
+          賛否が未設定・非公開（公開日時前を含む）なら出さない。法案提出前でも、
+          賛否を登録していない段階で「法案提出前」のカードだけを出すことはしない。
+        */}
+        {bill.mirai_stance && (
           <div className="my-8">
             <MiraiStanceCard
               stance={bill.mirai_stance}
               billStatus={bill.status}
             />
+          </div>
+        )}
+        {/* 議案に関連する動画（賛否の直後に置く） */}
+        {videos.length > 0 && (
+          <div className="my-8">
+            <BillVideosSection videos={videos} />
           </div>
         )}
         {/* シェアボタン */}

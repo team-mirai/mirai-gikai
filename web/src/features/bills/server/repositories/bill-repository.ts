@@ -129,7 +129,7 @@ export async function findBillById(id: string) {
 
 /**
  * 議案のmirai_stanceを取得
- * 公開日時（publish_at）前のものも返すため、公開側で使う場合は
+ * 非公開（is_published=false）・公開日時（publish_at）前のものも返すため、公開側で使う場合は
  * hideUnpublishedStance / isMiraiStancePublished で除外すること。
  */
 export async function findMiraiStanceByBillId(billId: string) {
@@ -159,6 +159,24 @@ export async function findTagsByBillId(billId: string) {
 
   if (error) {
     return null;
+  }
+
+  return data;
+}
+
+/**
+ * 議案に紐づく動画（議論の種類ごとに最大1本）を取得
+ */
+export async function findVideosByBillId(billId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bill_videos")
+    .select("id, kind, youtube_video_id, title")
+    .eq("bill_id", billId);
+
+  // 空配列を返すとエラー結果がキャッシュされ動画が消えるため throw する
+  if (error) {
+    throw new Error(`Failed to fetch bill videos: ${error.message}`);
   }
 
   return data;

@@ -30,6 +30,7 @@ import {
   findPublishedBillsWithContents,
   findTagsByBillId,
   findTagsByBillIds,
+  findVideosByBillId,
 } from "./bill-repository";
 
 describe("bill-repository 統合テスト", () => {
@@ -197,6 +198,37 @@ describe("bill-repository 統合テスト", () => {
   // ============================================================
   // findTagsByBillId
   // ============================================================
+
+  describe("findVideosByBillId", () => {
+    it("議案の動画を種類付きで取得できる", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+      await adminClient.from("bill_videos").insert({
+        bill_id: bill.id,
+        kind: "caucus",
+        youtube_video_id: "AAAAAAAAAAA",
+        title: "議員団MTG",
+      });
+
+      const result = await findVideosByBillId(bill.id);
+
+      expect(result).toEqual([
+        {
+          id: expect.any(String),
+          kind: "caucus",
+          youtube_video_id: "AAAAAAAAAAA",
+          title: "議員団MTG",
+        },
+      ]);
+    });
+
+    it("動画が無い議案では空配列を返す", async () => {
+      const bill = await createTestBill();
+      billIds.push(bill.id);
+
+      expect(await findVideosByBillId(bill.id)).toEqual([]);
+    });
+  });
 
   describe("findTagsByBillId", () => {
     it("議案のタグを取得できる", async () => {

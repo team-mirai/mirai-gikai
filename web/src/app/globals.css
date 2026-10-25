@@ -65,6 +65,7 @@
   --color-mirai-text-note: #4c4c4c;
   --color-mirai-text-subtle: #666666;
   --color-mirai-text-close: #9f9b9b;
+  --color-mirai-text-slate: #4b5563;
 
   /* Surface / Background */
   --color-mirai-surface: #f7f4f0;
@@ -113,6 +114,7 @@
   --color-mirai-brand-teal: #30bca7;
   --color-mirai-brand-teal-hover: #089781;
   --color-mirai-brand-teal-deep: #17594f;
+  --color-mirai-brand-teal-ink: #0b4036;
   --color-mirai-brand-mint: #e2f6f3;
 
   /* Topic analysis */

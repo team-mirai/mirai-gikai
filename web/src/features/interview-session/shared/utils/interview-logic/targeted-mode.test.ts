@@ -16,6 +16,7 @@ const makeBill = (
   name: "テスト法案",
   is_featured: false,
   is_review_completed: true,
+  article_kind: "standard",
   originating_house: "HR",
   shugiin_url: null,
   slug: null,

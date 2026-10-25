@@ -8,6 +8,14 @@
     "test:watch": "vitest"
   },
   "exports": {
+    "./youtube": {
+      "types": "./src/youtube/youtube.ts",
+      "default": "./src/youtube/youtube.ts"
+    },
+    "./bill-videos/kinds": {
+      "types": "./src/bill-videos/kinds.ts",
+      "default": "./src/bill-videos/kinds.ts"
+    },
     "./ai/models": {
       "types": "./src/ai/models.ts",
       "default": "./src/ai/models.ts"
@@ -119,6 +127,14 @@
     "./mirai-stance/reason-format": {
       "types": "./src/mirai-stance/reason-format.ts",
       "default": "./src/mirai-stance/reason-format.ts"
+    },
+    "./article-report/categories": {
+      "types": "./src/article-report/categories.ts",
+      "default": "./src/article-report/categories.ts"
+    },
+    "./og/assets": {
+      "types": "./src/og/og-assets.ts",
+      "default": "./src/og/og-assets.ts"
     },
     "./db/fetch-all-pages": {
       "types": "./src/db/fetch-all-pages.ts",

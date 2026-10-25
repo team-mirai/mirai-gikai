@@ -52,6 +52,47 @@ export type Database = {
         }
         Relationships: []
       }
+      bill_article_reports: {
+        Row: {
+          bill_id: string
+          body: string
+          category:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at: string
+          difficulty_level: Database["public"]["Enums"]["difficulty_level_enum"]
+          id: string
+        }
+        Insert: {
+          bill_id: string
+          body: string
+          category?:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at?: string
+          difficulty_level: Database["public"]["Enums"]["difficulty_level_enum"]
+          id?: string
+        }
+        Update: {
+          bill_id?: string
+          body?: string
+          category?:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at?: string
+          difficulty_level?: Database["public"]["Enums"]["difficulty_level_enum"]
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_article_reports_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bill_contents: {
         Row: {
           bill_id: string
@@ -93,8 +134,44 @@ export type Database = {
           },
         ]
       }
+      bill_videos: {
+        Row: {
+          bill_id: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["bill_video_kind"]
+          title: string
+          youtube_video_id: string
+        }
+        Insert: {
+          bill_id: string
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["bill_video_kind"]
+          title: string
+          youtube_video_id: string
+        }
+        Update: {
+          bill_id?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["bill_video_kind"]
+          title?: string
+          youtube_video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_videos_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bills: {
         Row: {
+          article_kind: Database["public"]["Enums"]["bill_article_kind"]
           created_at: string
           diet_session_id: string | null
           id: string
@@ -118,6 +195,7 @@ export type Database = {
           use_knowledge_source_in_chat: boolean
         }
         Insert: {
+          article_kind?: Database["public"]["Enums"]["bill_article_kind"]
           created_at?: string
           diet_session_id?: string | null
           id?: string
@@ -141,6 +219,7 @@ export type Database = {
           use_knowledge_source_in_chat?: boolean
         }
         Update: {
+          article_kind?: Database["public"]["Enums"]["bill_article_kind"]
           created_at?: string
           diet_session_id?: string | null
           id?: string
@@ -715,7 +794,9 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          is_published: boolean
           publish_at: string | null
+          publish_review_date: string | null
           reason_points: string[]
           reason_summary: string | null
           supplements: Json
@@ -727,7 +808,9 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          is_published?: boolean
           publish_at?: string | null
+          publish_review_date?: string | null
           reason_points?: string[]
           reason_summary?: string | null
           supplements?: Json
@@ -739,7 +822,9 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          is_published?: boolean
           publish_at?: string | null
+          publish_review_date?: string | null
           reason_points?: string[]
           reason_summary?: string | null
           supplements?: Json
@@ -1398,6 +1483,12 @@ export type Database = {
       }
     }
     Enums: {
+      article_report_category:
+        | "factual_error"
+        | "outdated"
+        | "unclear"
+        | "other"
+      bill_article_kind: "standard" | "ai_generated"
       bill_publish_status: "draft" | "published" | "coming_soon"
       bill_status_enum:
         | "introduced"
@@ -1406,6 +1497,7 @@ export type Database = {
         | "enacted"
         | "rejected"
         | "preparing"
+      bill_video_kind: "stance_decision" | "caucus"
       chat_role_enum: "user" | "system" | "assistant"
       difficulty_level_enum: "normal" | "hard"
       house_enum: "HR" | "HC"
@@ -1564,6 +1656,13 @@ export const Constants = {
   },
   public: {
     Enums: {
+      article_report_category: [
+        "factual_error",
+        "outdated",
+        "unclear",
+        "other",
+      ],
+      bill_article_kind: ["standard", "ai_generated"],
       bill_publish_status: ["draft", "published", "coming_soon"],
       bill_status_enum: [
         "introduced",
@@ -1573,6 +1672,7 @@ export const Constants = {
         "rejected",
         "preparing",
       ],
+      bill_video_kind: ["stance_decision", "caucus"],
       chat_role_enum: ["user", "system", "assistant"],
       difficulty_level_enum: ["normal", "hard"],
       house_enum: ["HR", "HC"],

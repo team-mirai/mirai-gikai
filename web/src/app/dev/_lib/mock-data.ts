@@ -37,6 +37,7 @@ const baseBill: BillWithContent = {
   originating_house: "HR",
   is_featured: false,
   is_review_completed: true,
+  article_kind: "standard",
   thumbnail_url: null,
   share_thumbnail_url: null,
   published_at: "2026-02-15",

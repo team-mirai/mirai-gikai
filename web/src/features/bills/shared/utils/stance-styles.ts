@@ -12,7 +12,7 @@ export type StanceStyles = {
  * スタンスタイプに応じたスタイル（背景色・ボーダー色・テキスト色・ラベル）を返す
  */
 export function getStanceStyles(
-  stance: MiraiStance | undefined,
+  stance: MiraiStance,
   isPreparing: boolean
 ): StanceStyles {
   if (isPreparing) {
@@ -24,7 +24,7 @@ export function getStanceStyles(
     };
   }
 
-  switch (stance?.type) {
+  switch (stance.type) {
     case "for":
     case "conditional_for":
       return {
@@ -43,7 +43,7 @@ export function getStanceStyles(
       return {
         bg: "bg-mirai-surface-muted",
         textColor: "text-black",
-        label: stance != null ? STANCE_LABELS[stance.type] : "中立",
+        label: STANCE_LABELS[stance.type],
       };
   }
 }
