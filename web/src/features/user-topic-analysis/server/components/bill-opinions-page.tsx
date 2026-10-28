@@ -71,7 +71,11 @@ export async function BillOpinionsPage({ billId }: BillOpinionsPageProps) {
 
           {/* フィルタ + 回答者カード一覧 */}
           {respondents.length > 0 ? (
-            <RespondentList respondents={respondents} nowMs={nowMs} />
+            <RespondentList
+              respondents={respondents}
+              nowMs={nowMs}
+              billId={billId}
+            />
           ) : (
             <p className="py-8 text-center text-mirai-text-muted">
               公開されている回答はまだありません
