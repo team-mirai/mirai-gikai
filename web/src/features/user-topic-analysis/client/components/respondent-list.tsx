@@ -28,6 +28,10 @@ interface RespondentListProps {
   billId?: string;
 }
 
+/**
+ * 回答一覧（回答者1人=1カード）。フィルタchipと「もっと見る」で段階表示する。
+ * billId を渡すと、レポート詳細から「戻る」で戻った際に表示件数とフィルタを復元する。
+ */
 export function RespondentList({
   respondents,
   nowMs,

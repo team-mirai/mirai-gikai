@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { TopicFilter } from "../../shared/utils/filter-topics";
 import { useFilteredPagination } from "./use-filtered-pagination";
 
@@ -63,5 +63,37 @@ describe("useFilteredPagination", () => {
     expect(sessionStorage.length).toBe(0);
     expect(result.current.filter).toBe("all");
     expect(result.current.visible).toHaveLength(10);
+  });
+});
+
+describe("useFilteredPagination（sessionStorage を使えない環境）", () => {
+  const original = Object.getOwnPropertyDescriptor(window, "sessionStorage");
+
+  beforeEach(() => {
+    // サイトデータの保存を禁止したブラウザでは、sessionStorage へのアクセス自体が
+    // SecurityError を送出する。
+    Object.defineProperty(window, "sessionStorage", {
+      configurable: true,
+      get() {
+        throw new DOMException("Access is denied", "SecurityError");
+      },
+    });
+  });
+
+  afterEach(() => {
+    if (original) Object.defineProperty(window, "sessionStorage", original);
+  });
+
+  it("例外を出さずに初期状態で表示し、フィルタともっと見るはメモリ上で動く", () => {
+    const { result } = renderPagination(PERSIST_KEY);
+
+    expect(result.current.filter).toBe("all");
+    expect(result.current.visible).toHaveLength(10);
+
+    act(() => result.current.selectFilter("industry"));
+    act(() => result.current.loadMore());
+
+    expect(result.current.filter).toBe("industry");
+    expect(result.current.visible).toHaveLength(20);
   });
 });
