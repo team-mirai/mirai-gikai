@@ -22,6 +22,21 @@ export async function findStanceByBillId(billId: string) {
   return data;
 }
 
+export async function findStanceById(stanceId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("mirai_stances")
+    .select("bill_id, is_published")
+    .eq("id", stanceId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch stance: ${error.message}`);
+  }
+
+  return data;
+}
+
 export async function createMiraiStance(billId: string, input: StanceInput) {
   const supabase = createAdminClient();
   const { error } = await supabase.from("mirai_stances").insert({

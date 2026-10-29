@@ -4,6 +4,8 @@ import {
   buildYouTubeEmbedUrl,
   buildYouTubeThumbnailUrl,
   buildYouTubeWatchUrl,
+  isYouTubePlaceholderThumbnail,
+  type YouTubeThumbnailQuality,
 } from "@mirai-gikai/shared/youtube";
 import { ExternalLink, Play } from "lucide-react";
 import Image from "next/image";
@@ -17,6 +19,10 @@ import type { BillVideo } from "../../../shared/types";
  */
 export function BillVideoPlayer({ video }: { video: BillVideo }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  // 高解像度の hq720 を優先し、存在しない動画では全動画にある hqdefault に切り替える
+  const [thumbnailQuality, setThumbnailQuality] =
+    useState<YouTubeThumbnailQuality>("hq720");
+  const fallbackToDefaultThumbnail = () => setThumbnailQuality("hqdefault");
 
   return (
     // 記事本文の各セクションと同じ白カード。動画はカード上部いっぱいに表示する
@@ -39,8 +45,19 @@ export function BillVideoPlayer({ video }: { video: BillVideo }) {
             className="group absolute inset-0 size-full rounded-none p-0 hover:bg-transparent"
           >
             <Image
-              src={buildYouTubeThumbnailUrl(video.youtube_video_id)}
+              src={buildYouTubeThumbnailUrl(
+                video.youtube_video_id,
+                thumbnailQuality
+              )}
               alt=""
+              onError={fallbackToDefaultThumbnail}
+              onLoad={(e) => {
+                if (
+                  isYouTubePlaceholderThumbnail(e.currentTarget.naturalWidth)
+                ) {
+                  fallbackToDefaultThumbnail();
+                }
+              }}
               fill
               unoptimized
               className="object-cover"

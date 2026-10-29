@@ -57,7 +57,28 @@ export function buildYouTubeEmbedUrl(videoId: string): string {
   return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
 }
 
-/** 再生前に表示するサムネイル画像のURL（全動画に存在する hqdefault を使う） */
-export function buildYouTubeThumbnailUrl(videoId: string): string {
-  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+/**
+ * サムネイル画像のサイズ。
+ * - hq720: 1280x720。HD でアップロードされた動画にしか存在しない
+ * - hqdefault: 480x360（上下に黒帯あり）。全動画に存在する
+ */
+export type YouTubeThumbnailQuality = "hq720" | "hqdefault";
+
+/** 再生前に表示するサムネイル画像のURL */
+export function buildYouTubeThumbnailUrl(
+  videoId: string,
+  quality: YouTubeThumbnailQuality = "hqdefault"
+): string {
+  return `https://i.ytimg.com/vi/${videoId}/${quality}.jpg`;
+}
+
+const YOUTUBE_PLACEHOLDER_THUMBNAIL_WIDTH = 120;
+
+/**
+ * 存在しないサイズのサムネイルを要求すると、YouTube は 404 とともに
+ * 120px 幅のグレー画像を返す。ブラウザによっては error にならず表示されるため、
+ * 読み込んだ画像の幅で判定する。
+ */
+export function isYouTubePlaceholderThumbnail(naturalWidth: number): boolean {
+  return naturalWidth <= YOUTUBE_PLACEHOLDER_THUMBNAIL_WIDTH;
 }
