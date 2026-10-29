@@ -3,6 +3,7 @@ import {
   buildYouTubeEmbedUrl,
   buildYouTubeThumbnailUrl,
   buildYouTubeWatchUrl,
+  isYouTubePlaceholderThumbnail,
   parseYouTubeVideoId,
 } from "./youtube";
 
@@ -56,9 +57,27 @@ describe("buildYouTubeEmbedUrl", () => {
 });
 
 describe("buildYouTubeThumbnailUrl", () => {
-  it("i.ytimg.com の hqdefault サムネイルURLを組み立てる", () => {
+  it("サイズ指定がなければ hqdefault のURLを組み立てる", () => {
     expect(buildYouTubeThumbnailUrl("bvAnJyl9IDI")).toBe(
       "https://i.ytimg.com/vi/bvAnJyl9IDI/hqdefault.jpg"
     );
+  });
+
+  it("指定したサイズのURLを組み立てる", () => {
+    expect(buildYouTubeThumbnailUrl("bvAnJyl9IDI", "hq720")).toBe(
+      "https://i.ytimg.com/vi/bvAnJyl9IDI/hq720.jpg"
+    );
+  });
+});
+
+describe("isYouTubePlaceholderThumbnail", () => {
+  it("120px 幅以下の画像はプレースホルダーとみなす", () => {
+    expect(isYouTubePlaceholderThumbnail(120)).toBe(true);
+    expect(isYouTubePlaceholderThumbnail(0)).toBe(true);
+  });
+
+  it("それより大きい画像は本物のサムネイルとみなす", () => {
+    expect(isYouTubePlaceholderThumbnail(121)).toBe(false);
+    expect(isYouTubePlaceholderThumbnail(1280)).toBe(false);
   });
 });
