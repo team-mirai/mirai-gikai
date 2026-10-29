@@ -9,7 +9,10 @@ interface BillVideosSectionProps {
   videos: BillVideo[];
 }
 
-/** 議案に紐づくYouTube動画。議論の種類ごとに見出しを分けて表示する */
+/**
+ * 議案に紐づくYouTube動画。チームみらいの賛否カードの中に置き、
+ * 議論の種類ごとに見出しを分けて表示する
+ */
 export function BillVideosSection({ videos }: BillVideosSectionProps) {
   return (
     <div className="flex flex-col gap-8">
@@ -21,9 +24,9 @@ export function BillVideosSection({ videos }: BillVideosSectionProps) {
 
         return (
           <section key={kind}>
-            <h2 className="text-[22px] font-bold mb-4">
-              📺{BILL_VIDEO_KIND_LABELS[kind]}
-            </h2>
+            <h3 className="text-lg font-bold mb-4">
+              ▶️{BILL_VIDEO_KIND_LABELS[kind]}
+            </h3>
             <BillVideoPlayer video={video} />
           </section>
         );
