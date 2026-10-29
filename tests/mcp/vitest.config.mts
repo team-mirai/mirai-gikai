@@ -10,11 +10,7 @@ export default defineConfig({
     root: testsDir,
     include: ["**/*.test.ts"],
     pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    fileParallelism: false,
     setupFiles: [path.resolve(testsDir, "setup.ts")],
     globalSetup: [path.resolve(testsDir, "global-setup.ts")],
     testTimeout: 30000,
