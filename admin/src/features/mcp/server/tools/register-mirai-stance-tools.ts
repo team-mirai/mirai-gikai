@@ -69,13 +69,18 @@ export function registerMiraiStanceTools(server: McpServer): void {
       // onConflict(bill_id) で atomic に行う。事前 read が失敗しても created の
       // 精度が落ちるだけで、書き込み自体はブロックしない。
       let existing: Awaited<ReturnType<typeof findStanceByBillId>> = null;
+      let existingLoaded = false;
       try {
         existing = await findStanceByBillId(billId);
+        existingLoaded = true;
       } catch {
         // best-effort: read 失敗時は created を判定できないため未知扱い
       }
       await upsertMiraiStance(billId, input);
+      // read 失敗時は公開への切り替えかどうかを判定できないので、インタビューは閉じない
+      // （既存の非公開の賛否を未登録と誤認すると、非公開のままインタビューだけ閉じてしまう）
       if (
+        existingLoaded &&
         isStanceBecomingPublished(
           existing?.is_published ?? null,
           input.isPublished
