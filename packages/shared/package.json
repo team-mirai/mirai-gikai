@@ -135,6 +135,10 @@
     "./og/assets": {
       "types": "./src/og/og-assets.ts",
       "default": "./src/og/og-assets.ts"
+    },
+    "./db/fetch-all-pages": {
+      "types": "./src/db/fetch-all-pages.ts",
+      "default": "./src/db/fetch-all-pages.ts"
     }
   },
   "dependencies": {

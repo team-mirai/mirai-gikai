@@ -10,6 +10,9 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getOpenDataInterviews } from "./get-open-data-interviews";
 
+// 1ページ内のメッセージ合計が max_rows（1000）を超える件数
+const BULK_MESSAGE_COUNT = 1000;
+
 /**
  * k-匿名性ゲート（議案あたり公開レポート >= MIN_PUBLIC_REPORTS_FOR_OPEN_DATA）を
  * 満たすデータを実DBに作り、サービス全体（RPC + メッセージ取得 + 整形）を検証する。
@@ -92,6 +95,22 @@ describe("getOpenDataInterviews", () => {
             },
           ]);
         if (messageError) throw new Error(messageError.message);
+
+        // PostgREST の max_rows（1000行）を超えても会話ログが途切れないことを
+        // 検証するため、後続のメッセージを大量に追加する
+        const { error: bulkMessageError } = await adminClient
+          .from("interview_messages")
+          .insert(
+            Array.from({ length: BULK_MESSAGE_COUNT }, (_, j) => ({
+              interview_session_id: session.id,
+              role: j % 2 === 0 ? ("assistant" as const) : ("user" as const),
+              content: `追加${j}`,
+              created_at: new Date(
+                Date.UTC(2026, 0, 1, 0, 1) + j * 1000
+              ).toISOString(),
+            }))
+          );
+        if (bulkMessageError) throw new Error(bulkMessageError.message);
       }
     }
   });
@@ -114,11 +133,18 @@ describe("getOpenDataInterviews", () => {
     const [newer, older] = mine;
     // opinions は title/content のみに整形され、内部メタデータを含まない
     expect(newer?.opinions).toEqual([{ title: "意見1", content: "本文1" }]);
-    // 会話ログが時系列で紐づく（メッセージなしのセッションは空配列）
-    expect(newer?.messages).toEqual([
+    // 会話ログが時系列で紐づき、max_rows を超えても途切れない
+    // （メッセージなしのセッションは空配列）
+    expect(newer?.messages).toHaveLength(2 + BULK_MESSAGE_COUNT);
+    expect(newer?.messages.slice(0, 3)).toEqual([
       { role: "assistant", content: "質問です" },
       { role: "user", content: "回答です" },
+      { role: "assistant", content: "追加0" },
     ]);
+    expect(newer?.messages.at(-1)).toEqual({
+      role: "user",
+      content: `追加${BULK_MESSAGE_COUNT - 1}`,
+    });
     expect(older?.messages).toEqual([]);
   });
 

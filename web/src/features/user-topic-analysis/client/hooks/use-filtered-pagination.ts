@@ -12,6 +12,28 @@ function filterStorageKey(persistKey: string): string {
 }
 
 /**
+ * sessionStorage から読む。サイトデータの保存をブラウザで禁止していると
+ * sessionStorage へのアクセス自体が SecurityError を送出するため、その場合は
+ * 保存値なし（null）として扱い、一覧の表示を止めない。
+ */
+function readStorage(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/** sessionStorage に書く。保存できない環境では何もしない（状態はメモリ上で保つ）。 */
+function writeStorage(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    // 保存できなくても一覧の操作は続けられるので、握りつぶす。
+  }
+}
+
+/**
  * トピック一覧・意見一覧で共通の「フィルタ + 段階表示」状態を管理するフック。
  *
  * - フィルタchipを再選択したら all に戻す（トグル解除）。
@@ -36,25 +58,23 @@ export function useFilteredPagination<T>(
   // マウント後の effect で sessionStorage の値を反映する。
   useEffect(() => {
     if (!persistKey) return;
-    const stored = sessionStorage.getItem(persistKey);
+    const stored = readStorage(persistKey);
     const n = stored ? Number.parseInt(stored, 10) : Number.NaN;
     if (Number.isFinite(n) && n > initialVisible) {
       setVisibleCount(n);
     }
-    const storedFilter = sessionStorage.getItem(filterStorageKey(persistKey));
+    const storedFilter = readStorage(filterStorageKey(persistKey));
     if (storedFilter) {
       setFilter(parseTopicFilter(storedFilter));
     }
   }, [persistKey, initialVisible]);
 
   const persist = (n: number) => {
-    if (persistKey) sessionStorage.setItem(persistKey, String(n));
+    if (persistKey) writeStorage(persistKey, String(n));
   };
 
   const persistFilter = (next: TopicFilter) => {
-    if (persistKey) {
-      sessionStorage.setItem(filterStorageKey(persistKey), next);
-    }
+    if (persistKey) writeStorage(filterStorageKey(persistKey), next);
   };
 
   const filtered = useMemo(

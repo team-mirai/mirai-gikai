@@ -321,6 +321,30 @@ describe("MCP mirai-stance tools", () => {
       return data;
     }
 
+    async function createInterviewConfig(
+      billId: string,
+      status: "public" | "closed"
+    ) {
+      const { data, error } = await adminClient
+        .from("interview_configs")
+        .insert({ bill_id: billId, status, name: `テスト設定 ${status}` })
+        .select("id")
+        .single();
+      if (error || !data) {
+        throw new Error(`interview_config 作成失敗: ${error?.message}`);
+      }
+      return data.id;
+    }
+
+    async function fetchInterviewStatus(configId: string) {
+      const { data } = await adminClient
+        .from("interview_configs")
+        .select("status")
+        .eq("id", configId)
+        .single();
+      return data?.status;
+    }
+
     type PendingList = {
       stances: {
         billId: string;
@@ -374,7 +398,11 @@ describe("MCP mirai-stance tools", () => {
         "publish_mirai_stance",
         { billId: bill.id, expectedUpdatedAt: stance.updatedAt }
       );
-      expect(result).toEqual({ ok: true, billId: bill.id });
+      expect(result).toEqual({
+        ok: true,
+        billId: bill.id,
+        closedInterviewCount: 0,
+      });
       expect(await fetchRow(bill.id)).toMatchObject({
         is_published: true,
         publish_at: null,
@@ -386,6 +414,62 @@ describe("MCP mirai-stance tools", () => {
         { billId: bill.id, expectedUpdatedAt: stance.updatedAt }
       );
       expect(again).toEqual({ ok: false, reason: "already_published" });
+    });
+
+    it("publish_mirai_stance は議案の公開中インタビューだけを閉じる", async () => {
+      const { bill, stance } = await createPendingStance("2026-10-20");
+      const publicConfig = await createInterviewConfig(bill.id, "public");
+      const closedConfig = await createInterviewConfig(bill.id, "closed");
+      const otherBill = await createTestBill();
+      billIds.push(otherBill.id);
+      const otherConfig = await createInterviewConfig(otherBill.id, "public");
+
+      const result = await registry.callTool<{
+        closedInterviewCount: number;
+      }>("publish_mirai_stance", {
+        billId: bill.id,
+        expectedUpdatedAt: stance.updatedAt,
+      });
+
+      expect(result.closedInterviewCount).toBe(1);
+      expect(await fetchInterviewStatus(publicConfig)).toBe("closed");
+      expect(await fetchInterviewStatus(closedConfig)).toBe("closed");
+      expect(await fetchInterviewStatus(otherConfig)).toBe("public");
+    });
+
+    it("publish_mirai_stance が stale で公開しないときはインタビューを閉じない", async () => {
+      const { bill, stance } = await createPendingStance("2026-10-20");
+      const config = await createInterviewConfig(bill.id, "public");
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "against",
+      });
+
+      await registry.callTool("publish_mirai_stance", {
+        billId: bill.id,
+        expectedUpdatedAt: stance.updatedAt,
+      });
+
+      expect(await fetchInterviewStatus(config)).toBe("public");
+    });
+
+    it("upsert_mirai_stance は非公開で登録してもインタビューを閉じず、公開に切り替えたときに閉じる", async () => {
+      const { bill } = await createPendingStance("2026-10-20");
+      const config = await createInterviewConfig(bill.id, "public");
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        isPublished: false,
+      });
+      expect(await fetchInterviewStatus(config)).toBe("public");
+
+      await registry.callTool("upsert_mirai_stance", {
+        billId: bill.id,
+        type: "for",
+        isPublished: true,
+      });
+      expect(await fetchInterviewStatus(config)).toBe("closed");
     });
 
     it("publish_mirai_stance は確認後に内容が編集されていれば公開しない（stale）", async () => {

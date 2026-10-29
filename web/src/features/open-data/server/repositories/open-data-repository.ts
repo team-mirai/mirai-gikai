@@ -1,5 +1,6 @@
 import "server-only";
 
+import { fetchAllPages } from "@mirai-gikai/shared/db/fetch-all-pages";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type { OpenDataCursor } from "../../shared/utils/cursor";
@@ -56,7 +57,9 @@ export type OpenDataMessageRow = {
 };
 
 /**
- * セッションIDの集合に対する会話ログを作成日時昇順で取得する。
+ * セッションIDの集合に対する会話ログを、セッションごとに作成日時昇順で取得する。
+ * 1ページ分のセッションの合計メッセージ数は max_rows を超え得るため、
+ * 全件をページングで取得する。
  */
 export async function findMessagesBySessionIds(
   sessionIds: string[]
@@ -64,16 +67,21 @@ export async function findMessagesBySessionIds(
   if (sessionIds.length === 0) return [];
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("interview_messages")
-    .select("interview_session_id, role, content")
-    .in("interview_session_id", sessionIds)
-    .order("created_at", { ascending: true });
+  return fetchAllPages(async (from, to) => {
+    const { data, error } = await supabase
+      .from("interview_messages")
+      .select("interview_session_id, role, content")
+      .in("interview_session_id", sessionIds)
+      .order("interview_session_id", { ascending: true })
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to);
 
-  if (error) {
-    throw new Error(`Failed to fetch open data messages: ${error.message}`);
-  }
-  return data ?? [];
+    if (error) {
+      throw new Error(`Failed to fetch open data messages: ${error.message}`);
+    }
+    return data ?? [];
+  });
 }
 
 // 一覧では本文（content）を含めず、詳細でのみ含める。

@@ -21,16 +21,30 @@ interface RespondentListProps {
   respondents: PublicRespondent[];
   /** 相対日時の基準時刻（ms）。サーバー側で固定し、ハイドレーションずれを防ぐ。 */
   nowMs: number;
+  /**
+   * 議案ID。渡すと表示件数とフィルタを議案ごとに保存・復元する。
+   * ページからは必ず渡す。省略可能なのは、保存の要らないテスト等で描画するため。
+   */
+  billId?: string;
 }
 
-export function RespondentList({ respondents, nowMs }: RespondentListProps) {
+/**
+ * 回答一覧（回答者1人=1カード）。フィルタchipと「もっと見る」で段階表示する。
+ * billId を渡すと、レポート詳細から「戻る」で戻った際に表示件数とフィルタを復元する。
+ */
+export function RespondentList({
+  respondents,
+  nowMs,
+  billId,
+}: RespondentListProps) {
   const now = new Date(nowMs);
   const { filter, filtered, visible, remaining, selectFilter, loadMore } =
     useFilteredPagination(
       respondents,
       filterByAttributes,
       INITIAL_VISIBLE,
-      LOAD_STEP
+      LOAD_STEP,
+      billId ? `respondent-list-pagination:${billId}` : undefined
     );
 
   // 各フィルタchipに該当回答数を表示する

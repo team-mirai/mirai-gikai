@@ -98,10 +98,13 @@ export async function findInterviewQuestionsByConfigId(
   return data;
 }
 
+/**
+ * 議案の公開中インタビューを閉じ、閉じた件数を返す。excludeConfigId は閉じずに残す。
+ */
 export async function closeOtherPublicConfigs(
   billId: string,
   excludeConfigId?: string
-): Promise<void> {
+): Promise<number> {
   const supabase = createAdminClient();
   const query = supabase
     .from("interview_configs")
@@ -113,10 +116,11 @@ export async function closeOtherPublicConfigs(
     query.neq("id", excludeConfigId);
   }
 
-  const { error } = await query;
+  const { data, error } = await query.select("id");
   if (error) {
     throw new Error(`Failed to close interview configs: ${error.message}`);
   }
+  return data.length;
 }
 
 export async function createInterviewConfigRecord(params: {

@@ -87,16 +87,16 @@ export async function BillDetailLayout({
         */}
         {bill.mirai_stance && (
           <div className="my-8">
+            {/*
+              動画は賛否の判断に関する議論なので、賛否カードの中に置く。
+              賛否が公開されていない間は動画も出さない。
+            */}
             <MiraiStanceCard
               stance={bill.mirai_stance}
               billStatus={bill.status}
-            />
-          </div>
-        )}
-        {/* 議案に関連する動画（賛否の直後に置く） */}
-        {videos.length > 0 && (
-          <div className="my-8">
-            <BillVideosSection videos={videos} />
+            >
+              {videos.length > 0 && <BillVideosSection videos={videos} />}
+            </MiraiStanceCard>
           </div>
         )}
         {/* シェアボタン */}
