@@ -25,7 +25,7 @@ export function BillVideosSection({ videos }: BillVideosSectionProps) {
         return (
           <section key={kind}>
             <h3 className="text-lg font-bold mb-4">
-              ▶️{BILL_VIDEO_KIND_LABELS[kind]}
+              ▶️ {BILL_VIDEO_KIND_LABELS[kind]}
             </h3>
             <BillVideoPlayer video={video} />
           </section>

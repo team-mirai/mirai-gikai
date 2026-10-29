@@ -27,7 +27,7 @@ describe("BillVideosSection", () => {
 
     expect(
       screen.getAllByRole("heading").map((element) => element.textContent)
-    ).toEqual(["▶️賛否を決めた時の議論", "▶️議員団での議論"]);
+    ).toEqual(["▶️ 賛否を決めた時の議論", "▶️ 議員団での議論"]);
     expect(
       screen.getAllByText(/MTG$/).map((element) => element.textContent)
     ).toEqual(["賛否MTG", "議員団MTG"]);
@@ -49,6 +49,6 @@ describe("BillVideosSection", () => {
 
     expect(
       screen.getAllByRole("heading").map((element) => element.textContent)
-    ).toEqual(["▶️議員団での議論"]);
+    ).toEqual(["▶️ 議員団での議論"]);
   });
 });
