@@ -78,6 +78,7 @@ export default async function Home() {
 
   return (
     <>
+      <h1 className="sr-only">みらい議会</h1>
       {/* 本日の国会セクション */}
       <CurrentDietSession
         session={currentSession}
@@ -101,7 +102,7 @@ export default async function Home() {
       {/* 議案一覧セクション */}
       <Container className="">
         <div className="py-10">
-          <main className="flex flex-col gap-16">
+          <div className="flex flex-col gap-16">
             {/*
               AIインタビュー受付中セクション。意見を出せる法案を最初に見せる。
               会期では絞らない（閉会中でも受付中なら案内する）ため、注目と違って
@@ -126,7 +127,7 @@ export default async function Home() {
 
             {/* Coming soonセクション */}
             <ComingSoonSection bills={comingSoonBills} />
-          </main>
+          </div>
         </div>
       </Container>
 
