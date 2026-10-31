@@ -33,4 +33,11 @@ describe("formatRelativeTime", () => {
     expect(formatRelativeTime("2025-01-01T12:00:00Z", now)).toBe("1年前");
     expect(formatRelativeTime("2023-01-01T12:00:00Z", now)).toBe("3年前");
   });
+
+  it("1年未満（360〜364日前）は「0年前」ではなく「11ヶ月前」を返す", () => {
+    // 360日は 30日 × 12 で月換算すると12ヶ月だが、365日未満なので年にはしない。
+    expect(formatRelativeTime("2025-03-06T12:00:00Z", now)).toBe("11ヶ月前"); // 360日前
+    expect(formatRelativeTime("2025-03-02T12:00:00Z", now)).toBe("11ヶ月前"); // 364日前
+    expect(formatRelativeTime("2025-03-01T12:00:00Z", now)).toBe("1年前"); // 365日前
+  });
 });
