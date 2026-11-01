@@ -63,8 +63,8 @@ export function SystemMessage({
           }
           return null;
         })}
-        {/* ツール呼び出しがテキストより先に来ても、導線は返答の後に表示する */}
-        {hasInterviewSuggestion && billId && billName && (
+        {/* ツール呼び出しがテキストより先に来ても、導線は返答の描画が終わってから表示する */}
+        {hasInterviewSuggestion && !isStreaming && billId && billName && (
           <InterviewSuggestionBanner billId={billId} billName={billName} />
         )}
       </MessageContent>
