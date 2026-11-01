@@ -314,6 +314,7 @@ const INTERVIEW_SUGGESTION_PROMPT = `
 ### 重要:
 - suggest_interview ツールの呼び出しは、通常のテキスト応答と同時に行ってください。ツールだけを呼び出してテキスト応答を省略しないでください。
 - ツールの呼び出しは会話全体で最大1回です。既に呼び出し済みの場合は再度呼び出さないでください。
+- suggest_interview を呼び出すと、インタビューへの案内カードが返答の下に自動で表示されます。そのため返答テキストでのインタビューへの言及は、最後に「よろしければAIインタビューでご意見をお伝えください」程度の一言に留めてください。インタビュー機能の詳しい説明、ページ上の案内を確認するよう促す説明、意見の整理を手伝う提案などは書かないでください。
 `;
 
 /**
@@ -375,11 +376,11 @@ function buildSystemPromptWithInterviewInstructions(
   if (pageType !== "bill") {
     return basePrompt;
   }
-  let prompt = basePrompt + INTERVIEW_AWARENESS_PROMPT_BILL;
+  // 提案可能な場合は案内カードを出せるため、「ページ上の案内を確認して」という誘導は含めない
   if (shouldSuggestInterview) {
-    prompt += INTERVIEW_SUGGESTION_PROMPT;
+    return basePrompt + INTERVIEW_AWARENESS_BASE + INTERVIEW_SUGGESTION_PROMPT;
   }
-  return prompt;
+  return basePrompt + INTERVIEW_AWARENESS_PROMPT_BILL;
 }
 
 /**
@@ -399,7 +400,7 @@ function buildTools(shouldSuggestInterview: boolean) {
       // ツールのみ呼ばれた場合、この結果を受けて次のステップで返答文を書かせる
       execute: async () => ({
         suggested: true,
-        note: "インタビューへの導線はユーザーに表示済みです。導線の案内を繰り返さず、ユーザーの発言への返答文を書いてください。",
+        note: "インタビューへの案内カードは返答の下に表示されます。ユーザーの発言に簡潔に返答し、インタビューについては最後に「よろしければAIインタビューでご意見をお伝えください」程度の一言に留めてください。",
       }),
     });
   }
