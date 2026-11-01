@@ -27,6 +27,10 @@ export function SystemMessage({
   billName,
   rehypePlugins,
 }: SystemMessageProps) {
+  const hasInterviewSuggestion = message.parts.some(
+    (part) => part.type === SUGGEST_INTERVIEW_TOOL_TYPE
+  );
+
   return (
     <Message from="assistant" className="justify-start py-0">
       <MessageContent
@@ -57,17 +61,12 @@ export function SystemMessage({
               </Reasoning>
             );
           }
-          if (part.type === SUGGEST_INTERVIEW_TOOL_TYPE && billId && billName) {
-            return (
-              <InterviewSuggestionBanner
-                key={`${message.id}-${i}`}
-                billId={billId}
-                billName={billName}
-              />
-            );
-          }
           return null;
         })}
+        {/* ツール呼び出しがテキストより先に来ても、導線は返答の後に表示する */}
+        {hasInterviewSuggestion && billId && billName && (
+          <InterviewSuggestionBanner billId={billId} billName={billName} />
+        )}
       </MessageContent>
     </Message>
   );

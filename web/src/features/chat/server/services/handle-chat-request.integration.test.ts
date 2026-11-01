@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { LanguageModelUsage, UIMessage } from "ai";
+import type { MockLanguageModelV3 } from "ai/test";
 import {
   adminClient,
   cleanupTestBill,
@@ -8,13 +9,17 @@ import {
   cleanupTestUser,
   type TestUser,
 } from "@test-utils/utils";
-import { createStreamMock } from "@/test-utils/mock-language-model";
+import {
+  createMultiStepStreamMock,
+  createStreamMock,
+} from "@/test-utils/mock-language-model";
 import { createMockPromptProvider } from "@/test-utils/mock-prompt-provider";
 import {
   handleChatRequest,
   type ChatMessageMetadata,
 } from "./handle-chat-request";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import { SUGGEST_INTERVIEW_TOOL_NAME } from "@/features/chat/shared/constants";
 import { recordChatUsage } from "./cost-tracker";
 
 /**
@@ -293,6 +298,64 @@ describe("handleChatRequest 統合テスト", () => {
       await consumeResponseStream(response);
 
       expect(receivedPromptNames[0]).toBe("top-chat-system");
+    });
+  });
+
+  describe("インタビュー導線", () => {
+    let billId: string;
+
+    beforeEach(async () => {
+      const bill = await createTestBill({ publish_status: "published" });
+      billId = bill.id;
+      const { error } = await adminClient.from("interview_configs").insert({
+        bill_id: billId,
+        status: "public",
+        name: `テスト設定 ${Date.now()}`,
+      });
+      if (error) throw new Error(`interview_config 作成失敗: ${error.message}`);
+    });
+
+    afterEach(async () => {
+      await cleanupTestBill(billId);
+    });
+
+    async function requestBillChat(model: MockLanguageModelV3) {
+      const response = await handleChatRequest({
+        messages: createTestMessages({
+          pageContext: { type: "bill" },
+          billContext: { id: billId } as ChatMessageMetadata["billContext"],
+        }),
+        userId: testUser.id,
+        deps: { model, promptProvider: createMockPromptProvider() },
+      });
+      return consumeResponseStream(response);
+    }
+
+    it("suggest_interview だけを呼んだ場合も2ステップ目でテキスト応答が生成される", async () => {
+      const mockModel = createMultiStepStreamMock([
+        { toolCalls: [SUGGEST_INTERVIEW_TOOL_NAME] },
+        { text: "ぜひインタビューで意見をお聞かせください。" },
+      ]);
+
+      const content = await requestBillChat(mockModel);
+
+      expect(mockModel.doStreamCalls).toHaveLength(2);
+      // 2ステップ目では suggest_interview を再度呼べないようにする
+      const secondStepTools =
+        mockModel.doStreamCalls[1]?.tools?.map((t) => t.name) ?? [];
+      expect(secondStepTools).not.toContain(SUGGEST_INTERVIEW_TOOL_NAME);
+      expect(content).toContain(SUGGEST_INTERVIEW_TOOL_NAME);
+      expect(content).toContain("ぜひインタビューで意見をお聞かせください。");
+    });
+
+    it("テキストと同時に suggest_interview を呼んだ場合は追加ステップを回さない", async () => {
+      const mockModel = createMultiStepStreamMock([
+        { text: "回答です。", toolCalls: [SUGGEST_INTERVIEW_TOOL_NAME] },
+      ]);
+
+      await requestBillChat(mockModel);
+
+      expect(mockModel.doStreamCalls).toHaveLength(1);
     });
   });
 
