@@ -7,7 +7,7 @@ import {
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
 import { Response } from "@/components/ai-elements/response";
-import { SUGGEST_INTERVIEW_TOOL_TYPE } from "@/features/chat/shared/constants";
+import { shouldShowInterviewSuggestion } from "@/features/chat/client/utils/should-show-interview-suggestion";
 import { InterviewSuggestionBanner } from "./interview-suggestion-banner";
 
 type RehypePlugins = ComponentProps<typeof Response>["rehypePlugins"];
@@ -27,8 +27,9 @@ export function SystemMessage({
   billName,
   rehypePlugins,
 }: SystemMessageProps) {
-  const hasInterviewSuggestion = message.parts.some(
-    (part) => part.type === SUGGEST_INTERVIEW_TOOL_TYPE
+  const showInterviewSuggestion = shouldShowInterviewSuggestion(
+    message.parts,
+    isStreaming
   );
 
   return (
@@ -63,8 +64,7 @@ export function SystemMessage({
           }
           return null;
         })}
-        {/* ツール呼び出しがテキストより先に来ても、導線は返答の描画が終わってから表示する */}
-        {hasInterviewSuggestion && !isStreaming && billId && billName && (
+        {showInterviewSuggestion && billId && billName && (
           <InterviewSuggestionBanner billId={billId} billName={billName} />
         )}
       </MessageContent>
