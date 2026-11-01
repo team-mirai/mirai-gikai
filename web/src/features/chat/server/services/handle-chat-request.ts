@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import type { Database } from "@mirai-gikai/supabase";
 import {
   convertToModelMessages,
+  stepCountIs,
   streamText,
   tool,
   type LanguageModel,
@@ -20,6 +21,12 @@ import {
 } from "@/features/bills/server/repositories/bill-repository";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { pickChatKnowledgeSource } from "@/features/chat/shared/utils/pick-chat-knowledge-source";
+import { extractGatewayCost } from "@/features/chat/server/utils/extract-gateway-cost";
+import {
+  CHAT_MAX_STEPS,
+  hasTextInLastStep,
+  selectActiveChatTools,
+} from "@/features/chat/server/utils/chat-step-control";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
 import { env } from "@/lib/env";
 import {
@@ -121,6 +128,7 @@ export async function handleChatRequest({
 
   // Build tools configuration
   const tools = buildTools(shouldSuggestInterview);
+  const toolNames = Object.keys(tools);
 
   // Generate streaming response
   try {
@@ -129,9 +137,14 @@ export async function handleChatRequest({
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,
+      // ツール呼び出しのみでテキストが無い場合は、もう1ステップ回して応答文を生成させる
+      stopWhen: [stepCountIs(CHAT_MAX_STEPS), hasTextInLastStep],
+      prepareStep: ({ steps }) => ({
+        activeTools: selectActiveChatTools(toolNames, steps),
+      }),
       onFinish: async (event) => {
         try {
-          const providerCost = extractGatewayCost(event);
+          const providerCost = extractGatewayCost(event.steps);
           await recordChatUsage({
             userId,
             sessionId: context.sessionId || undefined,
@@ -271,25 +284,6 @@ function buildUsageMetadata(
   };
 }
 
-function extractGatewayCost(event: {
-  providerMetadata?: unknown;
-}): number | undefined {
-  const providerMetadata = event.providerMetadata;
-  if (!providerMetadata || typeof providerMetadata !== "object") {
-    return undefined;
-  }
-
-  const gatewayCost = (
-    providerMetadata as {
-      gateway?: { cost?: unknown };
-    }
-  ).gateway?.cost;
-
-  const numericCost = Number(gatewayCost);
-
-  return Number.isFinite(numericCost) ? numericCost : undefined;
-}
-
 const INTERVIEW_AWARENESS_BASE = `
 
 ## AIインタビュー機能について
@@ -402,7 +396,11 @@ function buildTools(shouldSuggestInterview: boolean) {
       description:
         "ユーザーが法案の当事者・有識者であると判断された場合、またはインタビューについて聞かれた場合に呼び出す。通常のテキスト応答と同時に呼び出すこと。",
       inputSchema: z.object({}),
-      execute: async () => ({ suggested: true }),
+      // ツールのみ呼ばれた場合、この結果を受けて次のステップで返答文を書かせる
+      execute: async () => ({
+        suggested: true,
+        note: "インタビューへの導線はユーザーに表示済みです。導線の案内を繰り返さず、ユーザーの発言への返答文を書いてください。",
+      }),
     });
   }
 
