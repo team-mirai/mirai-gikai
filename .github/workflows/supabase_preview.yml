@@ -65,7 +65,7 @@ jobs:
       - uses: actions/checkout@v5
         if: github.event.action != 'closed' && steps.changes.outputs.supabase == 'true'
 
-      - uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
         with:
           version: latest
 
