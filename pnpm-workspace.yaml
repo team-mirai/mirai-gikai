@@ -14,6 +14,8 @@ minimumReleaseAgeExclude:
   - nanoid@5.1.16
   # Renovate security update: @modelcontextprotocol/sdk@1.32.0
   - "@modelcontextprotocol/sdk@1.32.0"
+  # Renovate security update: vitest@4.1.11
+  - vitest@4.1.11
   # Nov 2026 Next.js security release is younger than minimumReleaseAge (4320 min).
   # Scoped to next / @next/* at 15.5.29 only (name globs cannot be combined with a version).
   - next@15.5.29
@@ -27,3 +29,5 @@ minimumReleaseAgeExclude:
   - "@next/swc-linux-x64-musl@15.5.29"
   - "@next/swc-win32-arm64-msvc@15.5.29"
   - "@next/swc-win32-x64-msvc@15.5.29"
+  # Renovate security update: zod@4.6.6
+  - zod@4.6.6
