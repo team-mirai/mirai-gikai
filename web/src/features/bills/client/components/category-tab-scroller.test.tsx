@@ -64,7 +64,10 @@ beforeEach(() => {
 
   // jsdom は scrollBy を持たないので spyOn できない。生やして afterEach で消す。
   scrollBySpy = vi.fn();
-  Element.prototype.scrollBy = scrollBySpy;
+  Object.defineProperty(Element.prototype, "scrollBy", {
+    value: scrollBySpy,
+    configurable: true,
+  });
 });
 
 afterEach(() => {
