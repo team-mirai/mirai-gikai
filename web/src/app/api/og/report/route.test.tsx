@@ -8,13 +8,19 @@ type StyledElementProps = {
   style?: Record<string, unknown>;
 };
 
-const mocks = vi.hoisted(() => ({
-  getReportOgData: vi.fn(),
-  imageResponse: vi.fn(
-    (element: ReactElement, _init: ConstructorParameters<typeof Response>[1]) =>
-      new Response(JSON.stringify(element), { status: 200 })
-  ),
-}));
+const mocks = vi.hoisted(() => {
+  // ImageResponse は new で呼ばれるため、アロー関数ではなく関数宣言で実装する
+  function FakeImageResponse(
+    element: ReactElement,
+    _init: ConstructorParameters<typeof Response>[1]
+  ) {
+    return new Response(JSON.stringify(element), { status: 200 });
+  }
+  return {
+    getReportOgData: vi.fn(),
+    imageResponse: vi.fn(FakeImageResponse),
+  };
+});
 
 vi.mock(
   "@/features/interview-report/server/loaders/get-report-og-data",

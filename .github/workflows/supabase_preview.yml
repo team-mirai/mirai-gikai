@@ -67,7 +67,8 @@ jobs:
 
       - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
         with:
-          version: latest
+          # v3 で config.toml の互換性が崩れた（[inbucket] 廃止など）ため v2 系に固定する
+          version: 2.122.1
 
       # secrets 未設定・Branching 未対応の段階では警告を出して no-op にする
       # （このワークフローを先にマージし、後から secrets / プランを整備できるようにするため）
