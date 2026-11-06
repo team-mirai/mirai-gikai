@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const revalidatedTags: string[] = [];
     for (const tag of requestedTags) {
       if ((ALL_CACHE_TAGS as readonly string[]).includes(tag)) {
-        revalidateTag(tag);
+        revalidateTag(tag, { expire: 0 });
         revalidatedTags.push(tag);
       }
     }
