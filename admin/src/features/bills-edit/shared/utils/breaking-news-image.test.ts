@@ -9,6 +9,7 @@ import {
   isReachedStepAllowed,
   parseBreakingNewsImageInput,
   suggestBreakingNewsTitleLines,
+  toBreakingNewsStance,
 } from "./breaking-news-image";
 
 const VALID_PARAMS = {
@@ -18,7 +19,11 @@ const VALID_PARAMS = {
   date: "2026-11-06",
   place: "衆議院 本会議",
   title: "飲食料品の消費税を2年間1%にし、\n中低所得の働く人に支援金を配る法案",
+  includeStance: false,
+  publishedStance: null,
 };
+
+const NOW = new Date("2026-11-06T09:00:00+09:00");
 
 describe("buildBreakingNewsStepLabels", () => {
   it("衆議院先議なら 提出→衆議院→参議院→成立", () => {
@@ -143,6 +148,36 @@ describe("parseBreakingNewsImageInput", () => {
         "飲食料品の消費税を2年間1%にし、",
         "中低所得の働く人に支援金を配る法案",
       ],
+      stance: null,
+    });
+  });
+
+  it("賛否を入れるなら公開中の賛否を返す", () => {
+    const parsed = parseBreakingNewsImageInput({
+      ...VALID_PARAMS,
+      includeStance: true,
+      publishedStance: { label: "反対", tone: "against" },
+    });
+    expect(parsed.ok && parsed.stance).toEqual({
+      label: "反対",
+      tone: "against",
+    });
+  });
+
+  it("賛否を入れない設定なら公開中でも入れない", () => {
+    const parsed = parseBreakingNewsImageInput({
+      ...VALID_PARAMS,
+      publishedStance: { label: "反対", tone: "against" },
+    });
+    expect(parsed.ok && parsed.stance).toBeNull();
+  });
+
+  it("公開中の賛否が無いのに入れようとするとエラー", () => {
+    expect(
+      parseBreakingNewsImageInput({ ...VALID_PARAMS, includeStance: true })
+    ).toEqual({
+      ok: false,
+      error: "公開中の賛否が無いので、賛否は入れられません",
     });
   });
 
@@ -212,6 +247,42 @@ describe("parseBreakingNewsImageInput", () => {
   });
 });
 
+describe("toBreakingNewsStance", () => {
+  const published = { is_published: true, publish_at: null };
+
+  it("賛成系・反対系・それ以外で色分けし、ラベルを付ける", () => {
+    expect(
+      toBreakingNewsStance({ ...published, type: "conditional_for" }, NOW)
+    ).toEqual({ label: "条件付き賛成", tone: "for" });
+    expect(
+      toBreakingNewsStance({ ...published, type: "against" }, NOW)
+    ).toEqual({ label: "反対", tone: "against" });
+    expect(
+      toBreakingNewsStance({ ...published, type: "free_vote" }, NOW)
+    ).toEqual({ label: "自由投票", tone: "other" });
+  });
+
+  it("賛否が無い・非公開・公開予約中なら null", () => {
+    expect(toBreakingNewsStance(null, NOW)).toBeNull();
+    expect(
+      toBreakingNewsStance(
+        { type: "for", is_published: false, publish_at: null },
+        NOW
+      )
+    ).toBeNull();
+    expect(
+      toBreakingNewsStance(
+        {
+          type: "for",
+          is_published: true,
+          publish_at: "2026-11-07T00:00:00+09:00",
+        },
+        NOW
+      )
+    ).toBeNull();
+  });
+});
+
 describe("buildBreakingNewsImagePath", () => {
   it("入力をクエリに載せた画像 API のパスを返す", () => {
     const path = buildBreakingNewsImagePath({
@@ -221,6 +292,7 @@ describe("buildBreakingNewsImagePath", () => {
       date: "2026-11-06",
       place: "参議院 本会議",
       title: "一行目\n二行目",
+      includeStance: true,
     });
     const url = new URL(path, "http://localhost");
     expect(url.pathname).toBe("/api/bill-breaking-news-image");
@@ -231,6 +303,7 @@ describe("buildBreakingNewsImagePath", () => {
       date: "2026-11-06",
       place: "参議院 本会議",
       title: "一行目\n二行目",
+      stance: "1",
     });
   });
 });
