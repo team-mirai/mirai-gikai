@@ -1,8 +1,10 @@
+import Link from "next/link";
+import { routes } from "@/lib/routes";
 import "server-only";
 
 import {
   fetchBillContext,
-  getTopicsWithOpinions,
+  getLeafTopicsWithOpinions,
   listVersionsByBill,
 } from "@mirai-gikai/topic-analysis-core/repository";
 import { DeleteTopicButton } from "../../client/components/delete-topic-button";
@@ -23,8 +25,16 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
   ]);
 
   const latestCompleted = versions.find((v) => v.status === "completed");
+  // 大トピックは意見を直接持たないので、階層UIを持たないこの画面では葉だけを出す。
+  // 混ぜると「0件」の空カードが削除ボタン付きで並び、しかも親を削除すると
+  // ON DELETE CASCADE で配下の中トピックごと消える。階層表示は Phase 3 で作る。
+  // sort_order は2階層化で「大トピック → 配下の中トピック」の深さ優先順になった。
+  // この画面は階層を持たないフラット表示なので、件数降順に並べ直す（公開側と同じ）。
   const topics = latestCompleted
-    ? await getTopicsWithOpinions(latestCompleted.id)
+    ? [...(await getLeafTopicsWithOpinions(latestCompleted.id))].sort(
+        (a, b) =>
+          (b.topic_opinion?.length ?? 0) - (a.topic_opinion?.length ?? 0)
+      )
     : [];
 
   return (
@@ -35,8 +45,14 @@ export async function UserTopicAnalysisPage({ billId }: { billId: string }) {
         公開に同意された意見（モデレーションOK）のみを対象に、論点（トピック）を抽出・分類します。
       </p>
 
-      <section className="mb-8 rounded-lg border bg-white p-6">
+      <section className="mb-8 flex items-center justify-between gap-4 rounded-lg border bg-white p-6">
         <RunAnalysisButton billId={billId} />
+        <Link
+          href={routes.billAnalysisViewer(billId)}
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          意見分析ビューアを開く
+        </Link>
       </section>
 
       <section className="mb-8 rounded-lg border bg-white p-6">

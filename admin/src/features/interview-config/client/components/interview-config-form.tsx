@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  parsePromptOverridesByMode,
+  type PromptOverridesByMode,
+} from "@mirai-gikai/shared/interview-prompts/sections";
+import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye } from "lucide-react";
 import type { Route } from "next";
@@ -48,6 +53,7 @@ import {
   DEFAULT_MODEL_LABEL,
 } from "../../shared/utils/chat-model-options";
 import { generateDefaultConfigName } from "../../shared/utils/default-config-name";
+import { PromptOverridesFields } from "./prompt-overrides-fields";
 
 interface InterviewConfigFormProps {
   billId: string;
@@ -62,6 +68,7 @@ interface InterviewConfigFormProps {
         themes: string[];
         chat_model: string | null;
         estimated_duration: number | null;
+        prompt_overrides: PromptOverridesByMode;
       })
     | null
   >;
@@ -91,6 +98,7 @@ export function InterviewConfigForm({
       themes: config?.themes || [],
       chat_model: config?.chat_model || null,
       estimated_duration: isNew ? 10 : (config?.estimated_duration ?? null),
+      prompt_overrides: parsePromptOverridesByMode(config?.prompt_overrides),
     },
   });
 
@@ -105,6 +113,7 @@ export function InterviewConfigForm({
           themes: values.themes || [],
           chat_model: values.chat_model || null,
           estimated_duration: values.estimated_duration ?? null,
+          prompt_overrides: parsePromptOverridesByMode(values.prompt_overrides),
         };
       };
     }
@@ -394,6 +403,8 @@ export function InterviewConfigForm({
                   </FormItem>
                 )}
               />
+
+              <PromptOverridesFields form={form} mode={form.watch("mode")} />
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={isSubmitting}>

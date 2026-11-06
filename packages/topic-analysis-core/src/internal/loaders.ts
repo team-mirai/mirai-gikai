@@ -1,7 +1,5 @@
 import "server-only";
 
-import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
-import { countPublicReportsByBillId } from "@mirai-gikai/shared/report-publication/count-public-reports";
 import { buildPublicBillRespondents } from "../public/build-public-bill-respondents";
 import { buildPublicRespondentDetail } from "../public/build-public-respondent-detail";
 import { buildPublicTopicAnalysis } from "../public/build-public-topic-analysis";
@@ -33,8 +31,6 @@ export type ReadFilter = {
   isPublicByAdmin?: boolean;
   isPublicByUser?: boolean;
   moderationStatus?: ModerationStatus;
-  /** true のとき web と同じ k-匿名性ゲート（公開レポート >= 20 件）を適用。 */
-  requireDisplayThreshold?: boolean;
 };
 
 /** ReadFilter から、トピック分析の意見述語を組み立てる（未指定なら全件通す）。 */
@@ -62,16 +58,6 @@ function opinionPredicate(filter: ReadFilter): (o: RawOpinionRow) => boolean {
   };
 }
 
-/** requireDisplayThreshold 指定時、公開レポートが k-匿名性しきい値未満なら true（＝隠す）。 */
-async function blockedByThreshold(
-  billId: string,
-  filter: ReadFilter
-): Promise<boolean> {
-  if (!filter.requireDisplayThreshold) return false;
-  const count = await countPublicReportsByBillId(billId);
-  return !shouldDisplayPublicReports(count);
-}
-
 /**
  * 議案の最新トピック分析を取得する（公開・非公開を問わず最新版）。
  * filter で意見を絞り込み、件数・内訳・期待/懸念はフィルタ後の集合から再計算する。
@@ -81,7 +67,6 @@ export async function getTopicAnalysis(
   billId: string,
   filter: ReadFilter = {}
 ): Promise<PublicTopicAnalysis | null> {
-  if (await blockedByThreshold(billId, filter)) return null;
   const data = await findLatestAnalysis(billId);
   if (!data) return null;
   return buildPublicTopicAnalysis(
@@ -98,8 +83,7 @@ export async function getTopicAnalysis(
 export async function listRespondents(
   billId: string,
   filter: ReadFilter = {}
-): Promise<PublicRespondent[] | null> {
-  if (await blockedByThreshold(billId, filter)) return null;
+): Promise<PublicRespondent[]> {
   const rowFilter: ReportRowFilter = {
     isPublicByAdmin: filter.isPublicByAdmin,
     isPublicByUser: filter.isPublicByUser,
@@ -111,7 +95,7 @@ export async function listRespondents(
 
 /**
  * レポート1件の詳細（立場説明＋会話ログ）を取得する。
- * filter で公開フラグ・モデレーション・件数ゲート（requireDisplayThreshold）を任意に適用。
+ * filter で公開フラグ・モデレーションを任意に適用。
  * 条件に合致しない／存在しない場合は null（呼び出し側で not_found 扱い）。
  */
 export async function getRespondentDetail(
@@ -122,7 +106,6 @@ export async function getRespondentDetail(
     isPublicByAdmin: filter.isPublicByAdmin,
     isPublicByUser: filter.isPublicByUser,
     moderationStatus: filter.moderationStatus,
-    requireDisplayThreshold: filter.requireDisplayThreshold,
   };
   const data = await findRespondentDetail(reportId, detailFilter);
   if (!data) return null;

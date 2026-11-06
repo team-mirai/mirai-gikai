@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { PromptOverridesByMode } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { InterviewConfig, InterviewQuestion } from "../../shared/types";
@@ -97,10 +98,13 @@ export async function findInterviewQuestionsByConfigId(
   return data;
 }
 
+/**
+ * 議案の公開中インタビューを閉じ、閉じた件数を返す。excludeConfigId は閉じずに残す。
+ */
 export async function closeOtherPublicConfigs(
   billId: string,
   excludeConfigId?: string
-): Promise<void> {
+): Promise<number> {
   const supabase = createAdminClient();
   const query = supabase
     .from("interview_configs")
@@ -112,10 +116,11 @@ export async function closeOtherPublicConfigs(
     query.neq("id", excludeConfigId);
   }
 
-  const { error } = await query;
+  const { data, error } = await query.select("id");
   if (error) {
     throw new Error(`Failed to close interview configs: ${error.message}`);
   }
+  return data.length;
 }
 
 export async function createInterviewConfigRecord(params: {
@@ -126,6 +131,7 @@ export async function createInterviewConfigRecord(params: {
   themes: string[] | null;
   chat_model: string | null;
   estimated_duration: number | null;
+  prompt_overrides: PromptOverridesByMode | null;
 }): Promise<{ id: string }> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -150,6 +156,8 @@ export async function updateInterviewConfigRecord(
     themes: string[] | null;
     chat_model: string | null;
     estimated_duration: number | null;
+    /** 未指定なら既存の値を残す。 */
+    prompt_overrides?: PromptOverridesByMode | null;
     updated_at: string;
   }
 ): Promise<{ id: string }> {

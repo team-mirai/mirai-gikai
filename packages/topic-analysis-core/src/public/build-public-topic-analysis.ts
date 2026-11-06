@@ -113,6 +113,12 @@ export function buildPublicTopicAnalysis(
     });
   }
 
+  // 2階層化で topic.sort_order の意味が「全トピックの件数降順」から
+  // 「大トピック → 配下の中トピック」の深さ優先順に変わった。公開ページは階層を
+  // 持たないフラット表示なので、ここで件数降順に並べ直して従来の並びを保つ。
+  // 同数は sort_order（＝階層内の並び）で安定させる。
+  topics.sort((a, b) => b.opinion_count - a.opinion_count);
+
   return {
     bill_id: meta.bill_id,
     version: meta.version,

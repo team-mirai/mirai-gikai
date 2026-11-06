@@ -1,5 +1,26 @@
-import { describe, it, expect } from "vitest";
-import { textResponse, jsonResponse } from "./response";
+import { describe, expect, it } from "vitest";
+import { jsonNoStore, jsonResponse, textResponse } from "./response";
+
+describe("jsonNoStore", () => {
+  it("Cache-Control: no-store 付きのJSONレスポンスを返す", async () => {
+    const res = jsonNoStore({ items: [] });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("application/json");
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    expect(await res.json()).toEqual({ items: [] });
+  });
+
+  it("ステータスコードと追加ヘッダを指定できる", () => {
+    const res = jsonNoStore({ error: "too many" }, 429, {
+      "Retry-After": "30",
+    });
+
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    expect(res.headers.get("Retry-After")).toBe("30");
+  });
+});
 
 describe("textResponse", () => {
   it("指定されたメッセージとステータスコードでレスポンスを返す", async () => {

@@ -1,12 +1,14 @@
-import { describe, it, expect, afterEach } from "vitest";
 import {
-  createTestDietSession,
   cleanupTestDietSession,
+  createTestDietSession,
 } from "@test-utils/utils";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   findActiveDietSession,
   findCurrentDietSession,
   findDietSessionBySlug,
+  findDietSessionsBefore,
+  findLatestClosedDietSession,
   findPreviousDietSession,
 } from "./diet-session-repository";
 
@@ -113,6 +115,41 @@ describe("diet-session-repository 統合テスト", () => {
     });
   });
 
+  describe("findLatestClosedDietSession", () => {
+    // findPreviousDietSession はアクティブ会期を起点にするため、閉会中は
+    // ひとつ古い会期を返してしまう。こちらは end_date で直近の閉会を引く。
+    it("指定日より前に閉会した直近の会期を返す", async () => {
+      const older = await createTestDietSession({
+        start_date: "2027-01-01",
+        end_date: "2027-03-31",
+        is_active: false,
+      });
+      const latest = await createTestDietSession({
+        start_date: "2027-04-01",
+        end_date: "2027-06-30",
+        is_active: false,
+      });
+      sessionIds.push(older.id, latest.id);
+
+      const result = await findLatestClosedDietSession("2027-08-01");
+
+      expect(result?.id).toBe(latest.id);
+    });
+
+    it("まだ閉会していない会期は返さない", async () => {
+      const ongoing = await createTestDietSession({
+        start_date: "2027-09-01",
+        end_date: "2027-12-31",
+        is_active: true,
+      });
+      sessionIds.push(ongoing.id);
+
+      const result = await findLatestClosedDietSession("2027-10-01");
+
+      expect(result?.id).not.toBe(ongoing.id);
+    });
+  });
+
   describe("findPreviousDietSession", () => {
     it("指定日より前の直近の会期を返す", async () => {
       const session = await createTestDietSession({
@@ -133,6 +170,45 @@ describe("diet-session-repository 統合テスト", () => {
       const result = await findPreviousDietSession("1900-01-01");
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("findDietSessionsBefore", () => {
+    it("指定日より前の slug 付き会期を新しい順に返す", async () => {
+      const older = await createTestDietSession({
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+        is_active: false,
+        slug: `test-past-older-${Date.now()}`,
+      });
+      const newer = await createTestDietSession({
+        start_date: "2026-04-01",
+        end_date: "2026-06-30",
+        is_active: false,
+        slug: `test-past-newer-${Date.now()}`,
+      });
+      const after = await createTestDietSession({
+        start_date: "2026-08-01",
+        end_date: "2026-09-30",
+        is_active: false,
+        slug: `test-past-after-${Date.now()}`,
+      });
+      const noSlug = await createTestDietSession({
+        start_date: "2026-05-01",
+        end_date: "2026-05-31",
+        is_active: false,
+        slug: null,
+      });
+      sessionIds.push(older.id, newer.id, after.id, noSlug.id);
+
+      const result = await findDietSessionsBefore("2026-07-01");
+      const ids = result.map((s) => s.id);
+
+      expect(ids).toContain(older.id);
+      expect(ids).toContain(newer.id);
+      expect(ids).not.toContain(after.id);
+      expect(ids).not.toContain(noSlug.id);
+      expect(ids.indexOf(newer.id)).toBeLessThan(ids.indexOf(older.id));
     });
   });
 });

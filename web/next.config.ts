@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     serverSourceMaps: true,
   },
   typedRoutes: true,
+  outputFileTracingIncludes: {
+    "/api/og/report": ["../packages/shared/src/og/ogp-logo.png"],
+  },
   redirects: async () => [
     {
       // データ利用規約を /developers 配下へ移動した際の旧URL互換

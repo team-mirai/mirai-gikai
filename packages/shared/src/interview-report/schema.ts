@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { contentRichnessResultSchema } from "../content-richness/schemas";
+import { opinionTagsShape } from "./opinion-tags-schema";
 
 // 意見スキーマ（web のライブ生成と admin の再抽出バックフィルで共通利用）
 export const opinionSchema = z
@@ -30,6 +31,8 @@ export const opinionSchema = z
       .describe(
         "この意見の情報充実度を 0-100 の整数で総合評価したスコア。論点の明確さ・具体性（事例や数値）・影響への言及・提案の広がりを総合する。**content だけでなく contextual_quote（引用文）も含めて評価する**（文脈の伴う具体的な引用ほど高くする）。0=ほぼ情報がない、100=非常に充実"
       ),
+    // 政務調査向け分析のタグ（懸念/提案の一覧・専門家フィルタに使う）
+    ...opinionTagsShape,
   })
   .strict();
 
@@ -97,4 +100,7 @@ export type InterviewOpinionSource = {
   contextual_quote?: string | null;
   bill_sentiment?: string | null;
   richness?: number | null;
+  concern?: string | null;
+  proposal?: string | null;
+  reasoning_types?: readonly string[] | null;
 };

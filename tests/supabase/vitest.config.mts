@@ -10,11 +10,7 @@ export default defineConfig({
     include: ["**/*.test.ts"],
     // テスト間のデータ干渉を防ぐためシーケンシャル実行
     pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    fileParallelism: false,
     globalSetup: [path.resolve(testsDir, "setup.ts")],
     testTimeout: 30000,
   },
@@ -27,6 +23,10 @@ export default defineConfig({
       "@mirai-gikai/topic-analysis-core/repository": path.resolve(
         __dirname,
         "../../packages/topic-analysis-core/src/repositories/repository.ts"
+      ),
+      "@mirai-gikai/topic-analysis-core/tag-backfill-service": path.resolve(
+        __dirname,
+        "../../packages/topic-analysis-core/src/services/extract-opinion-tags.ts"
       ),
       "@mirai-gikai/topic-analysis-core/public-server": path.resolve(
         __dirname,

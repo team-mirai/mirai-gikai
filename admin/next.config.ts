@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
     serverSourceMaps: true,
   },
   typedRoutes: true,
+  outputFileTracingIncludes: {
+    "/api/bill-share-image": ["../packages/shared/src/og/ogp-logo.png"],
+    "/bills/[id]/edit": ["../packages/shared/src/og/ogp-logo.png"],
+  },
   turbopack: {
     root: "../",
   },

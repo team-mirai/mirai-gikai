@@ -12,7 +12,6 @@ import {
 
 interface DifficultySelectorProps {
   currentLevel: DifficultyLevelEnum;
-  label?: string;
   labelStyle?: CSSProperties;
   scrollToTop?: boolean;
   maintainScrollFromBottom?: boolean;
@@ -20,7 +19,6 @@ interface DifficultySelectorProps {
 
 export function DifficultySelector({
   currentLevel,
-  label,
   labelStyle,
   scrollToTop,
   maintainScrollFromBottom,
@@ -73,20 +71,15 @@ export function DifficultySelector({
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm font-bold" style={labelStyle}>
-        {label != null ? (
-          label
-        ) : (
-          <span>
-            <span className="hidden md:inline-block">説明をもっと</span>詳しく
-          </span>
-        )}
+        <span className="hidden md:inline-block">説明をもっと</span>
+        詳しく
       </span>
       <Switch
         id={`${uniqueId}-difficulty-toggle`}
         checked={selectedLevel === "hard"}
         onCheckedChange={handleToggle}
         disabled={isChanging}
-        aria-label="難易度を切り替え"
+        aria-label="説明をもっと詳しく"
       />
     </div>
   );

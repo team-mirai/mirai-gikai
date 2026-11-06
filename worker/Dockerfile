@@ -1,6 +1,7 @@
 # トピック分析・意見再抽出バックフィルを実行する Cloud Run Job 用イメージ。
 # pnpm workspace の .ts ソースをそのまま tsx で実行する（ビルド工程を持たない）。
-FROM node:22-slim
+# Node のセキュリティリリースを確実に取り込むためパッチバージョンまで固定する。
+FROM node:22.23.4-slim
 
 # pnpm を有効化（packageManager フィールドのバージョンを使用）
 RUN corepack enable

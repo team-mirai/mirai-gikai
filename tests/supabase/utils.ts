@@ -87,7 +87,7 @@ export async function createTestDietSession(
     name: string;
     start_date: string;
     end_date: string;
-    slug: string;
+    slug: string | null;
     is_active: boolean;
   }> = {}
 ) {
@@ -130,6 +130,8 @@ export async function createTestBill(
     is_featured: boolean;
     submitted_date: string;
     shugiin_url: string;
+    article_kind: "standard" | "ai_generated";
+    is_review_completed: boolean;
   }> = {}
 ) {
   const defaults = {
@@ -257,6 +259,8 @@ export async function createTestMiraiStance(
   overrides: Partial<{
     type: "for" | "against" | "neutral";
     comment: string;
+    is_published: boolean;
+    publish_at: string | null;
   }> = {}
 ) {
   const defaults = {

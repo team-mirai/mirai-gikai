@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react";
-import Image from "next/image";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
@@ -79,7 +79,7 @@ export function PreviousSessionSection({
 
         {/* もっと読むリンク（グラデーションオーバーレイ付き） */}
         {showMoreButton && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[118px] bg-mirai-white-fade rounded-b-2xl">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[118px] bg-mirai-white-fade rounded-b-xl">
             <div className="absolute inset-x-0 bottom-6 flex justify-center pointer-events-auto">
               <Button
                 variant="outline"

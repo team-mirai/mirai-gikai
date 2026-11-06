@@ -1,6 +1,5 @@
 import "server-only";
 
-import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { cache } from "react";
 import type { InterviewMessage } from "@/features/interview-session/shared/types";
 import type { InterviewReport } from "../../shared/types";
@@ -67,10 +66,6 @@ export const getPublicReportById = cache(
       console.error("Failed to count public reports:", error);
       return null;
     }
-    if (!shouldDisplayPublicReports(publicReportCount)) {
-      return null;
-    }
-
     const [bill, messages] = await Promise.all([
       findBillWithContentById(billId),
       findMessagesBySessionId(report.interview_session_id),

@@ -206,3 +206,43 @@ describe("buildPublicTopicAnalysis（§8 表示時フィルタ）", () => {
     expect(t.sentiment).toEqual({ 期待: 1, 懸念: 1 });
   });
 });
+
+describe("buildPublicTopicAnalysis のトピック順", () => {
+  // 2階層化で topic.sort_order の意味が「全トピックの件数降順」から
+  // 「大トピック → 配下の中トピック」の深さ優先順に変わった。公開ページは
+  // フラット表示なので、ここで件数降順に戻さないと web の並びが黙って変わる。
+  it("件数降順に並べる（入力の sort_order 順ではない）", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("mid", [op({ id: "a" }), op({ id: "b" })]),
+      topic("few", [op({ id: "c" })]),
+      topic("many", [op({ id: "d" }), op({ id: "e" }), op({ id: "f" })]),
+    ]);
+
+    expect(result.topics.map((t) => t.id)).toEqual(["many", "mid", "few"]);
+    expect(result.topics.map((t) => t.opinion_count)).toEqual([3, 2, 1]);
+  });
+
+  it("同数なら入力順（sort_order 順）を保つ", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("first", [op({ id: "a" })]),
+      topic("second", [op({ id: "b" })]),
+      topic("third", [op({ id: "c" })]),
+    ]);
+
+    expect(result.topics.map((t) => t.id)).toEqual([
+      "first",
+      "second",
+      "third",
+    ]);
+  });
+
+  // 大トピックは意見を直接持たないので、意見0件のトピックとして落ちる。
+  it("意見0件のトピック（大トピック）は含めない", () => {
+    const result = buildPublicTopicAnalysis(meta, [
+      topic("big", []),
+      topic("leaf", [op({ id: "a" })]),
+    ]);
+
+    expect(result.topics.map((t) => t.id)).toEqual(["leaf"]);
+  });
+});

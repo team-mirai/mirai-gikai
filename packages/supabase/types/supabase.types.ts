@@ -52,6 +52,47 @@ export type Database = {
         }
         Relationships: []
       }
+      bill_article_reports: {
+        Row: {
+          bill_id: string
+          body: string
+          category:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at: string
+          difficulty_level: Database["public"]["Enums"]["difficulty_level_enum"]
+          id: string
+        }
+        Insert: {
+          bill_id: string
+          body: string
+          category?:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at?: string
+          difficulty_level: Database["public"]["Enums"]["difficulty_level_enum"]
+          id?: string
+        }
+        Update: {
+          bill_id?: string
+          body?: string
+          category?:
+            | Database["public"]["Enums"]["article_report_category"]
+            | null
+          created_at?: string
+          difficulty_level?: Database["public"]["Enums"]["difficulty_level_enum"]
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_article_reports_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bill_contents: {
         Row: {
           bill_id: string
@@ -93,8 +134,44 @@ export type Database = {
           },
         ]
       }
+      bill_videos: {
+        Row: {
+          bill_id: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["bill_video_kind"]
+          title: string
+          youtube_video_id: string
+        }
+        Insert: {
+          bill_id: string
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["bill_video_kind"]
+          title: string
+          youtube_video_id: string
+        }
+        Update: {
+          bill_id?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["bill_video_kind"]
+          title?: string
+          youtube_video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_videos_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bills: {
         Row: {
+          article_kind: Database["public"]["Enums"]["bill_article_kind"]
           created_at: string
           diet_session_id: string | null
           id: string
@@ -118,6 +195,7 @@ export type Database = {
           use_knowledge_source_in_chat: boolean
         }
         Insert: {
+          article_kind?: Database["public"]["Enums"]["bill_article_kind"]
           created_at?: string
           diet_session_id?: string | null
           id?: string
@@ -141,6 +219,7 @@ export type Database = {
           use_knowledge_source_in_chat?: boolean
         }
         Update: {
+          article_kind?: Database["public"]["Enums"]["bill_article_kind"]
           created_at?: string
           diet_session_id?: string | null
           id?: string
@@ -365,6 +444,7 @@ export type Database = {
           id: string
           mode: Database["public"]["Enums"]["interview_mode_enum"]
           name: string
+          prompt_overrides: Json | null
           status: Database["public"]["Enums"]["interview_config_status_enum"]
           themes: string[] | null
           updated_at: string
@@ -378,6 +458,7 @@ export type Database = {
           id?: string
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
           name: string
+          prompt_overrides?: Json | null
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
@@ -391,6 +472,7 @@ export type Database = {
           id?: string
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
           name?: string
+          prompt_overrides?: Json | null
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
@@ -440,40 +522,52 @@ export type Database = {
       interview_opinion: {
         Row: {
           bill_sentiment: string | null
+          concern: string | null
           content: string
           contextual_quote: string | null
           created_at: string
           id: string
           interview_report_id: string
           opinion_index: number
+          proposal: string | null
+          reasoning_types: string[]
           richness: number | null
           source_message_id: string | null
+          tags_extracted_at: string | null
           title: string
           topic_extracted_at: string | null
         }
         Insert: {
           bill_sentiment?: string | null
+          concern?: string | null
           content: string
           contextual_quote?: string | null
           created_at?: string
           id?: string
           interview_report_id: string
           opinion_index: number
+          proposal?: string | null
+          reasoning_types?: string[]
           richness?: number | null
           source_message_id?: string | null
+          tags_extracted_at?: string | null
           title: string
           topic_extracted_at?: string | null
         }
         Update: {
           bill_sentiment?: string | null
+          concern?: string | null
           content?: string
           contextual_quote?: string | null
           created_at?: string
           id?: string
           interview_report_id?: string
           opinion_index?: number
+          proposal?: string | null
+          reasoning_types?: string[]
           richness?: number | null
           source_message_id?: string | null
+          tags_extracted_at?: string | null
           title?: string
           topic_extracted_at?: string | null
         }
@@ -562,6 +656,7 @@ export type Database = {
       }
       interview_report: {
         Row: {
+          admin_unpublished_at: string | null
           content_richness: Json | null
           created_at: string
           id: string
@@ -585,6 +680,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_unpublished_at?: string | null
           content_richness?: Json | null
           created_at?: string
           id?: string
@@ -610,6 +706,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_unpublished_at?: string | null
           content_richness?: Json | null
           created_at?: string
           id?: string
@@ -697,6 +794,12 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          is_published: boolean
+          publish_at: string | null
+          publish_review_date: string | null
+          reason_points: string[]
+          reason_summary: string | null
+          supplements: Json
           type: Database["public"]["Enums"]["stance_type_enum"]
           updated_at: string
         }
@@ -705,6 +808,12 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          is_published?: boolean
+          publish_at?: string | null
+          publish_review_date?: string | null
+          reason_points?: string[]
+          reason_summary?: string | null
+          supplements?: Json
           type: Database["public"]["Enums"]["stance_type_enum"]
           updated_at?: string
         }
@@ -713,6 +822,12 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          is_published?: boolean
+          publish_at?: string | null
+          publish_review_date?: string | null
+          reason_points?: string[]
+          reason_summary?: string | null
+          supplements?: Json
           type?: Database["public"]["Enums"]["stance_type_enum"]
           updated_at?: string
         }
@@ -825,6 +940,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          parent_topic_id: string | null
           sort_order: number
           title: string
           version_id: string
@@ -833,6 +949,7 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          parent_topic_id?: string | null
           sort_order?: number
           title: string
           version_id: string
@@ -841,11 +958,19 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          parent_topic_id?: string | null
           sort_order?: number
           title?: string
           version_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "topic_parent_same_version_fkey"
+            columns: ["version_id", "parent_topic_id"]
+            isOneToOne: false
+            referencedRelation: "topic"
+            referencedColumns: ["version_id", "id"]
+          },
           {
             foreignKeyName: "topic_version_id_fkey"
             columns: ["version_id"]
@@ -1122,6 +1247,13 @@ export type Database = {
         }
         Returns: number
       }
+      count_public_reports_by_bill_ids: {
+        Args: { p_bill_ids: string[] }
+        Returns: {
+          bill_id: string
+          report_count: number
+        }[]
+      }
       count_public_reports_by_stance: {
         Args: { p_bill_id: string }
         Returns: {
@@ -1283,6 +1415,7 @@ export type Database = {
           completion_rate: number
           conducted_count: number
           total_duration_seconds: number
+          total_duration_seconds_under_1h: number
         }[]
       }
       get_interview_statistics: {
@@ -1309,6 +1442,7 @@ export type Database = {
           stance_neutral_count: number
           total_cost_usd: number
           total_duration_seconds: number
+          total_duration_seconds_under_1h: number
           total_sessions: number
         }[]
       }
@@ -1349,6 +1483,12 @@ export type Database = {
       }
     }
     Enums: {
+      article_report_category:
+        | "factual_error"
+        | "outdated"
+        | "unclear"
+        | "other"
+      bill_article_kind: "standard" | "ai_generated"
       bill_publish_status: "draft" | "published" | "coming_soon"
       bill_status_enum:
         | "introduced"
@@ -1357,6 +1497,7 @@ export type Database = {
         | "enacted"
         | "rejected"
         | "preparing"
+      bill_video_kind: "stance_decision" | "caucus"
       chat_role_enum: "user" | "system" | "assistant"
       difficulty_level_enum: "normal" | "hard"
       house_enum: "HR" | "HC"
@@ -1515,6 +1656,13 @@ export const Constants = {
   },
   public: {
     Enums: {
+      article_report_category: [
+        "factual_error",
+        "outdated",
+        "unclear",
+        "other",
+      ],
+      bill_article_kind: ["standard", "ai_generated"],
       bill_publish_status: ["draft", "published", "coming_soon"],
       bill_status_enum: [
         "introduced",
@@ -1524,6 +1672,7 @@ export const Constants = {
         "rejected",
         "preparing",
       ],
+      bill_video_kind: ["stance_decision", "caucus"],
       chat_role_enum: ["user", "system", "assistant"],
       difficulty_level_enum: ["normal", "hard"],
       house_enum: ["HR", "HC"],

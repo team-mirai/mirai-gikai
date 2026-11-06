@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Info } from "lucide-react";
+import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -39,7 +39,7 @@ function ReviewCheckIcon({
 }
 
 /**
- * レビュー未完了時に記事上部に表示するバナー
+ * 通常版でレビュー未完了の記事上部に表示するバナー
  */
 export function ReviewInProgressBanner() {
   return (

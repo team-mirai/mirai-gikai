@@ -1,3 +1,4 @@
+import { OPINION_TAG_CRITERIA } from "../interview-report/opinion-tags-schema";
 import { buildContentRichnessInstructions } from "../content-richness/content-richness-instructions";
 import type { InterviewConfig, PromptBillInput } from "./types";
 
@@ -92,6 +93,11 @@ ${conversationLog}
 - 各主張の contextual_quote には、**source_message_id が指すユーザー発言からの逐語引用のみ**を入れる。言い換え・要約・複数発言の結合・語句の補完をしない。文脈が必要な場合のみ先頭に「（○○について）」を付けてよいが、引用本体は原文ママとする。**個人名などの固有名詞は含めない**（公開表示に使うため）。固有名詞を含む等で適切な逐語引用が切り出せなければnull
 - 各主張の bill_sentiment には、その主張が法案に対して示すものが「期待」か「懸念」かを入れる。どちらでもなければnull
 - 各主張の richness には、その主張の情報充実度を 0-100 の整数で評価して入れる。論点の明確さ・具体性（事例や数値）・影響への言及・提案の広がりを総合する。**content だけでなく contextual_quote（引用文）も含めて評価し、文脈の伴う具体的な引用ほど高くする**（引用が無い・曖昧なら低めにする）
+- 各主張の concern には次の基準でタグを入れる: ${OPINION_TAG_CRITERIA.concern}
+- 各主張の proposal には次の基準でタグを入れる:
+${OPINION_TAG_CRITERIA.proposal}
+- 各主張の reasoning_types には次の基準でタグを入れる:
+${OPINION_TAG_CRITERIA.reasoningTypes}
 - **重要**: 元の対話ログに書かれていないことは記載しない
 
 ### 7. ${buildContentRichnessInstructions()}

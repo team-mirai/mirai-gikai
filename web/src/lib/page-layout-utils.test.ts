@@ -24,8 +24,13 @@ describe("isMainPage", () => {
     expect(isMainPage("/about")).toBe(false);
   });
 
-  it("returns false for the bills list page", () => {
-    expect(isMainPage("/bills")).toBe(false);
+  // 一覧でも難易度の切り替えとチャットのサイドバーを出す。
+  it("returns true for the bills list page", () => {
+    expect(isMainPage("/bills")).toBe(true);
+  });
+
+  // 末尾スラッシュは Next 側で正規化されるため、素の一致だけを見る。
+  it("returns false for the bills list page with a trailing slash", () => {
     expect(isMainPage("/bills/")).toBe(false);
   });
 });

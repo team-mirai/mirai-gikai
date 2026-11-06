@@ -17,6 +17,7 @@ describe("mapInterviewStatistics", () => {
     avg_message_count: 12.3,
     median_duration_seconds: 345,
     total_duration_seconds: 27600,
+    total_duration_seconds_under_1h: 21000,
     public_by_user_count: 60,
     feedback_irrelevant_questions: 5,
     feedback_not_aligned: 3,
@@ -45,6 +46,7 @@ describe("mapInterviewStatistics", () => {
     expect(result.avgMessageCount).toBe(12.3);
     expect(result.medianDurationSeconds).toBe(345);
     expect(result.totalDurationSeconds).toBe(27600);
+    expect(result.totalDurationSecondsUnder1h).toBe(21000);
     expect(result.publicByUserCount).toBe(60);
     expect(result.publicRate).toBe(75);
     expect(result.feedbackIrrelevantQuestions).toBe(5);

@@ -7,13 +7,17 @@ import {
   Output,
   streamText,
 } from "ai";
+import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
+import { validatePreviewToken } from "@/features/bills/server/loaders/validate-preview-token";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import {
   isWithinDailyCostLimit,
   recordChatUsage,
 } from "@/features/chat/server/services/cost-tracker";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import { getInterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config";
+import { resolveInterviewChatLoaders } from "@/features/interview-session/shared/utils/resolve-interview-chat-loaders";
 import type { InterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
@@ -77,6 +81,7 @@ export async function handleInterviewChatRequest({
   billId,
   currentStage,
   isRetry = false,
+  previewToken,
   userId,
   deps,
 }: InterviewChatRequestParams & {
@@ -86,12 +91,26 @@ export async function handleInterviewChatRequest({
   // リクエスト単位のトレースID（同一リクエスト内のLLM呼び出しをまとめる）
   const traceId = crypto.randomUUID();
 
+  // プレビュートークンが有効な場合のみ、非公開の議案・インタビュー設定も読める
+  // 管理者用ローダーを使う。トークンがない/無効なリクエスト（＝一般公開の経路）は
+  // 公開ローダーに限定し、未公開議案の本文や非公開設定へ到達させない。
+  const loaders = await resolveInterviewChatLoaders({
+    billId,
+    previewToken,
+    validate: validatePreviewToken,
+    adminLoaders: {
+      getInterviewConfig: getInterviewConfigAdmin,
+      getBill: getBillByIdAdmin,
+    },
+    publicLoaders: { getInterviewConfig, getBill: getBillById },
+  });
+
   // TTFB短縮のため、互いに依存しないDBアクセスは並列実行する。
   // 日次コスト制限チェック（fail-closed: エラー時もリクエストをブロック）と
   // インタビュー設定・法案情報の取得（テスト時はdeps経由でNext.js依存をバイパス）
   const getInterviewConfigFn =
-    deps?.getInterviewConfig ?? getInterviewConfigAdmin;
-  const getBillFn = deps?.getBill ?? getBillByIdAdmin;
+    deps?.getInterviewConfig ?? loaders.getInterviewConfig;
+  const getBillFn = deps?.getBill ?? loaders.getBill;
   const [isWithinLimit, interviewConfig, bill] = await Promise.all([
     isWithinDailyCostLimit(userId, env.chat.dailyUserCostLimitUsd),
     getInterviewConfigFn(billId),

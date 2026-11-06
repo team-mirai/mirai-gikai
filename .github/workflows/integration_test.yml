@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -32,8 +32,9 @@ jobs:
         with:
           # v2.106.0 の auto_expose_new_tables 変更による権限エラーは、
           # supabase/migrations/20260719090000_grant_service_role_privileges_on_public_schema.sql
-          # の明示 GRANT で恒久対応済みのため latest を使用する (#878)
-          version: latest
+          # の明示 GRANT で恒久対応済み (#878)。
+          # v3 で config.toml の互換性が崩れた（[inbucket] 廃止など）ため v2 系に固定する
+          version: 2.122.1
 
       - name: Start Supabase
         run: supabase start -x studio,imgproxy,logflare,vector,realtime,edge-runtime,supavisor,inbucket
@@ -56,5 +57,6 @@ jobs:
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
         with:
           files: ./web/coverage-integration/coverage-final.json
+          disable_search: true
           flags: integration
           token: ${{ secrets.CODECOV_TOKEN }}

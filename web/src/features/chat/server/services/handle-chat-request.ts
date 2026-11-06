@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import type { Database } from "@mirai-gikai/supabase";
 import {
   convertToModelMessages,
+  stepCountIs,
   streamText,
   tool,
   type LanguageModel,
@@ -20,6 +21,12 @@ import {
 } from "@/features/bills/server/repositories/bill-repository";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { pickChatKnowledgeSource } from "@/features/chat/shared/utils/pick-chat-knowledge-source";
+import { extractGatewayCost } from "@/features/chat/server/utils/extract-gateway-cost";
+import {
+  CHAT_MAX_STEPS,
+  hasTextInLastStep,
+  selectActiveChatTools,
+} from "@/features/chat/server/utils/chat-step-control";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
 import { env } from "@/lib/env";
 import {
@@ -100,7 +107,7 @@ export async function handleChatRequest({
     promptProvider
   );
   // Model configuration
-  const model = deps?.model ?? AI_MODELS.gpt4o;
+  const model = deps?.model ?? AI_MODELS.gpt5_4_mini_fast;
   const modelName =
     typeof model === "string" ? model : (model.modelId ?? "unknown");
 
@@ -121,6 +128,7 @@ export async function handleChatRequest({
 
   // Build tools configuration
   const tools = buildTools(shouldSuggestInterview);
+  const toolNames = Object.keys(tools);
 
   // Generate streaming response
   try {
@@ -129,9 +137,14 @@ export async function handleChatRequest({
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,
+      // ツール呼び出しのみでテキストが無い場合は、もう1ステップ回して応答文を生成させる
+      stopWhen: [stepCountIs(CHAT_MAX_STEPS), hasTextInLastStep],
+      prepareStep: ({ steps }) => ({
+        activeTools: selectActiveChatTools(toolNames, steps),
+      }),
       onFinish: async (event) => {
         try {
-          const providerCost = extractGatewayCost(event);
+          const providerCost = extractGatewayCost(event.steps);
           await recordChatUsage({
             userId,
             sessionId: context.sessionId || undefined,
@@ -271,25 +284,6 @@ function buildUsageMetadata(
   };
 }
 
-function extractGatewayCost(event: {
-  providerMetadata?: unknown;
-}): number | undefined {
-  const providerMetadata = event.providerMetadata;
-  if (!providerMetadata || typeof providerMetadata !== "object") {
-    return undefined;
-  }
-
-  const gatewayCost = (
-    providerMetadata as {
-      gateway?: { cost?: unknown };
-    }
-  ).gateway?.cost;
-
-  const numericCost = Number(gatewayCost);
-
-  return Number.isFinite(numericCost) ? numericCost : undefined;
-}
-
 const INTERVIEW_AWARENESS_BASE = `
 
 ## AIインタビュー機能について
@@ -320,6 +314,7 @@ const INTERVIEW_SUGGESTION_PROMPT = `
 ### 重要:
 - suggest_interview ツールの呼び出しは、通常のテキスト応答と同時に行ってください。ツールだけを呼び出してテキスト応答を省略しないでください。
 - ツールの呼び出しは会話全体で最大1回です。既に呼び出し済みの場合は再度呼び出さないでください。
+- suggest_interview を呼び出すと、インタビューへの案内カードが返答の下に自動で表示されます。そのため返答テキストでのインタビューへの言及は、最後に「よろしければAIインタビューでご意見をお伝えください」程度の一言に留めてください。インタビュー機能の詳しい説明、ページ上の案内を確認するよう促す説明、意見の整理を手伝う提案などは書かないでください。
 `;
 
 /**
@@ -381,11 +376,11 @@ function buildSystemPromptWithInterviewInstructions(
   if (pageType !== "bill") {
     return basePrompt;
   }
-  let prompt = basePrompt + INTERVIEW_AWARENESS_PROMPT_BILL;
+  // 提案可能な場合は案内カードを出せるため、「ページ上の案内を確認して」という誘導は含めない
   if (shouldSuggestInterview) {
-    prompt += INTERVIEW_SUGGESTION_PROMPT;
+    return basePrompt + INTERVIEW_AWARENESS_BASE + INTERVIEW_SUGGESTION_PROMPT;
   }
-  return prompt;
+  return basePrompt + INTERVIEW_AWARENESS_PROMPT_BILL;
 }
 
 /**
@@ -402,7 +397,11 @@ function buildTools(shouldSuggestInterview: boolean) {
       description:
         "ユーザーが法案の当事者・有識者であると判断された場合、またはインタビューについて聞かれた場合に呼び出す。通常のテキスト応答と同時に呼び出すこと。",
       inputSchema: z.object({}),
-      execute: async () => ({ suggested: true }),
+      // ツールのみ呼ばれた場合、この結果を受けて次のステップで返答文を書かせる
+      execute: async () => ({
+        suggested: true,
+        note: "インタビューへの案内カードは返答の下に表示されます。ユーザーの発言に簡潔に返答し、インタビューについては最後に「よろしければAIインタビューでご意見をお伝えください」程度の一言に留めてください。",
+      }),
     });
   }
 

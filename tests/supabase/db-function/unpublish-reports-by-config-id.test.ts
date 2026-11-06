@@ -51,6 +51,18 @@ async function getReportAdminFlag(reportId: string): Promise<boolean> {
   return data.is_public_by_admin;
 }
 
+async function getReportAdminUnpublishedAt(
+  reportId: string
+): Promise<string | null> {
+  const { data, error } = await adminClient
+    .from("interview_report")
+    .select("admin_unpublished_at")
+    .eq("id", reportId)
+    .single();
+  if (error) throw new Error(`report 取得失敗: ${error.message}`);
+  return data.admin_unpublished_at;
+}
+
 describe("unpublish_reports_by_config_id", () => {
   let bill: { id: string };
   let user: { id: string };
@@ -127,6 +139,21 @@ describe("unpublish_reports_by_config_id", () => {
     expect(await getReportAdminFlag(userPrivateReportId)).toBe(false);
     // もともと非公開のものは false のまま
     expect(await getReportAdminFlag(alreadyPrivateReportId)).toBe(false);
+  });
+
+  it("対象config配下のレポートに管理者非公開の記録を残す", async () => {
+    const { error } = await adminClient.rpc("unpublish_reports_by_config_id", {
+      p_config_id: targetConfigId,
+    });
+
+    expect(error).toBeNull();
+    expect(await getReportAdminUnpublishedAt(publicReportId)).not.toBeNull();
+    // もともと非公開のレポートも、ユーザー操作で公開されないよう記録する
+    expect(
+      await getReportAdminUnpublishedAt(alreadyPrivateReportId)
+    ).not.toBeNull();
+    // 別configのレポートには記録を残さない
+    expect(await getReportAdminUnpublishedAt(otherPublicReportId)).toBeNull();
   });
 
   it("別configのレポートには影響しない", async () => {

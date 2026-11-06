@@ -15,6 +15,11 @@ import type {
 
 /**
  * アクティブ（未完了・未アーカイブ）なインタビューセッションを取得
+ *
+ * 判定対象は「最新の未アーカイブセッション」のみで、それが完了済みなら null を返す。
+ * 完了済みセッションを飛び越えて古い未完了セッションを拾うと、LP の
+ * findLatestNonArchivedSession（最新の未アーカイブセッション）による表示と食い違い、
+ * 「もう一度新たに回答する」を押したのに過去の途中経過から再開されてしまう。
  */
 export async function findActiveInterviewSession(
   interviewConfigId: string,
@@ -26,7 +31,6 @@ export async function findActiveInterviewSession(
     .select("*")
     .eq("interview_config_id", interviewConfigId)
     .eq("user_id", userId)
-    .is("completed_at", null)
     .is("archived_at", null)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -36,6 +40,10 @@ export async function findActiveInterviewSession(
     throw new Error(
       `Failed to fetch active interview session: ${error.message}`
     );
+  }
+
+  if (!data || data.completed_at !== null) {
+    return null;
   }
 
   return data;

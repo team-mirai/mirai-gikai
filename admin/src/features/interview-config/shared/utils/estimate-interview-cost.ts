@@ -38,6 +38,8 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     inputPerMillion: 2,
     outputPerMillion: 12,
   },
+  // 2026-12-31 までの導入価格。期限後に見直すこと。
+  "google/gemini-3.8-flash": { inputPerMillion: 0.75, outputPerMillion: 3.75 },
   "google/gemma-4-26b-a4b-it": {
     inputPerMillion: 0.06,
     outputPerMillion: 0.33,

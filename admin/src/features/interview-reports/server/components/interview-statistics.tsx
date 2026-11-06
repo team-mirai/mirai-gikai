@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Star,
   Target,
+  Timer,
   Users,
 } from "lucide-react";
 
@@ -250,7 +251,7 @@ export function InterviewStatistics({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         <StatCard
           icon={<MessageSquare className="h-5 w-5" />}
           label="平均メッセージ数"
@@ -271,6 +272,12 @@ export function InterviewStatistics({
           label="総所要時間"
           value={formatTotalDurationSeconds(stats.totalDurationSeconds)}
           sub="途中離脱を含む"
+        />
+        <StatCard
+          icon={<Timer className="h-5 w-5" />}
+          label="総所要時間（1時間未満）"
+          value={formatTotalDurationSeconds(stats.totalDurationSecondsUnder1h)}
+          sub="1時間以上のセッションを除外"
         />
         <StatCard
           icon={<Eye className="h-5 w-5" />}

@@ -13,9 +13,15 @@ export type BillContentUpdate =
 
 export type MiraiStance = Database["public"]["Tables"]["mirai_stances"]["Row"];
 
+export type BillVideo = Pick<
+  Database["public"]["Tables"]["bill_videos"]["Row"],
+  "id" | "kind" | "youtube_video_id" | "title"
+>;
+
 // Enums
 export type HouseEnum = Database["public"]["Enums"]["house_enum"];
 export type BillStatusEnum = Database["public"]["Enums"]["bill_status_enum"];
+export type BillArticleKind = Database["public"]["Enums"]["bill_article_kind"];
 export type StanceTypeEnum = Database["public"]["Enums"]["stance_type_enum"];
 
 // 公開ステータス型（議案の公開/非公開を管理）
@@ -52,6 +58,8 @@ export type BillWithContent = Bill & {
   tags: BillTag[];
   featured_tag?: FeaturedTag;
   hasPublicInterview?: boolean;
+  /** 公開レポート件数。一覧の回答数バッジと「声が集まっている順」に使う。 */
+  publicReportCount?: number;
 };
 
 // タグごとにグループ化された議案

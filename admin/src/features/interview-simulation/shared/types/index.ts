@@ -1,3 +1,4 @@
+import type { PromptSectionOverrides } from "@mirai-gikai/shared/interview-prompts/sections";
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import type { AiModel } from "@/lib/ai/models";
 import type { PromptKind } from "../constants";
@@ -116,6 +117,8 @@ export interface TransientConfigSnapshot {
   themes: string[] | null;
   /** インタビュー目安時間（分）。本番の「## タイムマネジメント」セクションに反映される */
   estimatedDurationMinutes: number | null;
+  /** 編集中のプロンプト上書き。未保存の文面をシミュで試せるようにする */
+  promptOverrides: PromptSectionOverrides | null;
   questions: Array<{
     /** 既存質問ならその id、未保存の新規質問ならクライアント側の一時 UUID */
     id: string;

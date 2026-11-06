@@ -16,6 +16,7 @@ export const routes = {
   interviewDataTerms: () => "/developers/interview-data-terms" as const,
 
   // ── 議案 ──────────────────────────────────────────
+  billsList: () => "/bills" as const,
   billDetail: (billId: string) => `/bills/${billId}` as const,
   billOpinions: (billId: string) => `/bills/${billId}/opinions` as const,
   billTopics: (billId: string) => `/bills/${billId}/topics` as const,

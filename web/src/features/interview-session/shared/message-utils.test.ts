@@ -104,6 +104,9 @@ describe("isValidReport", () => {
             contextual_quote: null,
             bill_sentiment: null,
             richness: null,
+            concern: null,
+            proposal: null,
+            reasoning_types: null,
           },
         ],
       })

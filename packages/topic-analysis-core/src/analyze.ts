@@ -3,7 +3,7 @@ import {
   fetchBillContext,
   fetchTargetOpinions,
   finalizeVersion,
-  getTopicsWithOpinions,
+  getLeafTopicsWithOpinions,
   listAllBills,
   listVersionsByBill,
   loadProgress,
@@ -16,12 +16,22 @@ import {
 } from "./repositories/analysis-repository";
 import { assignOpinions } from "./services/assign-opinions";
 import { extractTopics } from "./services/extract-topics";
+import { groupTopics } from "./services/group-topics";
 import { judgeNewTopics } from "./services/judge-new-topics";
 import { mergeTopics } from "./services/merge-topics";
 import { ANALYSIS_STEPS, PROMPT_VERSION, TOPIC_MODEL } from "./shared/constants";
-import type { FinalTopicWithId, TopicDraft } from "./shared/types";
+import type {
+  BillContext,
+  FinalTopicWithId,
+  OpinionAssignment,
+  TopicDraft,
+} from "./shared/types";
 import { toAlphaLocalId } from "./utils/alpha-local-id";
-import { buildSortedTopicsAndPairs } from "./utils/build-sorted-topics";
+import {
+  buildHierarchySavePlan,
+  countAssignmentsByLocalId,
+} from "./utils/build-hierarchy-save-plan";
+import { sortHierarchyByOpinionCount } from "./utils/build-topic-hierarchy";
 import {
   buildIncrementalPlan,
   selectUnextractedOpinions,
@@ -83,12 +93,8 @@ async function executeAssign(versionId: string): Promise<void> {
     progress.bill
   );
 
-  const { sortedTopics, pairs } = buildSortedTopicsAndPairs(
-    finalTopics,
-    assignments
-  );
-
-  await saveTopicsAndAssignments(versionId, sortedTopics, pairs);
+  await updateVersionStep(versionId, ANALYSIS_STEPS.GROUP);
+  await groupAndSave(versionId, finalTopics, assignments, progress.bill);
   await finalizeVersion(versionId, targetOpinions.length);
   // version が完了してから抽出済みを記録する（finalize 後に置く理由は増分側と同じ）。
   // フル分析では全対象意見を抽出済みにし、以後の増分で「新規」として再抽出されないようにする。
@@ -105,6 +111,33 @@ async function runFullAnalysis(
   await executeMerge(versionId);
   console.log(`[topic-analysis] merge done version=${versionId}`);
   await executeAssign(versionId);
+}
+
+
+/**
+ * 割当結果から2階層を組み立てて保存する。
+ *
+ * グルーピングにかけるのは「意見が1件以上ついた中トピック」だけ。0件のトピックは
+ * 表示されないので、大トピックの構成に影響させない。
+ */
+async function groupAndSave(
+  versionId: string,
+  finalTopics: FinalTopicWithId[],
+  assignments: OpinionAssignment[],
+  bill: BillContext
+): Promise<void> {
+  const countByLocalId = countAssignmentsByLocalId(assignments);
+  const assigned = finalTopics.filter(
+    (t) => (countByLocalId.get(t.local_id) ?? 0) > 0
+  );
+
+  const hierarchy = sortHierarchyByOpinionCount(
+    await groupTopics(assigned, bill, countByLocalId),
+    countByLocalId
+  );
+  const { topics, pairs } = buildHierarchySavePlan(hierarchy, assignments);
+
+  await saveTopicsAndAssignments(versionId, topics, pairs);
 }
 
 // ── 増分分析（新規意見のみ抽出し、既存トピックへ差分追加） ──
@@ -171,7 +204,8 @@ async function runIncrementalAnalysis(
     fetchTargetOpinions(billId),
     fetchBillContext(billId),
   ]);
-  const existing = toExistingTopics(await getTopicsWithOpinions(prev.id));
+  // 大トピックを混ぜると割当先候補になり、意見が大トピックに直接付いてしまう。
+  const existing = toExistingTopics(await getLeafTopicsWithOpinions(prev.id));
   const unextracted = selectUnextractedOpinions(allTargets);
 
   // Step1-2: 新規意見のみ抽出 → 新規同士で統合 → 既存と突き合わせて採否判定。
@@ -196,12 +230,13 @@ async function runIncrementalAnalysis(
     finalTopics,
     bill
   );
-  const { sortedTopics, pairs } = buildSortedTopicsAndPairs(finalTopics, [
-    ...carriedAssignments,
-    ...newAssignments,
-  ]);
-
-  await saveTopicsAndAssignments(versionId, sortedTopics, pairs);
+  await updateVersionStep(versionId, ANALYSIS_STEPS.GROUP);
+  await groupAndSave(
+    versionId,
+    finalTopics,
+    [...carriedAssignments, ...newAssignments],
+    bill
+  );
   await finalizeVersion(versionId, allTargets.length);
   // version が完了(known-good)になってから抽出済みを記録する。finalize 前に記録すると、
   // finalize 失敗時に「未保存なのに抽出済み」になり、新規意見が次回以降に再抽出されず

@@ -3,6 +3,8 @@
 import {
   BarChart3,
   Copy,
+  Download,
+  FileUp,
   FolderInput,
   Pencil,
   Plus,
@@ -12,7 +14,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -43,6 +45,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { routes } from "@/lib/routes";
+import {
+  exportInterviewConfigFile,
+  importInterviewConfigFile,
+} from "../../server/actions/interview-config-file";
 import {
   deleteInterviewConfig,
   duplicateInterviewConfig,
@@ -76,6 +82,9 @@ export function InterviewConfigList({
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const [copyToBillTarget, setCopyToBillTarget] =
     useState<InterviewConfig | null>(null);
+  const [isExporting, setIsExporting] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleOpenDeleteDialog = (config: InterviewConfig) => {
     setDeleteConfirmed(false);
@@ -102,6 +111,55 @@ export function InterviewConfigList({
       toast.error("予期しないエラーが発生しました");
     } finally {
       setIsDuplicating(null);
+    }
+  };
+
+  const handleExport = async (configId: string) => {
+    setIsExporting(configId);
+    try {
+      const result = await exportInterviewConfigFile(configId);
+      if (!result.success) {
+        toast.error(result.error || "書き出しに失敗しました");
+        return;
+      }
+      const url = URL.createObjectURL(
+        new Blob([result.data.body], { type: "application/json" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.data.fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export interview config error:", error);
+      toast.error("予期しないエラーが発生しました");
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
+  const handleImportFileChange = async (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    // 同じファイルを選び直しても change が起きるよう空にしておく
+    event.target.value = "";
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await importInterviewConfigFile(billId, await file.text());
+      if (result.success) {
+        toast.success("ファイルからインタビュー設定を作成しました");
+        router.push(routes.billInterviewEdit(billId, result.data.id) as Route);
+      } else {
+        toast.error(`${file.name} を読み込めませんでした。${result.error}`);
+      }
+    } catch (error) {
+      console.error("Import interview config error:", error);
+      toast.error("予期しないエラーが発生しました");
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -138,12 +196,31 @@ export function InterviewConfigList({
           <div className="text-sm text-gray-600">
             {configs.length}件のインタビュー設定
           </div>
-          <Link href={routes.billInterviewNew(billId) as Route}>
-            <Button size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              新規作成
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isImporting}
+            >
+              <FileUp className="mr-2 h-4 w-4" />
+              {isImporting ? "読み込み中..." : "ファイルから作成"}
             </Button>
-          </Link>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={handleImportFileChange}
+              className="sr-only"
+              aria-label="インタビュー設定のファイル"
+            />
+            <Link href={routes.billInterviewNew(billId) as Route}>
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                新規作成
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {configs.length === 0 ? (
@@ -270,6 +347,20 @@ export function InterviewConfigList({
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>他法案へ複製</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="ファイルに書き出す"
+                              onClick={() => handleExport(config.id)}
+                              disabled={isExporting === config.id}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>ファイルに書き出す</TooltipContent>
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>

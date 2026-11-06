@@ -33,7 +33,7 @@ describe("closeOtherPublicConfigs", () => {
     createdBillIds.push(bill.id);
     const config = await createConfig(bill.id, "public", "公開中設定");
 
-    await closeOtherPublicConfigs(bill.id);
+    await expect(closeOtherPublicConfigs(bill.id)).resolves.toBe(1);
 
     const { data: updated } = await adminClient
       .from("interview_configs")
@@ -93,7 +93,7 @@ describe("closeOtherPublicConfigs", () => {
     createdBillIds.push(bill.id);
     const kept = await createConfig(bill.id, "public", "残す設定");
 
-    await closeOtherPublicConfigs(bill.id, kept.id);
+    await expect(closeOtherPublicConfigs(bill.id, kept.id)).resolves.toBe(0);
 
     const { data: after } = await adminClient
       .from("interview_configs")
@@ -103,10 +103,10 @@ describe("closeOtherPublicConfigs", () => {
     expect(after?.status).toBe("public");
   });
 
-  it("対象のconfigが存在しなくてもエラーにならない", async () => {
+  it("対象のconfigが存在しなくてもエラーにならず、0 件を返す", async () => {
     const bill = await createTestBill();
     createdBillIds.push(bill.id);
 
-    await expect(closeOtherPublicConfigs(bill.id)).resolves.toBeUndefined();
+    await expect(closeOtherPublicConfigs(bill.id)).resolves.toBe(0);
   });
 });

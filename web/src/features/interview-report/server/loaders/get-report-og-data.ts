@@ -1,6 +1,5 @@
 import "server-only";
 
-import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
   getBillIdFromPublicReportSession,
   selectPrimaryBillContent,
@@ -48,10 +47,6 @@ export async function getReportOgData(
       console.error("Failed to count public reports for OGP:", error);
       return null;
     }
-    if (!shouldDisplayPublicReports(publicReportCount)) {
-      return null;
-    }
-
     let bill: Awaited<ReturnType<typeof findBillWithContentById>>;
     try {
       bill = await findBillWithContentById(billId);

@@ -1,6 +1,5 @@
 import "server-only";
 
-import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
   buildPublicReportsPage,
   buildStanceCounts,
@@ -37,14 +36,6 @@ export async function getInitialPublicReportsByBillId(
   const stanceRows = await countPublicReportsByStance(billId);
   const stanceCounts = buildStanceCounts(stanceRows);
 
-  if (!shouldDisplayPublicReports(stanceCounts.all)) {
-    return {
-      reports: [],
-      stanceCounts: createEmptyStanceCounts(),
-      hasMore: false,
-    };
-  }
-
   const rawReports = await findPublicReportsByBillId(
     billId,
     PAGE_SIZE + 1,
@@ -67,14 +58,6 @@ export async function getPublicReportsByBillIdPaginated(
   sortOrder: SortOrder = "recommended"
 ): Promise<{ reports: PublicInterviewReport[]; hasMore: boolean }> {
   const stanceRows = await countPublicReportsByStance(billId);
-  const totalCount = stanceRows.reduce(
-    (sum, row) => sum + Number(row.count),
-    0
-  );
-  if (!shouldDisplayPublicReports(totalCount)) {
-    return { reports: [], hasMore: false };
-  }
-
   const stanceParam = stance === "all" ? undefined : stance;
   const rawReports = await findPublicReportsByBillId(
     billId,

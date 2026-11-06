@@ -20,9 +20,14 @@ import { BillFormFields } from "./bill-form-fields";
 interface BillEditFormProps {
   bill: Bill;
   dietSessions: DietSession[];
+  shareImageDefaultTitle: string;
 }
 
-export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
+export function BillEditForm({
+  bill,
+  dietSessions,
+  shareImageDefaultTitle,
+}: BillEditFormProps) {
   const { isSubmitting, error, handleSubmit, handleCancel } = useBillForm();
 
   // If bill has no diet_session_id, default to the latest session (first in the list)
@@ -48,6 +53,7 @@ export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
       slug: bill.slug,
       is_featured: bill.is_featured,
       is_review_completed: bill.is_review_completed,
+      article_kind: bill.article_kind,
       diet_session_id: defaultDietSessionId,
       knowledge_source: bill.knowledge_source ?? "",
       use_knowledge_source_in_chat: bill.use_knowledge_source_in_chat,
@@ -73,6 +79,7 @@ export function BillEditForm({ bill, dietSessions }: BillEditFormProps) {
               control={form.control}
               billId={bill.id}
               dietSessions={dietSessions}
+              shareImageDefaultTitle={shareImageDefaultTitle}
             />
 
             {error && (

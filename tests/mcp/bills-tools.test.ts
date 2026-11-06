@@ -208,6 +208,41 @@ describe("MCP bills tools", () => {
       expect(data?.knowledge_source).toBeNull();
       expect(data?.use_knowledge_source_in_chat).toBe(false);
     });
+
+    it("article_kind を省略すると standard、指定すると ai_generated で作成される", async () => {
+      const base = {
+        status: "introduced",
+        originating_house: "HR",
+        status_note: null,
+        is_featured: false,
+        is_review_completed: false,
+      };
+      const standard = await registry.callTool<{
+        ok: boolean;
+        bill: { id: string };
+      }>("create_bill", {
+        ...base,
+        name: `MCP作成テスト種別省略-${Date.now()}`,
+      });
+      billIds.push(standard.bill.id);
+      const aiGenerated = await registry.callTool<{
+        ok: boolean;
+        bill: { id: string };
+      }>("create_bill", {
+        ...base,
+        name: `MCP作成テストAI版-${Date.now()}`,
+        article_kind: "ai_generated",
+      });
+      billIds.push(aiGenerated.bill.id);
+
+      const { data } = await adminClient
+        .from("bills")
+        .select("id, article_kind")
+        .in("id", [standard.bill.id, aiGenerated.bill.id]);
+      const kindById = new Map(data?.map((row) => [row.id, row.article_kind]));
+      expect(kindById.get(standard.bill.id)).toBe("standard");
+      expect(kindById.get(aiGenerated.bill.id)).toBe("ai_generated");
+    });
   });
 
   describe("update_bill", () => {
@@ -236,6 +271,28 @@ describe("MCP bills tools", () => {
       expect(data?.name).toBe("更新後");
       expect(data?.status).toBe("enacted");
       expect(data?.originating_house).toBe("HC");
+      expect(data?.is_review_completed).toBe(true);
+    });
+
+    it("article_kind を ai_generated から standard に戻せる", async () => {
+      const bill = await createTestBill({
+        name: "AI版から昇格",
+        article_kind: "ai_generated",
+      });
+      billIds.push(bill.id);
+
+      await registry.callTool("update_bill", {
+        billId: bill.id,
+        article_kind: "standard",
+        is_review_completed: true,
+      });
+
+      const { data } = await adminClient
+        .from("bills")
+        .select("article_kind, is_review_completed")
+        .eq("id", bill.id)
+        .single();
+      expect(data?.article_kind).toBe("standard");
       expect(data?.is_review_completed).toBe(true);
     });
 

@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { MIN_PUBLIC_REPORTS_FOR_DISPLAY } from "@mirai-gikai/shared/report-publication/auto-publish";
 import {
   adminClient,
   cleanupTestBill,
@@ -107,16 +106,11 @@ describe("getReportPublicStatus 統合テスト", () => {
     await expect(getReportPublicStatus(randomUUID())).resolves.toBe(false);
   });
 
-  it("両公開フラグと表示件数ゲートを満たす場合だけ true を返す", async () => {
+  it("両公開フラグを満たせば true を返す", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
     const report = await createTestReport(config.id, testUser.id);
-    await createPublicReports(
-      config.id,
-      testUser.id,
-      MIN_PUBLIC_REPORTS_FOR_DISPLAY - 1
-    );
 
     await expect(getReportPublicStatus(report.id)).resolves.toBe(true);
   });
@@ -135,26 +129,16 @@ describe("getReportPublicStatus 統合テスト", () => {
       is_public_by_admin,
       is_public_by_user,
     });
-    await createPublicReports(
-      config.id,
-      testUser.id,
-      MIN_PUBLIC_REPORTS_FOR_DISPLAY
-    );
-
     await expect(getReportPublicStatus(report.id)).resolves.toBe(false);
   });
 
-  it("公開済み件数が表示閾値未満なら false を返す", async () => {
+  // 件数による下限は撤去した。1件しか公開が無い議案でもリアクションを出す。
+  it("公開件数が少ない議案でも true を返す", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
     const config = await createTestInterviewConfig(bill.id);
     const report = await createTestReport(config.id, testUser.id);
-    await createPublicReports(
-      config.id,
-      testUser.id,
-      MIN_PUBLIC_REPORTS_FOR_DISPLAY - 2
-    );
 
-    await expect(getReportPublicStatus(report.id)).resolves.toBe(false);
+    await expect(getReportPublicStatus(report.id)).resolves.toBe(true);
   });
 });

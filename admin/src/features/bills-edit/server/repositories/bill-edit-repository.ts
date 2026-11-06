@@ -1,8 +1,12 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { BILL_THUMBNAILS_BUCKET } from "../../shared/constants";
 import type { BillInsert } from "../../shared/types";
 import type { DifficultyLevel } from "../../shared/types/bill-contents";
+import type { BillVideosInput } from "../../shared/types/bill-videos";
+import { mapBillDbError } from "../../shared/utils/map-bill-db-error";
+import { toBillVideoChanges } from "../../shared/utils/to-bill-video-changes";
 
 export async function findBillById(id: string) {
   const supabase = createAdminClient();
@@ -17,6 +21,21 @@ export async function findBillById(id: string) {
   }
 
   return data;
+}
+
+export async function findBillIdById(id: string): Promise<string | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch bill: ${error.message}`);
+  }
+
+  return data?.id ?? null;
 }
 
 export async function findBillContentsByBillId(billId: string) {
@@ -72,7 +91,7 @@ export async function createBillRecord(insertData: BillInsert) {
     .single();
 
   if (error) {
-    throw new Error(`Failed to create bill: ${error.message}`);
+    throw new Error(mapBillDbError(error, "create"));
   }
 
   return data;
@@ -89,7 +108,7 @@ export async function updateBillRecord(
     .eq("id", id);
 
   if (error) {
-    throw new Error(`Failed to update bill: ${error.message}`);
+    throw new Error(mapBillDbError(error, "update"));
   }
 }
 
@@ -161,4 +180,68 @@ export async function createBillsTags(billId: string, tagIds: string[]) {
   if (error) {
     throw new Error(`Failed to create bill tags: ${error.message}`);
   }
+}
+
+export async function findBillVideosByBillId(billId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bill_videos")
+    .select("*")
+    .eq("bill_id", billId);
+
+  if (error) {
+    throw new Error(`Failed to fetch bill videos: ${error.message}`);
+  }
+
+  return data ?? [];
+}
+
+/**
+ * 議論の種類ごとに動画を登録・更新し、空にされた種類の動画は削除する。
+ * 種類ごとに独立した行のため、途中で失敗しても再保存で揃えられるとして RPC にはしない
+ */
+export async function saveBillVideos(billId: string, videos: BillVideosInput) {
+  const supabase = createAdminClient();
+  const { upserts, deleteKinds } = toBillVideoChanges(billId, videos);
+
+  if (upserts.length > 0) {
+    const { error } = await supabase
+      .from("bill_videos")
+      .upsert(upserts, { onConflict: "bill_id,kind" });
+    if (error) {
+      throw new Error(`Failed to save bill videos: ${error.message}`);
+    }
+  }
+
+  if (deleteKinds.length > 0) {
+    const { error } = await supabase
+      .from("bill_videos")
+      .delete()
+      .eq("bill_id", billId)
+      .in("kind", deleteKinds);
+    if (error) {
+      throw new Error(`Failed to delete bill videos: ${error.message}`);
+    }
+  }
+}
+
+export async function uploadBillThumbnailFile(params: {
+  fileName: string;
+  body: ArrayBuffer;
+  contentType: string;
+}) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage
+    .from(BILL_THUMBNAILS_BUCKET)
+    .upload(params.fileName, params.body, {
+      contentType: params.contentType,
+      cacheControl: "3600",
+    });
+
+  if (error) {
+    throw new Error(`Failed to upload bill thumbnail: ${error.message}`);
+  }
+
+  return supabase.storage.from(BILL_THUMBNAILS_BUCKET).getPublicUrl(data.path)
+    .data.publicUrl;
 }

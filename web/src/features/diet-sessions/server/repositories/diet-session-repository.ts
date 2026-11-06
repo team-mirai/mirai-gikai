@@ -1,6 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { DietSession } from "../../shared/types";
+import type { DietSession, SluggedDietSession } from "../../shared/types";
 
 /**
  * アクティブな国会会期を取得
@@ -91,4 +91,59 @@ export async function findPreviousDietSession(
   }
 
   return data;
+}
+
+/**
+ * 指定日より前に閉会した直近の会期を返す。
+ *
+ * 閉会中のトップページで「どの会期が終わったか」を出すために使う。
+ * `findPreviousDietSession` はアクティブ会期の開始日を基準に「その前」を返すので、
+ * 閉会中（アクティブ会期が無い、または日付が範囲外）の用途には合わない。
+ */
+export async function findLatestClosedDietSession(
+  onDate: string
+): Promise<DietSession | null> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("diet_sessions")
+    .select("*")
+    .lt("end_date", onDate)
+    .order("end_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    // 同ファイルの他の取得関数と同じく、失敗はカードを出さないだけに留める。
+    // トップページ全体を500にするほどの情報ではない。
+    console.error("Failed to fetch latest closed diet session:", error);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * 指定日より前に始まった会期を新しい順にすべて取得する。
+ *
+ * トップページの「過去の会期一覧」用。一覧からリンクするため slug のない会期は除く。
+ */
+export async function findDietSessionsBefore(
+  beforeStartDate: string
+): Promise<SluggedDietSession[]> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("diet_sessions")
+    .select("*")
+    .lt("start_date", beforeStartDate)
+    .not("slug", "is", null)
+    .order("start_date", { ascending: false });
+
+  // 空配列で返すとキャッシュに載って固定されるため、呼び出し側（キャッシュの外）で扱う
+  if (error) {
+    throw new Error(`Failed to fetch past diet sessions: ${error.message}`);
+  }
+
+  // クエリで除外済みだが、slug を non-null に型で絞るために filter する
+  return data.filter((s): s is SluggedDietSession => s.slug !== null);
 }

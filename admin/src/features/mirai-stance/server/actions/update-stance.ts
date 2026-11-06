@@ -5,12 +5,25 @@ import {
   WEB_CACHE_TAGS,
 } from "@/lib/utils/cache-invalidation";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
-import type { StanceInput } from "../../shared/types";
-import { updateMiraiStance } from "../repositories/mirai-stance-repository";
+import { type StanceInput, stanceInputSchema } from "../../shared/types";
+import { isStanceBecomingPublished } from "../../shared/utils/is-stance-becoming-published";
+import {
+  findStanceById,
+  updateMiraiStance,
+} from "../repositories/mirai-stance-repository";
+import { closeInterviewsOnStancePublish } from "../services/close-interviews-on-stance-publish";
 
 export async function updateStance(stanceId: string, data: StanceInput) {
   try {
-    await updateMiraiStance(stanceId, data);
+    const input = stanceInputSchema.parse(data);
+    const before = await findStanceById(stanceId);
+    await updateMiraiStance(stanceId, input);
+    if (
+      before &&
+      isStanceBecomingPublished(before.is_published, input.isPublished)
+    ) {
+      await closeInterviewsOnStancePublish(before.bill_id);
+    }
 
     invalidateWebCache([WEB_CACHE_TAGS.BILLS]);
     return { success: true };

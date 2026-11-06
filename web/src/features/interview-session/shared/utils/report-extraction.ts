@@ -12,7 +12,8 @@ const reportExtractionSchema = z.object({
 
 /**
  * 後方互換: 旧メッセージの opinions には contextual_quote / bill_sentiment /
- * richness が存在しないため、欠落フィールドを null で補完してから検証する。
+ * richness / concern / proposal / reasoning_types が存在しないため、
+ * 欠落フィールドを null で補完してから検証する。
  * これにより新フィールド追加前に生成された要約メッセージでも抽出が失敗せず、
  * インタビュー完了がブロックされない（§4.0）。
  */
@@ -35,6 +36,9 @@ function backfillOpinionFields(parsed: unknown): unknown {
           contextual_quote: null,
           bill_sentiment: null,
           richness: null,
+          concern: null,
+          proposal: null,
+          reasoning_types: null,
           ...opinion,
         }
       : opinion

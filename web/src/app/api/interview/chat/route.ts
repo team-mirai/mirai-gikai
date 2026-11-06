@@ -19,11 +19,13 @@ export async function POST(req: Request) {
     billId,
     currentStage,
     isRetry,
+    previewToken,
   }: {
     messages: Array<{ role: string; content: string }>;
     billId: string;
     currentStage: "chat" | "summary" | "summary_complete";
     isRetry?: boolean;
+    previewToken?: unknown;
   } = body;
 
   const {
@@ -49,6 +51,8 @@ export async function POST(req: Request) {
       billId,
       currentStage,
       isRetry,
+      // 文字列以外は検証対象にしない（不正な型のトークンは未指定として扱う）
+      previewToken: typeof previewToken === "string" ? previewToken : undefined,
       userId: user.id,
     });
   } catch (error) {

@@ -1,24 +1,25 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 import type { BillStatusEnum, MiraiStance } from "../../../shared/types";
 import { getStanceStyles } from "../../../shared/utils/stance-styles";
+import { StanceComment, StanceReason } from "./stance-reason";
 
 interface MiraiStanceCardProps {
-  stance?: MiraiStance;
+  stance: MiraiStance;
   billStatus?: BillStatusEnum;
+  /** 判断の理由の下に区切り線を挟んで出す内容（賛否に関連する動画など） */
+  children?: ReactNode;
 }
 
-export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
+export function MiraiStanceCard({
+  stance,
+  billStatus,
+  children,
+}: MiraiStanceCardProps) {
   // 法案提出前の場合は専用のスタイルを使用
   const isPreparing = billStatus === "preparing";
 
-  if (!stance && !isPreparing) {
-    return null; // スタンスがなく、法案提出前でもない場合は何も表示しない
-  }
-
   const styles = getStanceStyles(stance, isPreparing);
-  const comment = isPreparing
-    ? "法案提出後、党内で検討のうえ賛否を表明します。"
-    : stance?.comment;
 
   return (
     <>
@@ -48,13 +49,17 @@ export function MiraiStanceCard({ stance, billStatus }: MiraiStanceCardProps) {
               </div>
             </div>
 
-            {/* コメント部分 */}
-            {comment != null && (
-              <div className="flex flex-col gap-2">
-                <h3 className="text-lg font-bold">コメント・理由</h3>
-                <p className="text-base font-medium leading-relaxed whitespace-pre-wrap">
-                  {comment}
-                </p>
+            {/* 判断の理由 */}
+            {isPreparing ? (
+              <StanceComment comment="法案提出後、党内で検討のうえ賛否を表明します。" />
+            ) : (
+              <StanceReason stance={stance} />
+            )}
+
+            {/* 法案提出前は賛否の中身を出さないため、関連する内容も出さない */}
+            {!isPreparing && children && (
+              <div className="border-t border-mirai-border pt-8">
+                {children}
               </div>
             )}
           </div>

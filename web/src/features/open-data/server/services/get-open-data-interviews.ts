@@ -1,13 +1,14 @@
 import "server-only";
 
-import { MIN_PUBLIC_REPORTS_FOR_DISPLAY } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { MIN_PUBLIC_REPORTS_FOR_OPEN_DATA } from "@mirai-gikai/shared/report-publication/auto-publish";
 import type {
   OpenDataInterviewItem,
   OpenDataInterviewsResult,
   OpenDataMessage,
 } from "../../shared/types/open-data";
-import { encodeCursor, type OpenDataCursor } from "../../shared/utils/cursor";
+import type { OpenDataCursor } from "../../shared/utils/cursor";
 import { toOpenDataOpinions } from "../../shared/utils/opinions";
+import { paginateRows } from "../../shared/utils/paginate";
 import { toOpenDataMessage } from "../../shared/utils/to-open-data-message";
 import {
   findMessagesBySessionIds,
@@ -23,13 +24,15 @@ export async function getOpenDataInterviews(params: {
   cursor: OpenDataCursor | null;
 }): Promise<OpenDataInterviewsResult> {
   const rows = await findOpenDataReports({
-    minPublicReports: MIN_PUBLIC_REPORTS_FOR_DISPLAY,
+    minPublicReports: MIN_PUBLIC_REPORTS_FOR_OPEN_DATA,
     limit: params.limit + 1,
     cursor: params.cursor,
   });
 
-  const hasMore = rows.length > params.limit;
-  const pageRows = hasMore ? rows.slice(0, params.limit) : rows;
+  const { pageRows, nextCursor } = paginateRows(rows, params.limit, (row) => ({
+    createdAt: row.created_at,
+    id: row.report_id,
+  }));
 
   const messages = await findMessagesBySessionIds(
     pageRows.map((row) => row.interview_session_id)
@@ -54,12 +57,6 @@ export async function getOpenDataInterviews(params: {
     messages: messagesBySession.get(row.interview_session_id) ?? [],
     createdAt: row.created_at,
   }));
-
-  const lastRow = pageRows.at(-1);
-  const nextCursor =
-    hasMore && lastRow
-      ? encodeCursor({ createdAt: lastRow.created_at, id: lastRow.report_id })
-      : null;
 
   return { items, nextCursor };
 }

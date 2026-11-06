@@ -3,6 +3,10 @@
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidateTag } from "next/cache";
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import {
+  invalidateWebCache,
+  WEB_CACHE_TAGS,
+} from "@/lib/utils/cache-invalidation";
 import { verifyConfigBelongsToBill } from "../services/verify-config-belongs-to-bill";
 
 interface BulkPublishParams {
@@ -40,6 +44,9 @@ export async function bulkPublishReportsAction(
     const updatedCount = data ?? 0;
 
     revalidateTag("public-interview-reports");
+    // admin の revalidateTag は admin 内のキャッシュにしか効かない。
+    // web の一覧が持つ回答数キャッシュは HTTP 経由で無効化する。
+    await invalidateWebCache([WEB_CACHE_TAGS.PUBLIC_INTERVIEW_REPORTS]);
 
     return { success: true, updatedCount };
   } catch (error) {

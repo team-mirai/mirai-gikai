@@ -2,6 +2,7 @@
 export * from "./analysis-repository";
 export * from "./backfill-repository";
 export * from "./interview-repository";
+export * from "./opinion-tags-repository";
 // 二重起動ガードの失効判定（findActiveVersionByBill と対で使う）。
 export {
   type ActiveVersionRow,

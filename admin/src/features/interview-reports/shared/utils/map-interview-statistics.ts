@@ -15,6 +15,7 @@ type RawStatistics = {
   avg_message_count: number | null;
   median_duration_seconds: number | null;
   total_duration_seconds: number | null;
+  total_duration_seconds_under_1h: number | null;
   public_by_user_count: number;
   feedback_irrelevant_questions: number;
   feedback_not_aligned: number;
@@ -45,6 +46,7 @@ export function mapInterviewStatistics(
     avgMessageCount: raw.avg_message_count,
     medianDurationSeconds: raw.median_duration_seconds,
     totalDurationSeconds: raw.total_duration_seconds ?? 0,
+    totalDurationSecondsUnder1h: raw.total_duration_seconds_under_1h ?? 0,
     publicByUserCount: raw.public_by_user_count,
     publicRate:
       raw.completed_sessions > 0

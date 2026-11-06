@@ -33,6 +33,9 @@ describe("convertPartialReport", () => {
           contextual_quote: null,
           bill_sentiment: null,
           richness: null,
+          concern: null,
+          proposal: null,
+          reasoning_types: [],
         },
       ],
     });
@@ -68,6 +71,9 @@ describe("convertPartialReport", () => {
         contextual_quote: null,
         bill_sentiment: null,
         richness: null,
+        concern: null,
+        proposal: null,
+        reasoning_types: [],
       },
       {
         title: "意見2",
@@ -76,6 +82,9 @@ describe("convertPartialReport", () => {
         contextual_quote: null,
         bill_sentiment: null,
         richness: null,
+        concern: null,
+        proposal: null,
+        reasoning_types: [],
       },
     ]);
   });
@@ -102,6 +111,9 @@ describe("convertPartialReport", () => {
         contextual_quote: null,
         bill_sentiment: null,
         richness: null,
+        concern: null,
+        proposal: null,
+        reasoning_types: [],
       },
     ]);
   });

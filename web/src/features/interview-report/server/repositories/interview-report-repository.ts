@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { shouldAutoPublishOnUserSettingChange } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { SortOrder } from "../../shared/utils/sort-order";
 
@@ -203,7 +203,9 @@ export async function updateReportPublicSetting(
 
   const { data: report, error: fetchError } = await supabase
     .from("interview_report")
-    .select("is_public_by_admin, moderation_score, total_content_richness")
+    .select(
+      "is_public_by_admin, admin_unpublished_at, moderation_score, total_content_richness"
+    )
     .eq("id", reportId)
     .single();
 
@@ -227,9 +229,12 @@ export async function updateReportPublicSetting(
       : {}),
   };
 
+  // 管理者が非公開にしたレポート（個別の公開停止・設定の論理削除に伴う一括停止）は
+  // admin_unpublished_at が記録されるため、ユーザー操作では再公開しない。
   if (
-    !report.is_public_by_admin &&
-    isReportAutoPublishEligible({
+    shouldAutoPublishOnUserSettingChange({
+      isPublicByAdmin: report.is_public_by_admin,
+      adminUnpublishedAt: report.admin_unpublished_at,
       isPublicByUser: isPublic,
       moderationScore: report.moderation_score,
       totalContentRichness: report.total_content_richness,

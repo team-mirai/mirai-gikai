@@ -1,7 +1,7 @@
 import "server-only";
 
-import { createAdminClient } from "@mirai-gikai/supabase";
 import { isPublicReportVisible } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { createAdminClient } from "@mirai-gikai/supabase";
 import { countPublicReportsByBillId } from "@/features/interview-report/server/repositories/interview-report-repository";
 import type { ReactionCounts, ReactionType } from "../../shared/types";
 
@@ -37,7 +37,6 @@ export async function getReportPublicStatus(
   return isPublicReportVisible({
     isPublicByAdmin: data.is_public_by_admin,
     isPublicByUser: data.is_public_by_user,
-    publicReportCount,
   });
 }
 

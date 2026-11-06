@@ -477,6 +477,50 @@ describe("get_interview_statistics() 関数", () => {
     expect(Number(data?.[0].total_duration_seconds)).toBeCloseTo(600, 0);
   });
 
+  it("total_duration_seconds_under_1h は所要時間1時間以上のセッションを除外して合算する", async () => {
+    const bill = await createTestBill();
+    billIds.push(bill.id);
+    const config = await createTestInterviewConfig(bill.id);
+
+    const base = new Date("2026-05-20T00:00:00.000Z").getTime();
+    const iso = (offsetSec: number) =>
+      new Date(base + offsetSec * 1000).toISOString();
+
+    // 完了セッション: 300秒（集計対象）
+    await createTestSession(config.id, testUser.id, {
+      started_at: iso(0),
+      completed_at: iso(300),
+    });
+    // 完了セッション: 3599秒（1時間未満なので集計対象）
+    await createTestSession(config.id, testUser.id, {
+      started_at: iso(0),
+      completed_at: iso(3599),
+    });
+    // 完了セッション: ちょうど1時間（除外）
+    await createTestSession(config.id, testUser.id, {
+      started_at: iso(0),
+      completed_at: iso(3600),
+    });
+    // 途中離脱: 最終メッセージ 2時間後（除外）
+    const dropout = await createTestSession(config.id, testUser.id, {
+      started_at: iso(0),
+    });
+    await insertInterviewMessage(dropout.id, iso(7200));
+
+    const { data, error } = await adminClient.rpc("get_interview_statistics", {
+      p_config_id: config.id,
+    });
+
+    expect(error).toBeNull();
+    // 全体: 300 + 3599 + 3600 + 7200 = 14699
+    expect(Number(data?.[0].total_duration_seconds)).toBeCloseTo(14699, 0);
+    // 1時間未満のみ: 300 + 3599 = 3899
+    expect(Number(data?.[0].total_duration_seconds_under_1h)).toBeCloseTo(
+      3899,
+      0
+    );
+  });
+
   it("該当セッションが無い場合 total_duration_seconds は 0", async () => {
     const bill = await createTestBill();
     billIds.push(bill.id);
@@ -488,6 +532,7 @@ describe("get_interview_statistics() 関数", () => {
 
     expect(error).toBeNull();
     expect(Number(data?.[0].total_duration_seconds)).toBe(0);
+    expect(Number(data?.[0].total_duration_seconds_under_1h)).toBe(0);
   });
 
   it("存在しないconfig_idではすべてゼロ/NULLの行を返す", async () => {

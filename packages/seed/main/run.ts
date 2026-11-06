@@ -33,6 +33,7 @@ import {
   getRealisticShippingBillSourceMessageLinks,
 } from "./shipping-bill-data";
 import { createAdminClient, clearAllData } from "../shared/helper";
+import { seedLocalAdminUser } from "../shared/admin-user";
 
 async function seedDatabase() {
   const supabase = createAdminClient();
@@ -40,6 +41,9 @@ async function seedDatabase() {
 
   try {
     await clearAllData(supabase);
+
+    // ローカル開発用の admin ユーザー（ローカル接続時のみ作成される）
+    await seedLocalAdminUser(supabase);
 
     // Insert tags
     console.log("🏷️  Inserting tags...");
@@ -174,7 +178,8 @@ async function seedDatabase() {
 
     const { data: insertedStances, error: stancesError } = await supabase
       .from("mirai_stances")
-      .insert(miraiStances)
+      // 一括insertで未指定のカラムを null ではなく DEFAULT にする
+      .insert(miraiStances, { defaultToNull: false })
       .select("id");
 
     if (stancesError) {

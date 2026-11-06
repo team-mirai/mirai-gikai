@@ -5,6 +5,7 @@ import {
 } from "@mirai-gikai/topic-analysis-core/analyze";
 import { runBackfill } from "@mirai-gikai/topic-analysis-core/backfill";
 import { resolveBackfillParams } from "@mirai-gikai/topic-analysis-core/backfill-params";
+import { runTagBackfill } from "@mirai-gikai/topic-analysis-core/tag-backfill";
 
 /**
  * Cloud Run Job のエントリポイント。
@@ -18,11 +19,14 @@ import { resolveBackfillParams } from "@mirai-gikai/topic-analysis-core/backfill
  *   tsx src/main.ts --mode=backfill --bill-id=<uuid>             # 指定議案の未再抽出のみ
  *   tsx src/main.ts --mode=backfill --bill-id=<uuid> --scope=all # 指定議案を全件やり直し
  *   tsx src/main.ts --mode=backfill --model=openai/gpt-5.2       # 使用モデルを指定（省略時は既定）
+ *   tsx src/main.ts --mode=tag-backfill                          # タグ未抽出の意見を全議案で処理
+ *   tsx src/main.ts --mode=tag-backfill --bill-id=<uuid>         # 指定議案のタグ未抽出のみ
+ *   tsx src/main.ts --mode=tag-backfill --bill-id=<uuid> --scope=all # 指定議案のタグを全件やり直し
  *
  * 必須env: SUPABASE_URL, SUPABASE_SECRET_KEY, AI_GATEWAY_API_KEY
  */
 
-type Mode = "analyze" | "analyze-all" | "backfill";
+type Mode = "analyze" | "analyze-all" | "backfill" | "tag-backfill";
 
 /** --strategy をパースする（未指定・不正値は fallback）。 */
 function parseStrategy(
@@ -96,8 +100,23 @@ async function main(): Promise<void> {
     return;
   }
 
+  // 既存意見へタグ（concern/proposal/reasoning_types）だけを追加する経路。
+  // 意見の本文は再生成しないため、公開中のトピック分析の引用が動かない。
+  if (mode === "tag-backfill") {
+    const resolved = resolveBackfillParams({
+      billId: args["bill-id"],
+      scope: args.scope,
+      model: args.model,
+    });
+    if (!resolved.ok) {
+      throw new Error(`tag-backfill mode: ${resolved.error}`);
+    }
+    await runTagBackfill(resolved.params);
+    return;
+  }
+
   throw new Error(
-    `Unknown --mode=${mode ?? "(none)"} (expected "analyze" / "analyze-all" / "backfill")`
+    `Unknown --mode=${mode ?? "(none)"} (expected "analyze" / "analyze-all" / "backfill" / "tag-backfill")`
   );
 }
 

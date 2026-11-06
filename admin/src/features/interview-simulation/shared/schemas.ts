@@ -1,3 +1,4 @@
+import { PROMPT_SECTION_MAX_LENGTH } from "@mirai-gikai/shared/interview-prompts/sections";
 import { INTERVIEW_MODES } from "@mirai-gikai/shared/interview-prompts/types";
 import { z } from "zod";
 import { AI_MODELS, type AiModel } from "@/lib/ai/models";
@@ -308,6 +309,15 @@ const personaSlotInputSchema = z.discriminatedUnion("kind", [
     .strict(),
 ]);
 
+/**
+ * 編集中のプロンプト上書き。保存前の文面をシミュで試せるようにする。
+ * キーの網羅は sections.ts 側の PROMPT_SECTION_KEYS が正で、
+ * 受け取った後に parsePromptSectionOverrides が改めて絞る。
+ */
+const promptOverridesPayloadSchema = z
+  .record(z.string(), z.string().max(PROMPT_SECTION_MAX_LENGTH))
+  .nullable();
+
 /** 複数ペルソナシミュ API のリクエストボディ（実行時バリデーション用） */
 export const multiSimulationRunRequestSchema = z
   .object({
@@ -324,6 +334,7 @@ export const multiSimulationRunRequestSchema = z
           .max(SMALL_ARRAY_MAX)
           .nullable(),
         estimatedDurationMinutes: z.number().int().min(1).max(600).nullable(),
+        promptOverrides: promptOverridesPayloadSchema,
         questions: z
           .array(
             z

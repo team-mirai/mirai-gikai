@@ -19,10 +19,7 @@ export const SIMULATION_MODEL_OPTIONS = [
   { value: AI_MODELS.gpt4_1_mini, label: "GPT-4.1 mini" },
   { value: AI_MODELS.gemini3_flash_preview, label: "Gemini 3 Flash (preview)" },
   { value: AI_MODELS.gemini3_1_pro_preview, label: "Gemini 3.1 Pro (preview)" },
-  {
-    value: AI_MODELS.gemini3_1_flash_lite_preview,
-    label: "Gemini 3.1 Flash Lite (preview)",
-  },
+  { value: AI_MODELS.gemini3_8_flash, label: "Gemini 3.8 Flash" },
   { value: AI_MODELS.claude_sonnet_4_6, label: "Claude Sonnet 4.6" },
 ] as const;
 
@@ -30,10 +27,10 @@ export const SIMULATION_MODEL_OPTIONS = [
 export const DEFAULT_INTERVIEWER_MODEL = AI_MODELS.gpt5_2;
 
 /** インタビュイー（ペルソナ）側のデフォルトモデル */
-export const DEFAULT_INTERVIEWEE_MODEL = AI_MODELS.gemini3_1_flash_lite_preview;
+export const DEFAULT_INTERVIEWEE_MODEL = AI_MODELS.gemini3_8_flash;
 
 /** ペルソナ抽出のデフォルトモデル */
-export const DEFAULT_PERSONA_MODEL = AI_MODELS.gemini3_1_flash_lite_preview;
+export const DEFAULT_PERSONA_MODEL = AI_MODELS.gemini3_8_flash;
 
 /** AI Judge のデフォルトモデル */
 export const DEFAULT_JUDGE_MODEL = AI_MODELS.gpt5_2;

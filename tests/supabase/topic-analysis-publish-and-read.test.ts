@@ -170,7 +170,14 @@ describe("publish / 公開読み取り 統合テスト", () => {
     const versionId = await createCompletedVersion(billId);
     await saveTopicsAndAssignments(
       versionId,
-      [{ title: "論点A", description: "desc" }],
+      [
+        {
+          title: "論点A",
+          description: "desc",
+          sort_order: 0,
+          parent_sort_order: null,
+        },
+      ],
       [
         { opinion_id: okIds[0], topic_index: 0 },
         { opinion_id: privateIds[0], topic_index: 0 },

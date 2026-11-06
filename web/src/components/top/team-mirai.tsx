@@ -10,6 +10,8 @@ const TEAM_MIRAI_SNS_ORDER = [
   "instagram",
   "facebook",
   "tiktok",
+  "note",
+  "threads",
 ] as const;
 
 export function TeamMirai() {

@@ -28,6 +28,7 @@ const STEP_LABEL: Record<string, string> = {
   extract: "トピック抽出中",
   merge: "トピック統合中",
   assign: "意見割当中",
+  group: "トピックのグルーピング中",
   done: "完了処理中",
 };
 

@@ -104,7 +104,6 @@ export function OpinionCard({
   const reportVisible = isPublicReportVisible({
     isPublicByAdmin: opinion.report_public,
     isPublicByUser: true,
-    publicReportCount,
   });
   // レポートリンクは該当メッセージ位置へ飛ばす。
   // source_message_id が無い場合はレポート先頭にフォールバックする。

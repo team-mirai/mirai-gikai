@@ -1,0 +1,18 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard", ":semanticCommitsDisabled"],
+  "timezone": "Asia/Tokyo",
+  "schedule": ["before 9am"],
+  "minimumReleaseAge": "1 day",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
+  "labels": ["dependencies"],
+  "ignorePaths": ["**/node_modules/**"],
+  "prFooter": "この PR は [Mend Renovate](https://mend.io/renovate/) が自動生成しました。\n\n<!-- ai-coder: tool=renovate; model=unknown -->",
+  "vulnerabilityAlerts": { "schedule": ["at any time"], "minimumReleaseAge": null, "labels": ["dependencies", "security"] },
+  "packageRules": [
+    { "description": "npm minor/patch grouped", "matchManagers": ["npm"], "matchUpdateTypes": ["minor", "patch"], "groupName": "npm minor/patch", "groupSlug": "npm-non-major" },
+    { "description": "Next.js immediate, separate PR", "matchPackageNames": ["next", "@next/**", "eslint-config-next"], "groupName": "Next.js", "groupSlug": "nextjs", "minimumReleaseAge": null, "schedule": ["at any time"] },
+    { "description": "GitHub Actions grouped", "matchManagers": ["github-actions"], "groupName": "GitHub Actions", "groupSlug": "github-actions" }
+  ]
+}

@@ -70,6 +70,10 @@ export const modelPricing: Record<string, ModelPricing> = {
     inputTokensPerMillionUsd: 1.75,
     outputTokensPerMillionUsd: 14,
   },
+  [AI_MODELS.gpt5_4_mini_fast]: {
+    inputTokensPerMillionUsd: 1.5,
+    outputTokensPerMillionUsd: 9,
+  },
   [AI_MODELS.gpt5_6_sol]: {
     inputTokensPerMillionUsd: 5,
     outputTokensPerMillionUsd: 30,
@@ -94,6 +98,11 @@ export const modelPricing: Record<string, ModelPricing> = {
   [AI_MODELS.gemini3_1_pro_preview]: {
     inputTokensPerMillionUsd: 2,
     outputTokensPerMillionUsd: 12,
+  },
+  // 2026-12-31 までの導入価格。期限後に見直すこと。
+  [AI_MODELS.gemini3_8_flash]: {
+    inputTokensPerMillionUsd: 0.75,
+    outputTokensPerMillionUsd: 3.75,
   },
   [AI_MODELS.gemma4_26b_a4b]: {
     inputTokensPerMillionUsd: 0.06,

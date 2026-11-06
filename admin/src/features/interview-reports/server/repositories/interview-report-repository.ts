@@ -1,8 +1,12 @@
 import "server-only";
 
+import { fetchAllPages } from "@mirai-gikai/shared/db/fetch-all-pages";
 import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
+  InterviewMessage,
+  InterviewReport,
+  InterviewSession,
   MessageSearchFilterConfig,
   SessionFilterConfig,
 } from "../../shared/types";
@@ -445,6 +449,62 @@ export async function findInterviewMessagesBySessionId(sessionId: string) {
   return data;
 }
 
+export type InterviewSessionWithReportRow = InterviewSession & {
+  interview_report: InterviewReport | InterviewReport[] | null;
+};
+
+/**
+ * インタビュー設定に紐づく全セッションをレポート付きで開始日時昇順に取得する。
+ * max_rows を超える件数でも途切れないよう全件をページングで取得する。
+ */
+export async function findAllInterviewSessionsWithReportByConfigId(
+  configId: string
+): Promise<InterviewSessionWithReportRow[]> {
+  const supabase = createAdminClient();
+  return fetchAllPages(async (from, to) => {
+    const { data, error } = await supabase
+      .from("interview_sessions")
+      .select("*, interview_report(*)")
+      .eq("interview_config_id", configId)
+      .order("started_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to);
+    if (error) {
+      throw new Error(
+        `Failed to fetch interview sessions for TSV: ${error.message}`
+      );
+    }
+    return (data ?? []) as InterviewSessionWithReportRow[];
+  });
+}
+
+/**
+ * セッションIDの集合に対する全メッセージを、セッションごとに作成日時昇順で取得する。
+ * max_rows を超える件数でも途切れないよう全件をページングで取得する。
+ */
+export async function findAllInterviewMessagesBySessionIds(
+  sessionIds: string[]
+): Promise<InterviewMessage[]> {
+  if (sessionIds.length === 0) return [];
+  const supabase = createAdminClient();
+  return fetchAllPages(async (from, to) => {
+    const { data, error } = await supabase
+      .from("interview_messages")
+      .select("*")
+      .in("interview_session_id", sessionIds)
+      .order("interview_session_id", { ascending: true })
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to);
+    if (error) {
+      throw new Error(
+        `Failed to fetch interview messages for TSV: ${error.message}`
+      );
+    }
+    return data ?? [];
+  });
+}
+
 export async function searchUserMessagesByConfigId(
   configId: string,
   query: string,
@@ -546,10 +606,11 @@ export type InterviewMetricsByBillRow = {
   completed_count: number;
   completion_rate: number;
   total_duration_seconds: number;
+  total_duration_seconds_under_1h: number;
 };
 
 /**
- * 議案ごとのAIインタビュー実施数・完了数・完了率・総回答時間を取得する。
+ * 議案ごとのAIインタビュー実施数・完了数・完了率・総回答時間（1時間以上のセッション除外版を含む）を取得する。
  * billId を指定すると単一議案に絞り込み、省略すると設定を持つ全議案を返す。
  */
 export async function findInterviewMetricsByBill(
@@ -600,9 +661,14 @@ export async function updateReportVisibility(
   isPublic: boolean
 ): Promise<void> {
   const supabase = createAdminClient();
+  // 非公開にした管理者判断を admin_unpublished_at に記録し、ユーザー操作による
+  // 自動公開で公開停止が覆されないようにする。公開に戻した場合は記録を消す。
   const { error } = await supabase
     .from("interview_report")
-    .update({ is_public_by_admin: isPublic })
+    .update({
+      is_public_by_admin: isPublic,
+      admin_unpublished_at: isPublic ? null : new Date().toISOString(),
+    })
     .eq("id", reportId);
 
   if (error) {

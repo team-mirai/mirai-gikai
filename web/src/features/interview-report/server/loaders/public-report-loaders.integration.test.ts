@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { MIN_PUBLIC_REPORTS_FOR_DISPLAY } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   getInitialPublicReportsByBillId,
@@ -26,32 +25,32 @@ describe("公開レポート loader 統合テスト", () => {
     context = null;
   });
 
-  it("公開済み件数が表示閾値未満なら法案詳細用レポートを返さない", async () => {
+  // 件数による下限は撤去した。1件でも法案詳細に出す。
+  it("公開が1件でも法案詳細用レポートを返す", async () => {
     context = await createPublicReportLoaderContext();
-    await createPublicReports(context, MIN_PUBLIC_REPORTS_FOR_DISPLAY - 1);
-
-    await expect(getPublicReportsByBillId(context.billId)).resolves.toEqual({
-      reports: [],
-      totalCount: 0,
-    });
-  });
-
-  it("公開済み件数が表示閾値以上なら法案詳細用に最大3件と総件数を返す", async () => {
-    context = await createPublicReportLoaderContext();
-    await createPublicReports(context, MIN_PUBLIC_REPORTS_FOR_DISPLAY);
+    await createPublicReports(context, 1);
 
     const result = await getPublicReportsByBillId(context.billId);
 
-    expect(result.totalCount).toBe(MIN_PUBLIC_REPORTS_FOR_DISPLAY);
+    expect(result.totalCount).toBe(1);
+    expect(result.reports).toHaveLength(1);
+  });
+
+  it("法案詳細用は最大3件と総件数を返す", async () => {
+    context = await createPublicReportLoaderContext();
+    await createPublicReports(context, 20);
+
+    const result = await getPublicReportsByBillId(context.billId);
+
+    expect(result.totalCount).toBe(20);
     expect(result.reports).toHaveLength(3);
     expect(result.reports.every((report) => report.stance === "for")).toBe(
       true
     );
   });
 
-  it("初期ページは公開済み件数が表示閾値未満なら空の stance counts を返す", async () => {
+  it("公開が無ければ空の stance counts を返す", async () => {
     context = await createPublicReportLoaderContext();
-    await createPublicReports(context, MIN_PUBLIC_REPORTS_FOR_DISPLAY - 1);
 
     await expect(
       getInitialPublicReportsByBillId(context.billId)
@@ -75,7 +74,7 @@ describe("公開レポート loader 統合テスト", () => {
     );
 
     expect(result.stanceCounts).toEqual({
-      all: MIN_PUBLIC_REPORTS_FOR_DISPLAY,
+      all: 20,
       for: 12,
       against: 5,
       neutral: 0,
@@ -102,14 +101,6 @@ describe("公開レポート loader 統合テスト", () => {
     expect(result.hasMore).toBe(false);
   });
 
-  it("公開直リンク loader は公開済み件数が表示閾値未満なら null を返す", async () => {
-    context = await createPublicReportLoaderContext();
-    const target = await createPublicReport(context);
-    await createPublicReports(context, MIN_PUBLIC_REPORTS_FOR_DISPLAY - 2);
-
-    await expect(getPublicReportById(target.report.id)).resolves.toBeNull();
-  });
-
   it("公開条件を満たさないレポートIDでは loader が null を返す（404扱い）", async () => {
     // 公開設定が削除された場合など、公開条件を満たすレポートが存在しないケース。
     // repository が PGRST116 で null を返し、各 loader はそれを null として扱う。
@@ -128,8 +119,6 @@ describe("公開レポート loader 統合テスト", () => {
         { role: "user", content: "de" },
       ],
     });
-    await createPublicReports(context, MIN_PUBLIC_REPORTS_FOR_DISPLAY - 1);
-
     const result = await getPublicReportById(target.report.id);
 
     expect(result?.bill_id).toBe(context.billId);
@@ -137,31 +126,22 @@ describe("公開レポート loader 統合テスト", () => {
     expect(result?.characterCount).toBe(5);
   });
 
-  it("OGP loader は公開済み件数ゲートを満たす場合だけデータを返す", async () => {
+  it("OGP loader は公開レポートのデータを返す", async () => {
     context = await createPublicReportLoaderContext("OGP 議案");
     const target = await createPublicReport(context, { summary: "OGP 要約" });
-    await createPublicReports(context, MIN_PUBLIC_REPORTS_FOR_DISPLAY - 2);
-
-    await expect(getReportOgData(target.report.id)).resolves.toBeNull();
-
-    await createPublicReports(context, 1);
 
     await expect(getReportOgData(target.report.id)).resolves.toEqual({
+      // ヘルパーが summary に連番を付ける。
       summary: "OGP 要約-1",
       billName: "OGP 議案",
     });
   });
 
-  it("チャットログ loader は非所有者に公開済み件数ゲートを適用する", async () => {
+  it("チャットログ loader は非所有者にも公開レポートを返す", async () => {
     context = await createPublicReportLoaderContext("チャットログ議案");
     const target = await createPublicReport(context, {
       messages: [{ role: "user", content: "hello" }],
     });
-    await createPublicReports(context, MIN_PUBLIC_REPORTS_FOR_DISPLAY - 2);
-
-    await expect(getReportWithMessages(target.report.id)).resolves.toBeNull();
-
-    await createPublicReports(context, 1);
 
     const result = await getReportWithMessages(target.report.id);
 
