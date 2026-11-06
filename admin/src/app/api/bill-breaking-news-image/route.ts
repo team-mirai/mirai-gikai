@@ -4,7 +4,11 @@ import {
   loadBreakingNewsImageAssets,
   renderBreakingNewsImage,
 } from "@/features/bills-edit/server/utils/render-breaking-news-image";
-import { parseBreakingNewsImageInput } from "@/features/bills-edit/shared/utils/breaking-news-image";
+import {
+  parseBreakingNewsImageInput,
+  toBreakingNewsStance,
+} from "@/features/bills-edit/shared/utils/breaking-news-image";
+import { getStanceByBillId } from "@/features/mirai-stance/server/loaders/get-stance-by-bill-id";
 
 export async function GET(request: Request) {
   try {
@@ -20,6 +24,12 @@ export async function GET(request: Request) {
     return new Response("Bill not found", { status: 404 });
   }
 
+  // 賛否は画面から渡さず DB の公開中の値だけを使う(未公開の賛否を画像に出さないため)
+  const includeStance = searchParams.get("stance") === "1";
+  const publishedStance = includeStance
+    ? toBreakingNewsStance(await getStanceByBillId(bill.id), new Date())
+    : null;
+
   const input = parseBreakingNewsImageInput({
     originatingHouse: bill.originating_house,
     result: searchParams.get("result"),
@@ -27,6 +37,8 @@ export async function GET(request: Request) {
     date: searchParams.get("date"),
     place: searchParams.get("place"),
     title: searchParams.get("title"),
+    includeStance,
+    publishedStance,
   });
   if (!input.ok) {
     return new Response(input.error, { status: 400 });

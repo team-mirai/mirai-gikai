@@ -1,5 +1,10 @@
+import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
 import type { OriginatingHouse } from "@/features/bills/shared/types";
 import { HOUSE_LABELS } from "@/features/bills/shared/types";
+import {
+  type MiraiStance,
+  STANCE_TYPE_LABELS,
+} from "@/features/mirai-stance/shared/types";
 import { estimateLineWidthInEm, splitShareImageTitle } from "./share-image";
 
 export const BREAKING_NEWS_RESULTS = ["成立", "可決", "否決", "廃案"] as const;
@@ -114,11 +119,33 @@ export function suggestBreakingNewsTitleLines(title: string): string {
   return lines.join("\n");
 }
 
+/** 画像に入れるチームみらいの賛否。色はみらい議会の賛否バッジに合わせる */
+export type BreakingNewsStance = {
+  label: string;
+  tone: "for" | "against" | "other";
+};
+
+/** 公開中の賛否だけを画像に入れられる。未公開・公開予約中なら null */
+export function toBreakingNewsStance(
+  stance: Pick<MiraiStance, "type" | "is_published" | "publish_at"> | null,
+  now: Date
+): BreakingNewsStance | null {
+  if (!stance || !isMiraiStancePublished(stance, now)) return null;
+  const tone =
+    stance.type === "for" || stance.type === "conditional_for"
+      ? "for"
+      : stance.type === "against" || stance.type === "conditional_against"
+        ? "against"
+        : "other";
+  return { label: STANCE_TYPE_LABELS[stance.type], tone };
+}
+
 export type BreakingNewsImageInput = {
   result: BreakingNewsResult;
   steps: BreakingNewsStep[];
   meta: string;
   titleLines: string[];
+  stance: BreakingNewsStance | null;
 };
 
 export type BreakingNewsImageValidation =
@@ -132,6 +159,8 @@ export function parseBreakingNewsImageInput(params: {
   date: string | null;
   place: string | null;
   title: string | null;
+  includeStance: boolean;
+  publishedStance: BreakingNewsStance | null;
 }): BreakingNewsImageValidation {
   const result = BREAKING_NEWS_RESULTS.find((r) => r === params.result);
   if (!result) return { ok: false, error: "結果を選んでください" };
@@ -156,6 +185,13 @@ export function parseBreakingNewsImageInput(params: {
     return {
       ok: false,
       error: `場所は${BREAKING_NEWS_META_MAX_LENGTH}文字以内にしてください`,
+    };
+  }
+
+  if (params.includeStance && !params.publishedStance) {
+    return {
+      ok: false,
+      error: "公開中の賛否が無いので、賛否は入れられません",
     };
   }
 
@@ -190,6 +226,7 @@ export function parseBreakingNewsImageInput(params: {
     }),
     meta: [date, place].filter(Boolean).join("｜"),
     titleLines,
+    stance: params.includeStance ? params.publishedStance : null,
   };
 }
 
@@ -200,6 +237,7 @@ export function buildBreakingNewsImagePath(params: {
   date: string;
   place: string;
   title: string;
+  includeStance: boolean;
 }): string {
   const search = new URLSearchParams({
     billId: params.billId,
@@ -208,6 +246,7 @@ export function buildBreakingNewsImagePath(params: {
     date: params.date,
     place: params.place,
     title: params.title,
+    stance: params.includeStance ? "1" : "0",
   });
   return `/api/bill-breaking-news-image?${search.toString()}`;
 }

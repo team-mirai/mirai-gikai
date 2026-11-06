@@ -9,6 +9,7 @@ import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id
 import { getBillContents } from "@/features/bills-edit/server/loaders/get-bill-contents";
 import { getBillTagIds } from "@/features/bills-edit/server/loaders/get-bill-tag-ids";
 import { getBillVideos } from "@/features/bills-edit/server/loaders/get-bill-videos";
+import { toBreakingNewsStance } from "@/features/bills-edit/shared/utils/breaking-news-image";
 import { loadDietSessions } from "@/features/diet-sessions/server/loaders/load-diet-sessions";
 import { StanceForm } from "@/features/mirai-stance/client/components/stance-form";
 import { getStanceByBillId } from "@/features/mirai-stance/server/loaders/get-stance-by-bill-id";
@@ -83,6 +84,7 @@ export default async function BillEditPage({ params }: BillEditPageProps) {
           billId={bill.id}
           originatingHouse={bill.originating_house}
           defaultTitle={normalTitle || bill.name}
+          publishedStance={toBreakingNewsStance(stance, new Date())}
         />
       </div>
     </div>
