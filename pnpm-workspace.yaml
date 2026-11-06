@@ -27,3 +27,5 @@ minimumReleaseAgeExclude:
   - "@next/swc-linux-x64-musl@15.5.29"
   - "@next/swc-win32-arm64-msvc@15.5.29"
   - "@next/swc-win32-x64-msvc@15.5.29"
+  # Renovate security update: zod@4.6.6
+  - zod@4.6.6
