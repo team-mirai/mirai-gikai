@@ -6,6 +6,10 @@ import { coverageConfigDefaults } from "vitest/config";
  */
 export const coverageExclude = [
   ...coverageConfigDefaults.exclude,
+  // vitest v4 でデフォルトの除外が空になったため、テストファイルを明示的に除外する。
+  // （統合テストの実行では通常のテストファイルが計測対象に含まれてしまう）
+  "**/*.test.{ts,tsx}",
+  "**/*.d.ts",
   // shadcn/ui 自動生成ファイル
   "src/components/ui/**",
   // Next.js ルーティングの薄いラッパー

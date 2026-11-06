@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BillEditForm } from "@/features/bills-edit/client/components/bill-edit-form";
 import { BillTagsForm } from "@/features/bills-edit/client/components/bill-tags-form";
 import { BillVideosForm } from "@/features/bills-edit/client/components/bill-videos-form";
+import { BreakingNewsImageGenerator } from "@/features/bills-edit/client/components/breaking-news-image-generator";
 import { getBillById } from "@/features/bills-edit/server/loaders/get-bill-by-id";
 import { getBillContents } from "@/features/bills-edit/server/loaders/get-bill-contents";
 import { getBillTagIds } from "@/features/bills-edit/server/loaders/get-bill-tag-ids";
@@ -77,6 +78,11 @@ export default async function BillEditPage({ params }: BillEditPageProps) {
           billId={bill.id}
           allTags={allTags}
           selectedTagIds={selectedTagIds}
+        />
+        <BreakingNewsImageGenerator
+          billId={bill.id}
+          originatingHouse={bill.originating_house}
+          defaultTitle={normalTitle || bill.name}
         />
       </div>
     </div>
