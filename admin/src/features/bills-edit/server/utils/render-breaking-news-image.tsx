@@ -11,6 +11,7 @@ import {
   BREAKING_NEWS_TITLE_FONT_SIZE,
   BREAKING_NEWS_TITLE_MAX_WIDTH,
   type BreakingNewsImageInput,
+  type BreakingNewsStance,
   type BreakingNewsStepState,
   isPositiveBreakingNewsResult,
 } from "../../shared/utils/breaking-news-image";
@@ -43,6 +44,15 @@ const TODO_LABEL_COLOR = "#B0B0B0";
 const POSITIVE_COLOR = "#0F8472";
 const GRADIENT = "linear-gradient(90deg, #64D8C6, #BCECD3)";
 const FOOTER_TEXT = "法案の中身は、みらい議会でやさしく解説しています";
+// みらい議会の賛否バッジ(web の stance-styles.ts と globals.css)と同じ色
+const STANCE_COLORS: Record<
+  BreakingNewsStance["tone"],
+  { bg: string; text: string }
+> = {
+  for: { bg: "#ECFCF1", text: "#0F8472" },
+  against: { bg: "#FFF1F1", text: "#C9272A" },
+  other: { bg: "#E5E5EA", text: TEXT_COLOR },
+};
 
 const LEFT = SHARE_IMAGE_TITLE_LEFT;
 const PILL = { top: 104, height: 76 } as const;
@@ -52,6 +62,7 @@ const ACCENT_BAR_TOP = 458;
 const TITLE_TOP = 510;
 const TITLE_LINE_HEIGHT = 102;
 const FOOTER_TOP = 800;
+const STANCE_ROW = { top: 752, height: 72 } as const;
 
 const frameDataUrl = `data:image/svg+xml;base64,${Buffer.from(
   buildShareImageFrameSvg()
@@ -306,19 +317,54 @@ export async function renderBreakingNewsImage(params: {
         ))}
       </div>
 
-      <div
-        style={{
-          position: "absolute",
-          top: FOOTER_TOP,
-          left: LEFT,
-          display: "flex",
-          fontSize: 36,
-          fontWeight: BOLD,
-          color: MUTED_COLOR,
-        }}
-      >
-        {FOOTER_TEXT}
-      </div>
+      {input.stance ? (
+        <div
+          style={{
+            position: "absolute",
+            top: STANCE_ROW.top,
+            left: LEFT,
+            height: STANCE_ROW.height,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ display: "flex", fontSize: 40, fontWeight: BOLD }}>
+            チームみらいの賛否
+          </div>
+          <div
+            style={{
+              marginLeft: 24,
+              height: STANCE_ROW.height,
+              paddingLeft: 32,
+              paddingRight: 32,
+              display: "flex",
+              alignItems: "center",
+              borderRadius: STANCE_ROW.height / 2,
+              backgroundColor: STANCE_COLORS[input.stance.tone].bg,
+              color: STANCE_COLORS[input.stance.tone].text,
+              fontSize: 44,
+              fontWeight: BLACK,
+              letterSpacing: "0.05em",
+            }}
+          >
+            {input.stance.label}
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            top: FOOTER_TOP,
+            left: LEFT,
+            display: "flex",
+            fontSize: 36,
+            fontWeight: BOLD,
+            color: MUTED_COLOR,
+          }}
+        >
+          {FOOTER_TEXT}
+        </div>
+      )}
 
       {/* biome-ignore lint/performance/noImgElement: Satori は img のみ対応 */}
       <img
