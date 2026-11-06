@@ -38,6 +38,15 @@ export function defaultReachedStep(result: BreakingNewsResult): number {
   return result === "成立" ? 3 : 1;
 }
 
+/** 成立は最後の段だけ、それ以外の結果は最後の段より手前だけを選べる */
+export function isReachedStepAllowed(
+  result: BreakingNewsResult,
+  reachedStep: number,
+  stepCount: number
+): boolean {
+  return (result === "成立") === (reachedStep === stepCount - 1);
+}
+
 export function buildBreakingNewsSteps(params: {
   originatingHouse: OriginatingHouse;
   result: BreakingNewsResult;
@@ -65,8 +74,16 @@ export function isPositiveBreakingNewsResult(
 export function formatBreakingNewsDate(date: string): string | null {
   const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
-  const [, year, month, day] = match;
-  return `${year}年${Number(month)}月${Number(day)}日`;
+  const [year, month, day] = match.slice(1).map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return `${year}年${month}月${day}日`;
 }
 
 const LINE_BREAK_AFTER = /[、。・ 　]/;
@@ -127,6 +144,9 @@ export function parseBreakingNewsImageInput(params: {
     reachedStep >= labels.length
   ) {
     return { ok: false, error: "進み具合が不正です" };
+  }
+  if (!isReachedStepAllowed(result, reachedStep, labels.length)) {
+    return { ok: false, error: "結果と進み具合の組み合わせが合っていません" };
   }
 
   const date = params.date ? formatBreakingNewsDate(params.date) : "";
