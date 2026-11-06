@@ -26,6 +26,7 @@ import {
   buildBreakingNewsImagePath,
   buildBreakingNewsStepLabels,
   defaultReachedStep,
+  isReachedStepAllowed,
   parseBreakingNewsImageInput,
   suggestBreakingNewsTitleLines,
 } from "../../shared/utils/breaking-news-image";
@@ -140,11 +141,13 @@ export function BreakingNewsImageGenerator({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {stepLabels.map((label, index) => (
-                  <SelectItem key={label} value={String(index)}>
-                    {label}
-                  </SelectItem>
-                ))}
+                {stepLabels.map((label, index) =>
+                  isReachedStepAllowed(result, index, stepLabels.length) ? (
+                    <SelectItem key={label} value={String(index)}>
+                      {label}
+                    </SelectItem>
+                  ) : null
+                )}
               </SelectContent>
             </Select>
           </div>
