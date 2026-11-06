@@ -41,4 +41,24 @@ describe("MiraiStanceCard", () => {
     expect(screen.queryByText("賛成")).not.toBeInTheDocument();
     expect(screen.queryByText("賛成の理由")).not.toBeInTheDocument();
   });
+
+  it("判断の理由の下に関連する内容（動画など）を出す", () => {
+    render(
+      <MiraiStanceCard stance={stance} billStatus="in_originating_house">
+        <p>関連動画</p>
+      </MiraiStanceCard>
+    );
+
+    expect(screen.getByText("関連動画")).toBeInTheDocument();
+  });
+
+  it("法案提出前は関連する内容も出さない", () => {
+    render(
+      <MiraiStanceCard stance={stance} billStatus="preparing">
+        <p>関連動画</p>
+      </MiraiStanceCard>
+    );
+
+    expect(screen.queryByText("関連動画")).not.toBeInTheDocument();
+  });
 });

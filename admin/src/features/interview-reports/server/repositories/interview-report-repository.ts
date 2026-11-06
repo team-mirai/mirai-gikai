@@ -1,8 +1,12 @@
 import "server-only";
 
+import { fetchAllPages } from "@mirai-gikai/shared/db/fetch-all-pages";
 import { isReportAutoPublishEligible } from "@mirai-gikai/shared/report-publication/auto-publish";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
+  InterviewMessage,
+  InterviewReport,
+  InterviewSession,
   MessageSearchFilterConfig,
   SessionFilterConfig,
 } from "../../shared/types";
@@ -443,6 +447,62 @@ export async function findInterviewMessagesBySessionId(sessionId: string) {
   }
 
   return data;
+}
+
+export type InterviewSessionWithReportRow = InterviewSession & {
+  interview_report: InterviewReport | InterviewReport[] | null;
+};
+
+/**
+ * インタビュー設定に紐づく全セッションをレポート付きで開始日時昇順に取得する。
+ * max_rows を超える件数でも途切れないよう全件をページングで取得する。
+ */
+export async function findAllInterviewSessionsWithReportByConfigId(
+  configId: string
+): Promise<InterviewSessionWithReportRow[]> {
+  const supabase = createAdminClient();
+  return fetchAllPages(async (from, to) => {
+    const { data, error } = await supabase
+      .from("interview_sessions")
+      .select("*, interview_report(*)")
+      .eq("interview_config_id", configId)
+      .order("started_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to);
+    if (error) {
+      throw new Error(
+        `Failed to fetch interview sessions for TSV: ${error.message}`
+      );
+    }
+    return (data ?? []) as InterviewSessionWithReportRow[];
+  });
+}
+
+/**
+ * セッションIDの集合に対する全メッセージを、セッションごとに作成日時昇順で取得する。
+ * max_rows を超える件数でも途切れないよう全件をページングで取得する。
+ */
+export async function findAllInterviewMessagesBySessionIds(
+  sessionIds: string[]
+): Promise<InterviewMessage[]> {
+  if (sessionIds.length === 0) return [];
+  const supabase = createAdminClient();
+  return fetchAllPages(async (from, to) => {
+    const { data, error } = await supabase
+      .from("interview_messages")
+      .select("*")
+      .in("interview_session_id", sessionIds)
+      .order("interview_session_id", { ascending: true })
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to);
+    if (error) {
+      throw new Error(
+        `Failed to fetch interview messages for TSV: ${error.message}`
+      );
+    }
+    return data ?? [];
+  });
 }
 
 export async function searchUserMessagesByConfigId(

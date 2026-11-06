@@ -61,3 +61,55 @@ export function createStreamMock(textChunks: string[]): MockLanguageModelV3 {
     },
   });
 }
+
+type MockStep = {
+  /** ステップで返すテキスト */
+  text?: string;
+  /** ステップで呼び出すツール名 */
+  toolCalls?: string[];
+};
+
+/**
+ * 複数ステップ（ツール呼び出し → テキスト応答など）を返す streamText() 用の
+ * MockLanguageModelV3 を作成する。呼び出し毎に steps を先頭から順に返す。
+ * NOTE: MockLanguageModelV3 の配列指定は呼び出し順とずれるため関数で返す
+ */
+export function createMultiStepStreamMock(
+  steps: MockStep[]
+): MockLanguageModelV3 {
+  let stepIndex = 0;
+  return new MockLanguageModelV3({
+    doStream: async () => {
+      const currentStep = stepIndex++;
+      const { text, toolCalls = [] } = steps[currentStep] ?? {};
+      const streamParts = [
+        { type: "stream-start" as const, warnings: [] as [] },
+        ...(text
+          ? [
+              { type: "text-start" as const, id: "text-1" },
+              { type: "text-delta" as const, id: "text-1", delta: text },
+              { type: "text-end" as const, id: "text-1" },
+            ]
+          : []),
+        ...toolCalls.map((toolName, i) => ({
+          type: "tool-call" as const,
+          toolCallId: `call-${currentStep}-${i}`,
+          toolName,
+          input: "{}",
+        })),
+        {
+          type: "finish" as const,
+          usage: MOCK_USAGE,
+          finishReason: {
+            unified:
+              toolCalls.length > 0
+                ? ("tool-calls" as const)
+                : ("stop" as const),
+            raw: undefined,
+          },
+        },
+      ];
+      return { stream: convertArrayToReadableStream(streamParts) };
+    },
+  });
+}
