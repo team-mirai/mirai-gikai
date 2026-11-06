@@ -29,12 +29,16 @@ jobs:
       # --yes: CI(非TTY)で確認プロンプト待ちハングを防ぐ（prod に未適用マイグレーションが
       # あると supabase db push が [Y/n] を出して stdin 待ちで停止するため。実際に本番デプロイが
       # db push で数時間ハングした）
+      # --remote: Supabase CLI v3 から db push は対象を指定しないとローカルの DB に向くため、
+      # リンク済みのプロジェクトを明示する。v3 では link --password が無視されるので、
+      # パスワードも db push に渡す
       - name: Supabase db push
         run: |
-          supabase db push --include-all --yes
+          supabase db push --remote --password "$SUPABASE_DB_PASSWORD" --include-all --yes
           supabase config push --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
           SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
           ADMIN_AUTH_CALLBACK_URL: ${{ secrets.ADMIN_AUTH_CALLBACK_URL }}
