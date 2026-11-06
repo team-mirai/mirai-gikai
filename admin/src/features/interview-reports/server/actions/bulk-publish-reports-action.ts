@@ -43,7 +43,7 @@ export async function bulkPublishReportsAction(
 
     const updatedCount = data ?? 0;
 
-    revalidateTag("public-interview-reports");
+    revalidateTag("public-interview-reports", { expire: 0 });
     // admin の revalidateTag は admin 内のキャッシュにしか効かない。
     // web の一覧が持つ回答数キャッシュは HTTP 経由で無効化する。
     await invalidateWebCache([WEB_CACHE_TAGS.PUBLIC_INTERVIEW_REPORTS]);
