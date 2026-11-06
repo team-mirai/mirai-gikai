@@ -36,7 +36,7 @@ jobs:
           version: latest
 
       - name: Start Supabase
-        run: supabase start -x studio,imgproxy,logflare,vector,realtime,edge-runtime,supavisor,inbucket
+        run: supabase start -x studio,imgproxy,logflare,vector,realtime,edge-runtime,supavisor,mailpit
 
       - name: Export Supabase env vars
         run: |
