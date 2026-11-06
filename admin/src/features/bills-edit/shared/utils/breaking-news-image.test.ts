@@ -6,6 +6,7 @@ import {
   defaultReachedStep,
   formatBreakingNewsDate,
   isPositiveBreakingNewsResult,
+  isReachedStepAllowed,
   parseBreakingNewsImageInput,
   suggestBreakingNewsTitleLines,
 } from "./breaking-news-image";
@@ -87,6 +88,21 @@ describe("formatBreakingNewsDate", () => {
   it("形式が違えば null", () => {
     expect(formatBreakingNewsDate("2026/11/06")).toBeNull();
   });
+
+  it("暦に無い日付なら null", () => {
+    expect(formatBreakingNewsDate("2026-02-30")).toBeNull();
+    expect(formatBreakingNewsDate("2026-13-01")).toBeNull();
+  });
+});
+
+describe("isReachedStepAllowed", () => {
+  it("成立は最後の段だけ、それ以外は最後の段より手前だけ", () => {
+    expect(isReachedStepAllowed("成立", 3, 4)).toBe(true);
+    expect(isReachedStepAllowed("成立", 1, 4)).toBe(false);
+    expect(isReachedStepAllowed("可決", 2, 4)).toBe(true);
+    expect(isReachedStepAllowed("否決", 3, 4)).toBe(false);
+    expect(isReachedStepAllowed("廃案", 0, 4)).toBe(true);
+  });
 });
 
 describe("suggestBreakingNewsTitleLines", () => {
@@ -151,6 +167,19 @@ describe("parseBreakingNewsImageInput", () => {
         parseBreakingNewsImageInput({ ...VALID_PARAMS, reachedStep }).ok
       ).toBe(false);
     }
+  });
+
+  it("結果と進み具合が合わなければエラー", () => {
+    expect(
+      parseBreakingNewsImageInput({
+        ...VALID_PARAMS,
+        result: "成立",
+        reachedStep: "1",
+      })
+    ).toEqual({
+      ok: false,
+      error: "結果と進み具合の組み合わせが合っていません",
+    });
   });
 
   it("日付の形式が違えばエラー", () => {
