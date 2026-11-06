@@ -29,6 +29,11 @@ export const primaryLinks: FooterLink[] = [
     external: true,
   },
   {
+    label: "ソースコード",
+    href: EXTERNAL_LINKS.GITHUB,
+    external: true,
+  },
+  {
     label: "寄附で応援する",
     href: EXTERNAL_LINKS.DONATION,
     external: true,
