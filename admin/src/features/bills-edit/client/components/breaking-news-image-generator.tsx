@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,6 +24,7 @@ import {
   BREAKING_NEWS_RESULTS,
   BREAKING_NEWS_TITLE_MAX_LINES,
   type BreakingNewsResult,
+  type BreakingNewsStance,
   buildBreakingNewsImagePath,
   buildBreakingNewsStepLabels,
   defaultReachedStep,
@@ -41,12 +43,14 @@ interface BreakingNewsImageGeneratorProps {
   billId: string;
   originatingHouse: OriginatingHouse;
   defaultTitle: string;
+  publishedStance: BreakingNewsStance | null;
 }
 
 export function BreakingNewsImageGenerator({
   billId,
   originatingHouse,
   defaultTitle,
+  publishedStance,
 }: BreakingNewsImageGeneratorProps) {
   const [result, setResult] = useState<BreakingNewsResult>("可決");
   const [reachedStep, setReachedStep] = useState(defaultReachedStep("可決"));
@@ -59,6 +63,7 @@ export function BreakingNewsImageGenerator({
   const [title, setTitle] = useState(() =>
     suggestBreakingNewsTitleLines(defaultTitle)
   );
+  const [includeStance, setIncludeStance] = useState(publishedStance !== null);
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [previewFailed, setPreviewFailed] = useState(false);
 
@@ -70,6 +75,8 @@ export function BreakingNewsImageGenerator({
     date,
     place,
     title,
+    includeStance,
+    publishedStance,
   });
 
   const isValid = validation.ok;
@@ -89,11 +96,12 @@ export function BreakingNewsImageGenerator({
           date,
           place,
           title,
+          includeStance,
         })
       );
     }, PREVIEW_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [isValid, billId, result, reachedStep, date, place, title]);
+  }, [isValid, billId, result, reachedStep, date, place, title, includeStance]);
 
   const handleResultChange = (value: string) => {
     const next = BREAKING_NEWS_RESULTS.find((r) => r === value);
@@ -185,6 +193,26 @@ export function BreakingNewsImageGenerator({
             初期値は「ふつう」のタイトルです。改行した位置で折り返します（
             {BREAKING_NEWS_TITLE_MAX_LINES}行まで）。
           </p>
+        </div>
+
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="breaking-news-stance"
+            checked={includeStance}
+            onCheckedChange={(checked) => setIncludeStance(checked === true)}
+            disabled={!publishedStance}
+          />
+          <div className="space-y-1 leading-none">
+            <Label htmlFor="breaking-news-stance">
+              チームみらいの賛否を入れる
+              {publishedStance && `（${publishedStance.label}）`}
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              {publishedStance
+                ? "公開中の賛否を画像の下に入れます。"
+                : "公開中の賛否が無いので入れられません。賛否を公開すると選べます。"}
+            </p>
+          </div>
         </div>
 
         {!validation.ok && (
