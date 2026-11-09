@@ -32,6 +32,7 @@ export async function GET(request: Request) {
 
   const input = parseBreakingNewsImageInput({
     originatingHouse: bill.originating_house,
+    proposalType: bill.proposal_type,
     result: searchParams.get("result"),
     reachedStep: searchParams.get("reachedStep"),
     date: searchParams.get("date"),

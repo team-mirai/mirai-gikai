@@ -24,9 +24,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ARTICLE_KIND_LABELS,
   type BillArticleKind,
+  type BillProposalType,
   type BillStatus,
   HOUSE_LABELS,
   type OriginatingHouse,
+  PROPOSAL_TYPE_LABELS,
 } from "@/features/bills/shared/types";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
 import type { BillCreateInput } from "../../shared/types";
@@ -46,6 +48,13 @@ const BILL_STATUS_OPTIONS: Array<{ value: BillStatus; label: string }> = [
 const ORIGINATING_HOUSE_OPTIONS = Object.entries(HOUSE_LABELS).map(
   ([value, label]) => ({
     value: value as OriginatingHouse,
+    label,
+  })
+);
+
+const PROPOSAL_TYPE_OPTIONS = Object.entries(PROPOSAL_TYPE_LABELS).map(
+  ([value, label]) => ({
+    value: value as BillProposalType,
     label,
   })
 );
@@ -148,6 +157,34 @@ export function BillFormFields({
               </Select>
               <FormDescription>
                 議案を提出した議院を選択してください
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="proposal_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>法案の種類 *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="法案の種類を選択" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {PROPOSAL_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                内閣が提出した閣法か、議員が提出した議員立法かを選択してください
               </FormDescription>
               <FormMessage />
             </FormItem>

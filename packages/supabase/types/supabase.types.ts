@@ -180,6 +180,7 @@ export type Database = {
           knowledge_source: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
+          proposal_type: Database["public"]["Enums"]["bill_proposal_type"]
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order: number | null
           published_at: string | null
@@ -204,6 +205,7 @@ export type Database = {
           knowledge_source?: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
+          proposal_type?: Database["public"]["Enums"]["bill_proposal_type"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order?: number | null
           published_at?: string | null
@@ -228,6 +230,7 @@ export type Database = {
           knowledge_source?: string | null
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
+          proposal_type?: Database["public"]["Enums"]["bill_proposal_type"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order?: number | null
           published_at?: string | null
@@ -1489,6 +1492,7 @@ export type Database = {
         | "unclear"
         | "other"
       bill_article_kind: "standard" | "ai_generated"
+      bill_proposal_type: "cabinet" | "member"
       bill_publish_status: "draft" | "published" | "coming_soon"
       bill_status_enum:
         | "introduced"
@@ -1663,6 +1667,7 @@ export const Constants = {
         "other",
       ],
       bill_article_kind: ["standard", "ai_generated"],
+      bill_proposal_type: ["cabinet", "member"],
       bill_publish_status: ["draft", "published", "coming_soon"],
       bill_status_enum: [
         "introduced",

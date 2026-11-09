@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  type BillProposalType,
   HOUSE_LABELS,
   type OriginatingHouse,
 } from "@/features/bills/shared/types";
@@ -42,6 +43,7 @@ const PREVIEW_DEBOUNCE_MS = 600;
 interface BreakingNewsImageGeneratorProps {
   billId: string;
   originatingHouse: OriginatingHouse;
+  proposalType: BillProposalType;
   defaultTitle: string;
   publishedStance: BreakingNewsStance | null;
 }
@@ -49,6 +51,7 @@ interface BreakingNewsImageGeneratorProps {
 export function BreakingNewsImageGenerator({
   billId,
   originatingHouse,
+  proposalType,
   defaultTitle,
   publishedStance,
 }: BreakingNewsImageGeneratorProps) {
@@ -70,6 +73,7 @@ export function BreakingNewsImageGenerator({
   const stepLabels = buildBreakingNewsStepLabels(originatingHouse);
   const validation = parseBreakingNewsImageInput({
     originatingHouse,
+    proposalType,
     result,
     reachedStep: String(reachedStep),
     date,

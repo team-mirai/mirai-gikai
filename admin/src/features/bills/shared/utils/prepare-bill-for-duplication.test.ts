@@ -16,6 +16,7 @@ const baseBill: Bill = {
   is_review_completed: true,
   article_kind: "standard",
   originating_house: "HR",
+  proposal_type: "cabinet",
   publish_status: "published",
   published_at: null,
   submitted_date: null,
