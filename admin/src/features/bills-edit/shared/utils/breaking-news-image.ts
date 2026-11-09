@@ -1,12 +1,10 @@
-import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
-import type {
-  BillProposalType,
-  OriginatingHouse,
-} from "@/features/bills/shared/types";
 import {
-  HOUSE_LABELS,
-  PROPOSAL_TYPE_LABELS,
-} from "@/features/bills/shared/types";
+  BILL_PROPOSAL_TYPE_LABELS,
+  type BillProposalType,
+} from "@mirai-gikai/shared/bill-proposal-type/labels";
+import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
+import type { OriginatingHouse } from "@/features/bills/shared/types";
+import { HOUSE_LABELS } from "@/features/bills/shared/types";
 import {
   type MiraiStance,
   STANCE_TYPE_LABELS,
@@ -233,7 +231,7 @@ export function parseBreakingNewsImageInput(params: {
       result,
       reachedStep,
     }),
-    proposalTypeLabel: PROPOSAL_TYPE_LABELS[params.proposalType],
+    proposalTypeLabel: BILL_PROPOSAL_TYPE_LABELS[params.proposalType],
     meta: [date, place].filter(Boolean).join("｜"),
     titleLines,
     stance: params.includeStance ? params.publishedStance : null,

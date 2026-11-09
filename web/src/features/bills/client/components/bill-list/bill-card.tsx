@@ -5,6 +5,7 @@ import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
 import { getArticleReviewState } from "../../../shared/utils/article-review-state";
 import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
+import { BillProposalTypeBadge } from "./bill-proposal-type-badge";
 import { BillStatusBadge } from "./bill-status-badge";
 import { BillTag } from "./bill-tag";
 
@@ -57,7 +58,10 @@ export function BillCard({ bill }: BillCardProps) {
                 )}
               </CardTitle>
               <div className="flex flex-row gap-4">
-                <BillStatusBadge status={bill.status} className="w-fit" />
+                <div className="flex gap-1.5">
+                  <BillStatusBadge status={bill.status} className="w-fit" />
+                  <BillProposalTypeBadge proposalType={bill.proposal_type} />
+                </div>
                 <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                   {bill.submitted_date && (
                     <time>{formatDateWithDots(bill.submitted_date)} 提出</time>

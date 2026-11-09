@@ -10,6 +10,12 @@ export default function BillCardPreview() {
     thumbnail_url: SAMPLE_THUMBNAIL,
   });
 
+  const memberBill = createMockBill({
+    id: "mock-member",
+    proposal_type: "member",
+    thumbnail_url: SAMPLE_THUMBNAIL,
+  });
+
   const featuredBill = createMockBill({
     id: "mock-featured",
     is_featured: true,
@@ -72,6 +78,15 @@ export default function BillCardPreview() {
       <ComponentShowcase title="Default" description="基本的な法案カード">
         <PreviewSection label="通常表示">
           <BillCard bill={defaultBill} />
+        </PreviewSection>
+      </ComponentShowcase>
+
+      <ComponentShowcase
+        title="Member Bill"
+        description="議員立法はステータスの横にグレー枠のタグを出す"
+      >
+        <PreviewSection label="proposal_type: member">
+          <BillCard bill={memberBill} />
         </PreviewSection>
       </ComponentShowcase>
 

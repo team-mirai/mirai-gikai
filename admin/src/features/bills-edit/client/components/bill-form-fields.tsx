@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  BILL_PROPOSAL_TYPE_LABELS,
+  type BillProposalType,
+} from "@mirai-gikai/shared/bill-proposal-type/labels";
 import { AlertTriangle } from "lucide-react";
 import type { Control } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,11 +28,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ARTICLE_KIND_LABELS,
   type BillArticleKind,
-  type BillProposalType,
   type BillStatus,
   HOUSE_LABELS,
   type OriginatingHouse,
-  PROPOSAL_TYPE_LABELS,
 } from "@/features/bills/shared/types";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
 import type { BillCreateInput } from "../../shared/types";
@@ -52,7 +54,7 @@ const ORIGINATING_HOUSE_OPTIONS = Object.entries(HOUSE_LABELS).map(
   })
 );
 
-const PROPOSAL_TYPE_OPTIONS = Object.entries(PROPOSAL_TYPE_LABELS).map(
+const PROPOSAL_TYPE_OPTIONS = Object.entries(BILL_PROPOSAL_TYPE_LABELS).map(
   ([value, label]) => ({
     value: value as BillProposalType,
     label,
