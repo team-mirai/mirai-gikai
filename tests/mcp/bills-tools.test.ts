@@ -243,6 +243,41 @@ describe("MCP bills tools", () => {
       expect(kindById.get(standard.bill.id)).toBe("standard");
       expect(kindById.get(aiGenerated.bill.id)).toBe("ai_generated");
     });
+
+    it("proposal_type を省略すると cabinet、指定すると member で作成される", async () => {
+      const base = {
+        status: "introduced",
+        originating_house: "HR",
+        status_note: null,
+        is_featured: false,
+        is_review_completed: false,
+      };
+      const cabinet = await registry.callTool<{
+        ok: boolean;
+        bill: { id: string };
+      }>("create_bill", {
+        ...base,
+        name: `MCP作成テスト法案種類省略-${Date.now()}`,
+      });
+      billIds.push(cabinet.bill.id);
+      const member = await registry.callTool<{
+        ok: boolean;
+        bill: { id: string };
+      }>("create_bill", {
+        ...base,
+        name: `MCP作成テスト議員立法-${Date.now()}`,
+        proposal_type: "member",
+      });
+      billIds.push(member.bill.id);
+
+      const { data } = await adminClient
+        .from("bills")
+        .select("id, proposal_type")
+        .in("id", [cabinet.bill.id, member.bill.id]);
+      const typeById = new Map(data?.map((row) => [row.id, row.proposal_type]));
+      expect(typeById.get(cabinet.bill.id)).toBe("cabinet");
+      expect(typeById.get(member.bill.id)).toBe("member");
+    });
   });
 
   describe("update_bill", () => {
