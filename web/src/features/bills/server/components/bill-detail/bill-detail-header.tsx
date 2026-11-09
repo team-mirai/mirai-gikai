@@ -10,6 +10,7 @@ import { formatDateWithDots } from "@/lib/utils/date";
 import { BillDetailShareButton } from "../../../client/components/bill-detail/bill-detail-share-button";
 import { ReviewStateBanner } from "../../../client/components/bill-detail/review-state-banner";
 import { ReviewCompleteBadge } from "../../../client/components/bill-detail/review-status-banner";
+import { BillProposalTypeBadge } from "../../../client/components/bill-list/bill-proposal-type-badge";
 import { BillStatusBadge } from "../../../client/components/bill-list/bill-status-badge";
 import { BillTag } from "../../../client/components/bill-list/bill-tag";
 import { getBillShareData } from "../../../client/utils/share";
@@ -67,7 +68,10 @@ export async function BillDetailHeader({
           </h1>
         )}
         <div className="flex flex-row gap-4">
-          <BillStatusBadge status={bill.status} className="w-fit" />
+          <div className="flex gap-1.5">
+            <BillStatusBadge status={bill.status} className="w-fit" />
+            <BillProposalTypeBadge proposalType={bill.proposal_type} />
+          </div>
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             {bill.submitted_date && (
               <time>{formatDateWithDots(bill.submitted_date)} 提出</time>

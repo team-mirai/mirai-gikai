@@ -12,6 +12,10 @@
       "types": "./src/youtube/youtube.ts",
       "default": "./src/youtube/youtube.ts"
     },
+    "./bill-proposal-type/labels": {
+      "types": "./src/bill-proposal-type/labels.ts",
+      "default": "./src/bill-proposal-type/labels.ts"
+    },
     "./bill-videos/kinds": {
       "types": "./src/bill-videos/kinds.ts",
       "default": "./src/bill-videos/kinds.ts"
