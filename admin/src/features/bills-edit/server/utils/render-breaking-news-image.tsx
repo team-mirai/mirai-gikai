@@ -252,6 +252,24 @@ export async function renderBreakingNewsImage(params: {
         >
           速報
         </div>
+        <div
+          style={{
+            marginLeft: 20,
+            height: PILL.height,
+            paddingLeft: 28,
+            paddingRight: 28,
+            display: "flex",
+            alignItems: "center",
+            borderRadius: PILL.height / 2,
+            border: `3px solid ${TEXT_COLOR}`,
+            backgroundColor: "white",
+            fontSize: 40,
+            fontWeight: BOLD,
+            letterSpacing: "0.05em",
+          }}
+        >
+          {input.proposalTypeLabel}
+        </div>
         {input.meta && (
           <div
             style={{

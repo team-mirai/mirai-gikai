@@ -14,6 +14,7 @@ import {
 
 const VALID_PARAMS = {
   originatingHouse: "HR" as const,
+  proposalType: "cabinet" as const,
   result: "可決",
   reachedStep: "1",
   date: "2026-11-06",
@@ -143,6 +144,7 @@ describe("parseBreakingNewsImageInput", () => {
         { label: "参議院", state: "todo" },
         { label: "成立", state: "todo" },
       ],
+      proposalTypeLabel: "閣法",
       meta: "2026年11月6日｜衆議院 本会議",
       titleLines: [
         "飲食料品の消費税を2年間1%にし、",
@@ -150,6 +152,14 @@ describe("parseBreakingNewsImageInput", () => {
       ],
       stance: null,
     });
+  });
+
+  it("議員立法なら種類のラベルを議員立法にする", () => {
+    const parsed = parseBreakingNewsImageInput({
+      ...VALID_PARAMS,
+      proposalType: "member",
+    });
+    expect(parsed.ok && parsed.proposalTypeLabel).toBe("議員立法");
   });
 
   it("賛否を入れるなら公開中の賛否を返す", () => {
