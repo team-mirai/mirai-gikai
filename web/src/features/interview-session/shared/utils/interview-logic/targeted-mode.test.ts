@@ -18,6 +18,7 @@ const makeBill = (
   is_review_completed: true,
   article_kind: "standard",
   originating_house: "HR",
+  proposal_type: "cabinet",
   shugiin_url: null,
   slug: null,
   diet_session_id: null,

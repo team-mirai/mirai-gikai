@@ -24,6 +24,7 @@ const billBaseSchema = z.object({
     "rejected",
   ]),
   originating_house: z.enum(["HR", "HC"]),
+  proposal_type: z.enum(["cabinet", "member"]),
   status_note: z
     .string()
     .max(500, "ステータス備考は500文字以内で入力してください")

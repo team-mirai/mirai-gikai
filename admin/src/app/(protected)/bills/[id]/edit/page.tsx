@@ -83,6 +83,7 @@ export default async function BillEditPage({ params }: BillEditPageProps) {
         <BreakingNewsImageGenerator
           billId={bill.id}
           originatingHouse={bill.originating_house}
+          proposalType={bill.proposal_type}
           defaultTitle={normalTitle || bill.name}
           publishedStance={toBreakingNewsStance(stance, new Date())}
         />

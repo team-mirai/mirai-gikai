@@ -1,6 +1,12 @@
 import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
-import type { OriginatingHouse } from "@/features/bills/shared/types";
-import { HOUSE_LABELS } from "@/features/bills/shared/types";
+import type {
+  BillProposalType,
+  OriginatingHouse,
+} from "@/features/bills/shared/types";
+import {
+  HOUSE_LABELS,
+  PROPOSAL_TYPE_LABELS,
+} from "@/features/bills/shared/types";
 import {
   type MiraiStance,
   STANCE_TYPE_LABELS,
@@ -143,6 +149,8 @@ export function toBreakingNewsStance(
 export type BreakingNewsImageInput = {
   result: BreakingNewsResult;
   steps: BreakingNewsStep[];
+  /** 閣法か議員立法か */
+  proposalTypeLabel: string;
   meta: string;
   titleLines: string[];
   stance: BreakingNewsStance | null;
@@ -154,6 +162,7 @@ export type BreakingNewsImageValidation =
 
 export function parseBreakingNewsImageInput(params: {
   originatingHouse: OriginatingHouse;
+  proposalType: BillProposalType;
   result: string | null;
   reachedStep: string | null;
   date: string | null;
@@ -224,6 +233,7 @@ export function parseBreakingNewsImageInput(params: {
       result,
       reachedStep,
     }),
+    proposalTypeLabel: PROPOSAL_TYPE_LABELS[params.proposalType],
     meta: [date, place].filter(Boolean).join("｜"),
     titleLines,
     stance: params.includeStance ? params.publishedStance : null,
