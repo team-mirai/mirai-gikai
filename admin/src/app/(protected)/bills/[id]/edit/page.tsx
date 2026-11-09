@@ -13,6 +13,8 @@ import { toBreakingNewsStance } from "@/features/bills-edit/shared/utils/breakin
 import { loadDietSessions } from "@/features/diet-sessions/server/loaders/load-diet-sessions";
 import { StanceForm } from "@/features/mirai-stance/client/components/stance-form";
 import { getStanceByBillId } from "@/features/mirai-stance/server/loaders/get-stance-by-bill-id";
+import { SupplementaryResolutionForm } from "@/features/supplementary-resolution/client/components/supplementary-resolution-form";
+import { getSupplementaryResolutionByBillId } from "@/features/supplementary-resolution/server/loaders/get-supplementary-resolution-by-bill-id";
 import { loadTags } from "@/features/tags/server/loaders/load-tags";
 import { routes } from "@/lib/routes";
 
@@ -27,6 +29,7 @@ export default async function BillEditPage({ params }: BillEditPageProps) {
   const [
     bill,
     stance,
+    supplementaryResolution,
     allTags,
     selectedTagIds,
     dietSessions,
@@ -35,6 +38,7 @@ export default async function BillEditPage({ params }: BillEditPageProps) {
   ] = await Promise.all([
     getBillById(id),
     getStanceByBillId(id),
+    getSupplementaryResolutionByBillId(id),
     loadTags(),
     getBillTagIds(id),
     loadDietSessions(),
@@ -74,6 +78,12 @@ export default async function BillEditPage({ params }: BillEditPageProps) {
           shareImageDefaultTitle={normalTitle || bill.name}
         />
         <StanceForm billId={bill.id} stance={stance} billStatus={bill.status} />
+        <SupplementaryResolutionForm
+          // 保存・削除後の refresh で、サーバー側で正規化した値をフォームに反映する
+          key={supplementaryResolution?.updated_at ?? "none"}
+          billId={bill.id}
+          resolution={supplementaryResolution}
+        />
         <BillVideosForm billId={bill.id} videos={videos} />
         <BillTagsForm
           billId={bill.id}

@@ -134,6 +134,47 @@ export type Database = {
           },
         ]
       }
+      bill_supplementary_resolutions: {
+        Row: {
+          bill_id: string
+          created_at: string
+          focus_points: string | null
+          id: string
+          reason: string | null
+          reference_url: string
+          stance: Database["public"]["Enums"]["supplementary_resolution_stance"]
+          updated_at: string
+        }
+        Insert: {
+          bill_id: string
+          created_at?: string
+          focus_points?: string | null
+          id?: string
+          reason?: string | null
+          reference_url: string
+          stance: Database["public"]["Enums"]["supplementary_resolution_stance"]
+          updated_at?: string
+        }
+        Update: {
+          bill_id?: string
+          created_at?: string
+          focus_points?: string | null
+          id?: string
+          reason?: string | null
+          reference_url?: string
+          stance?: Database["public"]["Enums"]["supplementary_resolution_stance"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_supplementary_resolutions_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: true
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bill_videos: {
         Row: {
           bill_id: string
@@ -1529,6 +1570,7 @@ export type Database = {
         | "considering"
         | "continued_deliberation"
         | "free_vote"
+      supplementary_resolution_stance: "for" | "against"
       topic_analysis_status: "pending" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
@@ -1708,6 +1750,7 @@ export const Constants = {
         "continued_deliberation",
         "free_vote",
       ],
+      supplementary_resolution_stance: ["for", "against"],
       topic_analysis_status: ["pending", "running", "completed", "failed"],
     },
   },
