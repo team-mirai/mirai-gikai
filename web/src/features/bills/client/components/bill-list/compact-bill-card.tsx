@@ -4,6 +4,7 @@ import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
 import { getArticleReviewState } from "../../../shared/utils/article-review-state";
 import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
+import { BillProposalTypeBadge } from "./bill-proposal-type-badge";
 import { BillStatusBadge } from "./bill-status-badge";
 
 interface CompactBillCardProps {
@@ -36,7 +37,10 @@ export function CompactBillCard({ bill, className }: CompactBillCardProps) {
             )}
           </h3>
           <div className="flex items-center gap-3">
-            <BillStatusBadge status={bill.status} className="w-fit" />
+            <div className="flex gap-1.5">
+              <BillStatusBadge status={bill.status} className="w-fit" />
+              <BillProposalTypeBadge proposalType={bill.proposal_type} />
+            </div>
             {bill.submitted_date && (
               <span className="text-xs text-muted-foreground">
                 {formatDateWithDots(bill.submitted_date)} {statusLabel}

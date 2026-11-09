@@ -8,6 +8,7 @@ import type { BillWithContent } from "../../../shared/types";
 import { getArticleReviewState } from "../../../shared/utils/article-review-state";
 import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
 import { BillPill } from "./bill-pill";
+import { BillProposalTypeBadge } from "./bill-proposal-type-badge";
 import { BillStatusBadge } from "./bill-status-badge";
 import { BillTag } from "./bill-tag";
 
@@ -52,7 +53,10 @@ export function BillSearchCard({ bill }: { bill: BillWithContent }) {
             </h3>
 
             <div className="flex flex-wrap items-center gap-3">
-              <BillStatusBadge status={bill.status} className="w-fit" />
+              <div className="flex gap-1.5">
+                <BillStatusBadge status={bill.status} className="w-fit" />
+                <BillProposalTypeBadge proposalType={bill.proposal_type} />
+              </div>
               {bill.submitted_date && (
                 <span className="text-xs font-medium text-mirai-text-muted">
                   {formatDateWithDots(bill.submitted_date)} 提出

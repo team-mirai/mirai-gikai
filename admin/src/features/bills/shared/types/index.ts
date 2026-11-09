@@ -9,8 +9,6 @@ export type BillPublishStatus =
   Database["public"]["Enums"]["bill_publish_status"];
 export type OriginatingHouse = Database["public"]["Enums"]["house_enum"];
 export type BillArticleKind = Database["public"]["Enums"]["bill_article_kind"];
-export type BillProposalType =
-  Database["public"]["Enums"]["bill_proposal_type"];
 
 export type BillWithContent = Bill & {
   bill_content?: Database["public"]["Tables"]["bill_contents"]["Row"];
@@ -57,11 +55,6 @@ export const BILL_STATUS_ORDER: Record<BillStatus, number> = {
 export const HOUSE_LABELS: Record<OriginatingHouse, string> = {
   HR: "衆議院",
   HC: "参議院",
-};
-
-export const PROPOSAL_TYPE_LABELS: Record<BillProposalType, string> = {
-  cabinet: "閣法",
-  member: "議員立法",
 };
 
 export const ARTICLE_KIND_LABELS: Record<BillArticleKind, string> = {

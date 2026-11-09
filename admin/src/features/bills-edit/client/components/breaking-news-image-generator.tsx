@@ -1,5 +1,6 @@
 "use client";
 
+import type { BillProposalType } from "@mirai-gikai/shared/bill-proposal-type/labels";
 import { Download } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  type BillProposalType,
   HOUSE_LABELS,
   type OriginatingHouse,
 } from "@/features/bills/shared/types";
