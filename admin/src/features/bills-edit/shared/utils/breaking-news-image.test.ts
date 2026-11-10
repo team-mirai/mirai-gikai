@@ -162,6 +162,14 @@ describe("parseBreakingNewsImageInput", () => {
     expect(parsed.ok && parsed.proposalTypeLabel).toBe("議員立法");
   });
 
+  it("種類が未設定なら種類のラベルを null にする", () => {
+    const parsed = parseBreakingNewsImageInput({
+      ...VALID_PARAMS,
+      proposalType: null,
+    });
+    expect(parsed.ok && parsed.proposalTypeLabel).toBeNull();
+  });
+
   it("賛否を入れるなら公開中の賛否を返す", () => {
     const parsed = parseBreakingNewsImageInput({
       ...VALID_PARAMS,
