@@ -5,6 +5,11 @@ const testsDir = path.resolve(__dirname);
 const repoRoot = path.resolve(testsDir, "../..");
 
 export default defineConfig({
+  // 速報画像（next/og）の描画で admin の .tsx を読み込むため
+  esbuild: {
+    jsx: "automatic",
+    jsxImportSource: "react",
+  },
   test: {
     globals: true,
     root: testsDir,

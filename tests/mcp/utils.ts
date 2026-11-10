@@ -2,12 +2,15 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type ZodRawShape, z } from "zod";
 import { unwrapUntrustedData } from "../../admin/src/features/mcp/shared/utils/untrusted-data-block";
 
-type ToolHandler = (
-  input: unknown,
-  extra?: unknown
-) => Promise<{
-  content: Array<{ type: string; text: string }>;
-}>;
+type ToolResult = {
+  content: Array<
+    | { type: "text"; text: string }
+    | { type: "image"; data: string; mimeType: string }
+  >;
+  isError?: boolean;
+};
+
+type ToolHandler = (input: unknown, extra?: unknown) => Promise<ToolResult>;
 
 type RegisteredTool = {
   name: string;
@@ -23,6 +26,11 @@ export type TestMcpRegistry = {
   ): Promise<T>;
   /** ツール結果のテキストを加工せず返す（untrusted-user-data ブロックの検証用）。 */
   callToolRaw(name: string, input?: Record<string, unknown>): Promise<string>;
+  /** ツール結果をそのまま返す（image content や isError の検証用）。 */
+  callToolResult(
+    name: string,
+    input?: Record<string, unknown>
+  ): Promise<ToolResult>;
   hasTool(name: string): boolean;
   toolNames(): string[];
 };
@@ -52,10 +60,10 @@ export function createTestRegistry(): TestMcpRegistry {
     },
   } as unknown as McpServer;
 
-  async function callToolText(
+  async function callToolResult(
     name: string,
-    input: Record<string, unknown>
-  ): Promise<string> {
+    input: Record<string, unknown> = {}
+  ): Promise<ToolResult> {
     const tool = tools.get(name);
     if (!tool) {
       throw new Error(`MCP tool ${name} is not registered`);
@@ -66,17 +74,24 @@ export function createTestRegistry(): TestMcpRegistry {
         ? z.object(tool.inputSchema).parse(input)
         : input;
 
-    const result = await tool.handler(parsed, {});
+    return await tool.handler(parsed, {});
+  }
+
+  async function callToolText(
+    name: string,
+    input: Record<string, unknown>
+  ): Promise<string> {
+    const result = await callToolResult(name, input);
     if (!Array.isArray(result.content) || result.content.length !== 1) {
       throw new Error(
         `MCP tool ${name} must return exactly one content entry (got ${result.content?.length ?? 0})`
       );
     }
-    const text = result.content[0]?.text;
-    if (typeof text !== "string") {
+    const entry = result.content[0];
+    if (entry?.type !== "text") {
       throw new Error(`MCP tool ${name} returned no text content`);
     }
-    return text;
+    return entry.text;
   }
 
   return {
@@ -93,6 +108,7 @@ export function createTestRegistry(): TestMcpRegistry {
     async callToolRaw(name: string, input: Record<string, unknown> = {}) {
       return await callToolText(name, input);
     },
+    callToolResult,
     hasTool(name: string) {
       return tools.has(name);
     },

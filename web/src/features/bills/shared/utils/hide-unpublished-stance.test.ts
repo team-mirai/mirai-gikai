@@ -14,6 +14,7 @@ function makeStance(publishAt: string | null, isPublished = true): MiraiStance {
     is_published: isPublished,
     publish_at: publishAt,
     publish_review_date: null,
+    published_at: null,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
   };
