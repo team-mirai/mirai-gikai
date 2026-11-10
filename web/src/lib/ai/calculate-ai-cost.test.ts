@@ -50,6 +50,10 @@ describe("calculateUsageCostUsd", () => {
     expect(calculateUsageCostUsd(AI_MODELS.claude_sonnet_5, usage)).toBeCloseTo(
       18
     );
+    // Claude Sonnet 5.5: $2.00 input + $10.00 output = $12.00
+    expect(
+      calculateUsageCostUsd(AI_MODELS.claude_sonnet_5_5, usage)
+    ).toBeCloseTo(12);
     // Claude Sonnet 4.6: $3.00 input + $15.00 output = $18.00
     expect(
       calculateUsageCostUsd(AI_MODELS.claude_sonnet_4_6, usage)
