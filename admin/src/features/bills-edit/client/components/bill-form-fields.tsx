@@ -54,6 +54,9 @@ const ORIGINATING_HOUSE_OPTIONS = Object.entries(HOUSE_LABELS).map(
   })
 );
 
+// Select は空文字を値にできないため、未設定はこの値で表す
+const PROPOSAL_TYPE_UNSET_VALUE = "unset";
+
 const PROPOSAL_TYPE_OPTIONS = Object.entries(BILL_PROPOSAL_TYPE_LABELS).map(
   ([value, label]) => ({
     value: value as BillProposalType,
@@ -170,14 +173,25 @@ export function BillFormFields({
           name="proposal_type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>法案の種類 *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormLabel>法案の種類</FormLabel>
+              <Select
+                onValueChange={(value) =>
+                  field.onChange(
+                    PROPOSAL_TYPE_OPTIONS.find((o) => o.value === value)
+                      ?.value ?? null
+                  )
+                }
+                value={field.value ?? PROPOSAL_TYPE_UNSET_VALUE}
+              >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="法案の種類を選択" />
+                    <SelectValue />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
+                  <SelectItem value={PROPOSAL_TYPE_UNSET_VALUE}>
+                    未設定
+                  </SelectItem>
                   {PROPOSAL_TYPE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -186,7 +200,7 @@ export function BillFormFields({
                 </SelectContent>
               </Select>
               <FormDescription>
-                内閣が提出した閣法か、議員が提出した議員立法かを選択してください
+                内閣が提出した閣法か、議員が提出した議員立法かを選択してください。未設定の場合は公開サイトや速報画像に表示しません
               </FormDescription>
               <FormMessage />
             </FormItem>

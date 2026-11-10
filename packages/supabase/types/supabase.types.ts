@@ -221,7 +221,7 @@ export type Database = {
           knowledge_source: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
-          proposal_type: Database["public"]["Enums"]["bill_proposal_type"]
+          proposal_type: Database["public"]["Enums"]["bill_proposal_type"] | null
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order: number | null
           published_at: string | null
@@ -246,7 +246,7 @@ export type Database = {
           knowledge_source?: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
-          proposal_type?: Database["public"]["Enums"]["bill_proposal_type"]
+          proposal_type?: Database["public"]["Enums"]["bill_proposal_type"] | null
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order?: number | null
           published_at?: string | null
@@ -271,7 +271,7 @@ export type Database = {
           knowledge_source?: string | null
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
-          proposal_type?: Database["public"]["Enums"]["bill_proposal_type"]
+          proposal_type?: Database["public"]["Enums"]["bill_proposal_type"] | null
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order?: number | null
           published_at?: string | null

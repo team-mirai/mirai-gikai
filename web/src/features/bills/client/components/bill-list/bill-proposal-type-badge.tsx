@@ -12,7 +12,8 @@ const PROPOSAL_TYPE_BADGE_CLASS_NAMES: Record<BillProposalType, string> = {
 };
 
 interface BillProposalTypeBadgeProps {
-  proposalType: BillProposalType;
+  /** 未設定（null）なら何も表示しない */
+  proposalType: BillProposalType | null;
   className?: string;
 }
 
@@ -20,6 +21,10 @@ export function BillProposalTypeBadge({
   proposalType,
   className,
 }: BillProposalTypeBadgeProps) {
+  if (!proposalType) {
+    return null;
+  }
+
   return (
     <Badge
       variant="outline"
