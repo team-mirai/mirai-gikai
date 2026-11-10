@@ -26,8 +26,23 @@ describe("summarizeToolArgs", () => {
     expect(summarizeToolArgs(undefined)).toBe("-");
   });
 
+  it("ID・日時・列挙値以外の文字列は文字数だけにする", () => {
+    expect(
+      summarizeToolArgs({
+        billId: "778423f0-7190-4f63-adf0-52a5c25402b5",
+        type: "for",
+        comment: "判断の理由を書いた文章",
+        reachedStep: 1,
+      })
+    ).toBe(
+      '{"billId":"778423f0-7190-4f63-adf0-52a5c25402b5","type":"for","comment":"<11 chars>","reachedStep":1}'
+    );
+  });
+
   it("長い引数は切り詰める", () => {
-    const summary = summarizeToolArgs({ body: "あ".repeat(1000) });
+    const summary = summarizeToolArgs({
+      ids: Array.from({ length: 100 }, (_, i) => `id-${i}`),
+    });
     expect(summary.length).toBeLessThan(600);
     expect(summary).toMatch(/…\(\d+ chars\)$/);
   });

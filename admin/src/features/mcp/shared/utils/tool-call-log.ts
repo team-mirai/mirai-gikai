@@ -15,10 +15,22 @@ export function truncateForLog(
   return `${value.slice(0, maxLength)}…(${value.length} chars)`;
 }
 
-/** ツールの引数を JSON にして切り詰める。引数が無いツールは - */
+/** ID・日時・列挙値のような、空白や日本語を含まない短い文字列だけをそのまま出す */
+const LOGGABLE_STRING_PATTERN = /^[\w:.+-]{1,64}$/;
+
+/**
+ * ツールの引数を JSON にして切り詰める。引数が無いツールは -。
+ * 自由記述（未公開の賛否の理由や記事本文など）を残さないよう、ID・日時・列挙値以外の文字列は文字数だけにする
+ */
 export function summarizeToolArgs(args: unknown): string {
   if (args === undefined) return "-";
-  return truncateForLog(JSON.stringify(args));
+  return truncateForLog(
+    JSON.stringify(args, (_key, value) =>
+      typeof value === "string" && !LOGGABLE_STRING_PATTERN.test(value)
+        ? `<${value.length} chars>`
+        : value
+    )
+  );
 }
 
 function summarizeContent(content: ToolResultContent): string {
