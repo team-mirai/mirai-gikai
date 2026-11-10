@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pnpm lint:fix 2>&1 | head -30"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/lint_edited_file.sh"
           }
         ]
       }
