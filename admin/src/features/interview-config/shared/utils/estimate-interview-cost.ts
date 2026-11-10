@@ -48,6 +48,7 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
   "anthropic/claude-haiku-4.5": { inputPerMillion: 1, outputPerMillion: 5 },
   "anthropic/claude-sonnet-4.6": { inputPerMillion: 3, outputPerMillion: 15 },
   "anthropic/claude-sonnet-5": { inputPerMillion: 3, outputPerMillion: 15 },
+  "anthropic/claude-sonnet-5.5": { inputPerMillion: 2, outputPerMillion: 10 },
   "anthropic/claude-opus-4.6": { inputPerMillion: 5, outputPerMillion: 25 },
 };
 
