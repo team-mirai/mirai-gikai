@@ -22,4 +22,10 @@ describe("BillProposalTypeBadge", () => {
       "text-mirai-text-note"
     );
   });
+
+  it("種類が未設定なら何も表示しない", () => {
+    const { container } = render(<BillProposalTypeBadge proposalType={null} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });

@@ -43,7 +43,7 @@ const PREVIEW_DEBOUNCE_MS = 600;
 interface BreakingNewsImageGeneratorProps {
   billId: string;
   originatingHouse: OriginatingHouse;
-  proposalType: BillProposalType;
+  proposalType: BillProposalType | null;
   defaultTitle: string;
   publishedStance: BreakingNewsStance | null;
 }

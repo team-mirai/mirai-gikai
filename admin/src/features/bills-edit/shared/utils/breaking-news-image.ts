@@ -147,8 +147,8 @@ export function toBreakingNewsStance(
 export type BreakingNewsImageInput = {
   result: BreakingNewsResult;
   steps: BreakingNewsStep[];
-  /** 閣法か議員立法か */
-  proposalTypeLabel: string;
+  /** 閣法か議員立法か。種類が未設定なら null（画像に出さない） */
+  proposalTypeLabel: string | null;
   meta: string;
   titleLines: string[];
   stance: BreakingNewsStance | null;
@@ -160,7 +160,7 @@ export type BreakingNewsImageValidation =
 
 export function parseBreakingNewsImageInput(params: {
   originatingHouse: OriginatingHouse;
-  proposalType: BillProposalType;
+  proposalType: BillProposalType | null;
   result: string | null;
   reachedStep: string | null;
   date: string | null;
@@ -231,7 +231,9 @@ export function parseBreakingNewsImageInput(params: {
       result,
       reachedStep,
     }),
-    proposalTypeLabel: BILL_PROPOSAL_TYPE_LABELS[params.proposalType],
+    proposalTypeLabel: params.proposalType
+      ? BILL_PROPOSAL_TYPE_LABELS[params.proposalType]
+      : null,
     meta: [date, place].filter(Boolean).join("｜"),
     titleLines,
     stance: params.includeStance ? params.publishedStance : null,
