@@ -31,6 +31,7 @@ export const AI_MODELS = {
   claude_haiku_4_5: "anthropic/claude-haiku-4.5",
   claude_sonnet_4_6: "anthropic/claude-sonnet-4.6",
   claude_sonnet_5: "anthropic/claude-sonnet-5",
+  claude_sonnet_5_5: "anthropic/claude-sonnet-5.5",
   claude_opus_4_6: "anthropic/claude-opus-4.6",
 } as const;
 
