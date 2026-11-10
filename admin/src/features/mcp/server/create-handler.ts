@@ -14,11 +14,13 @@ import { registerPreviewTools } from "./tools/register-preview-tools";
 import { registerSupplementaryResolutionTools } from "./tools/register-supplementary-resolution-tools";
 import { registerTagsTools } from "./tools/register-tags-tools";
 import { registerTopicAnalysisTools } from "./tools/register-topic-analysis-tools";
+import { withToolCallLogging } from "./utils/with-tool-call-logging";
 import { verifyMcpToken } from "./verify-token";
 
 export function createAdminMcpHandler() {
   const baseHandler = createMcpHandler(
-    (server) => {
+    (baseServer) => {
+      const server = withToolCallLogging(baseServer);
       registerBillMilestoneTools(server);
       registerBillsTools(server);
       registerChatUsageTools(server);
