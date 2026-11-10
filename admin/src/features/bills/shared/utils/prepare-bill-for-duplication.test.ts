@@ -12,6 +12,7 @@ const baseBill: Bill = {
   created_at: "2025-01-01T00:00:00Z",
   updated_at: "2025-01-02T00:00:00Z",
   diet_session_id: "session-001",
+  first_published_at: null,
   is_featured: true,
   is_review_completed: true,
   article_kind: "standard",

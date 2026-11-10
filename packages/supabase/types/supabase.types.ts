@@ -134,6 +134,38 @@ export type Database = {
           },
         ]
       }
+      bill_status_changes: {
+        Row: {
+          bill_id: string
+          changed_at: string
+          from_status: Database["public"]["Enums"]["bill_status_enum"] | null
+          id: string
+          to_status: Database["public"]["Enums"]["bill_status_enum"]
+        }
+        Insert: {
+          bill_id: string
+          changed_at?: string
+          from_status?: Database["public"]["Enums"]["bill_status_enum"] | null
+          id?: string
+          to_status: Database["public"]["Enums"]["bill_status_enum"]
+        }
+        Update: {
+          bill_id?: string
+          changed_at?: string
+          from_status?: Database["public"]["Enums"]["bill_status_enum"] | null
+          id?: string
+          to_status?: Database["public"]["Enums"]["bill_status_enum"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_status_changes_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bill_supplementary_resolutions: {
         Row: {
           bill_id: string
@@ -215,6 +247,7 @@ export type Database = {
           article_kind: Database["public"]["Enums"]["bill_article_kind"]
           created_at: string
           diet_session_id: string | null
+          first_published_at: string | null
           id: string
           is_featured: boolean
           is_review_completed: boolean
@@ -240,6 +273,7 @@ export type Database = {
           article_kind?: Database["public"]["Enums"]["bill_article_kind"]
           created_at?: string
           diet_session_id?: string | null
+          first_published_at?: string | null
           id?: string
           is_featured?: boolean
           is_review_completed?: boolean
@@ -265,6 +299,7 @@ export type Database = {
           article_kind?: Database["public"]["Enums"]["bill_article_kind"]
           created_at?: string
           diet_session_id?: string | null
+          first_published_at?: string | null
           id?: string
           is_featured?: boolean
           is_review_completed?: boolean
@@ -489,6 +524,7 @@ export type Database = {
           mode: Database["public"]["Enums"]["interview_mode_enum"]
           name: string
           prompt_overrides: Json | null
+          published_at: string | null
           status: Database["public"]["Enums"]["interview_config_status_enum"]
           themes: string[] | null
           updated_at: string
@@ -503,6 +539,7 @@ export type Database = {
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
           name: string
           prompt_overrides?: Json | null
+          published_at?: string | null
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
@@ -517,6 +554,7 @@ export type Database = {
           mode?: Database["public"]["Enums"]["interview_mode_enum"]
           name?: string
           prompt_overrides?: Json | null
+          published_at?: string | null
           status?: Database["public"]["Enums"]["interview_config_status_enum"]
           themes?: string[] | null
           updated_at?: string
@@ -841,6 +879,7 @@ export type Database = {
           is_published: boolean
           publish_at: string | null
           publish_review_date: string | null
+          published_at: string | null
           reason_points: string[]
           reason_summary: string | null
           supplements: Json
@@ -855,6 +894,7 @@ export type Database = {
           is_published?: boolean
           publish_at?: string | null
           publish_review_date?: string | null
+          published_at?: string | null
           reason_points?: string[]
           reason_summary?: string | null
           supplements?: Json
@@ -869,6 +909,7 @@ export type Database = {
           is_published?: boolean
           publish_at?: string | null
           publish_review_date?: string | null
+          published_at?: string | null
           reason_points?: string[]
           reason_summary?: string | null
           supplements?: Json

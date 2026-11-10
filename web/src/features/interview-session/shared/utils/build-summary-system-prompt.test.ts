@@ -18,6 +18,7 @@ const makeBill = (
   shugiin_url: null,
   slug: null,
   diet_session_id: null,
+  first_published_at: null,
   publish_status: "published",
   published_at: null,
   submitted_date: null,

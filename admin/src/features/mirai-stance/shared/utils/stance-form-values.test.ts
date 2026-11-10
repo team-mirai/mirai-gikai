@@ -17,6 +17,7 @@ const baseStance: MiraiStance = {
   is_published: true,
   publish_at: null,
   publish_review_date: null,
+  published_at: null,
   created_at: "2026-10-01T00:00:00+00:00",
   updated_at: "2026-10-01T00:00:00+00:00",
 };
