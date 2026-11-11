@@ -1,20 +1,9 @@
 #!/bin/bash
 # Edit/Write の直後に、編集したファイルだけを Biome で整形・修正する。
-# 出力はいったん変数に受けてから切り詰める。`pnpm ... | head` だと head が先に
-# 抜けたあと pnpm が終了せず、hook がタイムアウトまで止まるため。
 
 set -u
 
-FILE=$(node -e '
-let s = "";
-process.stdin.on("data", (c) => (s += c));
-process.stdin.on("end", () => {
-  try {
-    const i = JSON.parse(s).tool_input ?? {};
-    process.stdout.write(i.file_path ?? i.notebook_path ?? "");
-  } catch {}
-});
-')
+FILE=$(node -e 'try { process.stdout.write(JSON.parse(require("fs").readFileSync(0, "utf8")).tool_input?.file_path ?? "") } catch {}')
 
 case "$FILE" in
   "$CLAUDE_PROJECT_DIR"/*) ;;
@@ -22,10 +11,9 @@ case "$FILE" in
 esac
 [ -f "$FILE" ] || exit 0
 
-cd "$CLAUDE_PROJECT_DIR" || exit 0
-OUTPUT=$(
-  pnpm exec biome format --write --no-errors-on-unmatched "$FILE" 2>&1 &&
-    pnpm exec biome lint --write --no-errors-on-unmatched "$FILE" 2>&1
-)
-printf '%s\n' "$OUTPUT" | head -30
+BIOME="$CLAUDE_PROJECT_DIR/node_modules/.bin/biome"
+[ -x "$BIOME" ] || exit 0
+
+"$BIOME" format --write --no-errors-on-unmatched "$FILE" >/dev/null 2>&1 &&
+  "$BIOME" lint --write --no-errors-on-unmatched "$FILE" >/dev/null 2>&1
 exit 0
