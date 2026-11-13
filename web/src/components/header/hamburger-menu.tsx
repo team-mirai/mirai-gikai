@@ -1,8 +1,8 @@
 "use client";
 
 import { Menu, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -20,13 +20,17 @@ import { RubyToggle } from "@/lib/rubyful";
 
 export function HamburgerMenu() {
   const router = useRouter();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchData, setSearchData] = useState<BillSearchData | null>(null);
   const requestIdRef = useRef(0);
-  // 応答が届いた時点で検索を待っているかを知るため。state は非同期の
-  // コールバックからは押した時点の値しか見えない。
-  const searchRequestedRef = useRef(false);
+  // 取得中の要求があるか。検索を押したときに二重に取りに行かないため。
+  const fetchingRef = useRef(false);
+  // 検索を押して中身を待っているときの、押した時点のページ。応答が届いた
+  // 時点の状況を知るため ref に置く。state は非同期のコールバックからは
+  // 押した時点の値しか見えない。
+  const searchRequestedAtRef = useRef<string | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   // 検索の中身はメニューを開いた時点で取りに行く。ヘッダーは全ページに
@@ -38,6 +42,7 @@ export function HamburgerMenu() {
   // サーバー側はキャッシュ済みなので、取り直してもクエリは増えない。
   const fetchSearchData = () => {
     const requestId = ++requestIdRef.current;
+    fetchingRef.current = true;
     loadBillSearchData()
       .then((data) => {
         // 遅れて届いた古い応答で新しい中身を上書きしない。
@@ -47,15 +52,31 @@ export function HamburgerMenu() {
         console.error("Failed to load bill search data:", error);
         // 前の中身があれば、それを使い続ければよい。困るのは検索を押して
         // 中身を待っている人だけ。
-        if (requestId !== requestIdRef.current || !searchRequestedRef.current)
+        if (
+          requestId !== requestIdRef.current ||
+          searchRequestedAtRef.current === null
+        )
           return;
-        searchRequestedRef.current = false;
+        searchRequestedAtRef.current = null;
         // 「開く」状態を残すと、次に取得できた瞬間に操作していないのに
         // モーダルが開いてしまう。検索欄のある一覧ページで応える。
         setSearchOpen(false);
         router.push(billsListHref(DEFAULT_BILLS_LIST_PARAMS));
+      })
+      .finally(() => {
+        if (requestId === requestIdRef.current) fetchingRef.current = false;
       });
   };
+
+  // 中身を待っている間に別のページへ移ったら、待っていた検索は取り消す。
+  // ヘッダーはページをまたいでマウントされたままなので、放っておくと
+  // 中身が届いた時点で移動先のページにモーダルが突然開く。
+  useEffect(() => {
+    const requestedAt = searchRequestedAtRef.current;
+    if (requestedAt === null || requestedAt === pathname) return;
+    searchRequestedAtRef.current = null;
+    setSearchOpen(false);
+  }, [pathname]);
 
   const handleMenuOpenChange = (open: boolean) => {
     setMenuOpen(open);
@@ -67,16 +88,18 @@ export function HamburgerMenu() {
     // 外側クリックやフォーカスの扱いが両者でぶつかる。
     setMenuOpen(false);
     setSearchOpen(true);
-    // 先読みに失敗していた場合に備えて、中身が無ければ取り直す。
     if (!searchData) {
-      searchRequestedRef.current = true;
-      fetchSearchData();
+      searchRequestedAtRef.current = pathname;
+      // 先読みが取得中ならその応答を待つ。重ねて取りに行くと、先に成功した
+      // 応答が古いものとして捨てられる。取り直すのは先読みが失敗して
+      // 終わっていた場合だけ。
+      if (!fetchingRef.current) fetchSearchData();
     }
   };
 
   const handleSearchOpenChange = (open: boolean) => {
     setSearchOpen(open);
-    if (!open) searchRequestedRef.current = false;
+    if (!open) searchRequestedAtRef.current = null;
   };
 
   return (

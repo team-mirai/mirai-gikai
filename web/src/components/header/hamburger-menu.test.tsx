@@ -7,7 +7,11 @@ import { HamburgerMenu } from "./hamburger-menu";
 
 const pushMock = vi.hoisted(() => vi.fn());
 const loadMock = vi.hoisted(() => vi.fn());
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }) }));
+const usePathnameMock = vi.hoisted(() => vi.fn());
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: pushMock }),
+  usePathname: usePathnameMock,
+}));
 // Server Action はブラウザから見ると通信なので、届く中身だけを差し替える。
 vi.mock("@/features/bills/server/actions/load-bill-search-data", () => ({
   loadBillSearchData: loadMock,
@@ -27,14 +31,26 @@ beforeEach(() => {
   pushMock.mockClear();
   loadMock.mockReset();
   loadMock.mockResolvedValue({ tags, bills });
+  usePathnameMock.mockReturnValue("/");
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 async function openMenu() {
   const user = userEvent.setup();
-  render(<HamburgerMenu />);
+  const view = render(<HamburgerMenu />);
   await user.click(screen.getByRole("button", { name: "メニューを開く" }));
-  return user;
+  return { user, view };
+}
+
+/** 応答を返す時点をテスト側で決められる取得。 */
+function deferredLoad() {
+  let resolve: (value: unknown) => void = () => {};
+  loadMock.mockReturnValueOnce(
+    new Promise((r) => {
+      resolve = r;
+    })
+  );
+  return () => resolve({ tags, bills });
 }
 
 describe("HamburgerMenu", () => {
@@ -50,7 +66,7 @@ describe("HamburgerMenu", () => {
   });
 
   it("検索を選ぶとメニューを閉じて検索モーダルを開く", async () => {
-    const user = await openMenu();
+    const { user } = await openMenu();
 
     await user.click(screen.getByRole("button", { name: "法案を検索" }));
 
@@ -67,7 +83,7 @@ describe("HamburgerMenu", () => {
   });
 
   it("モーダルを閉じるとメニューのボタンへフォーカスを戻す", async () => {
-    const user = await openMenu();
+    const { user } = await openMenu();
 
     await user.click(screen.getByRole("button", { name: "法案を検索" }));
     await user.click(await screen.findByRole("button", { name: "閉じる" }));
@@ -83,7 +99,7 @@ describe("HamburgerMenu", () => {
   // 中身が取れないまま何も起きないと、押しても反応しない入口になる。
   it("中身を取れなければ検索欄のある一覧ページへ移る", async () => {
     loadMock.mockRejectedValue(new Error("network"));
-    const user = await openMenu();
+    const { user } = await openMenu();
 
     await user.click(screen.getByRole("button", { name: "法案を検索" }));
 
@@ -95,12 +111,43 @@ describe("HamburgerMenu", () => {
 
   it("先読みに失敗していても、検索を押せば取り直して開く", async () => {
     loadMock.mockRejectedValueOnce(new Error("network"));
-    const user = await openMenu();
+    const { user } = await openMenu();
 
     await user.click(screen.getByRole("button", { name: "法案を検索" }));
 
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
     expect(loadMock).toHaveBeenCalledTimes(2);
     expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("先読みの取得中に検索を押しても取りに行き直さず、その応答で開く", async () => {
+    const resolveLoad = deferredLoad();
+    const { user } = await openMenu();
+
+    await user.click(screen.getByRole("button", { name: "法案を検索" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    resolveLoad();
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(loadMock).toHaveBeenCalledTimes(1);
+  });
+
+  // ヘッダーはページをまたいで残るので、待っていた検索が移動先で開かないこと。
+  it("中身を待つ間に別のページへ移ったら、届いてもモーダルを開かない", async () => {
+    const resolveLoad = deferredLoad();
+    const { user, view } = await openMenu();
+
+    await user.click(screen.getByRole("button", { name: "法案を検索" }));
+    usePathnameMock.mockReturnValue("/bills/bill-school");
+    view.rerender(<HamburgerMenu />);
+    resolveLoad();
+
+    // 応答が反映されるまで待ってから、開いていないことを確かめる。
+    await waitFor(() => {
+      expect(loadMock).toHaveBeenCalledTimes(1);
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
