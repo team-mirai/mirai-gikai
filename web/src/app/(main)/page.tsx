@@ -11,13 +11,11 @@ import { FeaturedBillSection } from "@/features/bills/server/components/featured
 import { InterviewOpenBillSection } from "@/features/bills/server/components/interview-open-bill-section";
 import { PastSessionList } from "@/features/bills/server/components/past-session-list";
 import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
-import { getFeaturedTags } from "@/features/bills/server/loaders/get-featured-tags";
-import { getSuggestableBills } from "@/features/bills/server/loaders/get-suggestable-bills";
+import { getBillSearchData } from "@/features/bills/server/loaders/get-bill-search-data";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { chatBillName } from "@/features/bills/shared/utils/chat-bill-name";
 import { pickHomeSections } from "@/features/bills/shared/utils/pick-home-sections";
-import { countTagChipItems } from "@/features/bills/shared/utils/tag-chip-items";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
@@ -42,15 +40,13 @@ export default async function Home() {
     currentSession,
     latestClosedSession,
     currentDifficulty,
-    suggestableBills,
-    featuredTags,
+    searchData,
   ] = await Promise.all([
     loadHomeData(),
     getCurrentDietSession(japanTime),
     getLatestClosedDietSession(japanTime),
     getDifficultyLevel(),
-    getSuggestableBills(),
-    getFeaturedTags(),
+    getBillSearchData(),
   ]);
 
   const inSession = currentSession !== null;
@@ -61,11 +57,6 @@ export default async function Home() {
     interviewOpenBills,
     inSession,
   });
-
-  // モーダルの件数は全会期の公開議案から数える。チップの飛び先が /bills で、
-  // あちらも全会期を数えるため、押す前と後で数字が変わらない。
-  // 候補用に取得済みの配列をそのまま使うので、集計のためのクエリは増えない。
-  const searchTagChips = countTagChipItems(featuredTags, suggestableBills);
 
   const toBillChatContext = (bill: BillWithContent) => {
     return {
@@ -94,7 +85,7 @@ export default async function Home() {
         </div>
         {/* 検索の入口。キーワードとテーマの両方をモーダルに並べる */}
         <div className="flex justify-end pt-2">
-          <BillSearchOverlay tags={searchTagChips} bills={suggestableBills} />
+          <BillSearchOverlay {...searchData} />
         </div>
       </Container>
 
