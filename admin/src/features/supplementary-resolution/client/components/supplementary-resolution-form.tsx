@@ -111,7 +111,7 @@ export function SupplementaryResolutionForm({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-url`}>参考リンク *</Label>
+            <Label htmlFor={`${idPrefix}-url`}>参考リンク</Label>
             <Input
               id={`${idPrefix}-url`}
               type="url"

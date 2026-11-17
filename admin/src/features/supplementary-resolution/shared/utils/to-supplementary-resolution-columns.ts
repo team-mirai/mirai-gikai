@@ -10,7 +10,7 @@ export function toSupplementaryResolutionColumns(
 ) {
   return {
     house: input.house,
-    reference_url: input.referenceUrl,
+    reference_url: trimOrNull(input.referenceUrl),
     content: trimOrNull(input.content),
     stance: input.stance,
     focus_points: trimOrNull(input.focusPoints),

@@ -21,11 +21,17 @@ export const supplementaryResolutionHouseSchema = z.enum(
 export const supplementaryResolutionInputSchema = z.object({
   // 附帯決議を付した院。議案ごと・院ごとに1件
   house: supplementaryResolutionHouseSchema,
-  // 附帯決議の内容を確認できる参考リンク
+  // 附帯決議の内容を確認できる参考リンク（任意）。空文字・null・省略は未設定として保存し、
+  // 入れる場合は http(s) の URL に限る
   referenceUrl: z
     .string()
     .trim()
-    .regex(/^https?:\/\/\S+$/, "有効なURLを入力してください"),
+    .refine(
+      (value) => value === "" || /^https?:\/\/\S+$/.test(value),
+      "有効なURLを入力してください"
+    )
+    .nullable()
+    .optional(),
   // 附帯決議の内容（自由記述・任意）。空文字・null・省略はいずれも未設定として保存する
   content: z.string().nullable().optional(),
   stance: z.enum(["for", "against"] as const),

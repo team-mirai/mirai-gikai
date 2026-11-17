@@ -32,7 +32,7 @@ export function registerSupplementaryResolutionTools(server: McpServer): void {
     {
       title: "附帯決議を取得",
       description:
-        "指定議案に付された附帯決議と、それに対するチームみらいの賛否を院ごとに返す。resolutions は登録済みの院の分だけ（衆議院→参議院の順、未設定なら空配列）。house は附帯決議を付した院（HR=衆議院 / HC=参議院）、referenceUrl は附帯決議の内容を確認できる参考リンク、content は附帯決議の内容（自由記述）、stance は for（賛成）/ against（反対）、content・focusPoints・reason は未設定なら null。",
+        "指定議案に付された附帯決議と、それに対するチームみらいの賛否を院ごとに返す。resolutions は登録済みの院の分だけ（衆議院→参議院の順、未設定なら空配列）。house は附帯決議を付した院（HR=衆議院 / HC=参議院）、referenceUrl は附帯決議の内容を確認できる参考リンク、content は附帯決議の内容（自由記述）、stance は for（賛成）/ against（反対）、referenceUrl・content・focusPoints・reason は未設定なら null。",
       inputSchema: {
         billId: z.string().uuid(),
       },
@@ -51,7 +51,7 @@ export function registerSupplementaryResolutionTools(server: McpServer): void {
     {
       title: "附帯決議を登録・更新",
       description:
-        "指定議案の附帯決議を院ごとに登録する（1議案につき院ごとに1件。同じ院に既にあれば上書き）。house（HR=衆議院 / HC=参議院）、referenceUrl（http(s) の参考リンク）と stance（for=賛成 / against=反対）は必須。content（附帯決議の内容。自由記述のテキスト）、focusPoints（重視した事項）、reason（理由）は任意で、省略・空文字は未設定（null）として保存する。上書き時も省略した項目は null になる。",
+        "指定議案の附帯決議を院ごとに登録する（1議案につき院ごとに1件。同じ院に既にあれば上書き）。house（HR=衆議院 / HC=参議院）と stance（for=賛成 / against=反対）は必須。referenceUrl（参考リンク。入れる場合は http(s) の URL）、content（附帯決議の内容。自由記述のテキスト）、focusPoints（重視した事項）、reason（理由）は任意で、省略・空文字は未設定（null）として保存する。上書き時も省略した項目は null になる。",
       inputSchema: {
         billId: z.string().uuid(),
         ...supplementaryResolutionInputSchema.shape,

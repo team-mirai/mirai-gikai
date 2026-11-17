@@ -9,7 +9,7 @@ import { createTestRegistry, type TestMcpRegistry } from "./utils";
 
 type ResolutionOutput = {
   house: string;
-  referenceUrl: string;
+  referenceUrl: string | null;
   content: string | null;
   stance: string;
   focusPoints: string | null;
@@ -149,6 +149,27 @@ describe("MCP supplementary-resolution tools", () => {
         stance: "for",
       })
     ).rejects.toThrow();
+  });
+
+  it("参考リンクなしでも登録でき、未設定は null で返す", async () => {
+    const bill = await createBill();
+
+    const result = await registry.callTool<{
+      ok: boolean;
+      resolution: ResolutionOutput;
+    }>("upsert_supplementary_resolution", {
+      billId: bill.id,
+      house: "HR",
+      content: "政府は施行状況を検証し、必要な措置を講ずること。",
+      stance: "for",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.resolution).toMatchObject({
+      house: "HR",
+      referenceUrl: null,
+      content: "政府は施行状況を検証し、必要な措置を講ずること。",
+    });
   });
 
   it("院を指定しない登録は受け付けない", async () => {

@@ -175,7 +175,7 @@ export type Database = {
           house: Database["public"]["Enums"]["house_enum"]
           id: string
           reason: string | null
-          reference_url: string
+          reference_url: string | null
           stance: Database["public"]["Enums"]["supplementary_resolution_stance"]
           updated_at: string
         }
@@ -187,7 +187,7 @@ export type Database = {
           house: Database["public"]["Enums"]["house_enum"]
           id?: string
           reason?: string | null
-          reference_url: string
+          reference_url?: string | null
           stance: Database["public"]["Enums"]["supplementary_resolution_stance"]
           updated_at?: string
         }
@@ -199,7 +199,7 @@ export type Database = {
           house?: Database["public"]["Enums"]["house_enum"]
           id?: string
           reason?: string | null
-          reference_url?: string
+          reference_url?: string | null
           stance?: Database["public"]["Enums"]["supplementary_resolution_stance"]
           updated_at?: string
         }

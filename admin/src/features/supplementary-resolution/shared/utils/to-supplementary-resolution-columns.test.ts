@@ -26,7 +26,7 @@ describe("toSupplementaryResolutionColumns", () => {
     expect(
       toSupplementaryResolutionColumns({
         house: "HR",
-        referenceUrl: "https://example.com/resolution",
+        referenceUrl: "  ",
         content: "",
         stance: "against",
         focusPoints: "   ",
@@ -34,7 +34,7 @@ describe("toSupplementaryResolutionColumns", () => {
       })
     ).toEqual({
       house: "HR",
-      reference_url: "https://example.com/resolution",
+      reference_url: null,
       content: null,
       stance: "against",
       focus_points: null,

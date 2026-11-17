@@ -1,5 +1,5 @@
 -- 附帯決議を衆議院・参議院それぞれで記録できるようにし（1議案につき院ごとに1件）、
--- 内容を自由記述のテキストで持てるようにする。参考リンクはそのまま残す
+-- 内容を自由記述のテキストで持てるようにする。参考リンクは任意にする
 
 -- 附帯決議の内容（自由記述・任意）
 alter table bill_supplementary_resolutions
@@ -24,6 +24,11 @@ alter table bill_supplementary_resolutions
   add constraint bill_supplementary_resolutions_bill_id_house_key
   unique (bill_id, house);
 
+-- 参考リンクは任意。入れる場合は従来どおり http(s) の URL に限る（check 制約は残す）
+alter table bill_supplementary_resolutions
+  alter column reference_url drop not null;
+
 comment on table bill_supplementary_resolutions is '議案に付された附帯決議とチームみらいの賛否（院ごとに1件）';
 comment on column bill_supplementary_resolutions.content is '附帯決議の内容（自由記述・任意）';
+comment on column bill_supplementary_resolutions.reference_url is '附帯決議の内容を確認できる参考リンク（任意）';
 comment on column bill_supplementary_resolutions.house is '附帯決議を付した院（HR=衆議院 / HC=参議院）';
