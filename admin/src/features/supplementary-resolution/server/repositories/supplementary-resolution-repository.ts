@@ -1,20 +1,27 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { SupplementaryResolutionInput } from "../../shared/types";
+import type {
+  SupplementaryResolutionHouse,
+  SupplementaryResolutionInput,
+} from "../../shared/types";
 import { toSupplementaryResolutionColumns } from "../../shared/utils/to-supplementary-resolution-columns";
 
-export async function findSupplementaryResolutionByBillId(billId: string) {
+/**
+ * 議案の附帯決議を院ごとにすべて返す（最大で衆議院・参議院の2件）。
+ */
+export async function findSupplementaryResolutionsByBillId(billId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bill_supplementary_resolutions")
     .select("*")
     .eq("bill_id", billId)
-    .maybeSingle();
+    // house_enum の宣言順（HR→HC）で並ぶので、衆議院→参議院の順になる
+    .order("house");
 
   if (error) {
     throw new Error(
-      `Failed to fetch supplementary resolution: ${error.message}`
+      `Failed to fetch supplementary resolutions: ${error.message}`
     );
   }
 
@@ -22,7 +29,7 @@ export async function findSupplementaryResolutionByBillId(billId: string) {
 }
 
 /**
- * bill_id をキーに附帯決議を upsert する（bill_id は UNIQUE 制約あり）。
+ * bill_id と院をキーに附帯決議を upsert する（(bill_id, house) は UNIQUE 制約あり）。
  * 保存後の行を返す。
  */
 export async function upsertSupplementaryResolution(
@@ -38,7 +45,7 @@ export async function upsertSupplementaryResolution(
         ...toSupplementaryResolutionColumns(input),
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "bill_id" }
+      { onConflict: "bill_id,house" }
     )
     .select("*")
     .single();
@@ -53,14 +60,18 @@ export async function upsertSupplementaryResolution(
 }
 
 /**
- * 議案の附帯決議を削除する。削除した場合は true を返す。
+ * 議案の指定した院の附帯決議を削除する。削除した場合は true を返す。
  */
-export async function deleteSupplementaryResolutionByBillId(billId: string) {
+export async function deleteSupplementaryResolutionByHouse(
+  billId: string,
+  house: SupplementaryResolutionHouse
+) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bill_supplementary_resolutions")
     .delete()
     .eq("bill_id", billId)
+    .eq("house", house)
     .select("id");
 
   if (error) {

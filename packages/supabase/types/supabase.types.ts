@@ -169,8 +169,10 @@ export type Database = {
       bill_supplementary_resolutions: {
         Row: {
           bill_id: string
+          content: string | null
           created_at: string
           focus_points: string | null
+          house: Database["public"]["Enums"]["house_enum"]
           id: string
           reason: string | null
           reference_url: string
@@ -179,8 +181,10 @@ export type Database = {
         }
         Insert: {
           bill_id: string
+          content?: string | null
           created_at?: string
           focus_points?: string | null
+          house: Database["public"]["Enums"]["house_enum"]
           id?: string
           reason?: string | null
           reference_url: string
@@ -189,8 +193,10 @@ export type Database = {
         }
         Update: {
           bill_id?: string
+          content?: string | null
           created_at?: string
           focus_points?: string | null
+          house?: Database["public"]["Enums"]["house_enum"]
           id?: string
           reason?: string | null
           reference_url?: string
