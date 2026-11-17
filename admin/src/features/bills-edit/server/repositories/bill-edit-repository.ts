@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { BillVideoKind } from "@mirai-gikai/shared/bill-videos/kinds";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { BILL_THUMBNAILS_BUCKET } from "../../shared/constants";
 import type { BillInsert } from "../../shared/types";
@@ -223,6 +224,28 @@ export async function saveBillVideos(billId: string, videos: BillVideosInput) {
       throw new Error(`Failed to delete bill videos: ${error.message}`);
     }
   }
+}
+
+/**
+ * 1つの種類の動画を登録する（その種類に既に動画があれば上書きする）
+ */
+export async function upsertBillVideo(
+  billId: string,
+  kind: BillVideoKind,
+  video: { youtube_video_id: string; title: string }
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bill_videos")
+    .upsert({ bill_id: billId, kind, ...video }, { onConflict: "bill_id,kind" })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to save bill video: ${error.message}`);
+  }
+
+  return data;
 }
 
 export async function uploadBillThumbnailFile(params: {

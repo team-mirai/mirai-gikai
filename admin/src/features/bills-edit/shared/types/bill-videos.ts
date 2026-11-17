@@ -12,7 +12,7 @@ export type BillVideo = Database["public"]["Tables"]["bill_videos"]["Row"];
  * フォーム入力を検証し、DB に保存する形（動画ID・タイトル）へ変換する。
  * URL・タイトルともに空なら、その種類の動画は登録しない（null）。
  */
-const billVideoInputSchema = z
+export const billVideoInputSchema = z
   .object({
     url: z.string().trim(),
     title: z.string().trim(),
