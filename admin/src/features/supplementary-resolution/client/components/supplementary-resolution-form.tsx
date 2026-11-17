@@ -15,29 +15,37 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { HOUSE_LABELS } from "@/features/bills/shared/types";
 import { deleteSupplementaryResolution } from "../../server/actions/delete-supplementary-resolution";
 import { saveSupplementaryResolution } from "../../server/actions/save-supplementary-resolution";
 import {
   SUPPLEMENTARY_RESOLUTION_STANCE_LABELS,
   type SupplementaryResolution,
+  type SupplementaryResolutionHouse,
   type SupplementaryResolutionStance,
   supplementaryResolutionInputSchema,
 } from "../../shared/types";
 
 interface SupplementaryResolutionFormProps {
   billId: string;
+  house: SupplementaryResolutionHouse;
   resolution: SupplementaryResolution | null;
 }
 
 export function SupplementaryResolutionForm({
   billId,
+  house,
   resolution,
 }: SupplementaryResolutionFormProps) {
+  const houseLabel = HOUSE_LABELS[house];
+  // 院ごとにフォームを並べるので、ラベルと入力欄の id が重ならないようにする
+  const idPrefix = `supplementary-resolution-${house}`;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [referenceUrl, setReferenceUrl] = useState(
     resolution?.reference_url ?? ""
   );
+  const [content, setContent] = useState(resolution?.content ?? "");
   const [stance, setStance] = useState<SupplementaryResolutionStance | "">(
     resolution?.stance ?? ""
   );
@@ -53,13 +61,15 @@ export function SupplementaryResolutionForm({
     }
     startTransition(async () => {
       const result = await saveSupplementaryResolution(billId, {
+        house,
         referenceUrl,
+        content,
         stance,
         focusPoints,
         reason,
       });
       if (result.success) {
-        toast.success("附帯決議を保存しました");
+        toast.success(`${houseLabel}の附帯決議を保存しました`);
         router.refresh();
       } else {
         toast.error(result.error || "附帯決議の保存に失敗しました");
@@ -68,13 +78,13 @@ export function SupplementaryResolutionForm({
   };
 
   const handleDelete = () => {
-    if (!confirm("附帯決議を削除してもよろしいですか？")) {
+    if (!confirm(`${houseLabel}の附帯決議を削除してもよろしいですか？`)) {
       return;
     }
     startTransition(async () => {
-      const result = await deleteSupplementaryResolution(billId);
+      const result = await deleteSupplementaryResolution(billId, house);
       if (result.success) {
-        toast.success("附帯決議を削除しました");
+        toast.success(`${houseLabel}の附帯決議を削除しました`);
         router.refresh();
       } else {
         toast.error(result.error || "附帯決議の削除に失敗しました");
@@ -85,14 +95,25 @@ export function SupplementaryResolutionForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>附帯決議</CardTitle>
+        <CardTitle>附帯決議（{houseLabel}）</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-1">
-            <Label htmlFor="supplementary-resolution-url">参考リンク *</Label>
+            <Label htmlFor={`${idPrefix}-content`}>内容</Label>
+            <Textarea
+              id={`${idPrefix}-content`}
+              value={content}
+              rows={6}
+              onChange={(e) => setContent(e.target.value)}
+              disabled={isPending}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor={`${idPrefix}-url`}>参考リンク</Label>
             <Input
-              id="supplementary-resolution-url"
+              id={`${idPrefix}-url`}
               type="url"
               value={referenceUrl}
               placeholder="https://..."
@@ -105,7 +126,7 @@ export function SupplementaryResolutionForm({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="supplementary-resolution-stance">賛否 *</Label>
+            <Label htmlFor={`${idPrefix}-stance`}>賛否 *</Label>
             <Select
               value={stance}
               onValueChange={(value) => {
@@ -117,7 +138,7 @@ export function SupplementaryResolutionForm({
               }}
               disabled={isPending}
             >
-              <SelectTrigger id="supplementary-resolution-stance">
+              <SelectTrigger id={`${idPrefix}-stance`}>
                 <SelectValue placeholder="賛否を選択" />
               </SelectTrigger>
               <SelectContent>
@@ -133,11 +154,11 @@ export function SupplementaryResolutionForm({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="supplementary-resolution-focus-points">
+            <Label htmlFor={`${idPrefix}-focus-points`}>
               附帯決議で重視した事項
             </Label>
             <Textarea
-              id="supplementary-resolution-focus-points"
+              id={`${idPrefix}-focus-points`}
               value={focusPoints}
               rows={3}
               onChange={(e) => setFocusPoints(e.target.value)}
@@ -146,9 +167,9 @@ export function SupplementaryResolutionForm({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="supplementary-resolution-reason">理由</Label>
+            <Label htmlFor={`${idPrefix}-reason`}>理由</Label>
             <Textarea
-              id="supplementary-resolution-reason"
+              id={`${idPrefix}-reason`}
               value={reason}
               rows={3}
               onChange={(e) => setReason(e.target.value)}
