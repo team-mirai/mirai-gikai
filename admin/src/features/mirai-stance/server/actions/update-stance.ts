@@ -1,5 +1,6 @@
 "use server";
 
+import { closePublicInterviews } from "@/features/interview-config/server/services/close-public-interviews";
 import {
   invalidateWebCache,
   WEB_CACHE_TAGS,
@@ -11,7 +12,6 @@ import {
   findStanceById,
   updateMiraiStance,
 } from "../repositories/mirai-stance-repository";
-import { closeInterviewsOnStancePublish } from "../services/close-interviews-on-stance-publish";
 
 export async function updateStance(stanceId: string, data: StanceInput) {
   try {
@@ -22,7 +22,7 @@ export async function updateStance(stanceId: string, data: StanceInput) {
       before &&
       isStanceBecomingPublished(before.is_published, input.isPublished)
     ) {
-      await closeInterviewsOnStancePublish(before.bill_id);
+      await closePublicInterviews(before.bill_id);
     }
 
     invalidateWebCache([WEB_CACHE_TAGS.BILLS]);

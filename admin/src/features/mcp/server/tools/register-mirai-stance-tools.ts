@@ -3,6 +3,7 @@ import "server-only";
 import { parseStanceSupplements } from "@mirai-gikai/shared/mirai-stance/reason-format";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { closePublicInterviews } from "@/features/interview-config/server/services/close-public-interviews";
 import {
   findStanceByBillId,
   findStancesPendingReview,
@@ -10,7 +11,6 @@ import {
   updateUnpublishedStanceReviewDate,
   upsertMiraiStance,
 } from "@/features/mirai-stance/server/repositories/mirai-stance-repository";
-import { closeInterviewsOnStancePublish } from "@/features/mirai-stance/server/services/close-interviews-on-stance-publish";
 import {
   publishReviewDateSchema,
   stanceInputSchema,
@@ -86,7 +86,7 @@ export function registerMiraiStanceTools(server: McpServer): void {
           input.isPublished
         )
       ) {
-        await closeInterviewsOnStancePublish(billId);
+        await closePublicInterviews(billId);
       }
       await invalidateBillsCache();
       return jsonResult({
@@ -147,7 +147,7 @@ export function registerMiraiStanceTools(server: McpServer): void {
           reason: resolveStanceWriteFailure(stance),
         });
       }
-      const closedInterviewCount = await closeInterviewsOnStancePublish(billId);
+      const closedInterviewCount = await closePublicInterviews(billId);
       await invalidateBillsCache();
       return jsonResult({ ok: true, billId, closedInterviewCount });
     }
