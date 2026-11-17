@@ -30,6 +30,10 @@ export function registerBillMilestoneTools(server: McpServer): void {
         new Date(since).toISOString()
       );
       const now = new Date();
+      // 投稿側で法案が漏れたときに追えるよう、返した法案の ID を残す
+      console.info(
+        `[AdminMcp] list_bill_milestone_facts billIds=${sources.map((source) => source.id).join(",")}`
+      );
       return jsonResult({
         bills: sources.map((source) =>
           buildBillMilestoneFact(source, { now, webUrl: env.webUrl })

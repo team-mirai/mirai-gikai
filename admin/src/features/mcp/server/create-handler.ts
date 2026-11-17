@@ -5,6 +5,7 @@ import {
   experimental_withMcpAuth as withMcpAuth,
 } from "mcp-handler";
 import { registerBillMilestoneTools } from "./tools/register-bill-milestone-tools";
+import { registerBillVideosTools } from "./tools/register-bill-videos-tools";
 import { registerBillsTools } from "./tools/register-bills-tools";
 import { registerChatUsageTools } from "./tools/register-chat-usage-tools";
 import { registerDietSessionsTools } from "./tools/register-diet-sessions-tools";
@@ -14,13 +15,16 @@ import { registerPreviewTools } from "./tools/register-preview-tools";
 import { registerSupplementaryResolutionTools } from "./tools/register-supplementary-resolution-tools";
 import { registerTagsTools } from "./tools/register-tags-tools";
 import { registerTopicAnalysisTools } from "./tools/register-topic-analysis-tools";
+import { withToolCallLogging } from "./utils/with-tool-call-logging";
 import { verifyMcpToken } from "./verify-token";
 
 export function createAdminMcpHandler() {
   const baseHandler = createMcpHandler(
-    (server) => {
+    (baseServer) => {
+      const server = withToolCallLogging(baseServer);
       registerBillMilestoneTools(server);
       registerBillsTools(server);
+      registerBillVideosTools(server);
       registerChatUsageTools(server);
       registerDietSessionsTools(server);
       registerInterviewMetricsTools(server);

@@ -169,31 +169,37 @@ export type Database = {
       bill_supplementary_resolutions: {
         Row: {
           bill_id: string
+          content: string | null
           created_at: string
           focus_points: string | null
+          house: Database["public"]["Enums"]["house_enum"]
           id: string
           reason: string | null
-          reference_url: string
+          reference_url: string | null
           stance: Database["public"]["Enums"]["supplementary_resolution_stance"]
           updated_at: string
         }
         Insert: {
           bill_id: string
+          content?: string | null
           created_at?: string
           focus_points?: string | null
+          house: Database["public"]["Enums"]["house_enum"]
           id?: string
           reason?: string | null
-          reference_url: string
+          reference_url?: string | null
           stance: Database["public"]["Enums"]["supplementary_resolution_stance"]
           updated_at?: string
         }
         Update: {
           bill_id?: string
+          content?: string | null
           created_at?: string
           focus_points?: string | null
+          house?: Database["public"]["Enums"]["house_enum"]
           id?: string
           reason?: string | null
-          reference_url?: string
+          reference_url?: string | null
           stance?: Database["public"]["Enums"]["supplementary_resolution_stance"]
           updated_at?: string
         }

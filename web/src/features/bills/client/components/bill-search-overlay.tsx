@@ -3,7 +3,7 @@
 import { ChevronRight, FileText, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -51,25 +51,63 @@ export function BillSearchOverlay({
   tags: TagChipItem[];
   bills: SuggestableBill[];
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  const trimmed = query.trim();
-  const matches = suggestBills(bills, trimmed);
-
-  const submit = () => {
-    setOpen(false);
-    router.push(billsListHref(DEFAULT_BILLS_LIST_PARAMS, { query: trimmed }));
-  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <BillSearchDialog
+      tags={tags}
+      bills={bills}
+      open={open}
+      onOpenChange={setOpen}
+    >
       <DialogTrigger className="inline-flex cursor-pointer items-center gap-1 text-[13px] font-bold text-mirai-brand-teal-hover hover:underline">
         <Search className="h-4 w-4" aria-hidden />
         法案を検索する
         <ChevronRight className="h-4 w-4" aria-hidden />
       </DialogTrigger>
+    </BillSearchDialog>
+  );
+}
+
+/**
+ * 検索モーダル本体。開閉は呼び出し側が持つ。
+ *
+ * トップの入口のほか、ヘッダーのメニューからも開く。メニューは Popover の
+ * 中にあり、そこへ DialogTrigger を置くと Popover を閉じた時点でトリガーごと
+ * 消えるため、開閉の状態を外に出してメニューの外側にモーダルを置けるようにする。
+ */
+export function BillSearchDialog({
+  tags,
+  bills,
+  open,
+  onOpenChange,
+  onCloseAutoFocus,
+  children,
+}: {
+  tags: TagChipItem[];
+  bills: SuggestableBill[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** トリガーを持たない呼び出し側が、閉じた後のフォーカス先を決める。 */
+  onCloseAutoFocus?: (event: Event) => void;
+  /** `DialogTrigger` を渡すとその位置に置く。 */
+  children?: ReactNode;
+}) {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+
+  const trimmed = query.trim();
+  const matches = suggestBills(bills, trimmed);
+  const close = () => onOpenChange(false);
+
+  const submit = () => {
+    close();
+    router.push(billsListHref(DEFAULT_BILLS_LIST_PARAMS, { query: trimmed }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children}
 
       {/*
         `min-w-0` を各段に通す。テーマのチップは `whitespace-nowrap` を持つため、
@@ -83,6 +121,7 @@ export function BillSearchOverlay({
       <DialogContent
         className="grid-cols-[minmax(0,1fr)] gap-0 p-0 sm:max-w-3xl"
         showCloseButton={false}
+        onCloseAutoFocus={onCloseAutoFocus}
       >
         <DialogTitle className="sr-only">法案を検索</DialogTitle>
         <DialogDescription className="sr-only">
@@ -149,7 +188,7 @@ export function BillSearchOverlay({
                       <SuggestRow
                         bill={bill}
                         query={trimmed}
-                        onNavigate={() => setOpen(false)}
+                        onNavigate={close}
                       />
                     </li>
                   ))}
@@ -181,7 +220,7 @@ export function BillSearchOverlay({
                   })}
                   label={tag.label}
                   count={tag.count}
-                  onNavigate={() => setOpen(false)}
+                  onNavigate={close}
                   className="hover:bg-mirai-brand-mint"
                 />
               ))}

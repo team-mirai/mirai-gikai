@@ -8,7 +8,9 @@ import {
 import { createTestRegistry, type TestMcpRegistry } from "./utils";
 
 type ResolutionOutput = {
-  referenceUrl: string;
+  house: string;
+  referenceUrl: string | null;
+  content: string | null;
   stance: string;
   focusPoints: string | null;
   reason: string | null;
@@ -34,14 +36,17 @@ describe("MCP supplementary-resolution tools", () => {
     return bill;
   }
 
-  it("未設定の議案は resolution=null を返す", async () => {
+  async function getResolutions(billId: string) {
+    const result = await registry.callTool<{
+      resolutions: ResolutionOutput[];
+    }>("get_supplementary_resolution", { billId });
+    return result.resolutions;
+  }
+
+  it("未設定の議案は空の配列を返す", async () => {
     const bill = await createBill();
 
-    const result = await registry.callTool<{
-      resolution: ResolutionOutput | null;
-    }>("get_supplementary_resolution", { billId: bill.id });
-
-    expect(result.resolution).toBeNull();
+    expect(await getResolutions(bill.id)).toEqual([]);
   });
 
   it("登録した附帯決議を取得できる", async () => {
@@ -49,29 +54,60 @@ describe("MCP supplementary-resolution tools", () => {
 
     await registry.callTool("upsert_supplementary_resolution", {
       billId: bill.id,
+      house: "HC",
       referenceUrl: "https://example.com/resolution",
+      content: "政府は施行状況を検証し、必要な措置を講ずること。",
       stance: "for",
       focusPoints: "施行後の検証",
       reason: "必要な配慮が盛り込まれているため",
     });
-    const result = await registry.callTool<{
-      resolution: ResolutionOutput | null;
-    }>("get_supplementary_resolution", { billId: bill.id });
 
-    expect(result.resolution).toMatchObject({
-      referenceUrl: "https://example.com/resolution",
-      stance: "for",
-      focusPoints: "施行後の検証",
-      reason: "必要な配慮が盛り込まれているため",
-    });
+    expect(await getResolutions(bill.id)).toMatchObject([
+      {
+        house: "HC",
+        referenceUrl: "https://example.com/resolution",
+        content: "政府は施行状況を検証し、必要な措置を講ずること。",
+        stance: "for",
+        focusPoints: "施行後の検証",
+        reason: "必要な配慮が盛り込まれているため",
+      },
+    ]);
   });
 
-  it("再登録すると同じ行を上書きし、省略した任意項目は null になる", async () => {
+  it("衆議院と参議院の附帯決議を別々に持ち、衆議院→参議院の順で返す", async () => {
     const bill = await createBill();
 
     await registry.callTool("upsert_supplementary_resolution", {
       billId: bill.id,
+      house: "HC",
+      referenceUrl: "https://example.com/hc",
+      stance: "against",
+    });
+    await registry.callTool("upsert_supplementary_resolution", {
+      billId: bill.id,
+      house: "HR",
+      referenceUrl: "https://example.com/hr",
+      stance: "for",
+    });
+
+    expect(await getResolutions(bill.id)).toMatchObject([
+      { house: "HR", referenceUrl: "https://example.com/hr", stance: "for" },
+      {
+        house: "HC",
+        referenceUrl: "https://example.com/hc",
+        stance: "against",
+      },
+    ]);
+  });
+
+  it("同じ院に再登録すると同じ行を上書きし、省略した任意項目は null になる", async () => {
+    const bill = await createBill();
+
+    await registry.callTool("upsert_supplementary_resolution", {
+      billId: bill.id,
+      house: "HR",
       referenceUrl: "https://example.com/first",
+      content: "一回目の内容",
       stance: "for",
       focusPoints: "施行後の検証",
       reason: "理由",
@@ -81,13 +117,16 @@ describe("MCP supplementary-resolution tools", () => {
       resolution: ResolutionOutput;
     }>("upsert_supplementary_resolution", {
       billId: bill.id,
+      house: "HR",
       referenceUrl: "https://example.com/second",
       stance: "against",
     });
 
     expect(result.ok).toBe(true);
     expect(result.resolution).toMatchObject({
+      house: "HR",
       referenceUrl: "https://example.com/second",
+      content: null,
       stance: "against",
       focusPoints: null,
       reason: null,
@@ -105,36 +144,85 @@ describe("MCP supplementary-resolution tools", () => {
     await expect(
       registry.callTool("upsert_supplementary_resolution", {
         billId: bill.id,
+        house: "HR",
         referenceUrl: "javascript:alert(1)",
         stance: "for",
       })
     ).rejects.toThrow();
   });
 
-  it("削除すると未設定に戻り、未設定の削除は not_found を返す", async () => {
+  it("参考リンクなしでも登録でき、未設定は null で返す", async () => {
+    const bill = await createBill();
+
+    const result = await registry.callTool<{
+      ok: boolean;
+      resolution: ResolutionOutput;
+    }>("upsert_supplementary_resolution", {
+      billId: bill.id,
+      house: "HR",
+      content: "政府は施行状況を検証し、必要な措置を講ずること。",
+      stance: "for",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.resolution).toMatchObject({
+      house: "HR",
+      referenceUrl: null,
+      content: "政府は施行状況を検証し、必要な措置を講ずること。",
+    });
+  });
+
+  it("院を指定しない登録は受け付けない", async () => {
+    const bill = await createBill();
+
+    await expect(
+      registry.callTool("upsert_supplementary_resolution", {
+        billId: bill.id,
+        referenceUrl: "https://example.com/resolution",
+        stance: "for",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("削除は指定した院だけを消し、未設定の院の削除は not_found を返す", async () => {
+    const bill = await createBill();
+    for (const house of ["HR", "HC"]) {
+      await registry.callTool("upsert_supplementary_resolution", {
+        billId: bill.id,
+        house,
+        referenceUrl: "https://example.com/resolution",
+        stance: "for",
+      });
+    }
+
+    const deleted = await registry.callTool("delete_supplementary_resolution", {
+      billId: bill.id,
+      house: "HR",
+    });
+    const again = await registry.callTool<{ ok: boolean; reason: string }>(
+      "delete_supplementary_resolution",
+      { billId: bill.id, house: "HR" }
+    );
+
+    expect(deleted).toEqual({ ok: true, billId: bill.id, house: "HR" });
+    expect(again).toEqual({ ok: false, reason: "not_found" });
+    expect(await getResolutions(bill.id)).toMatchObject([{ house: "HC" }]);
+  });
+
+  // 院を指定し忘れた削除で、もう一方の院の附帯決議まで消えないこと
+  it("院を指定しない削除は受け付けない", async () => {
     const bill = await createBill();
     await registry.callTool("upsert_supplementary_resolution", {
       billId: bill.id,
+      house: "HR",
       referenceUrl: "https://example.com/resolution",
       stance: "for",
     });
 
-    const deleted = await registry.callTool<{ ok: boolean }>(
-      "delete_supplementary_resolution",
-      { billId: bill.id }
-    );
-    const again = await registry.callTool<{ ok: boolean; reason: string }>(
-      "delete_supplementary_resolution",
-      { billId: bill.id }
-    );
-
-    expect(deleted.ok).toBe(true);
-    expect(again).toEqual({ ok: false, reason: "not_found" });
-    const { data } = await adminClient
-      .from("bill_supplementary_resolutions")
-      .select("id")
-      .eq("bill_id", bill.id);
-    expect(data).toHaveLength(0);
+    await expect(
+      registry.callTool("delete_supplementary_resolution", { billId: bill.id })
+    ).rejects.toThrow();
+    expect(await getResolutions(bill.id)).toHaveLength(1);
   });
 
   it("3つのツールを登録する", () => {
