@@ -57,7 +57,7 @@
   "dependencies": {
     "@mirai-gikai/shared": "workspace:*",
     "@mirai-gikai/supabase": "workspace:*",
-    "ai": "^6.0.3",
+    "ai": "^7.0.0",
     "server-only": "^0.0.1"
   },
   "peerDependencies": {
