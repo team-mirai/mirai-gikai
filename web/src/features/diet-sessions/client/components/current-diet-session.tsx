@@ -6,6 +6,7 @@ import { calculateSessionProgress } from "../../shared/utils/session-progress";
 
 type CurrentDietSessionProps = {
   session: DietSession | null;
+  activeSession: DietSession | null;
   /** 直近で閉会した会期。閉会中に「終了しました」を出すために使う。 */
   closedSession: DietSession | null;
   /** 進行率の基準時刻。呼び出し側が日本時刻を渡す。 */
@@ -21,6 +22,7 @@ type CurrentDietSessionProps = {
  */
 export function CurrentDietSession({
   session,
+  activeSession,
   closedSession,
   now,
 }: CurrentDietSessionProps) {
@@ -30,39 +32,56 @@ export function CurrentDietSession({
   // main-layout の上余白は md 以上にしか効かないため、モバイルでは
   // ここで余白を確保する（パンくずを持つページと同じ規約）。
   return (
-    <Container className="pt-24 md:pt-5">
-      <div className="flex flex-col gap-6 rounded-2xl bg-mirai-light-gradient px-5 py-5">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span
-            className={`h-2 w-2 shrink-0 rounded-full ${
-              inSession ? "bg-mirai-brand-teal" : "bg-mirai-border-light"
-            }`}
-            aria-hidden
-          />
-          <span className="whitespace-nowrap text-xl font-bold">本日は</span>
-          {/* 会期中は状態そのものを目立たせ、閉会中は落ち着かせる。 */}
-          <span
-            className={`rounded-full px-3.5 py-1 text-[15px] font-bold ${
-              inSession
-                ? "bg-mirai-gradient text-mirai-text"
-                : "bg-mirai-surface-muted text-mirai-text-secondary"
-            }`}
-          >
-            {inSession ? "国会会期中" : "国会閉会中"}
-          </span>
-          {inSession && (
-            <span className="text-[15px] font-bold text-mirai-brand-teal-deep md:ml-auto">
-              {session.name}
+    <>
+      <Container className="pt-24 md:pt-5">
+        <div className="flex flex-col gap-6 rounded-2xl bg-mirai-light-gradient px-5 py-5">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full ${
+                inSession ? "bg-mirai-brand-teal" : "bg-mirai-border-light"
+              }`}
+              aria-hidden
+            />
+            <span className="whitespace-nowrap text-xl font-bold">本日は</span>
+            {/* 会期中は状態そのものを目立たせ、閉会中は落ち着かせる。 */}
+            <span
+              className={`rounded-full px-3.5 py-1 text-[15px] font-bold ${
+                inSession
+                  ? "bg-mirai-gradient text-mirai-text"
+                  : "bg-mirai-surface-muted text-mirai-text-secondary"
+              }`}
+            >
+              {inSession ? "国会会期中" : "国会閉会中"}
             </span>
+            {inSession && (
+              <span className="text-[15px] font-bold text-mirai-brand-teal-deep md:ml-auto">
+                {session.name}
+              </span>
+            )}
+          </div>
+
+          {inSession && <SessionProgressBar session={session} now={now} />}
+          {!inSession && closedSession && (
+            <ClosedSessionSummary session={closedSession} />
           )}
         </div>
-
-        {inSession && <SessionProgressBar session={session} now={now} />}
-        {!inSession && closedSession && (
-          <ClosedSessionSummary session={closedSession} />
-        )}
-      </div>
-    </Container>
+      </Container>
+      {activeSession?.overview && (
+        <Container className="pt-6">
+          <section className="rounded-xl border border-mirai-border-light bg-white px-6 py-5">
+            <p className="mb-1 text-sm font-semibold text-primary-accent">
+              {activeSession.name}
+            </p>
+            <h2 className="mb-2 text-xl font-bold text-mirai-text">
+              今回の議会について
+            </h2>
+            <p className="whitespace-pre-wrap text-base leading-8 text-mirai-text-secondary">
+              {activeSession.overview}
+            </p>
+          </section>
+        </Container>
+      )}
+    </>
   );
 }
 

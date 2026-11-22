@@ -3,6 +3,7 @@ export type DietSession = {
   name: string;
   slug: string | null;
   shugiin_url: string | null;
+  overview: string | null;
   start_date: string;
   end_date: string;
   is_active: boolean;

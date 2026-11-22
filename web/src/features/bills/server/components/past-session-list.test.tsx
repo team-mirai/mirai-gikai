@@ -12,6 +12,7 @@ const session = (
   name: "第220回臨時国会",
   slug: "220-rinji",
   shugiin_url: null,
+  overview: null,
   start_date: "2025-10-24",
   end_date: "2025-12-17",
   is_active: false,

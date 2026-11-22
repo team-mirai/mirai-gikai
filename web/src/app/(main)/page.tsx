@@ -18,6 +18,7 @@ import { chatBillName } from "@/features/bills/shared/utils/chat-bill-name";
 import { pickHomeSections } from "@/features/bills/shared/utils/pick-home-sections";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
+import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { getLatestClosedDietSession } from "@/features/diet-sessions/server/loaders/get-latest-closed-diet-session";
 import { getJapanTime } from "@/lib/utils/date";
@@ -38,12 +39,14 @@ export default async function Home() {
       pastSessions,
     },
     currentSession,
+    activeSession,
     latestClosedSession,
     currentDifficulty,
     searchData,
   ] = await Promise.all([
     loadHomeData(),
     getCurrentDietSession(japanTime),
+    getActiveDietSession(),
     getLatestClosedDietSession(japanTime),
     getDifficultyLevel(),
     getBillSearchData(),
@@ -72,6 +75,7 @@ export default async function Home() {
       {/* 本日の国会セクション */}
       <CurrentDietSession
         session={currentSession}
+        activeSession={activeSession}
         closedSession={latestClosedSession}
         now={japanTime}
       />
