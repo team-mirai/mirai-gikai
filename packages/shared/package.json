@@ -8,6 +8,10 @@
     "test:watch": "vitest"
   },
   "exports": {
+    "./diet-sessions/types": {
+      "types": "./src/diet-sessions/types.ts",
+      "default": "./src/diet-sessions/types.ts"
+    },
     "./youtube": {
       "types": "./src/youtube/youtube.ts",
       "default": "./src/youtube/youtube.ts"

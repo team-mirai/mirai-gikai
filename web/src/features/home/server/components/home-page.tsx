@@ -1,0 +1,166 @@
+import "server-only";
+
+import { Container } from "@/components/layouts/container";
+import { About } from "@/components/top/about";
+import { ComingSoonSection } from "@/components/top/coming-soon-section";
+import { TeamMirai } from "@/components/top/team-mirai";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
+import { BillDisclaimer } from "@/features/bills/client/components/bill-detail/bill-disclaimer";
+import { BillSearchOverlay } from "@/features/bills/client/components/bill-search-overlay";
+import { BillsByTagSection } from "@/features/bills/server/components/bills-by-tag-section";
+import { CategoryTabs } from "@/features/bills/server/components/category-tabs";
+import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
+import { InterviewOpenBillSection } from "@/features/bills/server/components/interview-open-bill-section";
+import { PastSessionList } from "@/features/bills/server/components/past-session-list";
+import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
+import { getBillSearchData } from "@/features/bills/server/loaders/get-bill-search-data";
+import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
+import type { BillWithContent } from "@/features/bills/shared/types";
+import { chatBillName } from "@/features/bills/shared/utils/chat-bill-name";
+import { pickHomeSections } from "@/features/bills/shared/utils/pick-home-sections";
+import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
+import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
+import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
+import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
+import { getLatestClosedDietSession } from "@/features/diet-sessions/server/loaders/get-latest-closed-diet-session";
+import { getJapanTime } from "@/lib/utils/date";
+
+/** カテゴリタブの「注目」から飛ばす先。 */
+const FEATURED_ANCHOR = "featured";
+
+export async function HomePage() {
+  const japanTime = getJapanTime();
+  // ゆくゆくタグ機能がマージされたらBFFに統合する
+  const [
+    {
+      billsByTag,
+      featuredBills,
+      interviewOpenBills,
+      comingSoonBills,
+      previousSessionData,
+      pastSessions,
+    },
+    currentSession,
+    activeSession,
+    latestClosedSession,
+    currentDifficulty,
+    searchData,
+  ] = await Promise.all([
+    loadHomeData(),
+    getCurrentDietSession(japanTime),
+    getActiveDietSession(),
+    getLatestClosedDietSession(japanTime),
+    getDifficultyLevel(),
+    getBillSearchData(),
+  ]);
+
+  const inSession = currentSession !== null;
+
+  const { tagGroups, shownBills, featuredBillIds } = pickHomeSections({
+    billsByTag,
+    featuredBills,
+    interviewOpenBills,
+    inSession,
+  });
+
+  const toBillChatContext = (bill: BillWithContent) => {
+    return {
+      name: chatBillName(bill),
+      summary: bill.bill_content?.summary,
+      tags: bill.tags?.map((tag) => tag.label) || [],
+      isFeatured: featuredBillIds.has(bill.id),
+    };
+  };
+
+  return (
+    <>
+      {/* 本日の国会セクション */}
+      <CurrentDietSession
+        session={currentSession}
+        activeSession={activeSession}
+        closedSession={latestClosedSession}
+        now={japanTime}
+      />
+
+      <Container>
+        <div className="pt-4">
+          <CategoryTabs
+            billsByTag={billsByTag}
+            featuredAnchor={inSession ? FEATURED_ANCHOR : undefined}
+          />
+        </div>
+        {/* 検索の入口。キーワードとテーマの両方をモーダルに並べる */}
+        <div className="flex justify-end pt-2">
+          <BillSearchOverlay {...searchData} />
+        </div>
+      </Container>
+
+      {/* 議案一覧セクション */}
+      <Container className="">
+        <div className="py-10">
+          <main className="flex flex-col gap-16">
+            {/*
+              AIインタビュー受付中セクション。意見を出せる法案を最初に見せる。
+              会期では絞らない（閉会中でも受付中なら案内する）ため、注目と違って
+              inSession で出し分けない。
+            */}
+            <InterviewOpenBillSection bills={interviewOpenBills} />
+
+            {/*
+              注目の法案は会期中だけ出す。閉会中に「注目」を掲げても、審議が
+              動いていない期間の情報を強調することになる。
+              なお getFeaturedBills はアクティブ会期が無いと全件スコープに
+              落ちるので、データ側だけでは空にならない。
+            */}
+            {inSession && (
+              <section id={FEATURED_ANCHOR}>
+                <FeaturedBillSection bills={featuredBills} />
+              </section>
+            )}
+
+            {/* タグ別議案一覧セクション（タグに紐づく議案を全件出す） */}
+            <BillsByTagSection billsByTag={tagGroups} />
+
+            {/* Coming soonセクション */}
+            <ComingSoonSection bills={comingSoonBills} />
+          </main>
+        </div>
+      </Container>
+
+      {/* 前回の国会セクション（Archive） */}
+      {(previousSessionData || pastSessions.length > 0) && (
+        <div className="bg-mirai-surface-muted py-10">
+          <Container>
+            <div className="flex flex-col gap-10">
+              {previousSessionData && (
+                <PreviousSessionSection
+                  session={previousSessionData.session}
+                  bills={previousSessionData.bills}
+                  totalBillCount={previousSessionData.totalBillCount}
+                />
+              )}
+              <PastSessionList sessions={pastSessions} />
+            </div>
+          </Container>
+        </div>
+      )}
+
+      <Container>
+        {/* みらい議会とは セクション */}
+        <About />
+
+        {/* チームみらいについて セクション */}
+        <TeamMirai />
+
+        {/* 免責事項 */}
+        <BillDisclaimer />
+      </Container>
+
+      {/* チャット機能 */}
+      <HomeChatClient
+        currentDifficulty={currentDifficulty}
+        bills={shownBills.map(toBillChatContext)}
+      />
+    </>
+  );
+}
