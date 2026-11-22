@@ -74,6 +74,29 @@ export async function updateDietSessionRecord(
   return data;
 }
 
+export async function updateDietSessionOverviewRecord(
+  id: string,
+  overview: string | null
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("diet_sessions")
+    .update({ overview })
+    .eq("id", id)
+    .eq("is_active", true)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`トップページの説明更新に失敗しました: ${error.message}`);
+  }
+  if (!data) {
+    throw new Error("アクティブな会期が見つかりません");
+  }
+
+  return data;
+}
+
 export async function deleteDietSessionRecord(id: string) {
   const supabase = createAdminClient();
   const { error } = await supabase.from("diet_sessions").delete().eq("id", id);
