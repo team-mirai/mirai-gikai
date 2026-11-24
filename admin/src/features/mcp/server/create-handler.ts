@@ -10,6 +10,7 @@ import { registerBillsTools } from "./tools/register-bills-tools";
 import { registerChatUsageTools } from "./tools/register-chat-usage-tools";
 import { registerDietSessionsTools } from "./tools/register-diet-sessions-tools";
 import { registerInterviewMetricsTools } from "./tools/register-interview-metrics-tools";
+import { registerInterviewTools } from "./tools/register-interview-tools";
 import { registerMiraiStanceTools } from "./tools/register-mirai-stance-tools";
 import { registerPreviewTools } from "./tools/register-preview-tools";
 import { registerSupplementaryResolutionTools } from "./tools/register-supplementary-resolution-tools";
@@ -28,6 +29,7 @@ export function createAdminMcpHandler() {
       registerChatUsageTools(server);
       registerDietSessionsTools(server);
       registerInterviewMetricsTools(server);
+      registerInterviewTools(server);
       registerMiraiStanceTools(server);
       registerPreviewTools(server);
       registerSupplementaryResolutionTools(server);
