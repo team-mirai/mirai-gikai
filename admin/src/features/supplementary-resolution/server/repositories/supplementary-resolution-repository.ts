@@ -82,3 +82,31 @@ export async function deleteSupplementaryResolutionByHouse(
 
   return data.length > 0;
 }
+
+/**
+ * 非公開の附帯決議を公開する。公開確認の後に内容が書き換わっていれば公開しないよう、
+ * updated_at が公開確認時点の値と一致する場合だけ更新する。公開できた場合は true を返す。
+ */
+export async function publishSupplementaryResolutionIfUnchanged(
+  billId: string,
+  house: SupplementaryResolutionHouse,
+  expectedUpdatedAt: string
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bill_supplementary_resolutions")
+    .update({ is_published: true, updated_at: new Date().toISOString() })
+    .eq("bill_id", billId)
+    .eq("house", house)
+    .eq("is_published", false)
+    .eq("updated_at", expectedUpdatedAt)
+    .select("id");
+
+  if (error) {
+    throw new Error(
+      `Failed to publish supplementary resolution: ${error.message}`
+    );
+  }
+
+  return data.length > 0;
+}

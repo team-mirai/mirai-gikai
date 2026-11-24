@@ -9,8 +9,10 @@ import { BillDetailClient } from "../../../client/components/bill-detail/bill-de
 import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disclaimer";
 import { BillStatusProgress } from "../../../client/components/bill-detail/bill-status-progress";
 import { MiraiStanceCard } from "../../../client/components/bill-detail/mirai-stance-card";
+import { SupplementaryResolutionsSection } from "../../../client/components/bill-detail/supplementary-resolutions-section";
 import type { BillWithContent } from "../../../shared/types";
 import { getBillVideos } from "../../loaders/get-bill-videos";
+import { getPublishedSupplementaryResolutions } from "../../loaders/get-published-supplementary-resolutions";
 import { BillShareButtons } from "../share/bill-share-buttons";
 import { BillContent } from "./bill-content";
 import { BillDetailHeader } from "./bill-detail-header";
@@ -25,13 +27,19 @@ export async function BillDetailLayout({
   bill,
   currentDifficulty,
 }: BillDetailLayoutProps) {
-  const [interviewConfig, publicReportsResult, topicAnalysis, videos] =
-    await Promise.all([
-      getInterviewConfig(bill.id),
-      getPublicReportsByBillId(bill.id),
-      getPublicTopicAnalysis(bill.id),
-      getBillVideos(bill.id),
-    ]);
+  const [
+    interviewConfig,
+    publicReportsResult,
+    topicAnalysis,
+    videos,
+    supplementaryResolutions,
+  ] = await Promise.all([
+    getInterviewConfig(bill.id),
+    getPublicReportsByBillId(bill.id),
+    getPublicTopicAnalysis(bill.id),
+    getBillVideos(bill.id),
+    getPublishedSupplementaryResolutions(bill.id),
+  ]);
 
   return (
     <div className="container mx-auto pb-8 max-w-4xl">
@@ -97,6 +105,14 @@ export async function BillDetailLayout({
             >
               {videos.length > 0 && <BillVideosSection videos={videos} />}
             </MiraiStanceCard>
+          </div>
+        )}
+        {/* 附帯決議は院ごとに公開確認を経て公開する。公開済みのものが無ければ出さない */}
+        {supplementaryResolutions.length > 0 && (
+          <div className="my-8">
+            <SupplementaryResolutionsSection
+              resolutions={supplementaryResolutions}
+            />
           </div>
         )}
         {/* シェアボタン */}

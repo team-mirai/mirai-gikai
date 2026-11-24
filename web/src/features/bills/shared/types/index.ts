@@ -18,6 +18,12 @@ export type BillVideo = Pick<
   "id" | "kind" | "youtube_video_id" | "title"
 >;
 
+/** 公開サイトに出す附帯決議（公開済みのものだけ） */
+export type PublishedSupplementaryResolution = Pick<
+  Database["public"]["Tables"]["bill_supplementary_resolutions"]["Row"],
+  "house" | "stance" | "content" | "reference_url" | "focus_points" | "reason"
+>;
+
 // Enums
 export type HouseEnum = Database["public"]["Enums"]["house_enum"];
 export type BillStatusEnum = Database["public"]["Enums"]["bill_status_enum"];
