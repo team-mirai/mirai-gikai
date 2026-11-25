@@ -96,23 +96,24 @@ export async function BillDetailLayout({
         {bill.mirai_stance && (
           <div className="my-8">
             {/*
-              動画は賛否の判断に関する議論なので、賛否カードの中に置く。
-              賛否が公開されていない間は動画も出さない。
+              附帯決議（院ごとの公開確認を経たもの）と動画は賛否の判断に関する内容なので、
+              賛否カードの中に置く。賛否が公開されていない間・法案提出前はどちらも出さない。
             */}
             <MiraiStanceCard
               stance={bill.mirai_stance}
               billStatus={bill.status}
             >
-              {videos.length > 0 && <BillVideosSection videos={videos} />}
+              {(supplementaryResolutions.length > 0 || videos.length > 0) && (
+                <div className="flex flex-col gap-8">
+                  {supplementaryResolutions.length > 0 && (
+                    <SupplementaryResolutionsSection
+                      resolutions={supplementaryResolutions}
+                    />
+                  )}
+                  {videos.length > 0 && <BillVideosSection videos={videos} />}
+                </div>
+              )}
             </MiraiStanceCard>
-          </div>
-        )}
-        {/* 附帯決議は院ごとに公開確認を経て公開する。公開済みのものが無ければ出さない */}
-        {supplementaryResolutions.length > 0 && (
-          <div className="my-8">
-            <SupplementaryResolutionsSection
-              resolutions={supplementaryResolutions}
-            />
           </div>
         )}
         {/* シェアボタン */}
