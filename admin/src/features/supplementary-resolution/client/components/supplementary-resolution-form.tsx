@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -53,6 +54,11 @@ export function SupplementaryResolutionForm({
     resolution?.focus_points ?? ""
   );
   const [reason, setReason] = useState(resolution?.reason ?? "");
+  // 新規は公開で入れる（admin で入力する人は公開するつもりで登録する）。
+  // Slack で転記した非公開の附帯決議は、担当議員室が公開確認で公開する
+  const [isPublished, setIsPublished] = useState(
+    resolution?.is_published ?? true
+  );
 
   const handleSave = () => {
     if (stance === "") {
@@ -67,6 +73,7 @@ export function SupplementaryResolutionForm({
         stance,
         focusPoints,
         reason,
+        isPublished,
       });
       if (result.success) {
         toast.success(`${houseLabel}の附帯決議を保存しました`);
@@ -175,6 +182,18 @@ export function SupplementaryResolutionForm({
               onChange={(e) => setReason(e.target.value)}
               disabled={isPending}
             />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              id={`${idPrefix}-published`}
+              checked={isPublished}
+              onCheckedChange={setIsPublished}
+              disabled={isPending}
+            />
+            <Label htmlFor={`${idPrefix}-published`}>
+              公開する（オフにすると公開サイトに表示しません）
+            </Label>
           </div>
 
           <div className="flex gap-2">

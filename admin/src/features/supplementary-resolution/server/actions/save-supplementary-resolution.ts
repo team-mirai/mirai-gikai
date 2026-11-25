@@ -1,6 +1,10 @@
 "use server";
 
 import { requireAdmin } from "@/features/auth/server/lib/auth-server";
+import {
+  invalidateWebCache,
+  WEB_CACHE_TAGS,
+} from "@/lib/utils/cache-invalidation";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
   type SupplementaryResolutionInput,
@@ -24,6 +28,8 @@ export async function saveSupplementaryResolution(
 
   try {
     await upsertSupplementaryResolution(billId, parsed.data);
+    // 公開サイトの議案詳細に附帯決議を出すので、議案のキャッシュを捨てる
+    await invalidateWebCache([WEB_CACHE_TAGS.BILLS]);
     return { success: true };
   } catch (error) {
     console.error("Error in saveSupplementaryResolution:", error);
