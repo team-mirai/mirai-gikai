@@ -29,8 +29,8 @@ describe("SupplementaryResolutionsSection", () => {
       />
     );
 
-    expect(screen.getByText("衆議院の附帯決議")).toBeInTheDocument();
-    expect(screen.getByText("チームみらいは賛成")).toBeInTheDocument();
+    expect(screen.getByText("📜 衆議院の附帯決議")).toBeInTheDocument();
+    expect(screen.getByText("賛成")).toBeInTheDocument();
     expect(screen.getByText("施行状況を検証すること")).toBeInTheDocument();
     expect(screen.getByText("施行後の検証")).toBeInTheDocument();
     expect(screen.getByText("必要な配慮のため")).toBeInTheDocument();
@@ -38,8 +38,8 @@ describe("SupplementaryResolutionsSection", () => {
       screen.getByRole("link", { name: "附帯決議の全文を見る" })
     ).toHaveAttribute("href", "https://example.com/r");
 
-    expect(screen.getByText("参議院の附帯決議")).toBeInTheDocument();
-    expect(screen.getByText("チームみらいは反対")).toBeInTheDocument();
+    expect(screen.getByText("📜 参議院の附帯決議")).toBeInTheDocument();
+    expect(screen.getByText("反対")).toBeInTheDocument();
     // 任意項目が無い院では見出しも出さない
     expect(screen.getAllByText("理由")).toHaveLength(1);
   });
