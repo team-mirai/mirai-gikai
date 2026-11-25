@@ -58,4 +58,17 @@ describe("toSupplementaryResolutionColumns", () => {
     expect(columns.focus_points).toBe("施行後の検証");
     expect(columns.reason).toBe("理由");
   });
+
+  it("isPublished は指定したときだけ is_published として渡す（省略時は既存の公開/非公開を保つ）", () => {
+    const base = { house: "HR", stance: "for" } as const;
+    expect(
+      toSupplementaryResolutionColumns({ ...base, isPublished: false })
+    ).toMatchObject({ is_published: false });
+    expect(
+      toSupplementaryResolutionColumns({ ...base, isPublished: true })
+    ).toMatchObject({ is_published: true });
+    expect(toSupplementaryResolutionColumns(base)).not.toHaveProperty(
+      "is_published"
+    );
+  });
 });

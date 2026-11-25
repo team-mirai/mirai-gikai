@@ -14,6 +14,8 @@ type ResolutionOutput = {
   stance: string;
   focusPoints: string | null;
   reason: string | null;
+  isPublished: boolean;
+  updatedAt: string;
 };
 
 describe("MCP supplementary-resolution tools", () => {
@@ -225,10 +227,122 @@ describe("MCP supplementary-resolution tools", () => {
     expect(await getResolutions(bill.id)).toHaveLength(1);
   });
 
-  it("3つのツールを登録する", () => {
+  describe("公開/非公開", () => {
+    async function upsert(billId: string, extra: Record<string, unknown> = {}) {
+      return registry.callTool<{ resolution: ResolutionOutput }>(
+        "upsert_supplementary_resolution",
+        { billId, house: "HR", stance: "for", content: "内容", ...extra }
+      );
+    }
+
+    it("isPublished を省いた新規登録は非公開になる", async () => {
+      const bill = await createBill();
+      await upsert(bill.id);
+
+      expect(await getResolutions(bill.id)).toMatchObject([
+        { house: "HR", isPublished: false },
+      ]);
+    });
+
+    it("isPublished を省いた上書きは、既存の公開/非公開を変えない", async () => {
+      const bill = await createBill();
+      await upsert(bill.id, { isPublished: true });
+      await upsert(bill.id, { content: "書き換えた内容" });
+
+      expect(await getResolutions(bill.id)).toMatchObject([
+        { content: "書き換えた内容", isPublished: true },
+      ]);
+    });
+
+    it("公開確認時点の updatedAt を渡すと公開する", async () => {
+      const bill = await createBill();
+      const { resolution } = await upsert(bill.id, { isPublished: false });
+
+      const result = await registry.callTool(
+        "publish_supplementary_resolution",
+        {
+          billId: bill.id,
+          house: "HR",
+          expectedUpdatedAt: resolution.updatedAt,
+        }
+      );
+
+      expect(result).toEqual({ ok: true, billId: bill.id, house: "HR" });
+      expect(await getResolutions(bill.id)).toMatchObject([
+        { isPublished: true },
+      ]);
+    });
+
+    it("公開確認の後に内容が書き換わっていたら公開しない（stale）", async () => {
+      const bill = await createBill();
+      const { resolution } = await upsert(bill.id, { isPublished: false });
+      // updated_at はミリ秒精度なので、書き換えで値が変わるよう少し待つ
+      await new Promise((r) => setTimeout(r, 5));
+      await upsert(bill.id, { isPublished: false, content: "シートで直した" });
+
+      const result = await registry.callTool(
+        "publish_supplementary_resolution",
+        {
+          billId: bill.id,
+          house: "HR",
+          expectedUpdatedAt: resolution.updatedAt,
+        }
+      );
+
+      expect(result).toEqual({ ok: false, reason: "stale" });
+      expect(await getResolutions(bill.id)).toMatchObject([
+        { isPublished: false },
+      ]);
+    });
+
+    it("公開済み・未設定はそれぞれ already_published / not_found を返す", async () => {
+      const bill = await createBill();
+      const { resolution } = await upsert(bill.id, { isPublished: true });
+
+      const published = await registry.callTool(
+        "publish_supplementary_resolution",
+        {
+          billId: bill.id,
+          house: "HR",
+          expectedUpdatedAt: resolution.updatedAt,
+        }
+      );
+      const missing = await registry.callTool(
+        "publish_supplementary_resolution",
+        {
+          billId: bill.id,
+          house: "HC",
+          expectedUpdatedAt: resolution.updatedAt,
+        }
+      );
+
+      expect(published).toEqual({ ok: false, reason: "already_published" });
+      expect(missing).toEqual({ ok: false, reason: "not_found" });
+    });
+
+    it("公開するのは指定した院だけ", async () => {
+      const bill = await createBill();
+      const { resolution } = await upsert(bill.id, { isPublished: false });
+      await upsert(bill.id, { house: "HC", isPublished: false });
+
+      await registry.callTool("publish_supplementary_resolution", {
+        billId: bill.id,
+        house: "HR",
+        expectedUpdatedAt: resolution.updatedAt,
+      });
+
+      expect(await getResolutions(bill.id)).toMatchObject([
+        { house: "HR", isPublished: true },
+        { house: "HC", isPublished: false },
+      ]);
+    });
+  });
+
+  it("4つのツールを登録する", () => {
     expect(registry.toolNames().sort()).toEqual([
       "delete_supplementary_resolution",
       "get_supplementary_resolution",
+      "publish_supplementary_resolution",
       "upsert_supplementary_resolution",
     ]);
   });

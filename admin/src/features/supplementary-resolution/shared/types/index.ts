@@ -38,6 +38,8 @@ export const supplementaryResolutionInputSchema = z.object({
   // 附帯決議で重視した事項・理由（任意）。空文字・null・省略はいずれも未設定として保存する
   focusPoints: z.string().nullable().optional(),
   reason: z.string().nullable().optional(),
+  // 公開するか。省略時は、新規なら非公開（DB の既定）、既存なら今の公開/非公開を変えない
+  isPublished: z.boolean().optional(),
 });
 
 export type SupplementaryResolutionInput = z.infer<

@@ -15,5 +15,9 @@ export function toSupplementaryResolutionColumns(
     stance: input.stance,
     focus_points: trimOrNull(input.focusPoints),
     reason: trimOrNull(input.reason),
+    // 省略時は列ごと渡さない（upsert で既存の公開/非公開を保ち、新規は DB 既定の非公開になる）
+    ...(input.isPublished !== undefined && {
+      is_published: input.isPublished,
+    }),
   };
 }

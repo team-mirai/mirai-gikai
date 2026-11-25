@@ -174,6 +174,7 @@ export type Database = {
           focus_points: string | null
           house: Database["public"]["Enums"]["house_enum"]
           id: string
+          is_published: boolean
           reason: string | null
           reference_url: string | null
           stance: Database["public"]["Enums"]["supplementary_resolution_stance"]
@@ -186,6 +187,7 @@ export type Database = {
           focus_points?: string | null
           house: Database["public"]["Enums"]["house_enum"]
           id?: string
+          is_published?: boolean
           reason?: string | null
           reference_url?: string | null
           stance: Database["public"]["Enums"]["supplementary_resolution_stance"]
@@ -198,6 +200,7 @@ export type Database = {
           focus_points?: string | null
           house?: Database["public"]["Enums"]["house_enum"]
           id?: string
+          is_published?: boolean
           reason?: string | null
           reference_url?: string | null
           stance?: Database["public"]["Enums"]["supplementary_resolution_stance"]

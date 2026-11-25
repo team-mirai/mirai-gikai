@@ -182,6 +182,32 @@ export async function findVideosByBillId(billId: string) {
   return data;
 }
 
+/**
+ * 議案の公開済みの附帯決議を、衆議院→参議院の順に取得する（議案詳細ページ用）。
+ * 非公開（Slack の公開確認を待っているもの）は返さない。
+ */
+export async function findPublishedSupplementaryResolutionsByBillId(
+  billId: string
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bill_supplementary_resolutions")
+    .select("house, stance, content, reference_url, focus_points, reason")
+    .eq("bill_id", billId)
+    .eq("is_published", true)
+    // house_enum の宣言順（HR→HC）で並ぶ
+    .order("house");
+
+  // 空配列を返すとエラー結果がキャッシュされ附帯決議が消えるため throw する
+  if (error) {
+    throw new Error(
+      `Failed to fetch supplementary resolutions: ${error.message}`
+    );
+  }
+
+  return data;
+}
+
 // ============================================================
 // Bill Contents
 // ============================================================
