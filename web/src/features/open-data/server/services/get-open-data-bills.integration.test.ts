@@ -45,6 +45,8 @@ describe("getOpenDataBills / getOpenDataBillDetail", () => {
     await createTestMiraiStance(publishedBillId, {
       type: "for",
       comment: "賛成コメント",
+      reason_summary: "理由の一言",
+      reason_points: ["理由その1", " ", "理由その2"],
     });
     const tag = await createTestTag();
     tagId = tag.id;
@@ -128,6 +130,8 @@ describe("getOpenDataBills / getOpenDataBillDetail", () => {
       type: "for",
       label: "賛成",
       comment: "賛成コメント",
+      reasonSummary: "理由の一言",
+      reasonPoints: ["理由その1", "理由その2"],
     });
     expect(withStance?.tags).toEqual([
       { id: tagId, label: expect.any(String) },

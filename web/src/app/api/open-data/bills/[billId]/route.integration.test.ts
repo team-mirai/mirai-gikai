@@ -67,6 +67,8 @@ describe("GET /api/open-data/bills/[billId]", () => {
       type: "against",
       label: "反対",
       comment: expect.any(String),
+      reasonSummary: null,
+      reasonPoints: [],
     });
   });
 });

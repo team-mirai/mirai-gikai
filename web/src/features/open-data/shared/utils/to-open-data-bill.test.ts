@@ -21,6 +21,8 @@ const baseRow: OpenDataBillRow = {
   mirai_stances: {
     type: "conditional_for",
     comment: "条件付きで賛成",
+    reason_summary: null,
+    reason_points: [],
     is_published: true,
     publish_at: null,
   },
@@ -46,6 +48,8 @@ describe("toOpenDataBillItem", () => {
         type: "conditional_for",
         label: "条件付き賛成",
         comment: "条件付きで賛成",
+        reasonSummary: null,
+        reasonPoints: [],
       },
       createdAt: "2026-01-01T00:00:00+00:00",
     });
@@ -96,14 +100,62 @@ describe("toOpenDataMiraiStance", () => {
   it("賛否種別に日本語ラベルを付与する", () => {
     expect(
       toOpenDataMiraiStance(
-        { type: "for", comment: null, is_published: true, publish_at: null },
+        {
+          type: "for",
+          comment: null,
+          reason_summary: null,
+          reason_points: [],
+          is_published: true,
+          publish_at: null,
+        },
         now
       )
     ).toEqual({
       type: "for",
       label: "賛成",
       comment: null,
+      reasonSummary: null,
+      reasonPoints: [],
     });
+  });
+
+  it("新フォーマットの判断の理由（一言・箇条書き）を空白を整えて返す", () => {
+    expect(
+      toOpenDataMiraiStance(
+        {
+          type: "for",
+          comment: null,
+          reason_summary: "  被害を防ぐ必要性を評価します。 ",
+          reason_points: [
+            "裁判官の事前審査がある",
+            "  ",
+            " 対象を限定している ",
+          ],
+          is_published: true,
+          publish_at: null,
+        },
+        now
+      )
+    ).toMatchObject({
+      reasonSummary: "被害を防ぐ必要性を評価します。",
+      reasonPoints: ["裁判官の事前審査がある", "対象を限定している"],
+    });
+  });
+
+  it("箇条書きだけの理由では一言を null にする", () => {
+    expect(
+      toOpenDataMiraiStance(
+        {
+          type: "for",
+          comment: null,
+          reason_summary: "",
+          reason_points: ["理由"],
+          is_published: true,
+          publish_at: null,
+        },
+        now
+      )
+    ).toMatchObject({ reasonSummary: null, reasonPoints: ["理由"] });
   });
 
   it("null の場合は null を返す", () => {
@@ -115,6 +167,8 @@ describe("toOpenDataMiraiStance", () => {
       {
         type: "against",
         comment: "反対の理由",
+        reason_summary: null,
+        reason_points: [],
         is_published: true,
         publish_at: "2026-10-01T11:00:00+09:00",
       },
@@ -129,6 +183,8 @@ describe("toOpenDataMiraiStance", () => {
         {
           type: "against",
           comment: "反対の理由",
+          reason_summary: null,
+          reason_points: [],
           is_published: true,
           publish_at: "2026-10-01T13:00:00+09:00",
         },
@@ -143,6 +199,8 @@ describe("toOpenDataMiraiStance", () => {
         {
           type: "against",
           comment: "反対の理由",
+          reason_summary: null,
+          reason_points: [],
           is_published: false,
           publish_at: null,
         },

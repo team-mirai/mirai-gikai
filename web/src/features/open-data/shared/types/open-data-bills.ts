@@ -9,8 +9,12 @@ export type OpenDataMiraiStance = {
   type: StanceTypeEnum;
   /** 賛否種別の日本語ラベル（賛成 / 反対 など） */
   label: string;
-  /** 賛否についての補足コメント */
+  /** 賛否についての補足コメント（旧フォーマット） */
   comment: string | null;
+  /** 判断の理由の一言（新フォーマット）。未入力は null */
+  reasonSummary: string | null;
+  /** 判断の理由の箇条書き（新フォーマット）。未入力は空配列 */
+  reasonPoints: string[];
 };
 
 export type OpenDataBillTag = {

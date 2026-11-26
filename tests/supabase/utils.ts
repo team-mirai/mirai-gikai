@@ -259,6 +259,8 @@ export async function createTestMiraiStance(
   overrides: Partial<{
     type: "for" | "against" | "neutral";
     comment: string;
+    reason_summary: string | null;
+    reason_points: string[];
     is_published: boolean;
     publish_at: string | null;
   }> = {}

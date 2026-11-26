@@ -532,7 +532,7 @@
       },
       "OpenDataMiraiStance": {
         "type": "object",
-        "required": ["type", "label", "comment"],
+        "required": ["type", "label", "comment", "reasonSummary", "reasonPoints"],
         "properties": {
           "type": {
             "type": "string",
@@ -554,7 +554,16 @@
           },
           "comment": {
             "type": ["string", "null"],
-            "description": "賛否についての補足コメント"
+            "description": "賛否についての補足コメント（旧フォーマット）"
+          },
+          "reasonSummary": {
+            "type": ["string", "null"],
+            "description": "判断の理由の一言。未入力は null"
+          },
+          "reasonPoints": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "判断の理由の箇条書き。未入力は空配列"
           }
         }
       },

@@ -1,4 +1,5 @@
 import { isMiraiStancePublished } from "@mirai-gikai/shared/mirai-stance/publish-schedule";
+import { getNewFormatReason } from "@mirai-gikai/shared/mirai-stance/reason-format";
 import {
   type BillStatusEnum,
   getBillStatusLabel,
@@ -15,7 +16,12 @@ import type {
 
 type OpenDataMiraiStanceRow = Pick<
   MiraiStance,
-  "type" | "comment" | "is_published" | "publish_at"
+  | "type"
+  | "comment"
+  | "reason_summary"
+  | "reason_points"
+  | "is_published"
+  | "publish_at"
 >;
 
 export type OpenDataBillRow = {
@@ -87,9 +93,12 @@ export function toOpenDataMiraiStance(
   now: Date
 ): OpenDataMiraiStance | null {
   if (!stance || !isMiraiStancePublished(stance, now)) return null;
+  const reason = getNewFormatReason(stance);
   return {
     type: stance.type,
     label: STANCE_LABELS[stance.type],
     comment: stance.comment,
+    reasonSummary: reason?.summary || null,
+    reasonPoints: reason?.points ?? [],
   };
 }
