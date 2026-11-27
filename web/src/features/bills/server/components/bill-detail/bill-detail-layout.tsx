@@ -41,6 +41,9 @@ export async function BillDetailLayout({
     getPublishedSupplementaryResolutions(bill.id),
   ]);
 
+  // 法案提出前は賛否の中身（動画・附帯決議）を出さない
+  const isStanceDisclosed = bill.status !== "preparing";
+
   return (
     <div className="container mx-auto pb-8 max-w-4xl">
       {/*
@@ -94,27 +97,30 @@ export async function BillDetailLayout({
           賛否を登録していない段階で「法案提出前」のカードだけを出すことはしない。
         */}
         {bill.mirai_stance && (
-          <div className="my-8">
+          <>
             {/*
-              附帯決議（院ごとの公開確認を経たもの）と動画は賛否の判断に関する内容なので、
-              賛否カードの中に置く。賛否が公開されていない間・法案提出前はどちらも出さない。
+              動画と附帯決議（院ごとの公開確認を経たもの）は賛否の判断に関する内容なので、
+              賛否が公開されていない間・法案提出前は出さない。
+              動画は賛否カードの中、附帯決議はその次の独立したセクションに置く。
             */}
-            <MiraiStanceCard
-              stance={bill.mirai_stance}
-              billStatus={bill.status}
-            >
-              {(supplementaryResolutions.length > 0 || videos.length > 0) && (
-                <div className="flex flex-col gap-8">
-                  {supplementaryResolutions.length > 0 && (
-                    <SupplementaryResolutionsSection
-                      resolutions={supplementaryResolutions}
-                    />
-                  )}
-                  {videos.length > 0 && <BillVideosSection videos={videos} />}
-                </div>
-              )}
-            </MiraiStanceCard>
-          </div>
+            <div className="my-8">
+              <MiraiStanceCard
+                stance={bill.mirai_stance}
+                billStatus={bill.status}
+              >
+                {isStanceDisclosed && videos.length > 0 && (
+                  <BillVideosSection videos={videos} />
+                )}
+              </MiraiStanceCard>
+            </div>
+            {isStanceDisclosed && supplementaryResolutions.length > 0 && (
+              <div className="my-8">
+                <SupplementaryResolutionsSection
+                  resolutions={supplementaryResolutions}
+                />
+              </div>
+            )}
+          </>
         )}
         {/* シェアボタン */}
         <div className="my-8">
