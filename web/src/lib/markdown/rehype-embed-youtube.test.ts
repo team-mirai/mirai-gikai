@@ -1,5 +1,6 @@
 import rehypeStringify from "rehype-stringify";
 import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import { unified } from "unified";
 import { describe, expect, it } from "vitest";
@@ -90,6 +91,52 @@ https://youtu.be/jNQXAC9IVRw`;
     const output = result.toString();
 
     const expected = `<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="youtube-embed"></iframe>`;
+
+    expect(normalizeHTML(output)).toBe(normalizeHTML(expected));
+  });
+});
+
+// remark-gfm有効時のプロセッサー（本番のparseMarkdownと同じくautolink literalが働く）
+const gfmProcessor = unified()
+  .use(remarkParse)
+  .use(remarkGfm)
+  .use(remarkRehype)
+  .use(rehypeEmbedYouTube)
+  .use(rehypeStringify);
+
+describe("rehypeEmbedYouTube with remark-gfm", () => {
+  it("should embed a bare URL that gfm turned into a link", async () => {
+    const input = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+    const result = await gfmProcessor.process(input);
+    const output = result.toString();
+
+    const expected =
+      '<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="youtube-embed"></iframe>';
+
+    expect(normalizeHTML(output)).toBe(normalizeHTML(expected));
+  });
+
+  it("should keep a labelled link as a link", async () => {
+    const input = "[動画はこちら](https://www.youtube.com/watch?v=dQw4w9WgXcQ)";
+
+    const result = await gfmProcessor.process(input);
+    const output = result.toString();
+
+    const expected =
+      '<p><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">動画はこちら</a></p>';
+
+    expect(normalizeHTML(output)).toBe(normalizeHTML(expected));
+  });
+
+  it("should not embed a link to a non-YouTube URL", async () => {
+    const input = "https://example.com/video";
+
+    const result = await gfmProcessor.process(input);
+    const output = result.toString();
+
+    const expected =
+      '<p><a href="https://example.com/video">https://example.com/video</a></p>';
 
     expect(normalizeHTML(output)).toBe(normalizeHTML(expected));
   });
