@@ -23,7 +23,12 @@ export function SupplementaryResolutionInfo() {
           size="icon"
           aria-label="附帯決議とは"
           className="size-7 cursor-help hover:bg-transparent"
-          onClick={() => setOpen(true)}
+          onClick={(event) => {
+            // Radix は子の onClick の後に「クリックで閉じる」処理を走らせるため、
+            // preventDefault で止めないとタップで開いた直後に閉じてしまう
+            event.preventDefault();
+            setOpen(true);
+          }}
         >
           <Info className="size-[18px] text-mirai-text-muted" />
         </Button>
